@@ -1,0 +1,22 @@
+{
+  "name": "@sorbet/organisms",
+  "version": "0.1.0",
+  "description": "Sorbet organisms for React: Navbar, Sidebar, Modal, Drawer, DataTable, Footer.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": { "@sorbet/core": "0.1.0", "@sorbet/atoms": "0.1.0" },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

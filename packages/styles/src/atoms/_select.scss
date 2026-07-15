@@ -1,0 +1,37 @@
+@use "../abstracts" as *;
+@use "input";
+
+// Wrapper pattern (selects can't carry pseudo-elements):
+//   <span class="sb-select"><select>…</select></span>
+.sb-select {
+  position: relative;
+  display: block;
+
+  select {
+    @include input.control-surface;
+
+    block-size: token(control-height-md);
+    padding-inline-end: space(10);
+    appearance: none;
+    cursor: pointer;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: space(4);
+    inset-block-start: 50%;
+    inline-size: 0.6em;
+    block-size: 0.6em;
+    translate: 0 -70%;
+    rotate: 45deg;
+    border-inline-end: 2px solid clr(text-muted);
+    border-block-end: 2px solid clr(text-muted);
+    pointer-events: none;
+  }
+
+  &--sm select {
+    block-size: token(control-height-sm);
+    font-size: fs(sm);
+  }
+}

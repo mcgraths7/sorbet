@@ -1,0 +1,88 @@
+@use "../abstracts" as *;
+
+// Edge-attached dialog: mobile nav, filter panels, detail peeks.
+// <dialog class="sb-drawer" data-sb="modal">…</dialog>
+.sb-drawer {
+  --drawer-size: 20rem;
+
+  position: fixed;
+  inset: 0 0 0 auto;
+  inline-size: min(var(--drawer-size), 90vw);
+  block-size: 100dvh;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: clr(surface-raised);
+  color: clr(text);
+  box-shadow: shadow(xl);
+  display: flex;
+  flex-direction: column;
+  translate: 100% 0;
+  transition:
+    translate dur(slow) ease(out),
+    display dur(slow) allow-discrete,
+    overlay dur(slow) allow-discrete;
+
+  &:not([open]) {
+    display: none;
+  }
+
+  &[open] {
+    translate: 0 0;
+
+    @starting-style {
+      translate: 100% 0;
+    }
+  }
+
+  &--start {
+    inset: 0 auto 0 0;
+    translate: -100% 0;
+
+    &[open] {
+      translate: 0 0;
+
+      @starting-style {
+        translate: -100% 0;
+      }
+    }
+  }
+
+  &::backdrop {
+    background-color: clr(scrim);
+    opacity: 0;
+    transition: opacity dur(slow) ease(out), display dur(slow) allow-discrete, overlay dur(slow) allow-discrete;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space(4);
+    padding: space(4);
+    border-block-end: token(border-width) solid clr(border-subtle);
+  }
+
+  &__body {
+    flex: 1;
+    padding: space(4);
+    overflow-y: auto;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: space(2);
+    padding: space(4);
+    border-block-start: token(border-width) solid clr(border-subtle);
+  }
+}

@@ -1,0 +1,74 @@
+@use "../abstracts" as *;
+
+// Pinterest-style masonry, in three progressive layers:
+//
+// 1. CSS multi-column (works everywhere, zero JS). Caveat: items flow in
+//    column-major order, so visual order ≠ DOM order.
+// 2. Native masonry grid (`grid-template-rows: masonry`) where the browser
+//    supports it — DOM order preserved, still zero JS.
+// 3. The Masonry behavior / React component upgrades unsupported browsers to
+//    a balanced grid (adds --balanced + measured row spans): DOM order
+//    preserved, images and resizes tracked.
+//
+// Tune column width with `--min` (or a --cols-N modifier for fixed counts).
+.sb-masonry {
+  // Custom properties inherit; reset so a parent's values never leak in.
+  --gap: initial;
+  --min: initial;
+  --masonry-columns: initial;
+
+  column-width: min(var(--min, 16rem), 100%);
+  column-gap: var(--gap, #{space(4)});
+
+  > * {
+    break-inside: avoid;
+    margin-block-end: var(--gap, #{space(4)});
+  }
+
+  @each $step in (2, 3, 4, 6, 8) {
+    &--gap-#{$step} {
+      --gap: #{space($step)};
+    }
+  }
+
+  &--narrow { --min: 12rem; }
+  &--wide { --min: 22rem; }
+
+  @each $n in (2, 3, 4, 5) {
+    &--cols-#{$n} {
+      --masonry-columns: repeat(#{$n}, 1fr);
+
+      column-count: #{$n};
+      column-width: auto;
+    }
+  }
+
+  // Layer 3: JS-balanced grid. Tiny rows; each item spans enough of them to
+  // cover its natural height plus the gap (≤2px of jitter). align-self:start
+  // keeps item heights natural so measuring them isn't circular.
+  &--balanced {
+    display: grid;
+    grid-template-columns: var(--masonry-columns, repeat(auto-fill, minmax(min(var(--min, 16rem), 100%), 1fr)));
+    grid-auto-rows: 2px;
+    row-gap: 0;
+    column-gap: var(--gap, #{space(4)});
+
+    > * {
+      align-self: start;
+      margin-block-end: 0;
+    }
+  }
+
+  // Layer 2: real masonry where it exists. Wins over the column fallback;
+  // the JS balancer detects support and stands down.
+  @supports (grid-template-rows: masonry) {
+    display: grid;
+    grid-template-columns: var(--masonry-columns, repeat(auto-fill, minmax(min(var(--min, 16rem), 100%), 1fr)));
+    grid-template-rows: masonry;
+    gap: var(--gap, #{space(4)});
+
+    > * {
+      margin-block-end: 0;
+    }
+  }
+}

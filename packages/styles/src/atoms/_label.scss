@@ -1,0 +1,20 @@
+@use "../abstracts" as *;
+
+.sb-label {
+  display: block;
+  font-size: fs(sm);
+  font-weight: fw(medium);
+  color: clr(text);
+
+  // <label class="sb-label" data-required>Email</label>
+  &[data-required]::after {
+    content: " *";
+    color: clr(danger-text);
+  }
+
+  &[data-optional]::after {
+    content: " (optional)";
+    color: clr(text-subtle);
+    font-weight: fw(regular);
+  }
+}

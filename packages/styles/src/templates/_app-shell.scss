@@ -1,0 +1,55 @@
+@use "../abstracts" as *;
+
+// Full application frame: navbar on top, sidebar rail, scrolling main.
+// The sidebar column disappears below lg — reuse the same .sb-sidebar
+// markup inside a .sb-drawer for mobile.
+//
+// <div class="sb-app-shell">
+//   <header class="sb-navbar sb-app-shell__header">…</header>
+//   <aside class="sb-app-shell__sidebar"><nav class="sb-sidebar">…</nav></aside>
+//   <main class="sb-app-shell__main">…</main>
+// </div>
+.sb-app-shell {
+  min-block-size: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "header"
+    "main";
+
+  @include respond(lg) {
+    grid-template-columns: var(--sidebar-width, 16.5rem) 1fr;
+    grid-template-areas:
+      "header header"
+      "sidebar main";
+  }
+
+  &__header {
+    grid-area: header;
+  }
+
+  &__sidebar {
+    display: none;
+    grid-area: sidebar;
+    border-inline-end: token(border-width) solid clr(border-subtle);
+    background-color: clr(surface);
+
+    @include respond(lg) {
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      inset-block-start: 3.75rem;
+      block-size: calc(100dvh - 3.75rem);
+      overflow-y: auto;
+    }
+  }
+
+  &__main {
+    grid-area: main;
+    min-inline-size: 0;
+    padding-block: space(6) space(16);
+    container-type: inline-size;
+    container-name: main;
+  }
+}

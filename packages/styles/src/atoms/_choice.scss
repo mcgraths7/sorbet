@@ -1,0 +1,91 @@
+@use "../abstracts" as *;
+
+// Custom checkbox & radio. Fully styled, keyboard-friendly, animated with a
+// spring that no-ops under prefers-reduced-motion (see base reset).
+.sb-checkbox,
+.sb-radio {
+  @include focus-ring;
+
+  appearance: none;
+  flex-shrink: 0;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border: 1.5px solid clr(border-strong);
+  background-color: clr(surface);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: background-color dur(fast) ease(out), border-color dur(fast) ease(out);
+
+  &::before {
+    content: "";
+    transform: scale(0);
+    transition: transform dur(fast) ease(spring);
+  }
+
+  &:checked {
+    background-color: clr(primary);
+    border-color: clr(primary);
+
+    &::before {
+      transform: scale(1);
+    }
+  }
+
+  &:disabled {
+    background-color: clr(bg-subtle);
+    border-color: clr(border);
+    cursor: not-allowed;
+  }
+}
+
+.sb-checkbox {
+  border-radius: radius(xs);
+
+  &::before {
+    inline-size: 0.7rem;
+    block-size: 0.7rem;
+    background-color: clr(on-primary);
+    clip-path: polygon(14% 44%, 0 60%, 40% 100%, 100% 16%, 84% 4%, 38% 71%);
+  }
+
+  &:indeterminate {
+    background-color: clr(primary);
+    border-color: clr(primary);
+
+    &::before {
+      transform: scale(1);
+      clip-path: inset(38% 10% 38% 10%);
+    }
+  }
+}
+
+.sb-radio {
+  border-radius: radius(full);
+
+  &::before {
+    inline-size: 0.55rem;
+    block-size: 0.55rem;
+    border-radius: radius(full);
+    background-color: clr(on-primary);
+  }
+}
+
+// Label wrapper: <label class="sb-choice"><input class="sb-checkbox" …> Text</label>
+.sb-choice {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: space(2);
+  cursor: pointer;
+  font-size: fs(sm);
+
+  > .sb-checkbox,
+  > .sb-radio {
+    margin-block-start: 0.1em;
+  }
+
+  &:has(input:disabled) {
+    cursor: not-allowed;
+    color: clr(text-subtle);
+  }
+}

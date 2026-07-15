@@ -1,0 +1,69 @@
+@use "../abstracts" as *;
+
+// App navigation rail. Lives in .sb-app-shell__sidebar or a drawer.
+//
+// <nav class="sb-sidebar" aria-label="Primary">
+//   <p class="sb-sidebar__heading">Workspace</p>
+//   <a class="sb-sidebar__item" href="…" aria-current="page"><svg…></svg> Dashboard</a>
+// </nav>
+.sb-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: space(1);
+  padding: space(3);
+
+  &__heading {
+    padding: space(4) space(3) space(1);
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    letter-spacing: ls(wider);
+    text-transform: uppercase;
+    color: clr(text-subtle);
+
+    &:first-child {
+      padding-block-start: space(1);
+    }
+  }
+
+  &__item {
+    @include focus-ring(-2px);
+
+    display: flex;
+    align-items: center;
+    gap: space(3);
+    padding: space(2) space(3);
+    border-radius: radius(sm);
+    font-size: fs(sm);
+    font-weight: fw(medium);
+    color: clr(text-muted);
+    text-decoration: none;
+    transition: color dur(fast) ease(out), background-color dur(fast) ease(out);
+
+    > svg {
+      inline-size: 1.1em;
+      block-size: 1.1em;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      color: clr(text);
+      background-color: clr(bg-subtle);
+    }
+
+    &[aria-current="page"],
+    &[aria-current="true"] {
+      color: clr(primary-text);
+      background-color: clr(primary-subtle);
+    }
+
+    .sb-badge {
+      margin-inline-start: auto;
+    }
+  }
+
+  &__footer {
+    margin-block-start: auto;
+    padding-block-start: space(3);
+    border-block-start: token(border-width) solid clr(border-subtle);
+  }
+}

@@ -1,0 +1,13 @@
+@use "../abstracts" as *;
+
+.sb-kbd {
+  display: inline-block;
+  padding: 0.1em 0.45em;
+  border-radius: radius(xs);
+  border: token(border-width) solid clr(border);
+  border-block-end-width: 2px;
+  background-color: clr(bg-subtle);
+  font-family: font(mono);
+  font-size: 0.85em;
+  color: clr(text-muted);
+}

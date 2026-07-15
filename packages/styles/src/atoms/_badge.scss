@@ -1,0 +1,37 @@
+@use "../abstracts" as *;
+
+.sb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: space(1);
+  padding: 0.125rem space(2);
+  border-radius: radius(full);
+  font-size: fs(xs);
+  font-weight: fw(semibold);
+  line-height: lh(snug);
+  white-space: nowrap;
+
+  // default: neutral
+  background-color: clr(bg-subtle);
+  color: clr(text-muted);
+
+  @each $tone in (primary, secondary, accent, success, warning, danger, info) {
+    &--#{$tone} {
+      background-color: clr(#{$tone}-subtle);
+      color: clr(#{$tone}-text);
+    }
+
+    &--#{$tone}.sb-badge--solid {
+      background-color: clr($tone);
+      color: clr(on-#{$tone});
+    }
+  }
+
+  // Leading status dot: <span class="sb-badge sb-badge--success"><i class="sb-badge__dot"></i> Active</span>
+  &__dot {
+    inline-size: 0.45em;
+    block-size: 0.45em;
+    border-radius: radius(full);
+    background-color: currentColor;
+  }
+}

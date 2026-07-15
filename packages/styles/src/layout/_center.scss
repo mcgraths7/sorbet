@@ -1,0 +1,32 @@
+@use "../abstracts" as *;
+
+// Intrinsic centering: a readable column (or a lone card) centered in
+// whatever space exists.
+.sb-center {
+  box-sizing: content-box;
+  max-inline-size: var(--measure, #{token(measure)});
+  margin-inline: auto;
+  padding-inline: space(4);
+
+  &--intrinsic {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &--text {
+    text-align: center;
+  }
+}
+
+// Full-viewport centering (auth pages, empty states).
+.sb-cover {
+  display: grid;
+  place-items: center;
+  min-block-size: 100dvh;
+  padding: space(6);
+
+  &--partial {
+    min-block-size: 60vh;
+  }
+}

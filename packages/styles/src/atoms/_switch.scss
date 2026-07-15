@@ -1,0 +1,56 @@
+@use "../abstracts" as *;
+
+// <input type="checkbox" role="switch" class="sb-switch">
+.sb-switch {
+  @include focus-ring;
+
+  appearance: none;
+  flex-shrink: 0;
+  inline-size: 2.5rem;
+  block-size: 1.5rem;
+  border-radius: radius(full);
+  background-color: clr(border-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background-color dur(base) ease(out);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 0.1875rem;
+    inset-inline-start: 0.1875rem;
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+    border-radius: radius(full);
+    background-color: clr(surface);
+    box-shadow: shadow(xs);
+    transition: translate dur(base) ease(spring);
+  }
+
+  &:checked {
+    background-color: clr(primary);
+
+    &::before {
+      translate: 1rem 0;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &--sm {
+    inline-size: 2rem;
+    block-size: 1.25rem;
+
+    &::before {
+      inline-size: 0.875rem;
+      block-size: 0.875rem;
+    }
+
+    &:checked::before {
+      translate: 0.75rem 0;
+    }
+  }
+}

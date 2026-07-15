@@ -1,0 +1,55 @@
+@use "../abstracts" as *;
+
+// Interactive tag: filters, selected values. Optionally dismissible.
+.sb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: space(1);
+  block-size: 1.75rem;
+  padding-inline: space(3);
+  border-radius: radius(full);
+  border: token(border-width) solid clr(border);
+  background-color: clr(surface);
+  font-size: fs(sm);
+  color: clr(text-muted);
+  transition: background-color dur(fast) ease(out), border-color dur(fast) ease(out);
+
+  &[data-selected],
+  &--selected {
+    background-color: clr(primary-subtle);
+    border-color: clr(primary);
+    color: clr(primary-text);
+    font-weight: fw(medium);
+  }
+
+  &__remove {
+    @include control-reset;
+    @include focus-ring(0);
+
+    display: inline-grid;
+    place-content: center;
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
+    margin-inline-end: calc(-1 * #{space(1)});
+    border-radius: radius(full);
+    font-size: fs(xs);
+    line-height: 1;
+
+    &:hover {
+      background-color: color-mix(in oklab, currentColor, transparent 85%);
+    }
+  }
+}
+
+button.sb-chip {
+  @include control-reset;
+  @include focus-ring;
+  @include pressable;
+
+  cursor: pointer;
+  border: token(border-width) solid clr(border);
+
+  &:hover:not([data-selected], .sb-chip--selected) {
+    background-color: clr(bg-subtle);
+  }
+}

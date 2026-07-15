@@ -1,0 +1,24 @@
+@use "../abstracts" as *;
+
+:root {
+  @include static-tokens;
+}
+
+body {
+  font-family: font(sans);
+  font-size: fs(md);
+  line-height: lh(normal);
+  color: clr(text);
+  background-color: clr(bg);
+}
+
+::selection {
+  background-color: clr(primary-subtle);
+  color: clr(text);
+}
+
+// Baseline focus indicator; components refine offset per shape.
+:focus-visible {
+  outline: token(focus-ring-width) solid clr(focus-ring);
+  outline-offset: 2px;
+}

@@ -1,0 +1,91 @@
+@use "../abstracts" as *;
+
+.sb-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: radius(lg);
+  border: token(border-width) solid clr(border-subtle);
+  background-color: clr(surface);
+  box-shadow: shadow(sm);
+  overflow: hidden;
+
+  &__header,
+  &__body,
+  &__footer {
+    padding: space(4);
+
+    @include respond(md) {
+      padding-inline: space(6);
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space(3);
+    padding-block-end: 0;
+  }
+
+  &__body {
+    flex: 1;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: space(2);
+    padding-block-start: 0;
+  }
+
+  &__footer--split {
+    justify-content: space-between;
+  }
+
+  // Edge-to-edge media above the body.
+  &__media {
+    img {
+      inline-size: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+  }
+
+  &__title {
+    font-size: fs(lg);
+    font-weight: fw(semibold);
+    line-height: lh(snug);
+  }
+
+  &--raised {
+    border: none;
+    box-shadow: shadow(md);
+  }
+
+  &--flat {
+    box-shadow: none;
+  }
+
+  &--sunken {
+    background-color: clr(surface-sunken);
+    border: none;
+    box-shadow: none;
+  }
+
+  // Whole-card link/button affordance.
+  &--interactive {
+    transition: box-shadow dur(base) ease(out), translate dur(base) ease(out), border-color dur(base) ease(out);
+
+    &:hover {
+      box-shadow: shadow(lg);
+      translate: 0 -2px;
+      border-color: clr(border);
+    }
+
+    &:has(a:focus-visible) {
+      outline: token(focus-ring-width) solid clr(focus-ring);
+      outline-offset: 2px;
+    }
+  }
+}

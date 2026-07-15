@@ -1,0 +1,88 @@
+@use "../abstracts" as *;
+
+// Native <dialog>, opened with .showModal() by the Modal behavior (or your
+// own call). Entry/exit animate via @starting-style + allow-discrete —
+// no JS animation code.
+//
+// <dialog class="sb-modal" id="confirm" data-sb="modal">
+//   <header class="sb-modal__header">…</header>
+//   <div class="sb-modal__body">…</div>
+//   <footer class="sb-modal__footer">…</footer>
+// </dialog>
+.sb-modal {
+  inline-size: min(32rem, calc(100vw - #{space(8)}));
+  max-block-size: min(85dvh, 40rem);
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: radius(xl);
+  background-color: clr(surface-raised);
+  color: clr(text);
+  box-shadow: shadow(xl);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  translate: 0 space(3);
+  transition:
+    opacity dur(base) ease(out),
+    translate dur(base) ease(spring),
+    display dur(base) allow-discrete,
+    overlay dur(base) allow-discrete;
+
+  &:not([open]) {
+    display: none;
+  }
+
+  &[open] {
+    opacity: 1;
+    translate: 0 0;
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 space(3);
+    }
+  }
+
+  &::backdrop {
+    background-color: clr(scrim);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity dur(base) ease(out), display dur(base) allow-discrete, overlay dur(base) allow-discrete;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space(4);
+    padding: space(5) space(6) 0;
+
+    h2,
+    h3 {
+      font-size: fs(xl);
+    }
+  }
+
+  &__body {
+    padding: space(4) space(6);
+    overflow-y: auto;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: space(2);
+    padding: 0 space(6) space(5);
+  }
+
+  &--sm { inline-size: min(24rem, calc(100vw - #{space(8)})); }
+  &--lg { inline-size: min(44rem, calc(100vw - #{space(8)})); }
+}

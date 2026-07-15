@@ -1,0 +1,23 @@
+@use "../abstracts" as *;
+
+// Deliberately tiny. Spacing belongs to layout primitives, color to tokens —
+// utilities exist only for the handful of things that are truly one-off.
+.u-visually-hidden {
+  @include visually-hidden;
+}
+
+.u-truncate {
+  @include truncate;
+}
+
+.u-text-center { text-align: center; }
+.u-text-end { text-align: end; }
+.u-text-muted { color: clr(text-muted); }
+.u-text-subtle { color: clr(text-subtle); }
+.u-text-sm { font-size: fs(sm); }
+.u-text-xs { font-size: fs(xs); }
+.u-tabular { font-variant-numeric: tabular-nums; }
+
+[hidden] {
+  display: none !important;
+}

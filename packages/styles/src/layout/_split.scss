@@ -1,0 +1,29 @@
+@use "../abstracts" as *;
+
+// Sidebar-and-content: sidebar keeps its natural width, content takes the
+// rest, and the pair stacks when the content would get too narrow.
+.sb-split {
+  // Custom properties inherit; reset so a parent's values never leak in.
+  --gap: initial;
+  --aside: initial;
+  --content-min: initial;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap, #{space(6)});
+
+  > .sb-split__aside {
+    flex-basis: var(--aside, 16rem);
+    flex-grow: 1;
+  }
+
+  > .sb-split__main {
+    flex-basis: 0;
+    flex-grow: 999;
+    min-inline-size: min(var(--content-min, 55%), 100%);
+  }
+
+  &--aside-right {
+    flex-direction: row-reverse;
+  }
+}

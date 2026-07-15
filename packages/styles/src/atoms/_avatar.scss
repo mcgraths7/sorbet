@@ -1,0 +1,44 @@
+@use "../abstracts" as *;
+
+// <span class="sb-avatar"><img src=… alt="Ada Lovelace"></span>
+// or initials fallback: <span class="sb-avatar">AL</span>
+.sb-avatar {
+  --size: 2.5rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--size);
+  block-size: var(--size);
+  flex-shrink: 0;
+  border-radius: radius(full);
+  background-color: clr(secondary-subtle);
+  color: clr(secondary-text);
+  font-size: calc(var(--size) * 0.4);
+  font-weight: fw(semibold);
+  overflow: hidden;
+  user-select: none;
+
+  img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  &--sm { --size: 2rem; }
+  &--lg { --size: 3.25rem; }
+  &--xl { --size: 4.5rem; }
+  &--square { border-radius: radius(md); }
+}
+
+.sb-avatar-group {
+  display: inline-flex;
+
+  .sb-avatar {
+    border: 2px solid clr(surface);
+
+    &:not(:first-child) {
+      margin-inline-start: calc(var(--size) * -0.3);
+    }
+  }
+}

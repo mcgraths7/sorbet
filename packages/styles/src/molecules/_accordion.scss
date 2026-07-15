@@ -1,0 +1,76 @@
+@use "../abstracts" as *;
+
+// Native <details>/<summary> — accessible with zero JS. The optional
+// Accordion behavior adds exclusive-open. Modern Chrome also animates
+// it via interpolate-size below.
+//
+// <details class="sb-accordion" name="faq">
+//   <summary>Question</summary>
+//   <div class="sb-accordion__body">Answer</div>
+// </details>
+.sb-accordion {
+  border: token(border-width) solid clr(border-subtle);
+  border-radius: radius(md);
+  background-color: clr(surface);
+
+  & + & {
+    margin-block-start: space(2);
+  }
+
+  summary {
+    @include focus-ring(-2px);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space(3);
+    padding: space(4);
+    font-weight: fw(medium);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: "";
+      inline-size: 0.55em;
+      block-size: 0.55em;
+      flex-shrink: 0;
+      rotate: 45deg;
+      translate: 0 -25%;
+      border-inline-end: 2px solid clr(text-muted);
+      border-block-end: 2px solid clr(text-muted);
+      transition: rotate dur(base) ease(out), translate dur(base) ease(out);
+    }
+  }
+
+  &[open] summary::after {
+    rotate: 225deg;
+    translate: 0 25%;
+  }
+
+  &__body {
+    padding: 0 space(4) space(4);
+    color: clr(text-muted);
+    font-size: fs(sm);
+    line-height: lh(relaxed);
+  }
+}
+
+@supports (interpolate-size: allow-keywords) {
+  .sb-accordion {
+    interpolate-size: allow-keywords;
+
+    &::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      transition: block-size dur(base) ease(out), content-visibility dur(base) allow-discrete;
+    }
+
+    &[open]::details-content {
+      block-size: auto;
+    }
+  }
+}

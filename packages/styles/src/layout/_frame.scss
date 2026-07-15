@@ -1,0 +1,34 @@
+@use "../abstracts" as *;
+
+// Fixed-ratio media box: photos, video embeds, map iframes, chart wells.
+// The media fills and crops; the box never reflows when content loads.
+//
+//   <div class="sb-frame" style="--ratio: 4 / 5"><img src=… alt=…></div>
+.sb-frame {
+  --ratio: initial;
+
+  aspect-ratio: var(--ratio, 16 / 9);
+  overflow: hidden;
+
+  > img,
+  > video,
+  > iframe {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    border: 0;
+  }
+
+  &--square { --ratio: 1; }
+  &--portrait { --ratio: 3 / 4; }
+  &--wide { --ratio: 21 / 9; }
+
+  &--contain > img,
+  &--contain > video {
+    object-fit: contain;
+  }
+
+  &--round {
+    border-radius: radius(lg);
+  }
+}

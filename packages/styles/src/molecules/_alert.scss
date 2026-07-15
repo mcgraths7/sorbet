@@ -1,0 +1,57 @@
+@use "../abstracts" as *;
+
+// <div class="sb-alert sb-alert--success" role="status">
+//   <svg class="sb-alert__icon">…</svg>
+//   <div><p class="sb-alert__title">Saved</p><p>Your changes are live.</p></div>
+//   <button class="sb-alert__dismiss" aria-label="Dismiss">×</button>
+// </div>
+// Use role="alert" only for urgent interruptions (danger).
+.sb-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: space(3);
+  padding: space(4);
+  border-radius: radius(md);
+  background-color: clr(info-subtle);
+  color: clr(info-text);
+  font-size: fs(sm);
+  line-height: lh(normal);
+
+  @each $tone in (success, warning, danger, info) {
+    &--#{$tone} {
+      background-color: clr(#{$tone}-subtle);
+      color: clr(#{$tone}-text);
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    margin-block-start: 0.05em;
+  }
+
+  &__title {
+    font-weight: fw(semibold);
+    margin-block-end: space(1);
+  }
+
+  &__dismiss {
+    @include control-reset;
+    @include focus-ring(0);
+
+    margin-inline-start: auto;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    flex-shrink: 0;
+    display: grid;
+    place-content: center;
+    border-radius: radius(sm);
+    font-size: fs(lg);
+    line-height: 1;
+
+    &:hover {
+      background-color: color-mix(in oklab, currentColor, transparent 88%);
+    }
+  }
+}

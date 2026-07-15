@@ -1,0 +1,83 @@
+// Token accessors. Components never write raw values or raw var() calls —
+// they go through these functions, which validate the token name at compile
+// time against the generated lists.
+
+@use "sass:list";
+@use "sass:map";
+@use "generated" as gen;
+
+@function -check($group, $key) {
+  $keys: map.get(gen.$scale-keys, $group);
+  @if not list.index($keys, "#{$key}") {
+    @error "Unknown #{$group} token `#{$key}`. Valid: #{$keys}";
+  }
+  @return $key;
+}
+
+/// Semantic color, e.g. clr(primary), clr(text-muted)
+@function clr($name) {
+  @if not list.index(gen.$semantic-colors, "#{$name}") {
+    @error "Unknown color token `#{$name}`. Valid: #{gen.$semantic-colors}";
+  }
+  @return var(--sb-#{$name});
+}
+
+/// Spacing step, e.g. space(4) → var(--sb-space-4)
+@function space($key) {
+  @return var(--sb-space-#{-check("space", $key)});
+}
+
+/// Font size, e.g. fs(lg)
+@function fs($key) {
+  @return var(--sb-text-#{-check("text", $key)});
+}
+
+/// Line height, e.g. lh(tight)
+@function lh($key) {
+  @return var(--sb-leading-#{-check("leading", $key)});
+}
+
+/// Font weight, e.g. fw(semibold)
+@function fw($key) {
+  @return var(--sb-weight-#{-check("weight", $key)});
+}
+
+/// Letter spacing, e.g. ls(wide)
+@function ls($key) {
+  @return var(--sb-tracking-#{-check("tracking", $key)});
+}
+
+/// Font family: sans | display | mono
+@function font($key) {
+  @return var(--sb-font-#{-check("font", $key)});
+}
+
+/// Border radius, e.g. radius(md)
+@function radius($key) {
+  @return var(--sb-radius-#{-check("radius", $key)});
+}
+
+/// Elevation shadow, e.g. shadow(lg)
+@function shadow($key) {
+  @return var(--sb-shadow-#{-check("shadow", $key)});
+}
+
+/// Motion duration, e.g. dur(fast)
+@function dur($key) {
+  @return var(--sb-duration-#{-check("duration", $key)});
+}
+
+/// Easing curve: out | in-out | spring
+@function ease($key) {
+  @return var(--sb-ease-#{-check("ease", $key)});
+}
+
+/// Stacking layer, e.g. z(modal)
+@function z($key) {
+  @return var(--sb-z-#{-check("z", $key)});
+}
+
+/// Escape hatch for one-off tokens (measure, control-height-md, …)
+@function token($name) {
+  @return var(--sb-#{$name});
+}

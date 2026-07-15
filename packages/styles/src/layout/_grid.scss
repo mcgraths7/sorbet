@@ -1,0 +1,41 @@
+@use "../abstracts" as *;
+
+// Responsive card grid without media queries: columns appear as space
+// allows. Tune the minimum card width with `--min` or a modifier.
+.sb-grid {
+  // Custom properties inherit; reset so a parent's values never leak in.
+  --gap: initial;
+  --min: initial;
+
+  display: grid;
+  gap: var(--gap, #{space(4)});
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--min, 16rem), 100%), 1fr));
+
+  @each $step in (2, 3, 4, 6, 8) {
+    &--gap-#{$step} {
+      --gap: #{space($step)};
+    }
+  }
+
+  &--narrow { --min: 12rem; }
+  &--wide { --min: 22rem; }
+
+  // Fixed column counts for when content must line up (form rows, stats).
+  @each $n in (2, 3, 4) {
+    &--cols-#{$n} {
+      grid-template-columns: repeat(#{$n}, 1fr);
+
+      @include respond-down(md) {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  > .sb-grid__span-2 {
+    grid-column: span 2;
+
+    @include respond-down(md) {
+      grid-column: auto;
+    }
+  }
+}

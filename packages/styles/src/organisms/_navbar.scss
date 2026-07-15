@@ -1,0 +1,85 @@
+@use "../abstracts" as *;
+
+// App header. Glassy, sticky, mobile-first: nav links hide below md — pair
+// with a drawer for the mobile menu.
+//
+// <header class="sb-navbar">
+//   <div class="sb-navbar__inner sb-container">
+//     <a class="sb-navbar__brand" href="/">Fizz</a>
+//     <nav class="sb-navbar__nav" aria-label="Main">…</nav>
+//     <div class="sb-navbar__actions">…</div>
+//   </div>
+// </header>
+.sb-navbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: z(sticky);
+  border-block-end: token(border-width) solid clr(border-subtle);
+  background-color: color-mix(in oklab, clr(bg), transparent 20%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    gap: space(6);
+    block-size: 3.75rem;
+  }
+
+  &__brand {
+    font-family: font(display);
+    font-size: fs(xl);
+    font-weight: fw(black);
+    color: clr(text);
+    text-decoration: none;
+    letter-spacing: ls(tight);
+
+    &:hover {
+      color: clr(primary-text);
+    }
+  }
+
+  &__nav {
+    display: none;
+    align-items: center;
+    gap: space(1);
+
+    @include respond(md) {
+      display: flex;
+    }
+
+    a {
+      padding: space(2) space(3);
+      border-radius: radius(sm);
+      font-size: fs(sm);
+      font-weight: fw(medium);
+      color: clr(text-muted);
+      text-decoration: none;
+      transition: color dur(fast) ease(out), background-color dur(fast) ease(out);
+
+      &:hover {
+        color: clr(text);
+        background-color: clr(bg-subtle);
+      }
+
+      &[aria-current="page"] {
+        color: clr(primary-text);
+        background-color: clr(primary-subtle);
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+    margin-inline-start: auto;
+  }
+
+  // Hamburger slot, visible only below md.
+  &__menu-button {
+    @include respond(md) {
+      display: none;
+    }
+  }
+}

@@ -1,0 +1,58 @@
+@use "../abstracts" as *;
+
+// KPI tile. Compose inside a card or a grid.
+// <div class="sb-stat">
+//   <p class="sb-stat__label">Monthly revenue</p>
+//   <p class="sb-stat__value">$48,210</p>
+//   <p class="sb-stat__delta" data-trend="up">+12.4%</p>
+// </div>
+.sb-stat {
+  display: flex;
+  flex-direction: column;
+  gap: space(1);
+
+  &__label {
+    font-size: fs(sm);
+    color: clr(text-muted);
+  }
+
+  &__value {
+    font-family: font(display);
+    font-size: fs(3xl);
+    font-weight: fw(bold);
+    line-height: lh(tight);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__delta {
+    display: inline-flex;
+    align-items: center;
+    gap: space(1);
+    font-size: fs(sm);
+    font-weight: fw(semibold);
+
+    &[data-trend="up"] {
+      color: clr(success-text);
+
+      &::before {
+        content: "↑";
+      }
+    }
+
+    &[data-trend="down"] {
+      color: clr(danger-text);
+
+      &::before {
+        content: "↓";
+      }
+    }
+
+    &[data-trend="flat"] {
+      color: clr(text-subtle);
+
+      &::before {
+        content: "→";
+      }
+    }
+  }
+}

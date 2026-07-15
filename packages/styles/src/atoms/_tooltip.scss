@@ -1,0 +1,31 @@
+@use "../abstracts" as *;
+
+// Panel used by the Tooltip behavior (Popover API). The behavior positions
+// it; these styles give it shape.
+.sb-tooltip {
+  position: fixed;
+  margin: 0;
+  inset: auto;
+  max-inline-size: 18rem;
+  padding: space(2) space(3);
+  border: none;
+  border-radius: radius(sm);
+  background-color: clr(text);
+  color: clr(bg);
+  font-size: fs(xs);
+  font-weight: fw(medium);
+  line-height: lh(snug);
+  box-shadow: shadow(md);
+  z-index: z(tooltip);
+
+  &:popover-open {
+    opacity: 1;
+    translate: 0 0;
+    transition: opacity dur(fast) ease(out), translate dur(fast) ease(out);
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 2px;
+    }
+  }
+}

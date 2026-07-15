@@ -1,0 +1,91 @@
+@use "../abstracts" as *;
+
+// Dropdown panel driven by the Menu behavior (Popover API).
+// <button data-sb="menu" popovertarget="m1">Options</button>
+// <div class="sb-menu" id="m1" popover>…</div>
+.sb-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-inline-size: 12rem;
+  padding: space(1);
+  border: token(border-width) solid clr(border-subtle);
+  border-radius: radius(md);
+  background-color: clr(surface-raised);
+  color: clr(text);
+  box-shadow: shadow(lg);
+  z-index: z(popover);
+
+  &:popover-open {
+    opacity: 1;
+    scale: 1;
+    transition: opacity dur(fast) ease(out), scale dur(fast) ease(spring);
+
+    @starting-style {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+
+  &__item {
+    @include control-reset;
+
+    display: flex;
+    align-items: center;
+    gap: space(2);
+    inline-size: 100%;
+    padding: space(2) space(3);
+    border-radius: radius(sm);
+    font-size: fs(sm);
+    text-align: start;
+    text-decoration: none;
+    color: clr(text);
+
+    > svg {
+      inline-size: 1em;
+      block-size: 1em;
+      color: clr(text-muted);
+    }
+
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      background-color: clr(bg-subtle);
+    }
+
+    &[data-danger] {
+      color: clr(danger-text);
+
+      > svg {
+        color: currentColor;
+      }
+
+      &:hover,
+      &:focus-visible {
+        background-color: clr(danger-subtle);
+      }
+    }
+  }
+
+  &__kbd {
+    margin-inline-start: auto;
+    color: clr(text-subtle);
+    font-family: font(mono);
+    font-size: fs(xs);
+  }
+
+  &__separator {
+    border: none;
+    border-block-start: token(border-width) solid clr(border-subtle);
+    margin-block: space(1);
+  }
+
+  &__heading {
+    padding: space(2) space(3) space(1);
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    letter-spacing: ls(wide);
+    text-transform: uppercase;
+    color: clr(text-subtle);
+  }
+}

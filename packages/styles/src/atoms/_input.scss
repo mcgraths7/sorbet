@@ -1,0 +1,72 @@
+@use "../abstracts" as *;
+
+// Shared look for text-like controls. Applied to .sb-input (input, textarea)
+// and the inner control of .sb-select.
+@mixin control-surface {
+  inline-size: 100%;
+  padding-inline: space(3);
+  border: token(border-width) solid clr(border-strong);
+  border-radius: radius(sm);
+  background-color: clr(surface);
+  color: clr(text);
+  transition: border-color dur(fast) ease(out), box-shadow dur(fast) ease(out);
+
+  &::placeholder {
+    color: clr(text-subtle);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: clr(focus-ring);
+    box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(focus-ring), transparent 70%);
+  }
+
+  &:disabled {
+    background-color: clr(bg-subtle);
+    color: clr(text-subtle);
+    cursor: not-allowed;
+  }
+
+  // Invalid only once the user has interacted (:user-invalid), or when the
+  // app says so explicitly.
+  &:user-invalid,
+  &[aria-invalid="true"] {
+    border-color: clr(danger);
+
+    &:focus-visible {
+      border-color: clr(danger);
+      box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(danger), transparent 70%);
+    }
+  }
+}
+
+.sb-input {
+  @include control-surface;
+
+  block-size: token(control-height-md);
+
+  &--sm {
+    block-size: token(control-height-sm);
+    font-size: fs(sm);
+  }
+
+  &--lg {
+    block-size: token(control-height-lg);
+    font-size: fs(lg);
+  }
+}
+
+.sb-textarea {
+  @include control-surface;
+
+  min-block-size: calc(token(control-height-md) * 2.4);
+  padding-block: space(2);
+  resize: vertical;
+
+  // Grows with content up to a cap — no JS autosize needed.
+  &--auto {
+    field-sizing: content;
+    max-block-size: 24rem;
+    resize: none;
+  }
+}

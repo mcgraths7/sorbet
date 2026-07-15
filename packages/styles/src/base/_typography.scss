@@ -1,0 +1,117 @@
+@use "../abstracts" as *;
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: font(display);
+  line-height: lh(tight);
+  font-weight: fw(bold);
+}
+
+h1 { font-size: fs(4xl); }
+h2 { font-size: fs(3xl); }
+h3 { font-size: fs(2xl); }
+h4 { font-size: fs(xl); }
+h5 { font-size: fs(lg); font-weight: fw(semibold); }
+h6 { font-size: fs(md); font-weight: fw(semibold); letter-spacing: ls(wide); text-transform: uppercase; }
+
+small {
+  font-size: fs(sm);
+}
+
+strong {
+  font-weight: fw(semibold);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: font(mono);
+  font-size: 0.9em;
+}
+
+a:not([class]) {
+  color: clr(link);
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    color: clr(link-hover);
+  }
+}
+
+// Long-form content. The one place elements get flow margins — prose owns
+// its internal rhythm the way a layout primitive owns gaps.
+.sb-prose {
+  max-inline-size: token(measure);
+
+  > * + * {
+    margin-block-start: space(4);
+  }
+
+  > h2 + *,
+  > h3 + * {
+    margin-block-start: space(3);
+  }
+
+  > * + h2 {
+    margin-block-start: space(10);
+  }
+
+  > * + h3 {
+    margin-block-start: space(8);
+  }
+
+  ul,
+  ol {
+    padding-inline-start: space(6);
+
+    li + li {
+      margin-block-start: space(2);
+    }
+  }
+
+  blockquote {
+    padding-inline-start: space(4);
+    border-inline-start: 3px solid clr(primary);
+    color: clr(text-muted);
+    font-style: italic;
+  }
+
+  pre {
+    padding: space(4);
+    border-radius: radius(md);
+    background-color: clr(surface-sunken);
+    overflow-x: auto;
+  }
+
+  code:not(pre code) {
+    padding: 0.15em 0.4em;
+    border-radius: radius(xs);
+    background-color: clr(bg-subtle);
+  }
+
+  hr {
+    border: none;
+    border-block-start: 1px solid clr(border);
+  }
+}
+
+.sb-lead {
+  font-size: fs(lg);
+  color: clr(text-muted);
+  line-height: lh(relaxed);
+}
+
+.sb-overline {
+  font-size: fs(xs);
+  font-weight: fw(semibold);
+  letter-spacing: ls(wider);
+  text-transform: uppercase;
+  color: clr(text-muted);
+}

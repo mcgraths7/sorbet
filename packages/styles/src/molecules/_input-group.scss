@@ -1,0 +1,49 @@
+@use "../abstracts" as *;
+
+// Joined controls: input + button (search), addon + input (https://, .com).
+.sb-input-group {
+  display: flex;
+  align-items: stretch;
+
+  > * {
+    border-radius: 0;
+  }
+
+  > :first-child {
+    border-start-start-radius: radius(sm);
+    border-end-start-radius: radius(sm);
+  }
+
+  > :last-child {
+    border-start-end-radius: radius(sm);
+    border-end-end-radius: radius(sm);
+  }
+
+  > .sb-input {
+    flex: 1;
+    min-inline-size: 0;
+
+    &:not(:first-child) {
+      border-inline-start: none;
+    }
+  }
+
+  > .sb-button {
+    block-size: auto;
+  }
+
+  &__addon {
+    display: inline-flex;
+    align-items: center;
+    padding-inline: space(3);
+    border: token(border-width) solid clr(border-strong);
+    background-color: clr(bg-subtle);
+    color: clr(text-muted);
+    font-size: fs(sm);
+    white-space: nowrap;
+
+    &:not(:last-child) {
+      border-inline-end: none;
+    }
+  }
+}

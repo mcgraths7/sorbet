@@ -1,0 +1,65 @@
+@use "../abstracts" as *;
+
+// <footer class="sb-footer">
+//   <div class="sb-container sb-footer__inner">
+//     <div class="sb-footer__cols">…link groups…</div>
+//     <div class="sb-footer__meta">© 2026 Fizz Inc.</div>
+//   </div>
+// </footer>
+.sb-footer {
+  border-block-start: token(border-width) solid clr(border-subtle);
+  background-color: clr(bg-subtle);
+  color: clr(text-muted);
+  font-size: fs(sm);
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: space(8);
+    padding-block: space(12);
+  }
+
+  &__cols {
+    display: grid;
+    gap: space(8);
+    grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+  }
+
+  &__heading {
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    letter-spacing: ls(wider);
+    text-transform: uppercase;
+    color: clr(text);
+    margin-block-end: space(3);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: space(2);
+  }
+
+  a {
+    color: clr(text-muted);
+    text-decoration: none;
+
+    &:hover {
+      color: clr(link);
+      text-decoration: underline;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: space(4);
+    padding-block-start: space(6);
+    border-block-start: token(border-width) solid clr(border);
+    color: clr(text-subtle);
+  }
+}

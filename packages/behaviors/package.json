@@ -1,0 +1,17 @@
+{
+  "name": "@sorbet/behaviors",
+  "version": "0.1.0",
+  "description": "Sorbet's framework-agnostic behaviors: theme manager, tabs, dialog wiring, menus, toasts, tooltips, sortable tables. Zero dependencies.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

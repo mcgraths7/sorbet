@@ -1,0 +1,24 @@
+{
+  "name": "sorbet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sorbet — a fun, themeable, accessibility-first design system. Sass + TypeScript core with React bindings per atomic layer.",
+  "type": "module",
+  "license": "MIT",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "build": "npm run build -w @sorbet/tokens -w @sorbet/styles -w @sorbet/behaviors -w @sorbet/core -w @sorbet/layout -w @sorbet/atoms -w @sorbet/molecules -w @sorbet/organisms -w @sorbet/templates -w @sorbet/react -w @sorbet/cli",
+    "check:contrast": "npm run check:contrast -w @sorbet/styles",
+    "playground": "npm run dev -w playground",
+    "test": "npm run check:contrast"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sass": "^1.83.0",
+    "typescript": "^5.8.0"
+  }
+}

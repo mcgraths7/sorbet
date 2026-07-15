@@ -1,0 +1,45 @@
+@use "../abstracts" as *;
+
+// <nav class="sb-pagination" aria-label="Pagination">
+//   <a …>‹</a> <a …>1</a> <a aria-current="page">2</a> <span>…</span> <a …>›</a>
+// </nav>
+.sb-pagination {
+  display: flex;
+  align-items: center;
+  gap: space(1);
+
+  a,
+  button,
+  > span {
+    display: inline-grid;
+    place-content: center;
+    min-inline-size: token(control-height-sm);
+    block-size: token(control-height-sm);
+    padding-inline: space(2);
+    border-radius: radius(sm);
+    font-size: fs(sm);
+    font-weight: fw(medium);
+    color: clr(text-muted);
+    text-decoration: none;
+  }
+
+  a,
+  button {
+    @include control-reset;
+    @include focus-ring(0);
+
+    &:hover {
+      background-color: clr(bg-subtle);
+      color: clr(text);
+    }
+
+    &[aria-current="page"] {
+      background-color: clr(primary);
+      color: clr(on-primary);
+    }
+  }
+
+  > span {
+    color: clr(text-subtle);
+  }
+}

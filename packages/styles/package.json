@@ -1,0 +1,21 @@
+{
+  "name": "@sorbet/styles",
+  "version": "0.1.0",
+  "description": "Sorbet stylesheet: the compiled atomic-design CSS, per-preset theme files, and the Sass source.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    "./css": "./dist/css/sorbet.css",
+    "./themes/*": "./dist/themes/*",
+    "./scss/*": "./src/*"
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "node tools/build-tokens.ts && sass src/index.scss:dist/css/sorbet.css --style=expanded --no-source-map",
+    "watch:css": "sass --watch src/index.scss:dist/css/sorbet.css",
+    "check:contrast": "node tools/check-contrast.ts"
+  },
+  "dependencies": {
+    "@sorbet/tokens": "0.1.0"
+  }
+}

@@ -1,0 +1,44 @@
+@use "../abstracts" as *;
+
+// Centered auth page with a soft, theme-aware wash of brand color.
+//
+// <main class="sb-auth">
+//   <div class="sb-auth__panel">
+//     <div class="sb-auth__brand">Fizz</div>
+//     <div class="sb-card">…form…</div>
+//     <p class="sb-auth__alt">No account? <a href="…">Sign up</a></p>
+//   </div>
+// </main>
+.sb-auth {
+  min-block-size: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: space(6);
+  background-color: clr(bg);
+  background-image:
+    radial-gradient(42rem 28rem at 12% -8%, color-mix(in oklab, clr(primary-subtle), transparent 30%), transparent 70%),
+    radial-gradient(38rem 26rem at 105% 30%, color-mix(in oklab, clr(accent-subtle), transparent 45%), transparent 70%),
+    radial-gradient(30rem 24rem at 50% 110%, color-mix(in oklab, clr(secondary-subtle), transparent 50%), transparent 70%);
+
+  &__panel {
+    inline-size: 100%;
+    max-inline-size: 26rem;
+    display: flex;
+    flex-direction: column;
+    gap: space(6);
+  }
+
+  &__brand {
+    text-align: center;
+    font-family: font(display);
+    font-size: fs(2xl);
+    font-weight: fw(black);
+    color: clr(text);
+  }
+
+  &__alt {
+    text-align: center;
+    font-size: fs(sm);
+    color: clr(text-muted);
+  }
+}

@@ -1,0 +1,24 @@
+@use "sass:map";
+@use "../abstracts" as *;
+
+// Centered page column with responsive gutters.
+.sb-container {
+  inline-size: 100%;
+  max-inline-size: map.get($containers, lg);
+  margin-inline: auto;
+  padding-inline: space(4);
+
+  @include respond(md) {
+    padding-inline: space(6);
+  }
+
+  @each $name, $width in $containers {
+    &--#{$name} {
+      max-inline-size: $width;
+    }
+  }
+
+  &--full {
+    max-inline-size: none;
+  }
+}

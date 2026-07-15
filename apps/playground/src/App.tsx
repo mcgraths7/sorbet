@@ -1,0 +1,663 @@
+import {
+  Accordion,
+  AccordionItem,
+  Alert,
+  AppShell,
+  AppShellHeader,
+  AppShellMain,
+  AppShellSidebar,
+  Avatar,
+  AvatarGroup,
+  Badge,
+  Breadcrumb,
+  BreadcrumbItem,
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  Chip,
+  Choice,
+  Cluster,
+  Container,
+  DataTable,
+  Divider,
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  EmptyState,
+  Field,
+  Footer,
+  FooterCol,
+  FooterCols,
+  FooterMeta,
+  Frame,
+  Grid,
+  GridSpan2,
+  Input,
+  InputGroup,
+  InputGroupAddon,
+  Kbd,
+  Masonry,
+  Menu,
+  MenuHeading,
+  MenuItem,
+  MenuSeparator,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Navbar,
+  NavbarActions,
+  NavbarBrand,
+  NavbarLink,
+  NavbarNav,
+  Pagination,
+  Progress,
+  Radio,
+  Select,
+  Sidebar,
+  SidebarFooter,
+  SidebarHeading,
+  SidebarItem,
+  Skeleton,
+  Spinner,
+  Split,
+  SplitAside,
+  SplitMain,
+  Stack,
+  Stat,
+  Switch,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+  Textarea,
+  Tooltip,
+  useTheme,
+  useToast,
+  type Column,
+  type ThemeMode,
+} from "@sorbet/react";
+import { useEffect, useState } from "react";
+
+import forestTheme from "@sorbet/styles/themes/forest.css?url";
+import midnightTheme from "@sorbet/styles/themes/midnight.css?url";
+import noirTheme from "@sorbet/styles/themes/noir.css?url";
+import oceanTheme from "@sorbet/styles/themes/ocean.css?url";
+import sorbetTheme from "@sorbet/styles/themes/sorbet.css?url";
+
+const THEMES = [
+  { name: "sorbet", label: "Sorbet — light and fun", url: sorbetTheme },
+  { name: "ocean", label: "Ocean — corporate SaaS", url: oceanTheme },
+  { name: "forest", label: "Forest — organic", url: forestTheme },
+  { name: "noir", label: "Noir — monochrome", url: noirTheme },
+  { name: "midnight", label: "Midnight — electric", url: midnightTheme },
+];
+
+interface Invoice {
+  id: string;
+  customer: string;
+  status: "Paid" | "Pending" | "Overdue";
+  amount: number;
+}
+
+const INVOICES: Invoice[] = [
+  { id: "INV-0012", customer: "Meridian Labs", status: "Paid", amount: 1250 },
+  { id: "INV-0013", customer: "Hoot & Co", status: "Pending", amount: 860 },
+  { id: "INV-0014", customer: "Aster Systems", status: "Overdue", amount: 3420.5 },
+  { id: "INV-0015", customer: "Bluebird", status: "Paid", amount: 240 },
+];
+
+const STATUS_TONE = { Paid: "success", Pending: "warning", Overdue: "danger" } as const;
+
+const columns: Array<Column<Invoice>> = [
+  { key: "id", header: "Invoice", sortable: true },
+  { key: "customer", header: "Customer", sortable: true },
+  {
+    key: "status",
+    header: "Status",
+    sortable: true,
+    render: (row) => <Badge tone={STATUS_TONE[row.status]}>{row.status}</Badge>,
+  },
+  {
+    key: "amount",
+    header: "Amount",
+    numeric: true,
+    sortable: true,
+    render: (row) => row.amount.toLocaleString("en-US", { style: "currency", currency: "USD" }),
+  },
+];
+
+interface Shot {
+  emoji: string;
+  caption: string;
+  ratio: string;
+  from: string;
+  to: string;
+  likes: number;
+}
+
+const SHOTS: Shot[] = [
+  { emoji: "🍓", caption: "Raspberry ripple", ratio: "3 / 4", from: "primary", to: "accent", likes: 128 },
+  { emoji: "🌊", caption: "Sea foam", ratio: "1", from: "secondary", to: "info", likes: 64 },
+  { emoji: "🍋", caption: "Lemon zest", ratio: "4 / 3", from: "warning", to: "accent", likes: 291 },
+  { emoji: "🌿", caption: "New growth", ratio: "2 / 3", from: "success", to: "secondary", likes: 87 },
+  { emoji: "🍇", caption: "Grape crush", ratio: "1", from: "accent", to: "primary", likes: 156 },
+  { emoji: "🌅", caption: "Golden hour", ratio: "16 / 9", from: "warning", to: "danger", likes: 342 },
+  { emoji: "🫐", caption: "Blueberry dusk", ratio: "3 / 4", from: "info", to: "accent", likes: 73 },
+  { emoji: "🍑", caption: "Peach fuzz", ratio: "4 / 5", from: "danger", to: "warning", likes: 210 },
+  { emoji: "🥝", caption: "Kiwi cross-section", ratio: "1", from: "success", to: "warning", likes: 45 },
+  { emoji: "🍒", caption: "Cherry on top", ratio: "2 / 3", from: "primary", to: "danger", likes: 388 },
+  { emoji: "🌌", caption: "Night swim", ratio: "16 / 9", from: "info", to: "primary", likes: 99 },
+  { emoji: "🍊", caption: "Citrus study", ratio: "4 / 3", from: "warning", to: "primary", likes: 167 },
+];
+
+function MasonryTile({ shot }: { shot: Shot }) {
+  return (
+    <Card variant="flat">
+      <Frame ratio={shot.ratio}>
+        <div
+          style={{
+            inlineSize: "100%",
+            blockSize: "100%",
+            display: "grid",
+            placeItems: "center",
+            fontSize: "2.5rem",
+            background: `linear-gradient(135deg, var(--sb-${shot.from}-subtle), var(--sb-${shot.to}-subtle))`,
+          }}
+        >
+          {shot.emoji}
+        </div>
+      </Frame>
+      <div style={{ padding: "var(--sb-space-3)" }}>
+        <Cluster justify="between" gap={2}>
+          <span className="u-text-sm">{shot.caption}</span>
+          <span className="u-text-xs u-text-muted u-tabular">♥ {shot.likes}</span>
+        </Cluster>
+      </div>
+    </Card>
+  );
+}
+
+const demoBox: React.CSSProperties = {
+  padding: "var(--sb-space-3)",
+  borderRadius: "var(--sb-radius-sm)",
+  background: "var(--sb-primary-subtle)",
+  color: "var(--sb-primary-text)",
+  fontSize: "var(--sb-text-sm)",
+  fontWeight: "var(--sb-weight-medium)" as "500",
+  textAlign: "center",
+};
+
+function ModeSwitch() {
+  const { mode, set } = useTheme();
+  return (
+    <Tabs pills value={mode} onValueChange={(v) => set(v as ThemeMode)}>
+      <TabList aria-label="Color mode" role="group">
+        {(["light", "system", "dark"] as const).map((m) => (
+          <Tab key={m} value={m} role="button" aria-selected={mode === m}>
+            {m === "system" ? "Auto" : m === "light" ? "Light" : "Dark"}
+          </Tab>
+        ))}
+      </TabList>
+    </Tabs>
+  );
+}
+
+export function App() {
+  const toast = useToast();
+  const [preset, setPreset] = useState(() => localStorage.getItem("playground-preset") ?? "sorbet");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [page, setPage] = useState(2);
+  const [chips, setChips] = useState(["Design", "Engineering", "Research"]);
+
+  useEffect(() => {
+    const link = document.getElementById("preset-css") as HTMLLinkElement;
+    link.href = THEMES.find((t) => t.name === preset)?.url ?? THEMES[0]!.url;
+    localStorage.setItem("playground-preset", preset);
+  }, [preset]);
+
+  return (
+    <AppShell>
+      <AppShellHeader>
+        <Navbar>
+          <NavbarBrand href="#top">Sorbet&nbsp;🍧&nbsp;× React</NavbarBrand>
+          <NavbarNav>
+            <NavbarLink href="#atoms" current>
+              Atoms
+            </NavbarLink>
+            <NavbarLink href="#molecules">Molecules</NavbarLink>
+            <NavbarLink href="#organisms">Organisms</NavbarLink>
+          </NavbarNav>
+          <NavbarActions>
+            <Select size="sm" aria-label="Theme preset" value={preset} onChange={(e) => setPreset(e.target.value)}>
+              {THEMES.map((t) => (
+                <option key={t.name} value={t.name}>
+                  {t.label}
+                </option>
+              ))}
+            </Select>
+            <ModeSwitch />
+          </NavbarActions>
+        </Navbar>
+      </AppShellHeader>
+
+      <AppShellSidebar>
+        <Sidebar aria-label="Sections">
+          <SidebarHeading>Layers</SidebarHeading>
+          <SidebarItem href="#layout">Layout</SidebarItem>
+          <SidebarItem href="#atoms" current>
+            Atoms <Badge tone="accent">18</Badge>
+          </SidebarItem>
+          <SidebarItem href="#molecules">Molecules</SidebarItem>
+          <SidebarItem href="#organisms">Organisms</SidebarItem>
+          <SidebarFooter>
+            <Cluster gap={2}>
+              <Avatar size="sm">SM</Avatar>
+              <small className="u-text-muted">react@sorbet.dev</small>
+            </Cluster>
+          </SidebarFooter>
+        </Sidebar>
+      </AppShellSidebar>
+
+      <AppShellMain id="top">
+        <Container>
+          <Stack gap={16}>
+            <Stack gap={4} as="section">
+              <Cluster gap={2}>
+                <Badge tone="primary">@sorbet/react</Badge>
+                <Badge tone="success" dot>
+                  AA verified
+                </Badge>
+              </Cluster>
+              <h1>The same system, now in React.</h1>
+              <p className="sb-lead" style={{ maxInlineSize: "55ch" }}>
+                Every component below is a typed React component from @sorbet/layout, @sorbet/atoms,
+                @sorbet/molecules, @sorbet/organisms, and @sorbet/templates — all styled by the same Sass and tokens.
+              </p>
+              <Cluster>
+                <Button size="lg" onClick={() => toast("Fresh out of the churner.", { title: "Hello from React", tone: "success" })}>
+                  Make a toast
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => setModalOpen(true)}>
+                  Open a modal
+                </Button>
+              </Cluster>
+            </Stack>
+
+            <Stack as="section" id="layout">
+              <h2>Layout</h2>
+              <Grid cols={2}>
+                <Card>
+                  <CardBody>
+                    <Stack gap={2}>
+                      <p className="sb-overline">Stack</p>
+                      <div style={demoBox}>one</div>
+                      <div style={demoBox}>two</div>
+                    </Stack>
+                  </CardBody>
+                </Card>
+                <Card>
+                  <CardBody>
+                    <Stack gap={2}>
+                      <p className="sb-overline">Cluster</p>
+                      <Cluster gap={2}>
+                        <div style={demoBox}>chip</div>
+                        <div style={demoBox}>wrap</div>
+                        <div style={demoBox}>gap</div>
+                      </Cluster>
+                    </Stack>
+                  </CardBody>
+                </Card>
+                <GridSpan2>
+                  <Card>
+                    <CardBody>
+                      <Stack gap={2}>
+                        <p className="sb-overline">Split</p>
+                        <Split aside="8rem">
+                          <SplitAside>
+                            <div style={demoBox}>aside</div>
+                          </SplitAside>
+                          <SplitMain>
+                            <div style={demoBox}>main takes the rest, stacks when narrow</div>
+                          </SplitMain>
+                        </Split>
+                      </Stack>
+                    </CardBody>
+                  </Card>
+                </GridSpan2>
+              </Grid>
+
+              <h2 id="masonry">Masonry</h2>
+              <p className="u-text-muted">
+                DOM order preserved, heights measured, images tracked — no third-party library. Where the browser has
+                native CSS masonry, the balancer stands down.
+              </p>
+              <Masonry min="10rem" gap={3}>
+                {SHOTS.map((shot) => (
+                  <MasonryTile key={shot.caption} shot={shot} />
+                ))}
+              </Masonry>
+            </Stack>
+
+            <Stack as="section" id="atoms">
+              <h2>Buttons</h2>
+              <Cluster>
+                <Button>Primary</Button>
+                <Button variant="secondary">Secondary</Button>
+                <Button variant="accent">Accent</Button>
+                <Button variant="danger">Danger</Button>
+                <Button variant="soft">Soft</Button>
+                <Button variant="outline">Outline</Button>
+                <Button variant="ghost">Ghost</Button>
+                <Button variant="link">Link</Button>
+              </Cluster>
+              <Cluster>
+                <Button size="sm">Small</Button>
+                <Button size="lg">Large</Button>
+                <Button pill>Pill</Button>
+                <Button disabled>Disabled</Button>
+                <Button loading>Loading</Button>
+                <Tooltip content="Settings (Tooltip atom)">
+                  <Button variant="ghost" iconOnly aria-label="Settings">
+                    ⚙︎
+                  </Button>
+                </Tooltip>
+                <Button as="a" href="#atoms" variant="outline">
+                  Anchor button
+                </Button>
+              </Cluster>
+
+              <h2>Form controls</h2>
+              <Card as="form" onSubmit={(e: React.FormEvent) => e.preventDefault()}>
+                <CardBody>
+                  <Grid cols={2}>
+                    <Field label="Full name" hint="As it appears on your profile." required>
+                      <Input placeholder="Ada Lovelace" required />
+                    </Field>
+                    <Field label="Email" error="Enter a valid email address." invalid>
+                      <Input type="email" defaultValue="not-an-email" />
+                    </Field>
+                    <Field label="Role">
+                      <Select defaultValue="Engineer">
+                        <option>Engineer</option>
+                        <option>Designer</option>
+                        <option>Product</option>
+                      </Select>
+                    </Field>
+                    <Field label="Website">
+                      <InputGroup>
+                        <InputGroupAddon>https://</InputGroupAddon>
+                        <Input placeholder="example.dev" />
+                        <Button>Check</Button>
+                      </InputGroup>
+                    </Field>
+                    <GridSpan2>
+                      <Field label="Bio" optional hint="Grows with content — field-sizing, no JS.">
+                        <Textarea autoResize placeholder="Tell us about yourself" />
+                      </Field>
+                    </GridSpan2>
+                    <Stack gap={2}>
+                      <Choice>
+                        <Checkbox defaultChecked /> Product updates
+                      </Choice>
+                      <Choice>
+                        <Checkbox indeterminate /> Weekly digest (mixed)
+                      </Choice>
+                      <Choice>
+                        <Checkbox disabled /> Spam (disabled)
+                      </Choice>
+                    </Stack>
+                    <Stack gap={2}>
+                      <Choice>
+                        <Radio name="plan" defaultChecked /> Free
+                      </Choice>
+                      <Choice>
+                        <Radio name="plan" /> Pro
+                      </Choice>
+                      <Choice>
+                        <Switch defaultChecked /> Marketing emails
+                      </Choice>
+                    </Stack>
+                  </Grid>
+                </CardBody>
+                <CardFooter>
+                  <Button variant="ghost" type="reset">
+                    Cancel
+                  </Button>
+                  <Button type="submit">Save changes</Button>
+                </CardFooter>
+              </Card>
+
+              <h2>Badges, chips &amp; indicators</h2>
+              <Cluster>
+                <Badge>Neutral</Badge>
+                <Badge tone="primary">Primary</Badge>
+                <Badge tone="success" dot>
+                  Active
+                </Badge>
+                <Badge tone="warning">Pending</Badge>
+                <Badge tone="danger" solid>
+                  Failed
+                </Badge>
+                {chips.map((c) => (
+                  <Chip key={c} selected={c === "Design"} onRemove={() => setChips(chips.filter((x) => x !== c))}>
+                    {c}
+                  </Chip>
+                ))}
+                <AvatarGroup>
+                  <Avatar>AL</Avatar>
+                  <Avatar>GH</Avatar>
+                  <Avatar>+3</Avatar>
+                </AvatarGroup>
+                <Spinner />
+                <Kbd>esc</Kbd>
+              </Cluster>
+              <Grid cols={2}>
+                <Stack gap={2}>
+                  <Progress value={65} label="Upload" />
+                  <Progress value={100} tone="success" label="Complete" />
+                  <Progress indeterminate label="Working" />
+                </Stack>
+                <Skeleton lines={3} />
+              </Grid>
+            </Stack>
+
+            <Stack as="section" id="molecules">
+              <h2>Cards &amp; stats</h2>
+              <Grid cols={3}>
+                <Card>
+                  <CardBody>
+                    <Stat label="Monthly revenue" value="$48,210" delta="+12.4% vs last month" trend="up" />
+                  </CardBody>
+                </Card>
+                <Card>
+                  <CardBody>
+                    <Stat label="Active users" value="9,382" delta="−2.1% vs last week" trend="down" />
+                  </CardBody>
+                </Card>
+                <Card variant="sunken">
+                  <CardBody>
+                    <EmptyState icon="🗂️" title="Nothing here yet" action={<Button size="sm">New project</Button>}>
+                      Empty states live happily inside sunken cards.
+                    </EmptyState>
+                  </CardBody>
+                </Card>
+              </Grid>
+
+              <h2>Alerts &amp; toasts</h2>
+              <Stack gap={3}>
+                <Alert tone="success" title="Deployed" onDismiss={() => toast("Alert dismissed")}>
+                  Build 214 is live in production.
+                </Alert>
+                <Alert tone="danger" title="Payment failed" role="alert">
+                  We couldn't charge your card.
+                </Alert>
+              </Stack>
+              <Cluster>
+                <Button variant="soft" onClick={() => toast("All changes saved.", { tone: "success" })}>
+                  Success toast
+                </Button>
+                <Button variant="soft" onClick={() => toast("I stay until dismissed.", { title: "Sticky", tone: "info", duration: 0 })}>
+                  Sticky toast
+                </Button>
+              </Cluster>
+
+              <h2>Tabs, accordion &amp; wayfinding</h2>
+              <Tabs defaultValue="overview">
+                <TabList aria-label="Example tabs">
+                  <Tab value="overview">Overview</Tab>
+                  <Tab value="activity">Activity</Tab>
+                  <Tab value="settings">Settings</Tab>
+                </TabList>
+                <TabPanel value="overview">
+                  <p className="u-text-muted">Controlled or uncontrolled; arrow keys work.</p>
+                </TabPanel>
+                <TabPanel value="activity">
+                  <p className="u-text-muted">Recent activity renders here.</p>
+                </TabPanel>
+                <TabPanel value="settings">
+                  <p className="u-text-muted">Settings form renders here.</p>
+                </TabPanel>
+              </Tabs>
+              <Accordion name="faq">
+                <AccordionItem name="faq" summary="Native details/summary underneath?" defaultOpen>
+                  Yes — exclusive-open via the shared <code>name</code>, animated by <code>interpolate-size</code>.
+                </AccordionItem>
+                <AccordionItem name="faq" summary="Do themes stay accessible?">
+                  Contrast is checked at build time; failing palettes fail the build.
+                </AccordionItem>
+              </Accordion>
+              <Cluster justify="between">
+                <Breadcrumb>
+                  <BreadcrumbItem href="#top">Home</BreadcrumbItem>
+                  <BreadcrumbItem href="#top">Projects</BreadcrumbItem>
+                  <BreadcrumbItem current>Sorbet</BreadcrumbItem>
+                </Breadcrumb>
+                <Pagination page={page} pageCount={12} onPageChange={setPage} />
+              </Cluster>
+
+              <h2>Menu</h2>
+              <Cluster>
+                <Menu
+                  alignEnd
+                  trigger={<Button variant="outline">Options ▾</Button>}
+                >
+                  <MenuHeading>Project</MenuHeading>
+                  <MenuItem shortcut="⌘R" onSelect={() => toast("Rename selected")}>
+                    Rename
+                  </MenuItem>
+                  <MenuItem shortcut="⌘D" onSelect={() => toast("Duplicate selected")}>
+                    Duplicate
+                  </MenuItem>
+                  <MenuSeparator />
+                  <MenuItem danger onSelect={() => setModalOpen(true)}>
+                    Delete project
+                  </MenuItem>
+                </Menu>
+                <Button variant="secondary" onClick={() => setDrawerOpen(true)}>
+                  Open drawer
+                </Button>
+              </Cluster>
+            </Stack>
+
+            <Stack as="section" id="organisms">
+              <h2>Data table</h2>
+              <DataTable
+                columns={columns}
+                data={INVOICES}
+                rowKey={(row) => row.id}
+                hover
+                initialSort={{ key: "amount", direction: "descending" }}
+              />
+              <Divider label="fin" />
+            </Stack>
+          </Stack>
+        </Container>
+
+        <Footer style={{ marginBlockStart: "var(--sb-space-24)" }}>
+          <FooterCols>
+            <FooterCol heading="Product">
+              <li>
+                <a href="#top">Features</a>
+              </li>
+              <li>
+                <a href="#top">Pricing</a>
+              </li>
+            </FooterCol>
+            <FooterCol heading="Resources">
+              <li>
+                <a href="#top">Docs</a>
+              </li>
+            </FooterCol>
+          </FooterCols>
+          <FooterMeta>
+            <span>© 2026 Sorbet. Scooped with care.</span>
+            <a href="#top">Back to top ↑</a>
+          </FooterMeta>
+        </Footer>
+      </AppShellMain>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} size="sm">
+        <ModalHeader onClose={() => setModalOpen(false)}>
+          <h2>Delete project?</h2>
+        </ModalHeader>
+        <ModalBody>
+          <Stack gap={3}>
+            <p>
+              This permanently removes <strong>sorbet-playground</strong>. It cannot be undone.
+            </p>
+            <Field label="Type the project name to confirm">
+              <Input placeholder="sorbet-playground" />
+            </Field>
+          </Stack>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" onClick={() => setModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setModalOpen(false);
+              toast("Project deleted", { tone: "danger" });
+            }}
+          >
+            Delete forever
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <DrawerHeader onClose={() => setDrawerOpen(false)}>
+          <h3>Filters</h3>
+        </DrawerHeader>
+        <DrawerBody>
+          <Stack>
+            <Field label="Status">
+              <Select defaultValue="Any">
+                <option>Any</option>
+                <option>Paid</option>
+                <option>Pending</option>
+              </Select>
+            </Field>
+            <Choice>
+              <Checkbox defaultChecked /> Only my invoices
+            </Choice>
+          </Stack>
+        </DrawerBody>
+        <DrawerFooter>
+          <Button variant="ghost" onClick={() => setDrawerOpen(false)}>
+            Reset
+          </Button>
+          <Button onClick={() => setDrawerOpen(false)}>Apply</Button>
+        </DrawerFooter>
+      </Drawer>
+    </AppShell>
+  );
+}

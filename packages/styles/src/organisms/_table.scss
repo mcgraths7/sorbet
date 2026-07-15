@@ -1,0 +1,104 @@
+@use "../abstracts" as *;
+
+// Data table. Always wrap: <div class="sb-table-wrap"><table class="sb-table">…
+// The wrapper owns horizontal overflow so the page never scrolls sideways.
+.sb-table-wrap {
+  inline-size: 100%;
+  overflow-x: auto;
+  border: token(border-width) solid clr(border-subtle);
+  border-radius: radius(lg);
+  background-color: clr(surface);
+}
+
+.sb-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: fs(sm);
+
+  th,
+  td {
+    padding: space(3) space(4);
+    text-align: start;
+    border-block-end: token(border-width) solid clr(border-subtle);
+  }
+
+  tbody tr:last-child > * {
+    border-block-end: none;
+  }
+
+  thead th {
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    letter-spacing: ls(wide);
+    text-transform: uppercase;
+    color: clr(text-muted);
+    background-color: clr(surface-sunken);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background-color dur(fast) ease(out);
+  }
+
+  &--hover tbody tr:hover {
+    background-color: clr(bg-subtle);
+  }
+
+  &--striped tbody tr:nth-child(even) {
+    background-color: clr(surface-sunken);
+  }
+
+  &--compact th,
+  &--compact td {
+    padding: space(2) space(3);
+  }
+
+  // Numeric columns: right-aligned, tabular figures.
+  [data-numeric] {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // Sortable headers (Table behavior wires the clicks):
+  // <th aria-sort="ascending"><button class="sb-table__sort">Name</button></th>
+  &__sort {
+    @include control-reset;
+    @include focus-ring(0);
+
+    display: inline-flex;
+    align-items: center;
+    gap: space(1);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+
+    &::after {
+      content: "↕";
+      opacity: 0.4;
+      font-size: 0.9em;
+    }
+
+    [aria-sort="ascending"] &::after {
+      content: "↑";
+      opacity: 1;
+    }
+
+    [aria-sort="descending"] &::after {
+      content: "↓";
+      opacity: 1;
+    }
+
+    &:hover {
+      color: clr(text);
+    }
+  }
+
+  &--sticky-header {
+    thead th {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 1;
+    }
+  }
+}

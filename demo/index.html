@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sorbet — kitchen sink</title>
+  <link rel="stylesheet" href="../packages/styles/dist/themes/sorbet.css" id="theme-css">
+  <link rel="stylesheet" href="../packages/styles/dist/css/sorbet.css">
+  <style>
+    /* demo-only chrome */
+    .demo-section { scroll-margin-block-start: 5rem; }
+    .demo-swatch { border-radius: var(--sb-radius-sm); border: 1px solid var(--sb-border-subtle); overflow: hidden; }
+    .demo-swatch__chip { block-size: 3rem; }
+    .demo-swatch figcaption { padding: var(--sb-space-2); font-size: var(--sb-text-xs); font-family: var(--sb-font-mono); color: var(--sb-text-muted); }
+    .demo-box { padding: var(--sb-space-3); border-radius: var(--sb-radius-sm); background: var(--sb-primary-subtle); color: var(--sb-primary-text); font-size: var(--sb-text-sm); font-weight: var(--sb-weight-medium); text-align: center; }
+    .demo-media { block-size: 8rem; background: linear-gradient(120deg, var(--sb-primary), var(--sb-accent)); }
+  </style>
+</head>
+<body>
+  <div class="sb-app-shell">
+    <header class="sb-navbar sb-app-shell__header">
+      <div class="sb-navbar__inner sb-container sb-container--full">
+        <a class="sb-navbar__brand" href="#top">Sorbet&nbsp;🍧</a>
+        <nav class="sb-navbar__nav" aria-label="Main">
+          <a href="#atoms">Atoms</a>
+          <a href="#molecules">Molecules</a>
+          <a href="#organisms">Organisms</a>
+        </nav>
+        <div class="sb-navbar__actions">
+          <label class="sb-select sb-select--sm" style="min-inline-size: 9rem">
+            <select id="preset-select" aria-label="Theme preset"></select>
+          </label>
+          <div class="sb-tabs sb-tabs--pills">
+            <div class="sb-tabs__list" role="group" aria-label="Color mode" id="mode-group">
+              <button class="sb-tabs__tab" data-mode="light" aria-selected="false">Light</button>
+              <button class="sb-tabs__tab" data-mode="system" aria-selected="true">Auto</button>
+              <button class="sb-tabs__tab" data-mode="dark" aria-selected="false">Dark</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="sb-app-shell__sidebar">
+      <nav class="sb-sidebar" aria-label="Sections">
+        <p class="sb-sidebar__heading">Foundations</p>
+        <a class="sb-sidebar__item" href="#colors" aria-current="page">Colors</a>
+        <a class="sb-sidebar__item" href="#type">Typography</a>
+        <a class="sb-sidebar__item" href="#layout">Layout</a>
+        <p class="sb-sidebar__heading">Atoms</p>
+        <a class="sb-sidebar__item" href="#buttons">Buttons</a>
+        <a class="sb-sidebar__item" href="#forms">Form controls</a>
+        <a class="sb-sidebar__item" href="#bits">Badges &amp; bits</a>
+        <p class="sb-sidebar__heading">Molecules</p>
+        <a class="sb-sidebar__item" href="#cards">Cards <span class="sb-badge sb-badge--accent">new</span></a>
+        <a class="sb-sidebar__item" href="#feedback">Alerts &amp; toasts</a>
+        <a class="sb-sidebar__item" href="#navigation-m">Tabs &amp; nav</a>
+        <p class="sb-sidebar__heading">Organisms</p>
+        <a class="sb-sidebar__item" href="#overlays">Modal &amp; drawer</a>
+        <a class="sb-sidebar__item" href="#table">Table</a>
+        <div class="sb-sidebar__footer">
+          <div class="sb-cluster sb-cluster--gap-2">
+            <span class="sb-avatar sb-avatar--sm">SM</span>
+            <small class="u-text-muted">demo@sorbet.dev</small>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="sb-app-shell__main" id="top">
+      <div class="sb-container">
+        <div class="sb-stack sb-stack--gap-16">
+
+          <section class="sb-stack sb-stack--gap-4 demo-section">
+            <span class="sb-cluster sb-cluster--gap-2">
+              <span class="sb-badge sb-badge--primary">v0.1.0</span>
+              <span class="sb-badge sb-badge--success"><i class="sb-badge__dot"></i> AA verified</span>
+            </span>
+            <h1>Every component, one page.</h1>
+            <p class="sb-lead" style="max-inline-size: 55ch">This is the Sorbet kitchen sink. Switch presets
+              and color modes in the header — every combination keeps WCAG AA contrast, enforced at build time.</p>
+            <div class="sb-cluster">
+              <button class="sb-button sb-button--lg" id="hero-toast">Make a toast</button>
+              <button class="sb-button sb-button--lg sb-button--outline" data-sb-open="demo-modal">Open a modal</button>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="colors">
+            <h2>Colors</h2>
+            <p class="u-text-muted">Semantic tokens only — components never see raw hex. Shown for the current preset & mode.</p>
+            <div class="sb-grid sb-grid--narrow" id="swatches"></div>
+          </section>
+
+          <section class="sb-stack demo-section" id="type">
+            <h2>Typography</h2>
+            <div class="sb-stack sb-stack--gap-3">
+              <p class="sb-overline">Overline label</p>
+              <h1>Display heading</h1>
+              <h3>Section heading</h3>
+              <p class="sb-lead">A lead paragraph sets the scene under a heading.</p>
+              <p>Body text with a <a href="#type">plain link</a>, <strong>strong emphasis</strong>,
+                inline <code>code()</code>, and a shortcut like <kbd class="sb-kbd">⌘K</kbd>.</p>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="layout">
+            <h2>Layout primitives</h2>
+            <p class="u-text-muted">Layout owns all spacing. Components never carry margins.</p>
+            <div class="sb-grid sb-grid--cols-2">
+              <div class="sb-card"><div class="sb-card__body sb-stack sb-stack--gap-2">
+                <p class="sb-overline">Stack</p>
+                <div class="demo-box">one</div><div class="demo-box">two</div><div class="demo-box">three</div>
+              </div></div>
+              <div class="sb-card"><div class="sb-card__body sb-stack sb-stack--gap-2">
+                <p class="sb-overline">Cluster</p>
+                <div class="sb-cluster sb-cluster--gap-2">
+                  <div class="demo-box">chip</div><div class="demo-box">wrap</div>
+                  <div class="demo-box">as</div><div class="demo-box">needed</div>
+                </div>
+              </div></div>
+              <div class="sb-card sb-grid__span-2"><div class="sb-card__body sb-stack sb-stack--gap-2">
+                <p class="sb-overline">Split (sidebar + content)</p>
+                <div class="sb-split" style="--aside: 8rem">
+                  <div class="sb-split__aside demo-box">aside</div>
+                  <div class="sb-split__main demo-box">main content takes the rest, stacks when narrow</div>
+                </div>
+              </div></div>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="masonry">
+            <h2>Masonry</h2>
+            <p class="u-text-muted">Multi-column fallback upgraded to a DOM-order-preserving balanced grid by
+              <code>data-sb="masonry"</code>. The frames are <code>.sb-frame</code> aspect-ratio boxes.</p>
+            <div class="sb-masonry sb-masonry--gap-3" data-sb="masonry" style="--min: 10rem" id="masonry-wall"></div>
+          </section>
+
+          <section class="sb-stack demo-section" id="buttons">
+            <h2>Buttons</h2>
+            <div class="sb-cluster">
+              <button class="sb-button">Primary</button>
+              <button class="sb-button sb-button--secondary">Secondary</button>
+              <button class="sb-button sb-button--accent">Accent</button>
+              <button class="sb-button sb-button--danger">Danger</button>
+              <button class="sb-button sb-button--soft">Soft</button>
+              <button class="sb-button sb-button--outline">Outline</button>
+              <button class="sb-button sb-button--ghost">Ghost</button>
+              <button class="sb-button sb-button--link">Link</button>
+            </div>
+            <div class="sb-cluster">
+              <button class="sb-button sb-button--sm">Small</button>
+              <button class="sb-button">Medium</button>
+              <button class="sb-button sb-button--lg">Large</button>
+              <button class="sb-button sb-button--pill">Pill</button>
+              <button class="sb-button" disabled>Disabled</button>
+              <button class="sb-button" data-loading>Loading</button>
+              <button class="sb-button sb-button--icon" aria-label="Settings" data-tooltip="Settings (tooltip)">⚙︎</button>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="forms">
+            <h2>Form controls</h2>
+            <form class="sb-card" onsubmit="return false">
+              <div class="sb-card__body sb-grid sb-grid--cols-2">
+                <div class="sb-field">
+                  <label class="sb-label" for="f-name" data-required>Full name</label>
+                  <input class="sb-input" id="f-name" placeholder="Ada Lovelace" required>
+                  <p class="sb-field__hint">As it appears on your profile.</p>
+                  <p class="sb-field__error">Name is required.</p>
+                </div>
+                <div class="sb-field">
+                  <label class="sb-label" for="f-mail">Email</label>
+                  <input class="sb-input" id="f-mail" type="email" value="not-an-email" aria-invalid="true">
+                  <p class="sb-field__error">Enter a valid email address.</p>
+                </div>
+                <div class="sb-field">
+                  <label class="sb-label" for="f-role">Role</label>
+                  <span class="sb-select"><select id="f-role">
+                    <option>Engineer</option><option>Designer</option><option>Product</option>
+                  </select></span>
+                </div>
+                <div class="sb-field">
+                  <label class="sb-label" for="f-site">Website</label>
+                  <div class="sb-input-group">
+                    <span class="sb-input-group__addon">https://</span>
+                    <input class="sb-input" id="f-site" placeholder="example.dev">
+                    <button class="sb-button">Check</button>
+                  </div>
+                </div>
+                <div class="sb-field sb-grid__span-2">
+                  <label class="sb-label" for="f-bio" data-optional>Bio</label>
+                  <textarea class="sb-textarea sb-textarea--auto" id="f-bio" placeholder="Grows with content — field-sizing, no JS."></textarea>
+                </div>
+                <fieldset class="sb-field" style="border: none; padding: 0">
+                  <legend class="sb-label">Notifications</legend>
+                  <label class="sb-choice"><input type="checkbox" class="sb-checkbox" checked> Product updates</label>
+                  <label class="sb-choice"><input type="checkbox" class="sb-checkbox"> Weekly digest</label>
+                  <label class="sb-choice"><input type="checkbox" class="sb-checkbox" disabled> Spam (disabled)</label>
+                </fieldset>
+                <fieldset class="sb-field" style="border: none; padding: 0">
+                  <legend class="sb-label">Plan</legend>
+                  <label class="sb-choice"><input type="radio" name="plan" class="sb-radio" checked> Free</label>
+                  <label class="sb-choice"><input type="radio" name="plan" class="sb-radio"> Pro</label>
+                  <div class="sb-field sb-field--inline" style="margin-block-start: var(--sb-space-2)">
+                    <label class="sb-label" for="f-dark">Marketing emails</label>
+                    <input type="checkbox" role="switch" class="sb-switch" id="f-dark" checked>
+                  </div>
+                </fieldset>
+              </div>
+              <div class="sb-card__footer">
+                <button class="sb-button sb-button--ghost" type="reset">Cancel</button>
+                <button class="sb-button" type="submit">Save changes</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="sb-stack demo-section" id="bits">
+            <h2>Badges, chips &amp; indicators</h2>
+            <div class="sb-cluster">
+              <span class="sb-badge">Neutral</span>
+              <span class="sb-badge sb-badge--primary">Primary</span>
+              <span class="sb-badge sb-badge--success"><i class="sb-badge__dot"></i> Active</span>
+              <span class="sb-badge sb-badge--warning">Pending</span>
+              <span class="sb-badge sb-badge--danger sb-badge--solid">Failed</span>
+              <span class="sb-badge sb-badge--info">Beta</span>
+            </div>
+            <div class="sb-cluster">
+              <button class="sb-chip" data-selected>Design <span class="sb-chip__remove" aria-hidden="true">×</span></button>
+              <button class="sb-chip">Engineering</button>
+              <button class="sb-chip">Research</button>
+              <span class="sb-avatar-group">
+                <span class="sb-avatar">AL</span><span class="sb-avatar">GH</span>
+                <span class="sb-avatar" style="background: var(--sb-accent-subtle); color: var(--sb-accent-text)">+3</span>
+              </span>
+              <span class="sb-spinner" role="status" aria-label="Loading"></span>
+              <kbd class="sb-kbd">esc</kbd>
+            </div>
+            <div class="sb-grid sb-grid--cols-2">
+              <div class="sb-stack sb-stack--gap-2">
+                <div class="sb-progress" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100" aria-label="Upload">
+                  <div class="sb-progress__bar" style="inline-size: 65%"></div>
+                </div>
+                <div class="sb-progress sb-progress--success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Complete">
+                  <div class="sb-progress__bar" style="inline-size: 100%"></div>
+                </div>
+                <div class="sb-progress sb-progress--indeterminate" role="progressbar" aria-label="Working">
+                  <div class="sb-progress__bar"></div>
+                </div>
+              </div>
+              <div class="sb-stack sb-stack--gap-2" aria-hidden="true">
+                <span class="sb-skeleton sb-skeleton--text"></span>
+                <span class="sb-skeleton sb-skeleton--text"></span>
+                <span class="sb-skeleton sb-skeleton--text"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="cards">
+            <h2>Cards &amp; stats</h2>
+            <div class="sb-grid sb-grid--cols-3">
+              <div class="sb-card"><div class="sb-card__body sb-stat">
+                <p class="sb-stat__label">Monthly revenue</p>
+                <p class="sb-stat__value">$48,210</p>
+                <p class="sb-stat__delta" data-trend="up">+12.4% vs last month</p>
+              </div></div>
+              <div class="sb-card"><div class="sb-card__body sb-stat">
+                <p class="sb-stat__label">Active users</p>
+                <p class="sb-stat__value">9,382</p>
+                <p class="sb-stat__delta" data-trend="down">−2.1% vs last week</p>
+              </div></div>
+              <div class="sb-card"><div class="sb-card__body sb-stat">
+                <p class="sb-stat__label">Uptime</p>
+                <p class="sb-stat__value">99.99%</p>
+                <p class="sb-stat__delta" data-trend="flat">steady</p>
+              </div></div>
+            </div>
+            <div class="sb-grid">
+              <div class="sb-card sb-card--interactive">
+                <div class="sb-card__media"><div class="demo-media"></div></div>
+                <div class="sb-card__body sb-stack sb-stack--gap-2">
+                  <h3 class="sb-card__title"><a href="#cards" style="color: inherit; text-decoration: none">Interactive card</a></h3>
+                  <p class="u-text-muted u-text-sm">Hover me — the whole card lifts. Focus lands a visible ring.</p>
+                </div>
+              </div>
+              <div class="sb-card sb-card--raised">
+                <div class="sb-card__header"><h3 class="sb-card__title">Raised</h3><span class="sb-badge sb-badge--secondary">shadow</span></div>
+                <div class="sb-card__body"><p class="u-text-muted u-text-sm">Border-less, elevation only.</p></div>
+                <div class="sb-card__footer"><button class="sb-button sb-button--soft sb-button--sm">Action</button></div>
+              </div>
+              <div class="sb-card sb-card--sunken">
+                <div class="sb-card__body sb-empty-state" style="padding: var(--sb-space-6)">
+                  <div class="sb-empty-state__icon">🗂️</div>
+                  <h3 class="sb-empty-state__title">Nothing here yet</h3>
+                  <p class="sb-empty-state__body">Empty states live happily inside sunken cards.</p>
+                  <button class="sb-button sb-button--sm">New project</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="feedback">
+            <h2>Alerts &amp; toasts</h2>
+            <div class="sb-stack sb-stack--gap-3">
+              <div class="sb-alert sb-alert--success" role="status">
+                <div><p class="sb-alert__title">Deployed</p><p>Build 214 is live in production.</p></div>
+                <button class="sb-alert__dismiss" data-sb-dismiss aria-label="Dismiss">×</button>
+              </div>
+              <div class="sb-alert sb-alert--warning" role="status">
+                <div><p class="sb-alert__title">Certificate expiring</p><p>Renew within 14 days to avoid downtime.</p></div>
+                <button class="sb-alert__dismiss" data-sb-dismiss aria-label="Dismiss">×</button>
+              </div>
+              <div class="sb-alert sb-alert--danger" role="alert">
+                <div><p class="sb-alert__title">Payment failed</p><p>We couldn't charge your card. <a href="#feedback" style="color: inherit">Update billing</a>.</p></div>
+              </div>
+              <div class="sb-alert sb-alert--info" role="status">
+                <div><p>Heads up: maintenance window Sunday 02:00–03:00 UTC.</p></div>
+              </div>
+            </div>
+            <div class="sb-cluster">
+              <button class="sb-button sb-button--soft" data-toast="success">Success toast</button>
+              <button class="sb-button sb-button--soft" data-toast="danger">Danger toast</button>
+              <button class="sb-button sb-button--soft" data-toast="info">Sticky toast</button>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="navigation-m">
+            <h2>Tabs, accordion &amp; wayfinding</h2>
+            <div class="sb-tabs" data-sb="tabs">
+              <div class="sb-tabs__list" role="tablist" aria-label="Example tabs">
+                <button class="sb-tabs__tab" role="tab" aria-selected="true">Overview</button>
+                <button class="sb-tabs__tab" role="tab">Activity</button>
+                <button class="sb-tabs__tab" role="tab">Settings</button>
+              </div>
+              <div class="sb-tabs__panel" role="tabpanel"><p class="u-text-muted">Arrow keys move between tabs; panels toggle <code>hidden</code>.</p></div>
+              <div class="sb-tabs__panel" role="tabpanel" hidden><p class="u-text-muted">Recent activity would render here.</p></div>
+              <div class="sb-tabs__panel" role="tabpanel" hidden><p class="u-text-muted">Settings form would render here.</p></div>
+            </div>
+            <div class="sb-stack sb-stack--gap-0">
+              <details class="sb-accordion" name="faq" open>
+                <summary>Is the accordion accessible with JavaScript disabled?</summary>
+                <div class="sb-accordion__body">Yes — it's a native <code>&lt;details&gt;</code>. The shared <code>name</code> makes the group exclusive, and modern browsers animate it via <code>interpolate-size</code>.</div>
+              </details>
+              <details class="sb-accordion" name="faq">
+                <summary>How do themes stay accessible?</summary>
+                <div class="sb-accordion__body">Semantic color pairings are contrast-checked at build time; a failing palette fails the build.</div>
+              </details>
+            </div>
+            <div class="sb-cluster sb-cluster--between">
+              <nav class="sb-breadcrumb" aria-label="Breadcrumb">
+                <ol><li><a href="#">Home</a></li><li><a href="#">Projects</a></li><li aria-current="page">Sorbet</li></ol>
+              </nav>
+              <nav class="sb-pagination" aria-label="Pagination">
+                <a href="#" aria-label="Previous page">‹</a><a href="#">1</a><a href="#" aria-current="page">2</a><a href="#">3</a><span>…</span><a href="#">12</a><a href="#" aria-label="Next page">›</a>
+              </nav>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="overlays">
+            <h2>Menu, modal &amp; drawer</h2>
+            <div class="sb-cluster">
+              <button class="sb-button sb-button--outline" data-sb="menu" popovertarget="demo-menu" data-align-end>
+                Options ▾
+              </button>
+              <div class="sb-menu" id="demo-menu" popover>
+                <p class="sb-menu__heading">Project</p>
+                <button class="sb-menu__item">Rename <span class="sb-menu__kbd">⌘R</span></button>
+                <button class="sb-menu__item">Duplicate <span class="sb-menu__kbd">⌘D</span></button>
+                <hr class="sb-menu__separator">
+                <button class="sb-menu__item" data-danger>Delete project</button>
+              </div>
+              <button class="sb-button" data-sb-open="demo-modal">Confirm dialog</button>
+              <button class="sb-button sb-button--secondary" data-sb-open="demo-drawer">Open drawer</button>
+            </div>
+          </section>
+
+          <section class="sb-stack demo-section" id="table">
+            <h2>Data table</h2>
+            <div class="sb-table-wrap">
+              <table class="sb-table sb-table--hover" data-sb="sortable">
+                <thead><tr>
+                  <th aria-sort="ascending"><button class="sb-table__sort">Invoice</button></th>
+                  <th><button class="sb-table__sort">Customer</button></th>
+                  <th><button class="sb-table__sort">Status</button></th>
+                  <th data-numeric><button class="sb-table__sort">Amount</button></th>
+                </tr></thead>
+                <tbody>
+                  <tr><td>INV-0012</td><td>Meridian Labs</td><td><span class="sb-badge sb-badge--success">Paid</span></td><td data-numeric>$1,250.00</td></tr>
+                  <tr><td>INV-0013</td><td>Hoot &amp; Co</td><td><span class="sb-badge sb-badge--warning">Pending</span></td><td data-numeric>$860.00</td></tr>
+                  <tr><td>INV-0014</td><td>Aster Systems</td><td><span class="sb-badge sb-badge--danger">Overdue</span></td><td data-numeric>$3,420.50</td></tr>
+                  <tr><td>INV-0015</td><td>Bluebird</td><td><span class="sb-badge sb-badge--success">Paid</span></td><td data-numeric>$240.00</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <footer class="sb-footer" style="margin-block-start: var(--sb-space-24)">
+        <div class="sb-container sb-footer__inner">
+          <div class="sb-footer__cols">
+            <div><p class="sb-footer__heading">Product</p><ul><li><a href="#">Features</a></li><li><a href="#">Pricing</a></li></ul></div>
+            <div><p class="sb-footer__heading">Resources</p><ul><li><a href="#">Docs</a></li><li><a href="#">Changelog</a></li></ul></div>
+            <div><p class="sb-footer__heading">Company</p><ul><li><a href="#">About</a></li><li><a href="#">Contact</a></li></ul></div>
+          </div>
+          <div class="sb-footer__meta"><span>© 2026 Sorbet. Scooped with care.</span><a href="#top">Back to top ↑</a></div>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <dialog class="sb-modal" id="demo-modal" data-sb="modal">
+    <header class="sb-modal__header">
+      <h2>Delete project?</h2>
+      <button class="sb-button sb-button--ghost sb-button--icon sb-button--sm" data-sb-close aria-label="Close">×</button>
+    </header>
+    <div class="sb-modal__body sb-stack sb-stack--gap-3">
+      <p>This permanently removes <strong>sorbet-demo</strong> and all of its data. This action cannot be undone.</p>
+      <div class="sb-field">
+        <label class="sb-label" for="confirm-name">Type the project name to confirm</label>
+        <input class="sb-input" id="confirm-name" placeholder="sorbet-demo">
+      </div>
+    </div>
+    <footer class="sb-modal__footer">
+      <button class="sb-button sb-button--ghost" data-sb-close>Cancel</button>
+      <button class="sb-button sb-button--danger" data-sb-close>Delete forever</button>
+    </footer>
+  </dialog>
+
+  <dialog class="sb-drawer" id="demo-drawer" data-sb="modal">
+    <header class="sb-drawer__header">
+      <h3>Filters</h3>
+      <button class="sb-button sb-button--ghost sb-button--icon sb-button--sm" data-sb-close aria-label="Close">×</button>
+    </header>
+    <div class="sb-drawer__body sb-stack">
+      <div class="sb-field">
+        <label class="sb-label" for="d-status">Status</label>
+        <span class="sb-select"><select id="d-status"><option>Any</option><option>Paid</option><option>Pending</option></select></span>
+      </div>
+      <label class="sb-choice"><input type="checkbox" class="sb-checkbox" checked> Only my invoices</label>
+      <label class="sb-choice"><input type="checkbox" class="sb-checkbox"> Include archived</label>
+    </div>
+    <footer class="sb-drawer__footer">
+      <button class="sb-button sb-button--ghost" data-sb-close>Reset</button>
+      <button class="sb-button" data-sb-close>Apply</button>
+    </footer>
+  </dialog>
+
+  <script type="module">
+    import { init, getTheme, toast } from "../packages/behaviors/dist/index.js";
+
+    init();
+    const theme = getTheme();
+
+    // --- color mode segmented control -------------------------------------
+    const modeGroup = document.getElementById("mode-group");
+    const paintMode = () => {
+      for (const b of modeGroup.querySelectorAll("[data-mode]")) {
+        b.setAttribute("aria-selected", String(b.dataset.mode === theme.mode));
+      }
+    };
+    modeGroup.addEventListener("click", (e) => {
+      const mode = e.target.closest("[data-mode]")?.dataset.mode;
+      if (mode) { theme.set(mode); paintMode(); }
+    });
+    paintMode();
+
+    // --- preset switcher ----------------------------------------------------
+    const link = document.getElementById("theme-css");
+    const select = document.getElementById("preset-select");
+    const manifest = await fetch("../packages/styles/dist/themes/manifest.json").then((r) => r.json());
+    for (const p of manifest) {
+      const option = new Option(`${p.label} — ${p.tagline.split(":")[0].toLowerCase()}`, p.name);
+      select.append(option);
+    }
+    const saved = localStorage.getItem("demo-preset") ?? "sorbet";
+    select.value = saved;
+    link.href = `../packages/styles/dist/themes/${saved}.css`;
+    select.addEventListener("change", () => {
+      link.href = `../packages/styles/dist/themes/${select.value}.css`;
+      localStorage.setItem("demo-preset", select.value);
+      requestAnimationFrame(paintSwatches);
+    });
+
+    // --- toasts ---------------------------------------------------------------
+    document.getElementById("hero-toast").addEventListener("click", () =>
+      toast("Fresh out of the churner.", { title: "Hello from Sorbet", tone: "success" }));
+    for (const b of document.querySelectorAll("[data-toast]")) {
+      b.addEventListener("click", () => {
+        const tone = b.dataset.toast;
+        if (tone === "info") toast("I stay until you dismiss me.", { title: "Sticky", tone, duration: 0 });
+        else if (tone === "danger") toast("Something went sideways.", { title: "Uh oh", tone });
+        else toast("All changes saved.", { tone });
+      });
+    }
+
+    // --- live token swatches ---------------------------------------------------
+    const SWATCH_TOKENS = ["bg", "surface", "text", "text-muted", "border",
+      "primary", "primary-subtle", "secondary", "accent",
+      "success", "warning", "danger", "info"];
+    function paintSwatches() {
+      const styles = getComputedStyle(document.documentElement);
+      const host = document.getElementById("swatches");
+      host.innerHTML = "";
+      for (const name of SWATCH_TOKENS) {
+        const value = styles.getPropertyValue(`--sb-${name}`).trim();
+        const fig = document.createElement("figure");
+        fig.className = "demo-swatch";
+        fig.innerHTML = `<div class="demo-swatch__chip" style="background: var(--sb-${name})"></div>
+          <figcaption>--sb-${name}<br>${value}</figcaption>`;
+        host.append(fig);
+      }
+    }
+    paintSwatches();
+    document.addEventListener("sb:theme", () => requestAnimationFrame(paintSwatches));
+    link.addEventListener("load", paintSwatches);
+
+    // --- masonry wall (added after init(); the balancer's MutationObserver
+    //     adopts late-added tiles) --------------------------------------------
+    const SHOTS = [
+      ["🍓", "Raspberry ripple", "3 / 4", "primary", "accent"],
+      ["🌊", "Sea foam", "1", "secondary", "info"],
+      ["🍋", "Lemon zest", "4 / 3", "warning", "accent"],
+      ["🌿", "New growth", "2 / 3", "success", "secondary"],
+      ["🍇", "Grape crush", "1", "accent", "primary"],
+      ["🌅", "Golden hour", "16 / 9", "warning", "danger"],
+      ["🫐", "Blueberry dusk", "3 / 4", "info", "accent"],
+      ["🍑", "Peach fuzz", "4 / 5", "danger", "warning"],
+      ["🍒", "Cherry on top", "2 / 3", "primary", "danger"],
+      ["🍊", "Citrus study", "4 / 3", "warning", "primary"],
+    ];
+    document.getElementById("masonry-wall").innerHTML = SHOTS.map(([emoji, caption, ratio, from, to]) => `
+      <div class="sb-card sb-card--flat">
+        <div class="sb-frame" style="--ratio: ${ratio}">
+          <div style="inline-size:100%;block-size:100%;display:grid;place-items:center;font-size:2.5rem;
+                      background:linear-gradient(135deg, var(--sb-${from}-subtle), var(--sb-${to}-subtle))">${emoji}</div>
+        </div>
+        <div style="padding: var(--sb-space-3)" class="sb-cluster sb-cluster--between sb-cluster--gap-2">
+          <span class="u-text-sm">${caption}</span><span class="u-text-xs u-text-muted">♥</span>
+        </div>
+      </div>`).join("");
+  </script>
+</body>
+</html>

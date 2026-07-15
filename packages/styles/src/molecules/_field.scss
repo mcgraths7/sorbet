@@ -1,0 +1,53 @@
+@use "../abstracts" as *;
+
+// Label + control + hint + error. The molecule owns the internal spacing;
+// the error reveals itself via :has(:user-invalid) with no JS.
+//
+// <div class="sb-field">
+//   <label class="sb-label" for="email" data-required>Email</label>
+//   <input class="sb-input" id="email" type="email" required>
+//   <p class="sb-field__hint">We'll never share it.</p>
+//   <p class="sb-field__error">Enter a valid email address.</p>
+// </div>
+.sb-field {
+  display: flex;
+  flex-direction: column;
+  gap: space(2);
+
+  &__hint,
+  &__error {
+    font-size: fs(xs);
+    line-height: lh(snug);
+  }
+
+  &__hint {
+    color: clr(text-muted);
+  }
+
+  &__error {
+    display: none;
+    color: clr(danger-text);
+    font-weight: fw(medium);
+  }
+
+  &:has(:user-invalid) .sb-field__error,
+  &:has([aria-invalid="true"]) .sb-field__error,
+  &[data-invalid] .sb-field__error {
+    display: block;
+  }
+
+  // Hide the hint once the error is showing, so they don't stack.
+  &:has(:user-invalid) .sb-field__hint,
+  &:has([aria-invalid="true"]) .sb-field__hint,
+  &[data-invalid] .sb-field__hint {
+    display: none;
+  }
+
+  // Inline variant: label beside control (settings rows).
+  &--inline {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: space(4);
+  }
+}

@@ -1,0 +1,80 @@
+// Sorbet Design System — compiled entry point.
+//
+// Everything lands in explicit cascade layers, lowest priority first. Your
+// own unlayered CSS always beats the design system without specificity
+// wars — override freely.
+
+@use "sass:meta";
+
+@layer sb.reset, sb.base, sb.layout, sb.atoms, sb.molecules, sb.organisms, sb.templates, sb.utilities;
+
+@layer sb.reset {
+  @include meta.load-css("base/reset");
+}
+
+@layer sb.base {
+  @include meta.load-css("base/root");
+  @include meta.load-css("base/typography");
+}
+
+@layer sb.layout {
+  @include meta.load-css("layout/container");
+  @include meta.load-css("layout/stack");
+  @include meta.load-css("layout/cluster");
+  @include meta.load-css("layout/grid");
+  @include meta.load-css("layout/split");
+  @include meta.load-css("layout/center");
+  @include meta.load-css("layout/masonry");
+  @include meta.load-css("layout/frame");
+}
+
+@layer sb.atoms {
+  @include meta.load-css("atoms/button");
+  @include meta.load-css("atoms/badge");
+  @include meta.load-css("atoms/chip");
+  @include meta.load-css("atoms/avatar");
+  @include meta.load-css("atoms/spinner");
+  @include meta.load-css("atoms/progress");
+  @include meta.load-css("atoms/divider");
+  @include meta.load-css("atoms/kbd");
+  @include meta.load-css("atoms/label");
+  @include meta.load-css("atoms/input");
+  @include meta.load-css("atoms/select");
+  @include meta.load-css("atoms/choice");
+  @include meta.load-css("atoms/switch");
+  @include meta.load-css("atoms/skeleton");
+  @include meta.load-css("atoms/tooltip");
+}
+
+@layer sb.molecules {
+  @include meta.load-css("molecules/field");
+  @include meta.load-css("molecules/input-group");
+  @include meta.load-css("molecules/card");
+  @include meta.load-css("molecules/alert");
+  @include meta.load-css("molecules/menu");
+  @include meta.load-css("molecules/tabs");
+  @include meta.load-css("molecules/accordion");
+  @include meta.load-css("molecules/breadcrumb");
+  @include meta.load-css("molecules/pagination");
+  @include meta.load-css("molecules/toast");
+  @include meta.load-css("molecules/stat");
+  @include meta.load-css("molecules/empty-state");
+}
+
+@layer sb.organisms {
+  @include meta.load-css("organisms/navbar");
+  @include meta.load-css("organisms/sidebar");
+  @include meta.load-css("organisms/modal");
+  @include meta.load-css("organisms/drawer");
+  @include meta.load-css("organisms/table");
+  @include meta.load-css("organisms/footer");
+}
+
+@layer sb.templates {
+  @include meta.load-css("templates/app-shell");
+  @include meta.load-css("templates/auth");
+}
+
+@layer sb.utilities {
+  @include meta.load-css("base/utilities");
+}

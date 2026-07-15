@@ -1,0 +1,88 @@
+@use "../abstracts" as *;
+
+// Driven by the Tabs behavior. Markup contract:
+// <div class="sb-tabs" data-sb="tabs">
+//   <div class="sb-tabs__list" role="tablist">
+//     <button class="sb-tabs__tab" role="tab" aria-selected="true">…</button>
+//   </div>
+//   <div class="sb-tabs__panel" role="tabpanel">…</div>
+// </div>
+.sb-tabs {
+  &__list {
+    display: flex;
+    gap: space(1);
+    border-block-end: token(border-width) solid clr(border);
+    overflow-x: auto;
+  }
+
+  &__tab {
+    @include control-reset;
+    @include focus-ring(-4px);
+
+    position: relative;
+    padding: space(3) space(4);
+    font-size: fs(sm);
+    font-weight: fw(medium);
+    color: clr(text-muted);
+    white-space: nowrap;
+    transition: color dur(fast) ease(out);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-inline: space(2);
+      inset-block-end: -1px;
+      block-size: 2.5px;
+      border-radius: radius(full);
+      background-color: transparent;
+      transition: background-color dur(fast) ease(out);
+    }
+
+    &:hover {
+      color: clr(text);
+    }
+
+    &[aria-selected="true"] {
+      color: clr(primary-text);
+
+      &::after {
+        background-color: clr(primary);
+      }
+    }
+  }
+
+  &__panel {
+    padding-block-start: space(4);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  // Pill variant: segmented control look.
+  &--pills {
+    .sb-tabs__list {
+      display: inline-flex;
+      gap: space(1);
+      padding: space(1);
+      border: none;
+      border-radius: radius(full);
+      background-color: clr(bg-subtle);
+    }
+
+    .sb-tabs__tab {
+      border-radius: radius(full);
+      padding-block: space(2);
+
+      &::after {
+        content: none;
+      }
+
+      &[aria-selected="true"] {
+        background-color: clr(surface);
+        color: clr(text);
+        box-shadow: shadow(xs);
+      }
+    }
+  }
+}

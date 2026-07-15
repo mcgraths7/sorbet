@@ -1,0 +1,17 @@
+{
+  "name": "@sorbet/cli",
+  "version": "0.1.0",
+  "description": "The sorbet CLI: scaffold a Sorbet design system with a chosen preset, emit themes, and generate component stubs.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "sorbet": "./dist/index.js"
+  },
+  "files": ["dist", "scaffold"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sorbet/tokens": "0.1.0"
+  }
+}

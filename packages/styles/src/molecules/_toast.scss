@@ -1,0 +1,76 @@
+@use "../abstracts" as *;
+
+// The Toast behavior owns creation/dismissal; this styles the region and
+// the toasts. The region is aria-live, so new toasts are announced.
+.sb-toast-region {
+  position: fixed;
+  inset-block-end: space(4);
+  inset-inline-end: space(4);
+  display: flex;
+  flex-direction: column;
+  gap: space(2);
+  max-inline-size: min(24rem, calc(100vw - #{space(8)}));
+  z-index: z(toast);
+}
+
+.sb-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: space(3);
+  padding: space(3) space(4);
+  border-radius: radius(md);
+  border: token(border-width) solid clr(border-subtle);
+  background-color: clr(surface-raised);
+  color: clr(text);
+  font-size: fs(sm);
+  box-shadow: shadow(lg);
+  animation: sb-toast-in dur(slow) ease(spring);
+
+  &[data-leaving] {
+    transition: opacity dur(base) ease(out), translate dur(base) ease(out);
+    opacity: 0;
+    translate: space(4) 0;
+  }
+
+  &__title {
+    font-weight: fw(semibold);
+  }
+
+  &__body {
+    color: clr(text-muted);
+  }
+
+  &__dismiss {
+    @include control-reset;
+    @include focus-ring(0);
+
+    margin-inline-start: auto;
+    flex-shrink: 0;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    display: grid;
+    place-content: center;
+    border-radius: radius(sm);
+    color: clr(text-subtle);
+    font-size: fs(lg);
+    line-height: 1;
+
+    &:hover {
+      background-color: clr(bg-subtle);
+      color: clr(text);
+    }
+  }
+
+  @each $tone in (success, warning, danger, info) {
+    &--#{$tone} {
+      border-inline-start: 3px solid clr($tone);
+    }
+  }
+}
+
+@keyframes sb-toast-in {
+  from {
+    opacity: 0;
+    translate: 0 space(4);
+  }
+}

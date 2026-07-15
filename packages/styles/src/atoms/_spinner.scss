@@ -1,0 +1,28 @@
+@use "../abstracts" as *;
+
+@keyframes sb-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+// <span class="sb-spinner" role="status" aria-label="Loading"></span>
+.sb-spinner {
+  --size: 1.5rem;
+
+  display: inline-block;
+  inline-size: var(--size);
+  block-size: var(--size);
+  border-radius: radius(full);
+  border: calc(var(--size) / 9) solid clr(primary-subtle);
+  border-block-start-color: clr(primary);
+  animation: sb-spin 0.7s linear infinite;
+
+  &--sm { --size: 1rem; }
+  &--lg { --size: 2.5rem; }
+
+  &--muted {
+    border-color: clr(bg-subtle);
+    border-block-start-color: clr(text-subtle);
+  }
+}

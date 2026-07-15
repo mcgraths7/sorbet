@@ -1,0 +1,22 @@
+{
+  "name": "@sorbet/layout",
+  "version": "0.1.0",
+  "description": "Sorbet layout primitives for React: Container, Stack, Cluster, Grid, Split, Center, Cover. Layout owns all spacing.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": { "@sorbet/core": "0.1.0" },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

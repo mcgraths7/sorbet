@@ -1,0 +1,4 @@
+// Everything a component partial needs: `@use "../abstracts" as *;`
+@forward "generated";
+@forward "tokens";
+@forward "mixins";

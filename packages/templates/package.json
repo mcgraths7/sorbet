@@ -1,0 +1,22 @@
+{
+  "name": "@sorbet/templates",
+  "version": "0.1.0",
+  "description": "Sorbet templates for React: AppShell and AuthLayout page frames.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": { "@sorbet/core": "0.1.0" },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

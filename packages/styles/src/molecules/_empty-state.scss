@@ -1,0 +1,43 @@
+@use "../abstracts" as *;
+
+// <div class="sb-empty-state">
+//   <div class="sb-empty-state__icon">🗂️</div>
+//   <h3 class="sb-empty-state__title">No projects yet</h3>
+//   <p class="sb-empty-state__body">Create your first project to get started.</p>
+//   <button class="sb-button">New project</button>
+// </div>
+.sb-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: space(3);
+  padding: space(12) space(6);
+  text-align: center;
+
+  &__icon {
+    display: grid;
+    place-content: center;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    border-radius: radius(full);
+    background-color: clr(primary-subtle);
+    font-size: fs(xl);
+
+    > svg {
+      inline-size: 1.5rem;
+      block-size: 1.5rem;
+      color: clr(primary-text);
+    }
+  }
+
+  &__title {
+    font-size: fs(lg);
+    font-weight: fw(semibold);
+  }
+
+  &__body {
+    max-inline-size: 28rem;
+    color: clr(text-muted);
+    font-size: fs(sm);
+  }
+}

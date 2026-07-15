@@ -1,0 +1,43 @@
+@use "../abstracts" as *;
+
+// <div class="sb-progress" role="progressbar" aria-valuenow="60"
+//      aria-valuemin="0" aria-valuemax="100">
+//   <div class="sb-progress__bar" style="inline-size: 60%"></div>
+// </div>
+.sb-progress {
+  block-size: 0.5rem;
+  border-radius: radius(full);
+  background-color: clr(bg-subtle);
+  overflow: hidden;
+
+  &__bar {
+    block-size: 100%;
+    border-radius: inherit;
+    background-color: clr(primary);
+    transition: inline-size dur(slow) ease(out);
+  }
+
+  &--sm { block-size: 0.25rem; }
+  &--lg { block-size: 0.75rem; }
+
+  @each $tone in (success, warning, danger, secondary, accent) {
+    &--#{$tone} .sb-progress__bar {
+      background-color: clr($tone);
+    }
+  }
+
+  &--indeterminate .sb-progress__bar {
+    inline-size: 40%;
+    animation: sb-progress-slide 1.2s ease(in-out) infinite;
+  }
+}
+
+@keyframes sb-progress-slide {
+  from {
+    translate: -110% 0;
+  }
+
+  to {
+    translate: 260% 0;
+  }
+}

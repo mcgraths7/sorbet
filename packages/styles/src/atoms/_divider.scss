@@ -1,0 +1,28 @@
+@use "../abstracts" as *;
+
+// <hr class="sb-divider">  or with a label:
+// <div class="sb-divider" role="separator"><span>or</span></div>
+.sb-divider {
+  border: none;
+  border-block-start: token(border-width) solid clr(border);
+
+  @at-root div#{&} {
+    display: flex;
+    align-items: center;
+    gap: space(3);
+    border: none;
+    color: clr(text-subtle);
+    font-size: fs(sm);
+
+    &::before,
+    &::after {
+      content: "";
+      flex: 1;
+      border-block-start: token(border-width) solid clr(border);
+    }
+  }
+
+  &--strong {
+    border-color: clr(border-strong);
+  }
+}
