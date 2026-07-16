@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "dependencies": { "@sorbet/core": "0.1.0", "@sorbet/layout": "0.1.0", "@sorbet/atoms": "0.1.0", "@sorbet/molecules": "0.1.0", "@sorbet/organisms": "0.1.0", "@sorbet/templates": "0.1.0" },
+  "dependencies": { "@sorbet/core": "0.1.0", "@sorbet/layout": "0.1.0", "@sorbet/atoms": "0.1.0", "@sorbet/molecules": "0.1.0", "@sorbet/organisms": "0.1.0", "@sorbet/charts": "0.1.0", "@sorbet/templates": "0.1.0" },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

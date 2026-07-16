@@ -44,6 +44,7 @@ npm run playground       # React kitchen sink (Vite, port 5183)
 | `@sorbet/molecules` | React molecules: `Field`, `Card`, `Alert`, `Tabs`, `Menu`, `Accordion`, `Pagination`, `ToastProvider`, … |
 | `@sorbet/organisms` | React organisms: `Navbar`, `Sidebar`, `Modal`, `Drawer`, `DataTable`, `Footer` |
 | `@sorbet/templates` | React page frames: `AppShell`, `AuthLayout` |
+| `@sorbet/charts` | React data viz: `LineChart`, `BarChart` (grouped/stacked), `DonutChart`, `Sparkline` — SVG, dependency-free, themed by validated chart tokens |
 | `@sorbet/react` | The umbrella: re-exports every layer + `ThemeProvider`/`useTheme` |
 | `@sorbet/cli` | The `sorbet` CLI: scaffold a standalone design system, emit themes, generate component stubs |
 
@@ -366,6 +367,42 @@ reflowing as media arrives — handy well beyond masonry. Vanilla flavor:
 No JS: the error reveals via `:has(:user-invalid)` after interaction, and the
 hint hides while the error shows. The React `Field` produces the same markup.
 
+## Data visualization
+
+Charts are part of the system, not a bolt-on. `@sorbet/tokens` ships an
+**8-slot categorical palette per preset** (`--sb-chart-1…8` + `--sb-chart-muted`),
+drawn from the same OKLCH ramps and **validated, not eyeballed**: fixed slot
+order optimized for color-vision-deficiency separation (worst adjacent
+Machado-2009 ΔE ≥ 14.7 across every preset × mode), per-mode lightness bands,
+chroma floors, and contrast gates enforced by the build. Dark mode gets its own
+steps from the same hues — never an automatic flip.
+
+`@sorbet/charts` covers the dashboard 80% with zero dependencies:
+
+```tsx
+<LineChart title="Weekly active users" subtitle="By platform"
+           labels={months} series={[{ label: "Web", data: [...] }, …]} />
+<BarChart title="Traffic" labels={months} series={channels} stacked />
+<Stat label="MRR" value="$72K" delta="+9.1%" trend="up"
+      chart={<Sparkline data={trend} />} />
+```
+
+Built-in method, so charts are right by construction: assign slots in order
+(never cycled — a 9th series is "Other"); one axis, always; 2px lines with
+ringed ≥8px end markers; ≤24px columns with a rounded data-end and 2px surface
+gaps; hairline recessive grids; a legend whenever there are ≥2 series (a single
+series is named by the title); selective direct end labels that fall back to
+the legend when they'd collide; a crosshair + tooltip hover layer; and every
+chart carries its accessibility twin — a **"View as table"** toggle rendering
+the same data as a real table. Text always wears text tokens, never the series
+color. Part-to-whole *over time* is the stacked bar; for a single-period
+breakdown, `DonutChart` puts the total in the hole (the headline a pie can't
+show), folds the smallest categories into a muted "Other", and pairs the ring
+with a value legend — never a bare pie.
+
+For exotic needs (zoom/brush, log scales, streamgraphs) bring D3 or Recharts
+and feed them `var(--sb-chart-1…8)` — your charts stay on-theme in both modes.
+
 ## The CLI
 
 ```
@@ -405,6 +442,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 **Molecules** Field · InputGroup(+Addon) · Card (header/body/footer/media/title, 5 variants) · Alert · Tabs/TabList/Tab/TabPanel · Menu (heading/item/separator) · Accordion(+Item) · Breadcrumb(+Item) · Pagination · ToastProvider/useToast · Stat · EmptyState
 **Organisms** Navbar (brand/nav/link/actions/menu-button) · Sidebar (heading/item/footer) · Modal · Drawer · DataTable · Footer (cols/col/meta)
 **Templates** AppShell (header/sidebar/main) · AuthLayout
+**Charts** LineChart (multi-series, area, crosshair+tooltip) · BarChart (grouped/stacked) · DonutChart (center total, Other folding, value legend) · Sparkline · ChartShell (legend + table view) · validated chart tokens
 **Providers** ThemeProvider/useTheme · ToastProvider/useToast
 
 ---

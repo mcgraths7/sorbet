@@ -16,12 +16,13 @@
     color: clr(text-muted);
   }
 
+  // Proportional figures on purpose: tabular-nums makes large standalone
+  // values look loose. Reserve tabular for columns that must align.
   &__value {
     font-family: font(display);
     font-size: fs(3xl);
     font-weight: fw(bold);
     line-height: lh(tight);
-    font-variant-numeric: tabular-nums;
   }
 
   &__delta {

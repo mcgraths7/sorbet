@@ -16,3 +16,4 @@ export * from "@sorbet/molecules";
 export * from "@sorbet/organisms";
 export * from "@sorbet/templates";
 export { ThemeProvider, useTheme, type ThemeContextValue, type ThemeMode, type ThemeProviderProps } from "./theme.tsx";
+export * from "@sorbet/charts";
