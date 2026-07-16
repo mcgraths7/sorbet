@@ -1,4 +1,6 @@
 export { Field, type FieldProps } from "./field.tsx";
+export { Combobox, type ComboboxFilter, type ComboboxOption, type ComboboxProps } from "./combobox.tsx";
+export { MultiCombobox, type MultiComboboxProps } from "./multi-combobox.tsx";
 export { InputGroup, InputGroupAddon } from "./input-group.tsx";
 export { Card, CardBody, CardFooter, CardHeader, CardMedia, CardTitle, type CardFooterProps, type CardOwnProps } from "./card.tsx";
 export { Alert, type AlertProps } from "./alert.tsx";

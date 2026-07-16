@@ -21,6 +21,7 @@ import {
   Chip,
   Choice,
   Cluster,
+  Combobox,
   Container,
   DataTable,
   Divider,
@@ -44,6 +45,7 @@ import {
   Masonry,
   Menu,
   MenuHeading,
+  MultiCombobox,
   MenuItem,
   MenuSeparator,
   Modal,
@@ -204,6 +206,27 @@ const TRAFFIC = [
 ];
 
 const SPARK = [8, 10, 9, 12, 13, 12, 15, 14, 17, 19, 18, 22];
+
+const LABELS = [
+  { value: "bug", label: "Bug", description: "Something is broken" },
+  { value: "feature", label: "Feature", description: "New capability" },
+  { value: "docs", label: "Docs", description: "Documentation only" },
+  { value: "design", label: "Design", description: "Visual or UX work" },
+  { value: "perf", label: "Performance" },
+  { value: "a11y", label: "Accessibility" },
+  { value: "breaking", label: "Breaking change", disabled: true },
+];
+
+const ASSIGNEES = [
+  { value: "ada", label: "Ada Lovelace", description: "ada@sorbet.dev", group: "Engineering" },
+  { value: "grace", label: "Grace Hopper", description: "grace@sorbet.dev", group: "Engineering" },
+  { value: "alan", label: "Alan Turing", description: "alan@sorbet.dev", group: "Engineering", disabled: true },
+  { value: "dieter", label: "Dieter Rams", description: "dieter@sorbet.dev", group: "Design" },
+  { value: "susan", label: "Susan Kare", description: "susan@sorbet.dev", group: "Design" },
+  { value: "don", label: "Don Norman", description: "don@sorbet.dev", group: "Design" },
+  { value: "mary", label: "Mary Shelley", description: "mary@sorbet.dev", group: "Product" },
+  { value: "ursula", label: "Ursula K. Le Guin", description: "ursula@sorbet.dev", group: "Product" },
+];
 
 const SPENDING = [
   { label: "Rent", value: 1850 },
@@ -422,6 +445,17 @@ export function App() {
                         <option>Designer</option>
                         <option>Product</option>
                       </Select>
+                    </Field>
+                    <Field label="Assignee" hint="Combobox — type to filter, arrows to navigate.">
+                      <Combobox options={ASSIGNEES} placeholder="Search people…" name="assignee" />
+                    </Field>
+                    <Field label="Labels" hint="Multi-select — Backspace removes the last tag.">
+                      <MultiCombobox
+                        options={LABELS}
+                        defaultValue={["bug", "docs"]}
+                        placeholder="Add labels…"
+                        name="labels"
+                      />
                     </Field>
                     <Field label="Website">
                       <InputGroup>
