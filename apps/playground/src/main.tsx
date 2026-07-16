@@ -1,5 +1,5 @@
+import { ThemeProvider } from "@sorbet/core";
 import { ToastProvider } from "@sorbet/molecules";
-import { ThemeProvider } from "@sorbet/react";
 import "@sorbet/styles/css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

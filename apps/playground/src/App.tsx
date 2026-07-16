@@ -89,8 +89,7 @@ import {
 } from "@sorbet/organisms";
 import { AppShell, AppShellHeader, AppShellMain, AppShellSidebar } from "@sorbet/templates";
 import { BarChart, DonutChart, LineChart, Sparkline } from "@sorbet/charts";
-// Theming lives in the umbrella, not in any component layer.
-import { useTheme, type ThemeMode } from "@sorbet/react";
+import { useTheme, type ThemeMode } from "@sorbet/core";
 import { useEffect, useState } from "react";
 
 import forestTheme from "@sorbet/styles/themes/forest.css?url";
@@ -404,7 +403,7 @@ export function App() {
                 <Card>
                   <CardBody>
                     <Stack gap={2}>
-                      <p className="sb-overline">Stack</p>
+                      <CardHeader className="sb-overline">Stack</CardHeader>
                       <div style={demoBox}>one</div>
                       <div style={demoBox}>two</div>
                     </Stack>
@@ -413,7 +412,7 @@ export function App() {
                 <Card>
                   <CardBody>
                     <Stack gap={2}>
-                      <p className="sb-overline">Cluster</p>
+                      <CardHeader className="sb-overline">Cluster</CardHeader>
                       <Cluster gap={2}>
                         <div style={demoBox}>chip</div>
                         <div style={demoBox}>wrap</div>
@@ -426,7 +425,7 @@ export function App() {
                   <Card>
                     <CardBody>
                       <Stack gap={2}>
-                        <p className="sb-overline">Split</p>
+                        <CardHeader className="sb-overline">Split</CardHeader>
                         <Split aside="8rem">
                           <SplitAside>
                             <div style={demoBox}>aside</div>

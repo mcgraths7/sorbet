@@ -36,3 +36,13 @@ export function composeRefs<T>(...refs: Array<Ref<T> | undefined>): (node: T | n
     }
   };
 }
+
+// Theming is a framework service, not a component layer — it lives here so
+// cherry-picked layer packages get dark mode without the umbrella.
+export {
+  ThemeProvider,
+  useTheme,
+  type ThemeContextValue,
+  type ThemeMode,
+  type ThemeProviderProps,
+} from "./theme.tsx";
