@@ -1,0 +1,25 @@
+{
+  "name": "@sorbet/charts",
+  "version": "0.1.0",
+  "description": "Sorbet data visualization for React: line/area, grouped/stacked bars, sparklines — SVG, dependency-free, themed by the validated chart tokens.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sorbet/atoms": "0.1.0",
+    "@sorbet/core": "0.1.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

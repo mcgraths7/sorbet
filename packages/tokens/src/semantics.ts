@@ -7,6 +7,7 @@
  * That is what lets every preset guarantee WCAG AA in both modes.
  */
 
+import { chartColors, chartMuted, type ChartTheme } from "./charts.ts";
 import { contrast, withAlpha, type Hex } from "./color.ts";
 import { RAMP_STEPS, type Ramp, type RampStep } from "./ramps.ts";
 
@@ -23,6 +24,7 @@ export const SEMANTIC_COLOR_NAMES = [
   "danger", "danger-hover", "danger-active", "danger-subtle", "danger-text", "on-danger",
   "info", "info-hover", "info-subtle", "info-text", "on-info",
   "link", "link-hover",
+  "chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "chart-6", "chart-7", "chart-8", "chart-muted",
 ] as const;
 
 export type SemanticColorName = (typeof SEMANTIC_COLOR_NAMES)[number];
@@ -38,6 +40,8 @@ export interface SemanticRecipe {
   warning: Ramp;
   danger: Ramp;
   info: Ramp;
+  /** Fixed-order categorical palette for data visualization. */
+  charts: ChartTheme;
   /** true → pure white page + surfaces; false → softly tinted neutral-50 page */
   pureSurfaces?: boolean;
   overrides?: Partial<Record<Mode, Partial<SemanticColors>>>;
@@ -167,6 +171,11 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
   status("warning", recipe.warning, true);
   status("danger", recipe.danger, false);
   status("info", recipe.info, false);
+
+  chartColors(recipe.charts, mode).forEach((hex, i) => {
+    out[`chart-${i + 1}` as SemanticColorName] = hex;
+  });
+  out["chart-muted"] = chartMuted(recipe.neutral, mode);
 
   const primary = recipe.primary;
   out["focus-ring"] =

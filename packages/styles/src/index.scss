@@ -68,6 +68,7 @@
   @include meta.load-css("organisms/drawer");
   @include meta.load-css("organisms/table");
   @include meta.load-css("organisms/footer");
+  @include meta.load-css("organisms/chart");
 }
 
 @layer sb.templates {

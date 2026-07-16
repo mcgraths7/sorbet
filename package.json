@@ -7,7 +7,7 @@
   "license": "MIT",
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
-    "build": "npm run build -w @sorbet/tokens -w @sorbet/styles -w @sorbet/behaviors -w @sorbet/core -w @sorbet/layout -w @sorbet/atoms -w @sorbet/molecules -w @sorbet/organisms -w @sorbet/templates -w @sorbet/react -w @sorbet/cli",
+    "build": "npm run build -w @sorbet/tokens -w @sorbet/styles -w @sorbet/behaviors -w @sorbet/core -w @sorbet/layout -w @sorbet/atoms -w @sorbet/molecules -w @sorbet/organisms -w @sorbet/templates -w @sorbet/charts -w @sorbet/react -w @sorbet/cli",
     "check:contrast": "npm run check:contrast -w @sorbet/styles",
     "playground": "npm run dev -w playground",
     "test": "npm run check:contrast"

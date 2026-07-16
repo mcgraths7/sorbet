@@ -6,6 +6,7 @@
 
 import type { Hex } from "./color.ts";
 import { ramps } from "./ramps.ts";
+import { chartThemes } from "./charts.ts";
 import { buildMode, type Mode, type SemanticColors, type SemanticRecipe } from "./semantics.ts";
 import type { RadiusStyle } from "./scales.ts";
 
@@ -48,6 +49,7 @@ export const presets = {
     shadowTint: ramps.mauve[950],
     colors: build({
       neutral: ramps.mauve,
+      charts: chartThemes.sorbet,
       primary: ramps.raspberry,
       secondary: ramps.teal,
       accent: ramps.grape,
@@ -65,6 +67,7 @@ export const presets = {
     colors: build({
       neutral: ramps.slate,
       primary: ramps.blue,
+      charts: chartThemes.ocean,
       secondary: ramps.cyan,
       accent: ramps.indigo,
       pureSurfaces: true,
@@ -81,6 +84,7 @@ export const presets = {
     shadowTint: ramps.sand[950],
     colors: build({
       neutral: ramps.sand,
+      charts: chartThemes.forest,
       primary: ramps.green,
       secondary: ramps.teal,
       accent: ramps.coral,
@@ -97,6 +101,7 @@ export const presets = {
     shadowTint: ramps.gray[950],
     colors: build({
       neutral: ramps.gray,
+      charts: chartThemes.noir,
       primary: ramps.gray,
       secondary: ramps.gray,
       accent: ramps.lemon,
@@ -137,6 +142,7 @@ export const presets = {
     colors: build({
       neutral: ramps.slate,
       primary: ramps.violet,
+      charts: chartThemes.midnight,
       secondary: ramps.fuchsia,
       accent: ramps.cyan,
       ...STATUS,

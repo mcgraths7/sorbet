@@ -14,6 +14,8 @@ interface Rule {
   fg: SemanticColorName;
   bg: SemanticColorName;
   min: number;
+  /** Restrict the rule to one mode (default: checked in both). */
+  mode?: Mode;
 }
 
 const onSurfaces = (fg: SemanticColorName, min: number): Rule[] =>
@@ -63,6 +65,20 @@ export const RULES: Rule[] = [
   { fg: "on-info", bg: "info", min: 4.5 },
   { fg: "info-text", bg: "bg", min: 4.5 },
   { fg: "info-text", bg: "info-subtle", min: 4.5 },
+
+  // Chart marks are non-text UI: ≥3:1 in light mode. Dark mode's usable
+  // lightness band (~0.48–0.67 OKLCH L) can't always reach 3:1 on our dark
+  // surfaces, so the floor is 2.25 there and the relief rule applies: every
+  // Chart ships a legend, tooltips, and a table view. (CVD adjacency and
+  // lightness-band checks ran at design time; see charts.ts.)
+  ...(["chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "chart-6", "chart-7", "chart-8"] as const).flatMap(
+    (slot): Rule[] => [
+      { fg: slot, bg: "surface", min: 3, mode: "light" },
+      { fg: slot, bg: "bg", min: 3, mode: "light" },
+      { fg: slot, bg: "surface", min: 2.25, mode: "dark" },
+      { fg: slot, bg: "bg", min: 2.25, mode: "dark" },
+    ],
+  ),
 ];
 
 export interface Failure {
@@ -81,6 +97,7 @@ function isOpaqueHex(value: string): boolean {
 export function checkColors(presetName: string, mode: Mode, colors: SemanticColors): Failure[] {
   const failures: Failure[] = [];
   for (const rule of RULES) {
+    if (rule.mode && rule.mode !== mode) continue;
     const fg = colors[rule.fg];
     const bg = colors[rule.bg];
     if (!isOpaqueHex(fg) || !isOpaqueHex(bg)) continue;

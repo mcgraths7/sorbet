@@ -1,0 +1,194 @@
+@use "../abstracts" as *;
+
+// Chart chrome. Marks (bars, lines, dots) carry series color via the
+// --sb-chart-* tokens; every piece of text wears text tokens — never the
+// series color. Gridlines are hairline and recessive.
+.sb-chart {
+  display: flex;
+  flex-direction: column;
+  gap: space(3);
+  margin: 0; // it's a <figure>
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: space(4);
+  }
+
+  &__title {
+    font-size: fs(md);
+    font-weight: fw(semibold);
+    line-height: lh(snug);
+  }
+
+  &__subtitle {
+    font-size: fs(sm);
+    color: clr(text-muted);
+  }
+
+  &__plot {
+    position: relative;
+
+    svg {
+      display: block;
+      inline-size: 100%;
+    }
+  }
+
+  // SVG text
+  &__tick {
+    fill: clr(text-subtle);
+    font-size: fs(xs);
+  }
+
+  &__label {
+    fill: clr(text-muted);
+    font-size: fs(xs);
+    font-weight: fw(medium);
+  }
+
+  &__grid {
+    stroke: clr(border-subtle);
+    stroke-width: 1;
+  }
+
+  &__axis {
+    stroke: clr(border);
+    stroke-width: 1;
+  }
+
+  &__crosshair {
+    stroke: clr(border-strong);
+    stroke-width: 1;
+  }
+
+  // Legend — always present for ≥2 series (the identity channel).
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: space(2) space(4);
+    font-size: fs(sm);
+    color: clr(text-muted);
+  }
+
+  &__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: space(2);
+  }
+
+  &__swatch {
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    flex-shrink: 0;
+    border-radius: radius(xs);
+  }
+
+  // Hover tooltip — positioned by the chart within __plot.
+  &__tooltip {
+    position: absolute;
+    z-index: z(tooltip);
+    pointer-events: none;
+    min-inline-size: 8rem;
+    padding: space(2) space(3);
+    border: token(border-width) solid clr(border-subtle);
+    border-radius: radius(sm);
+    background-color: clr(surface-raised);
+    box-shadow: shadow(md);
+    font-size: fs(xs);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__tooltip-title {
+    font-weight: fw(semibold);
+    color: clr(text);
+    margin-block-end: space(1);
+  }
+
+  &__tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+    color: clr(text-muted);
+
+    > .sb-chart__swatch {
+      inline-size: 0.5rem;
+      block-size: 0.5rem;
+    }
+  }
+
+  &__tooltip-value {
+    margin-inline-start: auto;
+    color: clr(text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  // The accessibility twin: a real table of the plotted data.
+  &__table {
+    inline-size: 100%;
+  }
+
+  &__plot--center {
+    display: flex;
+    justify-content: center;
+  }
+
+  // Donut center: the headline the ring is drawn around.
+  &__donut-value {
+    fill: clr(text);
+    font-family: font(display);
+    font-size: fs(xl);
+    font-weight: fw(bold);
+  }
+
+  &__donut-label {
+    fill: clr(text-muted);
+    font-size: fs(xs);
+  }
+
+  // Value legend (spending-breakdown style): swatch, label, value, share.
+  &__vlegend {
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
+    font-size: fs(sm);
+    color: clr(text-muted);
+  }
+
+  &__vlegend-row {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+  }
+
+  &__vlegend-value {
+    margin-inline-start: auto;
+    color: clr(text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__vlegend-share {
+    inline-size: 3ch;
+    text-align: end;
+    color: clr(text-subtle);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// Tiny trend line for stat tiles: de-emphasis hue, accent on the current period.
+.sb-sparkline {
+  display: inline-block;
+  vertical-align: middle;
+
+  &__base {
+    stroke: clr(chart-muted);
+  }
+
+  &__accent {
+    stroke: clr(primary);
+  }
+}

@@ -17,6 +17,7 @@ for (const preset of Object.values(presets)) {
     const rows: string[] = [];
     let worst = Infinity;
     for (const rule of RULES) {
+      if (rule.mode && rule.mode !== mode) continue;
       const fg = colors[rule.fg];
       const bg = colors[rule.bg];
       if (!opaque(fg) || !opaque(bg)) continue;

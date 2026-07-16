@@ -6,10 +6,12 @@ export interface StatProps extends ComponentPropsWithRef<"div"> {
   value: ReactNode;
   delta?: ReactNode;
   trend?: "up" | "down" | "flat";
+  /** Optional trend visual, e.g. a Sparkline from @sorbet/charts. */
+  chart?: ReactNode;
 }
 
 /** KPI tile. Compose inside a Card or a Grid. */
-export function Stat({ label, value, delta, trend, className, ...rest }: StatProps) {
+export function Stat({ label, value, delta, trend, chart, className, ...rest }: StatProps) {
   return (
     <div className={cx("sb-stat", className)} {...rest}>
       <p className="sb-stat__label">{label}</p>
@@ -19,6 +21,7 @@ export function Stat({ label, value, delta, trend, className, ...rest }: StatPro
           {delta}
         </p>
       )}
+      {chart}
     </div>
   );
 }

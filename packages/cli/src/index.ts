@@ -196,6 +196,7 @@ async function cmdContrast(): Promise<void> {
       const colors = preset.colors[mode];
       const rows: string[] = [];
       for (const rule of RULES) {
+        if (rule.mode && rule.mode !== mode) continue;
         const fg = colors[rule.fg];
         const bg = colors[rule.bg];
         if (!opaque(fg) || !opaque(bg)) continue;
