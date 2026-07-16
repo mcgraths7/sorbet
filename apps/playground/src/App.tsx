@@ -292,7 +292,7 @@ export function App() {
           <SidebarFooter>
             <Cluster gap={2}>
               <Avatar size="sm">SM</Avatar>
-              <small className="u-text-muted">react@sorbet.dev</small>
+              <small className="u-text-muted">Fresh Baked Software</small>
             </Cluster>
           </SidebarFooter>
         </Sidebar>
