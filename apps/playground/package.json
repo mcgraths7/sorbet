@@ -9,8 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sorbet/atoms": "0.1.0",
+    "@sorbet/charts": "0.1.0",
+    "@sorbet/layout": "0.1.0",
+    "@sorbet/molecules": "0.1.0",
+    "@sorbet/organisms": "0.1.0",
     "@sorbet/react": "0.1.0",
     "@sorbet/styles": "0.1.0",
+    "@sorbet/templates": "0.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
