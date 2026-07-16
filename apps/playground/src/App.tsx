@@ -324,26 +324,72 @@ export function App() {
       <AppShellMain id="top">
         <Container>
           <Stack gap={16}>
-            <Stack gap={4} as="section">
-              <Cluster gap={2}>
-                <Badge tone="primary">@sorbet/react</Badge>
-                <Badge tone="success" dot>
-                  AA verified
-                </Badge>
-              </Cluster>
-              <h1>A modern token based component library built on an accessible design system.</h1>
-              <p className="sb-lead" style={{ maxInlineSize: "55ch" }}>
-                Every component below is a typed React component from @sorbet/layout, @sorbet/atoms,
-                @sorbet/molecules, @sorbet/organisms, and @sorbet/templates — all styled by the same Sass and tokens.
-              </p>
-              <Cluster>
-                <Button size="lg" onClick={() => toast("Fresh out of the churner.", { title: "Hello from React", tone: "success" })}>
-                  Make a toast
-                </Button>
-                <Button size="lg" variant="outline" onClick={() => setModalOpen(true)}>
-                  Open a modal
-                </Button>
-              </Cluster>
+            <Stack gap={6} as="section">
+              <Stack gap={4}>
+                <Cluster gap={2}>
+                  <Badge tone="primary">@sorbet/react</Badge>
+                  <Badge tone="success" dot>
+                    WCAG AA — enforced at build time
+                  </Badge>
+                </Cluster>
+                <h1>
+                  Delightfully themeable.
+                  <br />
+                  Provably accessible.
+                </h1>
+                <p className="sb-lead" style={{ maxInlineSize: "58ch" }}>
+                  Sorbet is a modern, token-based component library built on an accessible design system — layout
+                  primitives, forms, overlays, tables, and charts in five swappable personalities, each with
+                  first-class dark mode. Built on the native platform, with zero runtime dependencies.
+                </p>
+                <Cluster>
+                  <Button size="lg" as="a" href="#layout">
+                    Explore the components
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => toast("Fresh out of the churner.", { title: "Hello from Sorbet", tone: "success" })}
+                  >
+                    Try a toast
+                  </Button>
+                </Cluster>
+              </Stack>
+              <Grid cols={3}>
+                <Card variant="sunken">
+                  <CardBody>
+                    <Stack gap={2}>
+                      <CardTitle>Accessible by construction</CardTitle>
+                      <p className="u-text-sm u-text-muted">
+                        Every semantic color pairing is contrast-verified on every build — 790 checks across 5
+                        presets × 2 modes. A theme that fails WCAG AA fails to compile.
+                      </p>
+                    </Stack>
+                  </CardBody>
+                </Card>
+                <Card variant="sunken">
+                  <CardBody>
+                    <Stack gap={2}>
+                      <CardTitle>Rebrand in one file</CardTitle>
+                      <p className="u-text-sm u-text-muted">
+                        A preset is one small CSS file of tokens. Swap it and everything re-themes — buttons to
+                        charts, light and dark included. Try it in the header.
+                      </p>
+                    </Stack>
+                  </CardBody>
+                </Card>
+                <Card variant="sunken">
+                  <CardBody>
+                    <Stack gap={2}>
+                      <CardTitle>Platform-first, zero deps</CardTitle>
+                      <p className="u-text-sm u-text-muted">
+                        Native dialogs, the Popover API, CSS-powered animation and masonry. The React layer is a
+                        thin typed wrapper; the vanilla behaviors are optional.
+                      </p>
+                    </Stack>
+                  </CardBody>
+                </Card>
+              </Grid>
             </Stack>
 
             <Stack as="section" id="layout">
