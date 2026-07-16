@@ -259,7 +259,7 @@ export function App() {
     <AppShell>
       <AppShellHeader>
         <Navbar>
-          <NavbarBrand href="#top">Sorbet&nbsp;🍧&nbsp;× React</NavbarBrand>
+          <NavbarBrand href="#top">Sorbet&nbsp;🍧&nbsp;</NavbarBrand>
           <NavbarNav>
             <NavbarLink href="#atoms" current>
               Atoms
@@ -308,7 +308,7 @@ export function App() {
                   AA verified
                 </Badge>
               </Cluster>
-              <h1>The same system, now in React.</h1>
+              <h1>A modern token based component library built on an accessible design system.</h1>
               <p className="sb-lead" style={{ maxInlineSize: "55ch" }}>
                 Every component below is a typed React component from @sorbet/layout, @sorbet/atoms,
                 @sorbet/molecules, @sorbet/organisms, and @sorbet/templates — all styled by the same Sass and tokens.
@@ -407,7 +407,7 @@ export function App() {
               </Cluster>
 
               <h2>Form controls</h2>
-              <Card as="form" onSubmit={(e: React.FormEvent) => e.preventDefault()}>
+              <Card as="form" onSubmit={(e: React.SubmitEvent) => e.preventDefault()}>
                 <CardBody>
                   <Grid cols={2}>
                     <Field label="Full name" hint="As it appears on your profile." required>
