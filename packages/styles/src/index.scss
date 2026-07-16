@@ -49,6 +49,7 @@
 @layer sb.molecules {
   @include meta.load-css("molecules/field");
   @include meta.load-css("molecules/input-group");
+  @include meta.load-css("molecules/combobox");
   @include meta.load-css("molecules/card");
   @include meta.load-css("molecules/alert");
   @include meta.load-css("molecules/menu");

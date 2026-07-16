@@ -1,0 +1,145 @@
+@use "../abstracts" as *;
+
+// Combobox (autocomplete). The input wears .sb-input; this adds the trailing
+// affordances and the popover listbox. Driven by the React Combobox —
+// highlight state rides [data-highlighted], selection rides aria-selected.
+.sb-combobox {
+  position: relative;
+
+  &__control {
+    position: relative;
+
+    > .sb-input {
+      padding-inline-end: space(12);
+    }
+  }
+
+  &__affordances {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: space(2);
+    display: flex;
+    align-items: center;
+    gap: space(1);
+  }
+
+  &__button {
+    @include control-reset;
+    @include focus-ring(0);
+
+    display: grid;
+    place-content: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    border-radius: radius(sm);
+    color: clr(text-subtle);
+    font-size: fs(sm);
+    line-height: 1;
+
+    &:hover {
+      color: clr(text);
+      background-color: clr(bg-subtle);
+    }
+  }
+
+  &__chevron {
+    inline-size: 0.55em;
+    block-size: 0.55em;
+    rotate: 45deg;
+    translate: 0 -25%;
+    border-inline-end: 2px solid currentColor;
+    border-block-end: 2px solid currentColor;
+    transition: rotate dur(fast) ease(out), translate dur(fast) ease(out);
+  }
+
+  // Panel: a popover listbox anchored to the control by the component.
+  &__panel {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    padding: space(1);
+    border: token(border-width) solid clr(border-subtle);
+    border-radius: radius(md);
+    background-color: clr(surface-raised);
+    color: clr(text);
+    box-shadow: shadow(lg);
+    max-block-size: 18rem;
+    overflow-y: auto;
+    z-index: z(popover);
+
+    &:popover-open {
+      opacity: 1;
+      scale: 1;
+      transition: opacity dur(fast) ease(out), scale dur(fast) ease(spring);
+
+      @starting-style {
+        opacity: 0;
+        scale: 0.98;
+      }
+    }
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+    padding: space(2) space(3);
+    border-radius: radius(sm);
+    font-size: fs(sm);
+    cursor: pointer;
+
+    &[data-highlighted] {
+      background-color: clr(primary-subtle);
+      color: clr(primary-text);
+    }
+
+    &[aria-selected="true"]::after {
+      content: "";
+      margin-inline-start: auto;
+      inline-size: 0.55rem;
+      block-size: 0.9rem;
+      flex-shrink: 0;
+      border-inline-end: 2px solid clr(primary-text);
+      border-block-end: 2px solid clr(primary-text);
+      rotate: 45deg;
+      translate: 0 -10%;
+    }
+
+    &[aria-disabled="true"] {
+      cursor: not-allowed;
+      color: clr(text-subtle);
+    }
+  }
+
+  &__option-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+  }
+
+  &__option-desc {
+    font-size: fs(xs);
+    color: clr(text-subtle);
+
+    [data-highlighted] & {
+      color: clr(primary-text);
+      opacity: 0.8;
+    }
+  }
+
+  &__heading {
+    padding: space(2) space(3) space(1);
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    letter-spacing: ls(wide);
+    text-transform: uppercase;
+    color: clr(text-subtle);
+  }
+
+  &__empty {
+    padding: space(3);
+    font-size: fs(sm);
+    color: clr(text-muted);
+  }
+}
