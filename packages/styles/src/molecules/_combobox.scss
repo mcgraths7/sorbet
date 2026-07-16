@@ -52,6 +52,65 @@
     transition: rotate dur(fast) ease(out), translate dur(fast) ease(out);
   }
 
+  // Multi-select control: an input-look frame holding chips + a bare input.
+  // Focus ring rides :focus-within since the frame itself is never focused.
+  &__field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space(1);
+    min-block-size: token(control-height-md);
+    padding: space(1) space(12) space(1) space(2);
+    border: token(border-width) solid clr(border-strong);
+    border-radius: radius(sm);
+    background-color: clr(surface);
+    cursor: text;
+    transition: border-color dur(fast) ease(out), box-shadow dur(fast) ease(out);
+
+    &:focus-within {
+      border-color: clr(focus-ring);
+      box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(focus-ring), transparent 70%);
+    }
+
+    &[data-invalid] {
+      border-color: clr(danger);
+
+      &:focus-within {
+        border-color: clr(danger);
+        box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(danger), transparent 70%);
+      }
+    }
+
+    &[data-disabled] {
+      background-color: clr(bg-subtle);
+      color: clr(text-subtle);
+      cursor: not-allowed;
+    }
+
+    > input {
+      flex: 1;
+      min-inline-size: 8ch;
+      block-size: 1.6rem;
+      padding: 0;
+      border: none;
+      background: none;
+      outline: none;
+      color: clr(text);
+
+      &::placeholder {
+        color: clr(text-subtle);
+      }
+    }
+
+    &--sm {
+      min-block-size: token(control-height-sm);
+    }
+
+    &--lg {
+      min-block-size: token(control-height-lg);
+    }
+  }
+
   // Panel: a popover listbox anchored to the control by the component.
   &__panel {
     position: fixed;

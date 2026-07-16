@@ -41,7 +41,7 @@ npm run playground       # React kitchen sink (Vite, port 5183)
 | `@sorbet/core` | React plumbing shared by the layers: `cx`, tones, polymorphic prop types, `composeRefs` |
 | `@sorbet/layout` | React layout primitives: `Container`, `Stack`, `Cluster`, `Grid`, `Split`, `Center`, `Cover` |
 | `@sorbet/atoms` | React atoms: `Button`, `Input`, `Select`, `Checkbox`, `Switch`, `Badge`, `Avatar`, `Progress`, `Tooltip`, … |
-| `@sorbet/molecules` | React molecules: `Field`, `Combobox`, `Card`, `Alert`, `Tabs`, `Menu`, `Accordion`, `Pagination`, `ToastProvider`, … |
+| `@sorbet/molecules` | React molecules: `Field`, `Combobox`, `MultiCombobox`, `Card`, `Alert`, `Tabs`, `Menu`, `Accordion`, `Pagination`, `ToastProvider`, … |
 | `@sorbet/organisms` | React organisms: `Navbar`, `Sidebar`, `Modal`, `Drawer`, `DataTable`, `Footer` |
 | `@sorbet/templates` | React page frames: `AppShell`, `AuthLayout` |
 | `@sorbet/charts` | React data viz: `LineChart`, `BarChart` (grouped/stacked), `DonutChart`, `Sparkline` — SVG, dependency-free, themed by validated chart tokens |
@@ -439,7 +439,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 
 **Layout** Container · Stack(+Push) · Cluster(+Push) · Grid(+Span2) · Split(+Aside/Main) · Center · Cover · Masonry · Frame
 **Atoms** Button (8 variants × 3 sizes, loading, icon, polymorphic) · Input · Textarea (autosize) · Select · Checkbox (indeterminate) · Radio · Switch · Choice · Label · Badge · Chip · Avatar(+Group) · Spinner · Progress (+indeterminate) · Skeleton · Divider · Kbd · Tooltip
-**Molecules** Field · Combobox (list autocomplete) · InputGroup(+Addon) · Card (header/body/footer/media/title, 5 variants) · Alert · Tabs/TabList/Tab/TabPanel · Menu (heading/item/separator) · Accordion(+Item) · Breadcrumb(+Item) · Pagination · ToastProvider/useToast · Stat · EmptyState
+**Molecules** Field · Combobox / MultiCombobox (list autocomplete, chip multi-select) · InputGroup(+Addon) · Card (header/body/footer/media/title, 5 variants) · Alert · Tabs/TabList/Tab/TabPanel · Menu (heading/item/separator) · Accordion(+Item) · Breadcrumb(+Item) · Pagination · ToastProvider/useToast · Stat · EmptyState
 **Organisms** Navbar (brand/nav/link/actions/menu-button) · Sidebar (heading/item/footer) · Modal · Drawer · DataTable · Footer (cols/col/meta)
 **Templates** AppShell (header/sidebar/main) · AuthLayout
 **Charts** LineChart (multi-series, area, crosshair+tooltip) · BarChart (grouped/stacked) · DonutChart (center total, Other folding, value legend) · Sparkline · ChartShell (legend + table view) · validated chart tokens

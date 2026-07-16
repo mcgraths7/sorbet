@@ -45,6 +45,7 @@ import {
   Masonry,
   Menu,
   MenuHeading,
+  MultiCombobox,
   MenuItem,
   MenuSeparator,
   Modal,
@@ -205,6 +206,16 @@ const TRAFFIC = [
 ];
 
 const SPARK = [8, 10, 9, 12, 13, 12, 15, 14, 17, 19, 18, 22];
+
+const LABELS = [
+  { value: "bug", label: "Bug", description: "Something is broken" },
+  { value: "feature", label: "Feature", description: "New capability" },
+  { value: "docs", label: "Docs", description: "Documentation only" },
+  { value: "design", label: "Design", description: "Visual or UX work" },
+  { value: "perf", label: "Performance" },
+  { value: "a11y", label: "Accessibility" },
+  { value: "breaking", label: "Breaking change", disabled: true },
+];
 
 const ASSIGNEES = [
   { value: "ada", label: "Ada Lovelace", description: "ada@sorbet.dev", group: "Engineering" },
@@ -437,6 +448,14 @@ export function App() {
                     </Field>
                     <Field label="Assignee" hint="Combobox — type to filter, arrows to navigate.">
                       <Combobox options={ASSIGNEES} placeholder="Search people…" name="assignee" />
+                    </Field>
+                    <Field label="Labels" hint="Multi-select — Backspace removes the last tag.">
+                      <MultiCombobox
+                        options={LABELS}
+                        defaultValue={["bug", "docs"]}
+                        placeholder="Add labels…"
+                        name="labels"
+                      />
                     </Field>
                     <Field label="Website">
                       <InputGroup>
