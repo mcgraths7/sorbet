@@ -1,9 +1,10 @@
 /**
- * @sorbet/react — the whole design system for React apps.
+ * @sorbet/react — the whole design system in one import.
  *
- * Everything here is re-exported from the layer packages; install this one
- * package, or cherry-pick @sorbet/atoms, @sorbet/molecules, … individually.
- * Remember to import the stylesheet once:
+ * A pure re-export barrel: every component layer plus the theming service
+ * from @sorbet/core. Nothing is defined here — cherry-pick the layer
+ * packages (@sorbet/atoms, @sorbet/molecules, …) whenever you'd rather
+ * import by tier. Remember to import the stylesheet once:
  *
  *   import "@sorbet/styles/css";
  *   import "@sorbet/styles/themes/sorbet.css";
@@ -15,5 +16,4 @@ export * from "@sorbet/atoms";
 export * from "@sorbet/molecules";
 export * from "@sorbet/organisms";
 export * from "@sorbet/templates";
-export { ThemeProvider, useTheme, type ThemeContextValue, type ThemeMode, type ThemeProviderProps } from "./theme.tsx";
 export * from "@sorbet/charts";

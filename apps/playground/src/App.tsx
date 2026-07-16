@@ -1,53 +1,77 @@
+// Components are imported from their atomic-design layer packages. The
+// umbrella `@sorbet/react` re-exports all of these too (one-import option);
+// here we import per layer so it's obvious which tier each piece belongs to.
+import {
+  Cluster,
+  Container,
+  Frame,
+  Grid,
+  GridSpan2,
+  Masonry,
+  Split,
+  SplitAside,
+  SplitMain,
+  Stack,
+} from "@sorbet/layout";
+import {
+  Avatar,
+  AvatarGroup,
+  Badge,
+  Button,
+  Checkbox,
+  Chip,
+  Choice,
+  Divider,
+  Input,
+  Kbd,
+  Progress,
+  Radio,
+  Select,
+  Skeleton,
+  Spinner,
+  Switch,
+  Textarea,
+  Tooltip,
+} from "@sorbet/atoms";
 import {
   Accordion,
   AccordionItem,
   Alert,
-  AppShell,
-  AppShellHeader,
-  AppShellMain,
-  AppShellSidebar,
-  Avatar,
-  AvatarGroup,
-  Badge,
   Breadcrumb,
   BreadcrumbItem,
-  Button,
   Card,
   CardBody,
   CardFooter,
   CardHeader,
   CardTitle,
-  Checkbox,
-  Chip,
-  Choice,
-  Cluster,
   Combobox,
-  Container,
+  EmptyState,
+  Field,
+  InputGroup,
+  InputGroupAddon,
+  Menu,
+  MenuHeading,
+  MenuItem,
+  MenuSeparator,
+  MultiCombobox,
+  Pagination,
+  Stat,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+  useToast,
+} from "@sorbet/molecules";
+import {
   DataTable,
-  Divider,
   Drawer,
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
-  EmptyState,
-  Field,
   Footer,
   FooterCol,
   FooterCols,
   FooterMeta,
-  Frame,
-  Grid,
-  GridSpan2,
-  Input,
-  InputGroup,
-  InputGroupAddon,
-  Kbd,
-  Masonry,
-  Menu,
-  MenuHeading,
-  MultiCombobox,
-  MenuItem,
-  MenuSeparator,
   Modal,
   ModalBody,
   ModalFooter,
@@ -57,34 +81,15 @@ import {
   NavbarBrand,
   NavbarLink,
   NavbarNav,
-  Pagination,
-  Progress,
-  Radio,
-  Select,
   Sidebar,
   SidebarFooter,
   SidebarHeading,
   SidebarItem,
-  Skeleton,
-  Spinner,
-  Split,
-  SplitAside,
-  SplitMain,
-  Stack,
-  Stat,
-  Switch,
-  Tab,
-  TabList,
-  TabPanel,
-  Tabs,
-  Textarea,
-  Tooltip,
-  useTheme,
-  useToast,
   type Column,
-  type ThemeMode,
-} from "@sorbet/react";
+} from "@sorbet/organisms";
+import { AppShell, AppShellHeader, AppShellMain, AppShellSidebar } from "@sorbet/templates";
 import { BarChart, DonutChart, LineChart, Sparkline } from "@sorbet/charts";
+import { useTheme, type ThemeMode } from "@sorbet/core";
 import { useEffect, useState } from "react";
 
 import forestTheme from "@sorbet/styles/themes/forest.css?url";
@@ -398,7 +403,7 @@ export function App() {
                 <Card>
                   <CardBody>
                     <Stack gap={2}>
-                      <p className="sb-overline">Stack</p>
+                      <CardHeader className="sb-overline">Stack</CardHeader>
                       <div style={demoBox}>one</div>
                       <div style={demoBox}>two</div>
                     </Stack>
@@ -407,7 +412,7 @@ export function App() {
                 <Card>
                   <CardBody>
                     <Stack gap={2}>
-                      <p className="sb-overline">Cluster</p>
+                      <CardHeader className="sb-overline">Cluster</CardHeader>
                       <Cluster gap={2}>
                         <div style={demoBox}>chip</div>
                         <div style={demoBox}>wrap</div>
@@ -420,7 +425,7 @@ export function App() {
                   <Card>
                     <CardBody>
                       <Stack gap={2}>
-                        <p className="sb-overline">Split</p>
+                        <CardHeader className="sb-overline">Split</CardHeader>
                         <Split aside="8rem">
                           <SplitAside>
                             <div style={demoBox}>aside</div>

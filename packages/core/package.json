@@ -1,7 +1,7 @@
 {
   "name": "@sorbet/core",
   "version": "0.1.0",
-  "description": "Shared plumbing for Sorbet React packages: cx, tones, polymorphic prop types.",
+  "description": "Shared plumbing for Sorbet React packages: cx, tones, polymorphic prop types, and the ThemeProvider/useTheme theming service.",
   "type": "module",
   "license": "MIT",
   "exports": {

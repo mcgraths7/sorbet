@@ -38,14 +38,14 @@ npm run playground       # React kitchen sink (Vite, port 5183)
 | `@sorbet/tokens` | The source of truth: OKLCH ramps, contrast-driven semantics, presets, scales, WCAG rules, emitters |
 | `@sorbet/styles` | The compiled stylesheet (`/css`), per-preset theme files (`/themes/*`), and the Sass source (`/scss/*`) |
 | `@sorbet/behaviors` | Framework-agnostic progressive enhancement (theme, tabs, dialogs, menus, toasts) — zero dependencies |
-| `@sorbet/core` | React plumbing shared by the layers: `cx`, tones, polymorphic prop types, `composeRefs` |
+| `@sorbet/core` | React plumbing shared by the layers: `cx`, tones, polymorphic prop types, `composeRefs`, and the theming service (`ThemeProvider`/`useTheme`) |
 | `@sorbet/layout` | React layout primitives: `Container`, `Stack`, `Cluster`, `Grid`, `Split`, `Center`, `Cover` |
 | `@sorbet/atoms` | React atoms: `Button`, `Input`, `Select`, `Checkbox`, `Switch`, `Badge`, `Avatar`, `Progress`, `Tooltip`, … |
 | `@sorbet/molecules` | React molecules: `Field`, `Combobox`, `MultiCombobox`, `Card`, `Alert`, `Tabs`, `Menu`, `Accordion`, `Pagination`, `ToastProvider`, … |
 | `@sorbet/organisms` | React organisms: `Navbar`, `Sidebar`, `Modal`, `Drawer`, `DataTable`, `Footer` |
 | `@sorbet/templates` | React page frames: `AppShell`, `AuthLayout` |
 | `@sorbet/charts` | React data viz: `LineChart`, `BarChart` (grouped/stacked), `DonutChart`, `Sparkline` — SVG, dependency-free, themed by validated chart tokens |
-| `@sorbet/react` | The umbrella: re-exports every layer + `ThemeProvider`/`useTheme` |
+| `@sorbet/react` | The umbrella: a pure re-export barrel — every layer in one import, nothing defined here |
 | `@sorbet/cli` | The `sorbet` CLI: scaffold a standalone design system, emit themes, generate component stubs |
 
 Install the umbrella, or cherry-pick layers — every React package peer-depends
@@ -106,7 +106,12 @@ files, so the two flavors can never drift apart visually.
 ```tsx
 import "@sorbet/styles/css";                 // the system, once
 import "@sorbet/styles/themes/sorbet.css";   // a preset (or swap at runtime)
-import { ThemeProvider, ToastProvider, Button, Field, Input, Stack, useToast } from "@sorbet/react";
+import { ThemeProvider } from "@sorbet/core";        // theming = framework service
+import { Button } from "@sorbet/atoms";              // components come from their
+import { Stack } from "@sorbet/layout";              // atomic-design layer…
+import { Field, Input, ToastProvider, useToast } from "@sorbet/molecules";
+// …or grab everything from the umbrella instead:
+// import { ThemeProvider, Button, Stack, Field, useToast } from "@sorbet/react";
 
 function Signup() {
   const toast = useToast();

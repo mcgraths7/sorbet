@@ -1,7 +1,7 @@
 {
   "name": "@sorbet/react",
   "version": "0.1.0",
-  "description": "Sorbet for React: everything from layout/atoms/molecules/organisms/templates plus ThemeProvider.",
+  "description": "Sorbet for React: a pure re-export barrel of every layer package — the whole design system in one import.",
   "type": "module",
   "license": "MIT",
   "exports": {
