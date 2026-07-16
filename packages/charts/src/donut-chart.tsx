@@ -78,12 +78,13 @@ export function DonutChart({
 
   const { arcs, total } = useMemo(() => {
     const positive = data.filter((d) => d.value > 0);
+    const limit = Math.max(2, maxSlices); // at least one category + "Other"
     let kept: Array<DonutDatum & { isOther?: boolean }> = positive;
-    if (positive.length > maxSlices) {
+    if (positive.length > limit) {
       const keep = new Set(
         [...positive]
           .sort((a, b) => b.value - a.value)
-          .slice(0, maxSlices - 1)
+          .slice(0, limit - 1)
           .map((d) => d.label),
       );
       const folded = positive.filter((d) => !keep.has(d.label));

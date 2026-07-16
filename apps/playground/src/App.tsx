@@ -611,9 +611,10 @@ export function App() {
                   <CardBody>
                     <DonutChart
                       title="Spending breakdown"
-                      subtitle="June, by category — smallest fold into Other"
+                      subtitle="June, by category — smallest fold into Other (maxSlices)"
                       centerLabel="Spent in June"
                       data={SPENDING}
+                      maxSlices={5}
                       formatValue={(v) => `$${v.toLocaleString()}`}
                     />
                   </CardBody>
