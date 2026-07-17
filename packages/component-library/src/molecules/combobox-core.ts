@@ -104,6 +104,20 @@ export function useComboboxCore(
     return () => document.removeEventListener("pointerdown", onDocPointerDown);
   }, [open]);
 
+  // The panel is position:fixed, so it can't track its anchor through page
+  // scroll — dismiss instead. Scrolling *inside* the options list is exempt
+  // (scroll doesn't bubble; listen in the capture phase).
+  useEffect(() => {
+    if (!open) return;
+    const onScroll = (e: Event) => {
+      if (panelRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+      setQuery(null);
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScroll, { capture: true });
+  }, [open]);
+
   // Keep the highlighted option in view.
   useEffect(() => {
     if (open && highlighted >= 0) {
