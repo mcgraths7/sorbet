@@ -1,6 +1,6 @@
-// Components are imported from their atomic-design layer packages. The
-// umbrella `@sorbet/react` re-exports all of these too (one-import option);
-// here we import per layer so it's obvious which tier each piece belongs to.
+// Components are imported from their atomic-design layer subpaths so it's
+// obvious which tier each piece belongs to. The package root re-exports
+// everything for the one-import option.
 import {
   Cluster,
   Container,
@@ -12,7 +12,7 @@ import {
   SplitAside,
   SplitMain,
   Stack,
-} from "@sorbet/layout";
+} from "@sorbet/component-library/layout";
 import {
   Avatar,
   AvatarGroup,
@@ -32,7 +32,7 @@ import {
   Switch,
   Textarea,
   Tooltip,
-} from "@sorbet/atoms";
+} from "@sorbet/component-library/atoms";
 import {
   Accordion,
   AccordionItem,
@@ -61,7 +61,7 @@ import {
   TabPanel,
   Tabs,
   useToast,
-} from "@sorbet/molecules";
+} from "@sorbet/component-library/molecules";
 import {
   DataTable,
   Drawer,
@@ -86,17 +86,17 @@ import {
   SidebarHeading,
   SidebarItem,
   type Column,
-} from "@sorbet/organisms";
-import { AppShell, AppShellHeader, AppShellMain, AppShellSidebar } from "@sorbet/templates";
-import { BarChart, DonutChart, LineChart, Sparkline } from "@sorbet/charts";
-import { useTheme, type ThemeMode } from "@sorbet/core";
+} from "@sorbet/component-library/organisms";
+import { AppShell, AppShellHeader, AppShellMain, AppShellSidebar } from "@sorbet/component-library/templates";
+import { BarChart, DonutChart, LineChart, Sparkline } from "@sorbet/component-library/charts";
+import { useTheme, type ThemeMode } from "@sorbet/component-library/core";
 import { useEffect, useState } from "react";
 
-import forestTheme from "@sorbet/styles/themes/forest.css?url";
-import midnightTheme from "@sorbet/styles/themes/midnight.css?url";
-import noirTheme from "@sorbet/styles/themes/noir.css?url";
-import oceanTheme from "@sorbet/styles/themes/ocean.css?url";
-import sorbetTheme from "@sorbet/styles/themes/sorbet.css?url";
+import forestTheme from "@sorbet/design-system/themes/forest.css?url";
+import midnightTheme from "@sorbet/design-system/themes/midnight.css?url";
+import noirTheme from "@sorbet/design-system/themes/noir.css?url";
+import oceanTheme from "@sorbet/design-system/themes/ocean.css?url";
+import sorbetTheme from "@sorbet/design-system/themes/sorbet.css?url";
 
 const THEMES = [
   { name: "sorbet", label: "Sorbet — light and fun", url: sorbetTheme },
@@ -332,7 +332,7 @@ export function App() {
             <Stack gap={6} as="section">
               <Stack gap={4}>
                 <Cluster gap={2}>
-                  <Badge tone="primary">@sorbet/react</Badge>
+                  <Badge tone="primary">@sorbet/component-library</Badge>
                   <Badge tone="success" dot>
                     WCAG AA — enforced at build time
                   </Badge>

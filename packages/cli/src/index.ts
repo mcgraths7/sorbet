@@ -15,7 +15,7 @@ import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
-import { contrast, DEFAULT_PRESET, hexToRgb, PRESET_NAMES, presets, RULES, themeCss, type Mode, type PresetName } from "@sorbet/tokens";
+import { contrast, DEFAULT_PRESET, hexToRgb, PRESET_NAMES, presets, RULES, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
 import { behaviorTs, componentScss, starterIndexHtml, starterPackageJson, starterReadme } from "./templates.ts";
 
 // dist/index.js lives at packages/cli/dist → three levels up is the monorepo root.
@@ -107,9 +107,9 @@ async function cmdCreate(): Promise<void> {
   // The code is yours: token engine, Sass, and behaviors are copied in from
   // the workspace packages, not depended on. The scaffold is standalone.
   const dirs: Array<[from: string, to: string]> = [
-    ["packages/tokens/src", "src/tokens"],
-    ["packages/styles/src", "src/styles"],
-    ["packages/behaviors/src", "src/scripts"],
+    ["packages/design-system/src/tokens", "src/tokens"],
+    ["packages/design-system/src/styles", "src/styles"],
+    ["packages/design-system/src/behaviors", "src/scripts"],
   ];
   for (const [from, to] of dirs) {
     await cp(join(monorepoRoot, from), join(target, to), { recursive: true });
@@ -125,9 +125,9 @@ async function cmdCreate(): Promise<void> {
 
   // Prebuilt assets so the starter renders before the first build.
   await mkdir(join(target, "public"), { recursive: true });
-  await cp(join(monorepoRoot, "packages", "styles", "dist", "themes"), join(target, "public", "themes"), { recursive: true });
-  await cp(join(monorepoRoot, "packages", "styles", "dist", "css"), join(target, "public", "css"), { recursive: true });
-  await cp(join(monorepoRoot, "packages", "behaviors", "dist"), join(target, "public", "ds"), { recursive: true });
+  await cp(join(monorepoRoot, "packages", "design-system", "dist", "themes"), join(target, "public", "themes"), { recursive: true });
+  await cp(join(monorepoRoot, "packages", "design-system", "dist", "css"), join(target, "public", "css"), { recursive: true });
+  await cp(join(monorepoRoot, "packages", "design-system", "dist", "behaviors"), join(target, "public", "ds"), { recursive: true });
   ok("public/ (prebuilt css, themes, behaviors)");
 
   const darkByDefault = presets[preset].defaultMode === "dark";

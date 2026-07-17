@@ -12,6 +12,6 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@sorbet/tokens": "0.1.0"
+    "@sorbet/design-system": "0.1.0"
   }
 }

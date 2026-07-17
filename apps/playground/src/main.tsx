@@ -1,6 +1,6 @@
-import { ThemeProvider } from "@sorbet/core";
-import { ToastProvider } from "@sorbet/molecules";
-import "@sorbet/styles/css";
+import { ThemeProvider } from "@sorbet/component-library/core";
+import { ToastProvider } from "@sorbet/component-library/molecules";
+import "@sorbet/design-system/css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";
