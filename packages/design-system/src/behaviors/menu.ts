@@ -25,12 +25,23 @@ export class Menu {
     this.#panel = panel;
     trigger.setAttribute("aria-haspopup", "menu");
 
+    // The panel is position:fixed and can't track its trigger through page
+    // scroll — dismiss instead (scrolling inside the panel is exempt;
+    // scroll doesn't bubble, so listen in the capture phase).
+    const onScroll = (e: Event) => {
+      if (this.#panel.contains(e.target as Node)) return;
+      this.#panel.hidePopover();
+    };
+
     panel.addEventListener("toggle", (e) => {
       const open = (e as ToggleEvent).newState === "open";
       trigger.setAttribute("aria-expanded", String(open));
       if (open) {
         this.#position();
         this.#items()[0]?.focus();
+        document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+      } else {
+        document.removeEventListener("scroll", onScroll, { capture: true });
       }
     });
 
