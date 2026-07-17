@@ -77,7 +77,8 @@
   @return var(--sb-z-#{-check("z", $key)});
 }
 
-/// Escape hatch for one-off tokens (measure, control-height-md, …)
+/// One-off dimension from the misc group, e.g. token(border-width),
+/// token(control-height-md), token(avatar-size-lg)
 @function token($name) {
-  @return var(--sb-#{$name});
+  @return var(--sb-#{-check("misc", $name)});
 }

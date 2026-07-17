@@ -9,7 +9,7 @@
 
   display: grid;
   gap: var(--gap, #{space(4)});
-  grid-template-columns: repeat(auto-fit, minmax(min(var(--min, 16rem), 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--min, #{token(tile-min)}), 100%), 1fr));
 
   @each $step in (2, 3, 4, 6, 8) {
     &--gap-#{$step} {
@@ -17,8 +17,8 @@
     }
   }
 
-  &--narrow { --min: 12rem; }
-  &--wide { --min: 22rem; }
+  &--narrow { --min: #{token(tile-min-narrow)}; }
+  &--wide { --min: #{token(tile-min-wide)}; }
 
   // Fixed column counts for when content must line up (form rows, stats).
   @each $n in (2, 3, 4) {

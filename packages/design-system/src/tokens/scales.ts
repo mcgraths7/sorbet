@@ -102,11 +102,31 @@ export const containers = {
   xl: "80rem",
 } as const;
 
+/**
+ * One-off dimensions, read in Sass via `token(name)` — validated against the
+ * generated key list, so every dimension literal in the stylesheet traces
+ * back to this map. Component knob defaults (`--min`, `--aside`, `--size`…)
+ * fall back to these, keeping per-instance overrides possible.
+ */
 export const misc = {
-  "measure": "65ch",
+  measure: "65ch",
   "focus-ring-width": "3px",
   "border-width": "1px",
   "control-height-sm": "2rem",
   "control-height-md": "2.5rem",
   "control-height-lg": "3rem",
+  "sidebar-width": "16.5rem",
+  "drawer-width": "20rem",
+  "aside-width": "16rem",
+  "content-min": "55%",
+  "tile-min": "16rem",
+  "tile-min-narrow": "12rem",
+  "tile-min-wide": "22rem",
+  "avatar-size-sm": "2rem",
+  "avatar-size-md": "2.5rem",
+  "avatar-size-lg": "3.25rem",
+  "avatar-size-xl": "4.5rem",
+  "spinner-size-sm": "1rem",
+  "spinner-size-md": "1.5rem",
+  "spinner-size-lg": "2.5rem",
 } as const;

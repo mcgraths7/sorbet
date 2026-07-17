@@ -3,6 +3,9 @@
 // Intrinsic centering: a readable column (or a lone card) centered in
 // whatever space exists.
 .sb-center {
+  // Custom properties inherit; reset so a parent's value never leaks in.
+  --measure: initial;
+
   box-sizing: content-box;
   max-inline-size: var(--measure, #{token(measure)});
   margin-inline: auto;

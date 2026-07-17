@@ -3,7 +3,7 @@
 // <span class="sb-avatar"><img src=… alt="Ada Lovelace"></span>
 // or initials fallback: <span class="sb-avatar">AL</span>
 .sb-avatar {
-  --size: 2.5rem;
+  --size: #{token(avatar-size-md)};
 
   display: inline-flex;
   align-items: center;
@@ -25,9 +25,9 @@
     object-fit: cover;
   }
 
-  &--sm { --size: 2rem; }
-  &--lg { --size: 3.25rem; }
-  &--xl { --size: 4.5rem; }
+  &--sm { --size: #{token(avatar-size-sm)}; }
+  &--lg { --size: #{token(avatar-size-lg)}; }
+  &--xl { --size: #{token(avatar-size-xl)}; }
   &--square { border-radius: radius(md); }
 }
 

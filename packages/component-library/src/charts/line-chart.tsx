@@ -131,21 +131,19 @@ export function LineChart({
               />
               {/* end marker: ≥8px, 2px surface ring */}
               <circle
+                className="sb-chart__dot"
                 cx={x(s.data.length - 1)}
                 cy={y(s.data[s.data.length - 1] ?? 0)}
                 r={4.5}
                 fill={seriesColor(i)}
-                stroke="var(--sb-surface)"
-                strokeWidth={2}
               />
               {hover !== null && (
                 <circle
+                  className="sb-chart__dot"
                   cx={x(hover)}
                   cy={y(s.data[hover] ?? 0)}
                   r={4}
                   fill={seriesColor(i)}
-                  stroke="var(--sb-surface)"
-                  strokeWidth={2}
                 />
               )}
               {showEndLabels && (

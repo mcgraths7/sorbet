@@ -11,7 +11,7 @@ export function Skeleton({ variant = "text", lines, className, ...rest }: Skelet
   const classes = cx("sb-skeleton", `sb-skeleton--${variant}`, className);
   if (variant === "text" && lines && lines > 1) {
     return (
-      <span aria-hidden="true" style={{ display: "grid", gap: "var(--sb-space-2)" }} {...rest}>
+      <span aria-hidden="true" className="sb-skeleton-group" {...rest}>
         {Array.from({ length: lines }, (_, i) => (
           <span key={i} className={classes} />
         ))}
