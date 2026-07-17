@@ -24,14 +24,20 @@
   }
 }
 
+/// The ring itself, for custom reveal selectors (e.g. a wrapper lighting up
+/// via :has(input:focus-visible)). Most components want focus-ring below.
+@mixin focus-ring-style($offset: 2px) {
+  outline: token(focus-ring-width) solid clr(focus-ring);
+  outline-offset: $offset;
+}
+
 /// Accessible focus indicator. Applied on :focus-visible so pointer users
 /// aren't shouted at, keyboard users always are.
 @mixin focus-ring($offset: 2px) {
   outline: none;
 
   &:focus-visible {
-    outline: token(focus-ring-width) solid clr(focus-ring);
-    outline-offset: $offset;
+    @include focus-ring-style($offset);
   }
 }
 

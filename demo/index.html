@@ -193,6 +193,25 @@
                   <label class="sb-label" for="f-bio" data-optional>Bio</label>
                   <textarea class="sb-textarea sb-textarea--auto" id="f-bio" placeholder="Grows with content — field-sizing, no JS."></textarea>
                 </div>
+                <div class="sb-field sb-grid__span-2">
+                  <label class="sb-label" for="f-files" data-optional>Attachments</label>
+                  <div class="sb-dropzone" data-sb="dropzone" data-max-size="1048576" data-max-files="3">
+                    <label class="sb-dropzone__zone">
+                      <input class="sb-dropzone__input" id="f-files" name="attachments" type="file" multiple accept="image/*,.pdf">
+                      <span class="sb-dropzone__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <path d="m17 8-5-5-5 5" />
+                          <path d="M12 3v12" />
+                        </svg>
+                      </span>
+                      <span class="sb-dropzone__title">Drag &amp; drop or <span class="sb-dropzone__browse">browse</span></span>
+                      <span class="sb-dropzone__hint">Images or PDF · up to 3 files · 1 MB each</span>
+                    </label>
+                    <p class="sb-dropzone__error" role="alert" hidden></p>
+                    <ul class="sb-dropzone__list"></ul>
+                  </div>
+                </div>
                 <fieldset class="sb-field" style="border: none; padding: 0">
                   <legend class="sb-label">Notifications</legend>
                   <label class="sb-choice"><input type="checkbox" class="sb-checkbox" checked> Product updates</label>

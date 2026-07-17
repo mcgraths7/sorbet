@@ -434,7 +434,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 
 **Layout** Container · Stack(+Push) · Cluster(+Push) · Grid(+Span2) · Split(+Aside/Main) · Center · Cover · Masonry · Frame
 **Atoms** Button (8 variants × 3 sizes, loading, icon, polymorphic) · Input · Textarea (autosize) · Select · Checkbox (indeterminate) · Radio · Switch · Choice · Label · Badge · Chip · Avatar(+Group) · Spinner · Progress (+indeterminate) · Skeleton · Divider · Kbd · Tooltip
-**Molecules** Field · Combobox / MultiCombobox (list autocomplete, chip multi-select) · InputGroup(+Addon) · Card (header/body/footer/media/title, 5 variants) · Alert · Tabs/TabList/Tab/TabPanel · Menu (heading/item/separator) · Accordion(+Item) · Breadcrumb(+Item) · Pagination · ToastProvider/useToast · Stat · EmptyState
+**Molecules** Field · Combobox / MultiCombobox (list autocomplete, chip multi-select) · Dropzone (drag-and-drop upload over a real file input) · InputGroup(+Addon) · Card (header/body/footer/media/title, 5 variants) · Alert · Tabs/TabList/Tab/TabPanel · Menu (heading/item/separator) · Accordion(+Item) · Breadcrumb(+Item) · Pagination · ToastProvider/useToast · Stat · EmptyState
 **Organisms** Navbar (brand/nav/link/actions/menu-button) · Sidebar (heading/item/footer) · Modal · Drawer · DataTable · Footer (cols/col/meta)
 **Templates** AppShell (header/sidebar/main) · AuthLayout
 **Charts** LineChart (multi-series, area, crosshair+tooltip) · BarChart (grouped/stacked) · DonutChart (center total, Other folding, value legend) · Sparkline · ChartShell (legend + table view) · validated chart tokens

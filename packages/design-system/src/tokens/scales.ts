@@ -112,6 +112,7 @@ export const misc = {
   measure: "65ch",
   "focus-ring-width": "3px",
   "border-width": "1px",
+  "border-width-thick": "2px",
   "control-height-sm": "2rem",
   "control-height-md": "2.5rem",
   "control-height-lg": "3rem",
