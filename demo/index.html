@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sorbet — kitchen sink</title>
-  <link rel="stylesheet" href="../packages/styles/dist/themes/sorbet.css" id="theme-css">
-  <link rel="stylesheet" href="../packages/styles/dist/css/sorbet.css">
+  <link rel="stylesheet" href="../packages/design-system/dist/themes/sorbet.css" id="theme-css">
+  <link rel="stylesheet" href="../packages/design-system/dist/css/sorbet.css">
   <style>
     /* demo-only chrome */
     .demo-section { scroll-margin-block-start: 5rem; }
@@ -449,7 +449,7 @@
   </dialog>
 
   <script type="module">
-    import { init, getTheme, toast } from "../packages/behaviors/dist/index.js";
+    import { init, getTheme, toast } from "../packages/design-system/dist/behaviors/index.js";
 
     init();
     const theme = getTheme();
@@ -470,16 +470,16 @@
     // --- preset switcher ----------------------------------------------------
     const link = document.getElementById("theme-css");
     const select = document.getElementById("preset-select");
-    const manifest = await fetch("../packages/styles/dist/themes/manifest.json").then((r) => r.json());
+    const manifest = await fetch("../packages/design-system/dist/themes/manifest.json").then((r) => r.json());
     for (const p of manifest) {
       const option = new Option(`${p.label} — ${p.tagline.split(":")[0].toLowerCase()}`, p.name);
       select.append(option);
     }
     const saved = localStorage.getItem("demo-preset") ?? "sorbet";
     select.value = saved;
-    link.href = `../packages/styles/dist/themes/${saved}.css`;
+    link.href = `../packages/design-system/dist/themes/${saved}.css`;
     select.addEventListener("change", () => {
-      link.href = `../packages/styles/dist/themes/${select.value}.css`;
+      link.href = `../packages/design-system/dist/themes/${select.value}.css`;
       localStorage.setItem("demo-preset", select.value);
       requestAnimationFrame(paintSwatches);
     });

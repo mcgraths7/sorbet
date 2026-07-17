@@ -2,7 +2,7 @@
  * File templates for `sorbet create` and `sorbet component`.
  */
 
-import type { PresetName } from "@sorbet/tokens";
+import type { PresetName } from "@sorbet/design-system/tokens";
 
 export function starterPackageJson(name: string): string {
   return `${JSON.stringify(

@@ -35,21 +35,13 @@ npm run playground       # React kitchen sink (Vite, port 5183)
 
 | Package | What's inside |
 | --- | --- |
-| `@sorbet/tokens` | The source of truth: OKLCH ramps, contrast-driven semantics, presets, scales, WCAG rules, emitters |
-| `@sorbet/styles` | The compiled stylesheet (`/css`), per-preset theme files (`/themes/*`), and the Sass source (`/scss/*`) |
-| `@sorbet/behaviors` | Framework-agnostic progressive enhancement (theme, tabs, dialogs, menus, toasts) — zero dependencies |
-| `@sorbet/core` | React plumbing shared by the layers: `cx`, tones, polymorphic prop types, `composeRefs`, and the theming service (`ThemeProvider`/`useTheme`) |
-| `@sorbet/layout` | React layout primitives: `Container`, `Stack`, `Cluster`, `Grid`, `Split`, `Center`, `Cover` |
-| `@sorbet/atoms` | React atoms: `Button`, `Input`, `Select`, `Checkbox`, `Switch`, `Badge`, `Avatar`, `Progress`, `Tooltip`, … |
-| `@sorbet/molecules` | React molecules: `Field`, `Combobox`, `MultiCombobox`, `Card`, `Alert`, `Tabs`, `Menu`, `Accordion`, `Pagination`, `ToastProvider`, … |
-| `@sorbet/organisms` | React organisms: `Navbar`, `Sidebar`, `Modal`, `Drawer`, `DataTable`, `Footer` |
-| `@sorbet/templates` | React page frames: `AppShell`, `AuthLayout` |
-| `@sorbet/charts` | React data viz: `LineChart`, `BarChart` (grouped/stacked), `DonutChart`, `Sparkline` — SVG, dependency-free, themed by validated chart tokens |
-| `@sorbet/react` | The umbrella: a pure re-export barrel — every layer in one import, nothing defined here |
+| `@sorbet/design-system` | The framework-agnostic system. Subpaths: `/tokens` (OKLCH ramps, validated presets, WCAG rules), `/css` (the compiled stylesheet), `/themes/*` (per-preset theme files), `/scss/*` (Sass source), `/behaviors` (vanilla progressive enhancement) |
+| `@sorbet/component-library` | The React components, one subpath per atomic-design layer — `/layout`, `/atoms`, `/molecules`, `/organisms`, `/templates`, `/charts` — plus `/core` (cx, polymorphic types, `ThemeProvider`/`useTheme`). The root export is everything in one import |
 | `@sorbet/cli` | The `sorbet` CLI: scaffold a standalone design system, emit themes, generate component stubs |
 
-Install the umbrella, or cherry-pick layers — every React package peer-depends
-on `react@^19` and pulls only the layers beneath it.
+Two installs cover a React app; the design system alone covers a no-framework
+one. The component library peer-depends on `react@^19` and tree-shakes per
+subpath (`"sideEffects": false`).
 
 ## Philosophy
 
@@ -80,17 +72,15 @@ Four rules, ruthlessly applied:
 
 ```
 packages/
-├── tokens/       TS token engine (color math, ramps, semantics, presets, rules)
-├── styles/       Sass source + build (themes CSS + sorbet.css) — depends on tokens
-├── behaviors/    vanilla TS behaviors (no dependencies)
-├── core/         React shared plumbing
-├── layout/       React ── the atomic layers, one package each,
-├── atoms/        React ──   all thin typed wrappers over the same
-├── molecules/    React ──   sb- classes compiled from styles
-├── organisms/    React ──
-├── templates/    React ──
-├── react/        umbrella re-export + ThemeProvider
-└── cli/          the `sorbet` binary + scaffold templates
+├── design-system/          @sorbet/design-system
+│   ├── src/tokens/           TS token engine (color math, ramps, presets, WCAG rules)
+│   ├── src/styles/            Sass source (atomic layers, cascade layers)
+│   ├── src/behaviors/         vanilla TS behaviors (no dependencies)
+│   └── tools/                 build-tokens (emit + verify), check-contrast
+├── component-library/      @sorbet/component-library
+│   └── src/{core,layout,atoms,molecules,organisms,templates,charts}/
+│                              one folder per layer → one subpath export each
+└── cli/                    the `sorbet` binary + scaffold templates
 apps/
 └── playground/   Vite React kitchen sink (npm run playground)
 demo/             no-framework kitchen sink (python3 -m http.server, /demo/)
@@ -104,14 +94,14 @@ files, so the two flavors can never drift apart visually.
 ## Using Sorbet in a React app
 
 ```tsx
-import "@sorbet/styles/css";                 // the system, once
-import "@sorbet/styles/themes/sorbet.css";   // a preset (or swap at runtime)
-import { ThemeProvider } from "@sorbet/core";        // theming = framework service
-import { Button } from "@sorbet/atoms";              // components come from their
-import { Stack } from "@sorbet/layout";              // atomic-design layer…
-import { Field, Input, ToastProvider, useToast } from "@sorbet/molecules";
-// …or grab everything from the umbrella instead:
-// import { ThemeProvider, Button, Stack, Field, useToast } from "@sorbet/react";
+import "@sorbet/design-system/css";                 // the system, once
+import "@sorbet/design-system/themes/sorbet.css";   // a preset (or swap at runtime)
+import { ThemeProvider } from "@sorbet/component-library/core";   // theming = framework service
+import { Button, Input } from "@sorbet/component-library/atoms";  // components import from
+import { Stack } from "@sorbet/component-library/layout";         // their atomic-design layer…
+import { Field, ToastProvider, useToast } from "@sorbet/component-library/molecules";
+// …or grab everything from the package root instead:
+// import { ThemeProvider, Button, Stack, Field, useToast } from "@sorbet/component-library";
 
 function Signup() {
   const toast = useToast();
@@ -160,10 +150,10 @@ Highlights of the React API:
 Everything works with plain HTML classes plus the optional behavior layer:
 
 ```html
-<link rel="stylesheet" href="node_modules/@sorbet/styles/dist/themes/ocean.css">
-<link rel="stylesheet" href="node_modules/@sorbet/styles/dist/css/sorbet.css">
+<link rel="stylesheet" href="node_modules/@sorbet/design-system/dist/themes/ocean.css">
+<link rel="stylesheet" href="node_modules/@sorbet/design-system/dist/css/sorbet.css">
 <script type="module">
-  import { init } from "@sorbet/behaviors";
+  import { init } from "@sorbet/design-system/behaviors";
   init(); // wires [data-sb] tabs, modals, menus, tooltips, sortable tables, masonry
 </script>
 
@@ -175,7 +165,7 @@ showcased in [demo/index.html](demo/index.html).
 
 ## Design tokens
 
-Tokens are defined once in TypeScript (`@sorbet/tokens`) and emitted as CSS
+Tokens are defined once in TypeScript (`@sorbet/design-system/tokens`) and emitted as CSS
 custom properties with the `--sb-` prefix. In Sass, accessor functions validate
 every token name at compile time:
 
@@ -213,18 +203,18 @@ Five presets ship out of the box:
 | **midnight** | Sleek & electric — violet and cyan, dark-first | soft | dark |
 
 **Switching presets** = swapping one small CSS file
-(`@sorbet/styles/themes/<name>.css`). Nothing else changes — components are
+(`@sorbet/design-system/themes/<name>.css`). Nothing else changes — components are
 preset-agnostic.
 
 **Dark mode** is dual-path in every theme file: explicit `data-theme="dark"` on
 `<html>`, otherwise `prefers-color-scheme` decides. In React, `ThemeProvider`
 owns the attribute + persistence and `useTheme()` exposes
-`{ mode, resolved, set, toggle }`; without a framework, `@sorbet/behaviors`
+`{ mode, resolved, set, toggle }`; without a framework, `@sorbet/design-system/behaviors`
 ships the equivalent `getTheme()` manager.
 
 ## The accessibility contract
 
-`@sorbet/tokens` declares 47 contrast pairings — text on every surface, `on-*`
+`@sorbet/design-system/tokens` declares 47 contrast pairings — text on every surface, `on-*`
 on every solid (including hover/active), `-text` on page + subtle fills, links,
 strong borders, focus rings. Every build measures all of them for **every
 preset in both modes** and fails on any regression:
@@ -374,7 +364,7 @@ hint hides while the error shows. The React `Field` produces the same markup.
 
 ## Data visualization
 
-Charts are part of the system, not a bolt-on. `@sorbet/tokens` ships an
+Charts are part of the system, not a bolt-on. `@sorbet/design-system/tokens` ships an
 **8-slot categorical palette per preset** (`--sb-chart-1…8` + `--sb-chart-muted`),
 drawn from the same OKLCH ramps and **validated, not eyeballed**: fixed slot
 order optimized for color-vision-deficiency separation (worst adjacent
@@ -382,7 +372,7 @@ Machado-2009 ΔE ≥ 14.7 across every preset × mode), per-mode lightness bands
 chroma floors, and contrast gates enforced by the build. Dark mode gets its own
 steps from the same hues — never an automatic flip.
 
-`@sorbet/charts` covers the dashboard 80% with zero dependencies:
+The `/charts` subpath covers the dashboard 80% with zero dependencies:
 
 ```tsx
 <LineChart title="Weekly active users" subtitle="By platform"
@@ -426,7 +416,7 @@ evolve, no dependency on this repo.
 
 ## Extending the system
 
-**Change brand colors** — edit a preset in `packages/tokens/src/presets.ts`
+**Change brand colors** — edit a preset in `packages/design-system/src/tokens/presets.ts`
 (swap which ramps map to `primary`/`secondary`/`accent`, or add a ramp with a
 hue + chroma). Rebuild; the contrast contract re-verifies.
 
@@ -434,7 +424,7 @@ hue + chroma). Rebuild; the contrast contract re-verifies.
 theme file, manifest + CLI support, and contract enforcement.
 
 **Add a component** — Sass partial first (tokens only, registered in the right
-`@layer` block of `packages/styles/src/index.scss`), then a thin React wrapper
+`@layer` block of `packages/design-system/src/styles/index.scss`), then a thin React wrapper
 in the matching layer package. `sorbet component` stubs the Sass side.
 
 **Override styles** — just write CSS. Sorbet lives in cascade layers

@@ -1,0 +1,33 @@
+{
+  "name": "@sorbet/design-system",
+  "version": "0.1.0",
+  "description": "The Sorbet design system: token engine (OKLCH ramps, validated presets, WCAG rules), the compiled stylesheet + themes, the Sass source, and the framework-agnostic behaviors.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/tokens/index.d.ts",
+      "default": "./dist/tokens/index.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "default": "./dist/tokens/index.js"
+    },
+    "./behaviors": {
+      "types": "./dist/behaviors/index.d.ts",
+      "default": "./dist/behaviors/index.js"
+    },
+    "./css": "./dist/css/sorbet.css",
+    "./themes/*": "./dist/themes/*",
+    "./scss/*": "./src/styles/*"
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "npm run build:tokens && npm run build:css && npm run build:ts",
+    "build:tokens": "node tools/build-tokens.ts",
+    "build:css": "sass src/styles/index.scss:dist/css/sorbet.css --style=expanded --no-source-map",
+    "build:ts": "tsc -p tsconfig.tokens.json && tsc -p tsconfig.behaviors.json",
+    "watch:css": "sass --watch src/styles/index.scss:dist/css/sorbet.css",
+    "check:contrast": "node tools/check-contrast.ts"
+  }
+}
