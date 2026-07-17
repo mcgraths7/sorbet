@@ -86,6 +86,7 @@ import {
   SidebarFooter,
   SidebarHeading,
   SidebarItem,
+  TokenStudio,
   type Column,
 } from "@sorbet/component-library/organisms";
 import { AppShell, AppShellHeader, AppShellMain, AppShellSidebar } from "@sorbet/component-library/templates";
@@ -273,6 +274,7 @@ function ModeSwitch() {
 export function App() {
   const toast = useToast();
   const [preset, setPreset] = useState(() => localStorage.getItem("playground-preset") ?? "sorbet");
+  const [studioOpen, setStudioOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page, setPage] = useState(2);
@@ -297,6 +299,9 @@ export function App() {
             <NavbarLink href="#organisms">Organisms</NavbarLink>
           </NavbarNav>
           <NavbarActions>
+            <Button size="sm" variant="ghost" onClick={() => setStudioOpen((v) => !v)}>
+              🎨 Tokens
+            </Button>
             <Select size="sm" aria-label="Theme preset" value={preset} onChange={(e) => setPreset(e.target.value)}>
               {THEMES.map((t) => (
                 <option key={t.name} value={t.name}>
@@ -887,6 +892,8 @@ export function App() {
           <Button onClick={() => setDrawerOpen(false)}>Apply</Button>
         </DrawerFooter>
       </Drawer>
+
+      <TokenStudio open={studioOpen} onClose={() => setStudioOpen(false)} />
     </AppShell>
   );
 }

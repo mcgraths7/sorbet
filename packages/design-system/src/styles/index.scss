@@ -42,6 +42,8 @@
   @include meta.load-css("atoms/select");
   @include meta.load-css("atoms/choice");
   @include meta.load-css("atoms/switch");
+  @include meta.load-css("atoms/slider");
+  @include meta.load-css("atoms/color-input");
   @include meta.load-css("atoms/skeleton");
   @include meta.load-css("atoms/tooltip");
 }
@@ -71,6 +73,7 @@
   @include meta.load-css("organisms/table");
   @include meta.load-css("organisms/footer");
   @include meta.load-css("organisms/chart");
+  @include meta.load-css("organisms/token-studio");
 }
 
 @layer sb.templates {
