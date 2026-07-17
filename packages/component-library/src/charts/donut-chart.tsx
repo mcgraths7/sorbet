@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type PointerEvent } from "react";
 import { formatNumber } from "./scale.ts";
-import { ChartShell, ChartTooltip, seriesColor, type TooltipState } from "./shell.tsx";
+import { ChartShell, ChartTooltip, mutedSeriesColor, seriesColor, type TooltipState } from "./shell.tsx";
 
 export interface DonutDatum {
   label: string;
@@ -99,7 +99,7 @@ export function DonutChart({
       const frac = d.value / total;
       const a0 = cursor * TAU;
       cursor += frac;
-      return { ...d, frac, a0, a1: cursor * TAU, color: d.isOther ? "var(--sb-chart-muted)" : seriesColor(i) };
+      return { ...d, frac, a0, a1: cursor * TAU, color: d.isOther ? mutedSeriesColor : seriesColor(i) };
     });
     return { arcs, total };
   }, [data, maxSlices, otherLabel]);

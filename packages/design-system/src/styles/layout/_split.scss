@@ -13,14 +13,14 @@
   gap: var(--gap, #{space(6)});
 
   > .sb-split__aside {
-    flex-basis: var(--aside, 16rem);
+    flex-basis: var(--aside, #{token(aside-width)});
     flex-grow: 1;
   }
 
   > .sb-split__main {
     flex-basis: 0;
     flex-grow: 999;
-    min-inline-size: min(var(--content-min, 55%), 100%);
+    min-inline-size: min(var(--content-min, #{token(content-min)}), 100%);
   }
 
   &--aside-right {

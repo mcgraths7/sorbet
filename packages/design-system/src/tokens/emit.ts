@@ -117,6 +117,7 @@ $scale-keys: (
   "ease": (${list(strip(motion, "ease").filter((k) => !k.startsWith("duration")))}),
   "z": (${list(strip(zIndex, "z"))}),
   "font": ("sans", "display", "mono"),
+  "misc": (${list(Object.keys(misc))}),
 );
 
 // Preset-independent tokens, emitted once from base/_root.scss.

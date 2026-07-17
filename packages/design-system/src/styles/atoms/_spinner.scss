@@ -8,7 +8,7 @@
 
 // <span class="sb-spinner" role="status" aria-label="Loading"></span>
 .sb-spinner {
-  --size: 1.5rem;
+  --size: #{token(spinner-size-md)};
 
   display: inline-block;
   inline-size: var(--size);
@@ -18,8 +18,8 @@
   border-block-start-color: clr(primary);
   animation: sb-spin 0.7s linear infinite;
 
-  &--sm { --size: 1rem; }
-  &--lg { --size: 2.5rem; }
+  &--sm { --size: #{token(spinner-size-sm)}; }
+  &--lg { --size: #{token(spinner-size-lg)}; }
 
   &--muted {
     border-color: clr(bg-subtle);

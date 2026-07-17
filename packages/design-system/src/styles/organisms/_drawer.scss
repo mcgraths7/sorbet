@@ -3,7 +3,7 @@
 // Edge-attached dialog: mobile nav, filter panels, detail peeks.
 // <dialog class="sb-drawer" data-sb="modal">…</dialog>
 .sb-drawer {
-  --drawer-size: 20rem;
+  --drawer-size: #{token(drawer-width)};
 
   position: fixed;
   inset: 0 0 0 auto;

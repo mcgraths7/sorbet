@@ -35,6 +35,12 @@
   }
 }
 
+// Stacked multi-line placeholder (the React `lines` prop renders this).
+.sb-skeleton-group {
+  display: grid;
+  gap: space(2);
+}
+
 @keyframes sb-shimmer {
   from {
     background-position: 120% 0;

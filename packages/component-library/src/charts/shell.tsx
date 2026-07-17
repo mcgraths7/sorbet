@@ -14,6 +14,9 @@ export function seriesColor(index: number): string {
   return `var(--sb-chart-${Math.min(index + 1, 8)})`;
 }
 
+/** The de-emphasized slot for aggregated remainders ("Other"). */
+export const mutedSeriesColor = "var(--sb-chart-muted)";
+
 export interface ChartShellProps {
   title?: ReactNode;
   subtitle?: ReactNode;
