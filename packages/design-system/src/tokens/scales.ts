@@ -115,7 +115,7 @@ export const misc = {
   "control-height-sm": "2rem",
   "control-height-md": "2.5rem",
   "control-height-lg": "3rem",
-  "sidebar-width": "18.5rem",
+  "sidebar-width": "16.5rem",
   "drawer-width": "20rem",
   "aside-width": "16rem",
   "content-min": "55%",
