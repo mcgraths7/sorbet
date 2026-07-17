@@ -36,7 +36,7 @@ export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "m
     // Validated (six checks, both modes): worst adjacent CVD ΔE 38.6 light / 38.7 dark.
     slot("raspberry", 600, 500),
     slot("blue", 600, 500),
-    slot("amber", 600, 500),
+    slot("amber", 400, 500),
     slot("teal", 600, 600),
     slot("indigo", 700, 500),
     slot("coral", 600, 500),
