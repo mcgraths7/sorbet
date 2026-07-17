@@ -8,6 +8,7 @@ import {
 } from "@sorbet/design-system/tokens";
 import { Badge, Button, ColorInput, Input, Slider } from "../atoms/index.ts";
 import { cx } from "../core/index.ts";
+import { Cluster } from "../layout/index.ts";
 import { Accordion, AccordionItem, Menu, MenuItem, Tab, TabList, TabPanel, Tabs } from "../molecules/index.ts";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from "./drawer.tsx";
 import { useEffect, useState } from "react";
@@ -197,12 +198,14 @@ function TokenRow({
 
   return (
     <div className={cx("sb-token-studio__row", scrubbable && "sb-token-studio__row--wide")} data-dirty={dirty || undefined}>
-      <code className="sb-token-studio__name">{def.name}</code>
-      {dirty && (
-        <Button variant="ghost" size="sm" iconOnly aria-label={`Reset ${def.name}`} onClick={onReset}>
-          ↺
-        </Button>
-      )}
+      <Cluster gap={1} nowrap className="sb-token-studio__label">
+        <code className="sb-token-studio__name">{def.name}</code>
+        {dirty && (
+          <Button variant="ghost" size="sm" iconOnly aria-label={`Reset ${def.name}`} onClick={onReset}>
+            ↺
+          </Button>
+        )}
+      </Cluster>
       <div className="sb-token-studio__control">{control}</div>
     </div>
   );

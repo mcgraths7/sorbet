@@ -34,6 +34,12 @@
     }
   }
 
+  &__label {
+    min-inline-size: 0;
+    // Reserve the reset button's height so it can appear without reflow.
+    min-block-size: token(control-height-sm);
+  }
+
   &__name {
     font-family: font(mono);
     font-size: fs(xs);
