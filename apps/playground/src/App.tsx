@@ -45,6 +45,7 @@ import {
   CardHeader,
   CardTitle,
   Combobox,
+  Dropzone,
   EmptyState,
   Field,
   InputGroup,
@@ -518,6 +519,18 @@ export function App() {
                     <GridSpan2>
                       <Field label="Bio" optional hint="Grows with content — field-sizing, no JS.">
                         <Textarea autoResize placeholder="Tell us about yourself" />
+                      </Field>
+                    </GridSpan2>
+                    <GridSpan2>
+                      <Field label="Attachments" optional>
+                        <Dropzone
+                          name="attachments"
+                          multiple
+                          accept="image/*,.pdf"
+                          maxFiles={3}
+                          maxSize={1_048_576}
+                          hint="Images or PDF · up to 3 files · 1 MB each"
+                        />
                       </Field>
                     </GridSpan2>
                     <Stack gap={2}>

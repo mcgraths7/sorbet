@@ -1,0 +1,154 @@
+@use "../abstracts" as *;
+
+// Drag-and-drop file picker built around a real <input type="file"> — drops
+// are funneled into the input (see the dropzone behavior / React component),
+// so the files submit with the form natively and the picker + keyboard path
+// come from the platform. The input is visually hidden; the surrounding
+// <label> makes the whole zone open the picker.
+//
+// <div class="sb-dropzone" data-sb="dropzone" data-max-size="1048576" data-max-files="3">
+//   <label class="sb-dropzone__zone">
+//     <input class="sb-dropzone__input" type="file" multiple accept="image/*">
+//     <span class="sb-dropzone__icon" aria-hidden="true">…svg…</span>
+//     <span class="sb-dropzone__title">Drag &amp; drop or <span class="sb-dropzone__browse">browse</span></span>
+//     <span class="sb-dropzone__hint">Images · up to 3 files · 1 MB each</span>
+//   </label>
+//   <p class="sb-dropzone__error" role="alert" hidden></p>
+//   <ul class="sb-dropzone__list"></ul>
+// </div>
+.sb-dropzone {
+  display: flex;
+  flex-direction: column;
+  gap: space(3);
+
+  &__zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: space(1);
+    padding: space(8) space(6);
+    border: token(border-width-thick) dashed clr(border-strong);
+    border-radius: radius(lg);
+    background-color: clr(surface);
+    text-align: center;
+    cursor: pointer;
+    transition:
+      border-color dur(fast) ease(out),
+      background-color dur(fast) ease(out);
+
+    &:hover {
+      border-color: clr(primary);
+    }
+  }
+
+  &__input {
+    @include visually-hidden;
+  }
+
+  // Keyboard focus on the (hidden) input lights the whole zone.
+  &:has(.sb-dropzone__input:focus-visible) .sb-dropzone__zone {
+    @include focus-ring-style;
+  }
+
+  &[data-dragover] .sb-dropzone__zone {
+    border-color: clr(primary);
+    background-color: clr(primary-subtle);
+  }
+
+  &:has(.sb-dropzone__input:disabled) .sb-dropzone__zone {
+    cursor: not-allowed;
+    opacity: 0.55;
+
+    &:hover {
+      border-color: clr(border-strong);
+    }
+  }
+
+  &__icon {
+    color: clr(primary);
+  }
+
+  &__title {
+    font-size: fs(sm);
+    font-weight: fw(medium);
+  }
+
+  &__browse {
+    color: clr(link);
+    text-decoration: underline;
+  }
+
+  &__hint {
+    font-size: fs(xs);
+    color: clr(text-muted);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: fs(xs);
+    font-weight: fw(medium);
+    color: clr(danger-text);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: space(2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  &__file {
+    display: flex;
+    align-items: center;
+    gap: space(3);
+    padding: space(1) space(3);
+    border: token(border-width) solid clr(border-subtle);
+    border-radius: radius(md);
+    background-color: clr(surface);
+    font-size: fs(sm);
+  }
+
+  &__name {
+    @include truncate;
+
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  &__size {
+    flex-shrink: 0;
+    font-size: fs(xs);
+    color: clr(text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__remove {
+    @include control-reset;
+    @include focus-ring;
+    @include pressable;
+
+    display: grid;
+    place-items: center;
+    inline-size: token(control-height-sm);
+    block-size: token(control-height-sm);
+    flex-shrink: 0;
+    border-radius: radius(sm);
+    color: clr(text-muted);
+
+    &:hover {
+      color: clr(danger-text);
+      background-color: clr(danger-subtle);
+    }
+  }
+}

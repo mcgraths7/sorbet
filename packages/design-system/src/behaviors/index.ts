@@ -18,6 +18,7 @@ export { initTooltips } from "./tooltip.ts";
 export { SortableTable } from "./table-sort.ts";
 export { initDismiss } from "./dismiss.ts";
 export { Masonry, supportsNativeMasonry } from "./masonry.ts";
+export { Dropzone, type DropzoneRejection } from "./dropzone.ts";
 
 import { getTheme } from "./theme.ts";
 import { Tabs } from "./tabs.ts";
@@ -27,6 +28,7 @@ import { initTooltips } from "./tooltip.ts";
 import { SortableTable } from "./table-sort.ts";
 import { initDismiss } from "./dismiss.ts";
 import { Masonry } from "./masonry.ts";
+import { Dropzone } from "./dropzone.ts";
 
 function wire<T extends HTMLElement>(root: ParentNode, selector: string, create: (el: T) => unknown): void {
   for (const el of root.querySelectorAll<T>(selector)) {
@@ -42,6 +44,7 @@ export function init(root: ParentNode = document): void {
   wire(root, '[data-sb="tabs"]', (el) => new Tabs(el));
   wire(root, '[data-sb="menu"]', (el) => new Menu(el));
   wire(root, '[data-sb="masonry"]', (el) => new Masonry(el));
+  wire(root, '[data-sb="dropzone"]', (el) => new Dropzone(el));
   wire<HTMLTableElement>(root, 'table[data-sb="sortable"]', (el) => new SortableTable(el));
   initModals(root);
 
