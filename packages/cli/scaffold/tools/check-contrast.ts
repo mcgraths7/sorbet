@@ -7,10 +7,10 @@
  */
 
 import { styleText } from "node:util";
-import { contrast } from "../tokens/color.ts";
-import { presets } from "../tokens/presets.ts";
-import { RULES } from "../tokens/rules.ts";
-import type { Mode } from "../tokens/semantics.ts";
+import { contrast } from "../../../design-system/src/tokens/color.ts";
+import { presets } from "../../../design-system/src/tokens/presets.ts";
+import { RULES } from "../../../design-system/src/tokens/rules.ts";
+import type { Mode } from "../../../design-system/src/tokens/semantics.ts";
 
 let failures = 0;
 const opaque = (v: string) => /^#[0-9a-f]{6}$/i.test(v);

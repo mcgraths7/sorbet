@@ -9,9 +9,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { styleText } from "node:util";
-import { generatedScss, manifest, themeCss } from "../tokens/emit.ts";
-import { presets } from "../tokens/presets.ts";
-import { checkPreset } from "../tokens/rules.ts";
+import { generatedScss, manifest, themeCss } from "../../../design-system/src/tokens/emit.ts";
+import { presets } from "../../../design-system/src/tokens/presets.ts";
+import { checkPreset } from "../../../design-system/src/tokens/rules.ts";
 
 const root = join(import.meta.dirname, "..", "..");
 // Theme output dir is overridable: `node src/tools/build-tokens.ts public/themes`
