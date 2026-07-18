@@ -1,0 +1,34 @@
+@use "../abstracts" as *;
+
+// Floating action button: the page's one primary quick action, pinned to
+// the viewport's bottom end corner (chat launchers, compose, dev tools).
+//
+// <button class="sb-fab" aria-label="Open Token Studio">🎨</button>
+.sb-fab {
+  @include control-reset;
+  @include focus-ring;
+  @include pressable;
+
+  position: fixed;
+  inset-block-end: space(6);
+  inset-inline-end: space(6);
+  z-index: z(sticky);
+  display: grid;
+  place-items: center;
+  inline-size: token(fab-size);
+  block-size: token(fab-size);
+  border-radius: radius(full);
+  background-color: clr(primary);
+  color: clr(on-primary);
+  font-size: fs(xl);
+  box-shadow: shadow(lg);
+  transition:
+    box-shadow dur(fast) ease(out),
+    background-color dur(fast) ease(out),
+    transform dur(fast) ease(spring);
+
+  &:hover {
+    background-color: clr(primary-hover);
+    box-shadow: shadow(xl);
+  }
+}

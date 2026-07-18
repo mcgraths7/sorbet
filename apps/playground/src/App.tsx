@@ -10,6 +10,7 @@ import {
   Chip,
   Choice,
   Divider,
+  Fab,
   Input,
   Kbd,
   Progress,
@@ -272,6 +273,7 @@ function ModeSwitch() {
 
 export function App() {
   const toast = useToast();
+  const theme = useTheme();
   const [preset, setPreset] = useState(() => localStorage.getItem("playground-preset") ?? "sorbet");
   const [studioOpen, setStudioOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -298,16 +300,6 @@ export function App() {
             <NavbarLink href="#organisms">Organisms</NavbarLink>
           </NavbarNav>
           <NavbarActions>
-            <Button size="sm" variant="ghost" onClick={() => setStudioOpen((v) => !v)}>
-              🎨 Tokens
-            </Button>
-            <Select size="sm" aria-label="Theme preset" value={preset} onChange={(e) => setPreset(e.target.value)}>
-              {THEMES.map((t) => (
-                <option key={t.name} value={t.name}>
-                  {t.label}
-                </option>
-              ))}
-            </Select>
             <ModeSwitch />
           </NavbarActions>
         </Navbar>
@@ -383,7 +375,7 @@ export function App() {
                       <CardTitle>Rebrand in one file</CardTitle>
                       <p className="u-text-sm u-text-muted">
                         A preset is one small CSS file of tokens. Swap it and everything re-themes — buttons to
-                        charts, light and dark included. Try it in the header.
+                        charts, light and dark included. Try it in the Token Studio (🎨, bottom right).
                       </p>
                     </Stack>
                   </CardBody>
@@ -892,7 +884,17 @@ export function App() {
         </DrawerFooter>
       </Drawer>
 
-      <TokenStudio open={studioOpen} onClose={() => setStudioOpen(false)} />
+      <Fab aria-label="Open Token Studio" title="Token Studio" onClick={() => setStudioOpen((v) => !v)}>
+        🎨
+      </Fab>
+      <TokenStudio
+        open={studioOpen}
+        onClose={() => setStudioOpen(false)}
+        preset={preset}
+        onPresetChange={setPreset}
+        themeMode={theme.mode}
+        onThemeModeChange={theme.set}
+      />
     </AppShell>
   );
 }

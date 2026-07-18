@@ -47,6 +47,22 @@ export function Drawer({
     }
   }, [open, modeless]);
 
+  // Modeless drawers have no backdrop to click; light-dismiss on any press
+  // outside the panel instead (unless `static`).
+  useEffect(() => {
+    if (!open || !modeless || isStatic) {
+      return;
+    }
+    const onPointerDown = (e: PointerEvent) => {
+      const dialog = dialogRef.current;
+      if (dialog?.open && !dialog.contains(e.target as Node)) {
+        dialog.close();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open, modeless, isStatic]);
+
   return (
     <dialog
       ref={composeRefs(ref, dialogRef)}

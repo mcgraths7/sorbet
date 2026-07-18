@@ -433,7 +433,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 ## Component catalog
 
 **Layout** Container · Stack(+Push) · Cluster(+Push) · Grid(+Span2) · Split(+Aside/Main) · Center · Cover · Masonry · Frame
-**Atoms** Button (8 variants × 3 sizes, loading, icon, polymorphic) · Input · Textarea (autosize) · Select · Checkbox (indeterminate) · Radio · Switch · Choice · Slider (native range) · ColorInput (swatch + hex) · Label · Badge · Chip · Avatar(+Group) · Spinner · Progress (+indeterminate) · Skeleton · Divider · Kbd · Tooltip
+**Atoms** Button (8 variants × 3 sizes, loading, icon, polymorphic) · Input · Textarea (autosize) · Select · Checkbox (indeterminate) · Radio · Switch · Choice · Slider (native range) · ColorInput (swatch + hex) · Fab (floating action button) · Label · Badge · Chip · Avatar(+Group) · Spinner · Progress (+indeterminate) · Skeleton · Divider · Kbd · Tooltip
 **Molecules** Field · Combobox / MultiCombobox (list autocomplete, chip multi-select) · Dropzone (drag-and-drop upload over a real file input) · InputGroup(+Addon) · Card (header/body/footer/media/title, 5 variants) · Alert · Tabs/TabList/Tab/TabPanel · Menu (heading/item/separator) · Accordion(+Item) · Breadcrumb(+Item) · Pagination · ToastProvider/useToast · Stat · EmptyState
 **Organisms** Navbar (brand/nav/link/actions/menu-button) · Sidebar (heading/item/footer) · Modal · Drawer (modal or modeless) · DataTable · Footer (cols/col/meta) · TokenStudio (live token editor with WCAG report + export)
 **Templates** AppShell (header/sidebar/main) · AuthLayout

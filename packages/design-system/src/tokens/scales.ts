@@ -131,4 +131,5 @@ export const misc = {
   "spinner-size-md": "1.5rem",
   "spinner-size-lg": "2.5rem",
   "studio-width": "26rem",
+  "fab-size": "3.5rem",
 } as const;

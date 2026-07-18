@@ -34,6 +34,15 @@
     }
   }
 
+  &__toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: space(2);
+    margin-block-end: space(4);
+    padding-block-end: space(3);
+    border-block-end: token(border-width) solid clr(border-subtle);
+  }
+
   &__label {
     min-inline-size: 0;
     // Reserve the reset button's height so it can appear without reflow.

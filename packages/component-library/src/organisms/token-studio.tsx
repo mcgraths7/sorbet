@@ -1,17 +1,18 @@
 import {
   checkColors,
+  presets as builtinPresets,
   SEMANTIC_COLOR_NAMES,
   scales,
   type Failure,
   type Mode,
   type SemanticColors,
 } from "@sorbet/design-system/tokens";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { Badge, Button, ColorInput, Input, Slider } from "../atoms/index.ts";
-import { cx } from "../core/index.ts";
+import { Badge, Button, ColorInput, Input, Select, Slider } from "../atoms/index.ts";
+import { cx, type ThemeMode } from "../core/index.ts";
 import { Cluster } from "../layout/index.ts";
-import { Accordion, AccordionItem, Menu, MenuItem, Tab, TabList, TabPanel, Tabs } from "../molecules/index.ts";
+import { Accordion, AccordionItem, Field, Menu, MenuItem, Tab, TabList, TabPanel, Tabs } from "../molecules/index.ts";
 
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from "./drawer.tsx";
 
@@ -219,10 +220,30 @@ function TokenRow({
   );
 }
 
+export interface TokenStudioPreset {
+  name: string;
+  label?: string;
+}
+
 export interface TokenStudioProps {
   open: boolean;
   onClose: () => void;
+  /** Selectable theme presets; defaults to the design system's built-ins. */
+  presets?: TokenStudioPreset[];
+  /** Active preset name. With `onPresetChange`, shows the preset selector. */
+  preset?: string;
+  /** The app applies the swap (e.g. point the theme <link> at the preset). */
+  onPresetChange?: (name: string) => void;
+  /** Color-mode choice. With `onThemeModeChange`, shows the mode toggle. */
+  themeMode?: ThemeMode;
+  /** The app applies the mode (e.g. wire to useTheme's `set`). */
+  onThemeModeChange?: (mode: ThemeMode) => void;
 }
+
+const BUILTIN_PRESETS: TokenStudioPreset[] = Object.values(builtinPresets).map((p) => ({
+  name: p.name,
+  label: p.label,
+}));
 
 /**
  * Live token editor (dev tool): a modeless drawer that overrides `--sb-*`
@@ -230,7 +251,15 @@ export interface TokenStudioProps {
  * every color edit, and exports the overrides as a drop-in CSS file or a
  * JSON token map. Overrides persist in localStorage across reloads.
  */
-export function TokenStudio({ open, onClose }: TokenStudioProps) {
+export function TokenStudio({
+  open,
+  onClose,
+  presets = BUILTIN_PRESETS,
+  preset,
+  onPresetChange,
+  themeMode,
+  onThemeModeChange,
+}: TokenStudioProps) {
   const [buckets, setBuckets] = useState<Buckets>(loadBuckets);
   const [mode, setMode] = useState<Mode>("light");
   const [baseline, setBaseline] = useState<Record<string, string>>({});
@@ -266,11 +295,8 @@ export function TokenStudio({ open, onClose }: TokenStudioProps) {
   }, []);
 
   // Capture pre-override values (sheet briefly detached so getComputedStyle
-  // sees the theme's own values). Re-runs when the mode flips.
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
+  // sees the theme's own values).
+  const captureBaseline = useCallback(() => {
     const sheet = document.getElementById(STYLE_ID);
     const saved = sheet?.textContent ?? "";
     if (sheet) {
@@ -285,7 +311,29 @@ export function TokenStudio({ open, onClose }: TokenStudioProps) {
       sheet.textContent = saved;
     }
     setBaseline(base);
-  }, [open, mode]);
+  }, []);
+
+  // Re-capture when the mode flips…
+  useEffect(() => {
+    if (open) {
+      captureBaseline();
+    }
+  }, [open, mode, captureBaseline]);
+
+  // …and when a stylesheet finishes loading (a preset swap replaces the
+  // theme <link>; load doesn't bubble, so listen in the capture phase).
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const onLoad = (e: Event) => {
+      if ((e.target as Element | null)?.tagName === "LINK") {
+        captureBaseline();
+      }
+    };
+    document.addEventListener("load", onLoad, true);
+    return () => document.removeEventListener("load", onLoad, true);
+  }, [open, captureBaseline]);
 
   // The build gate, live: re-check the WCAG contract for the active mode.
   useEffect(() => {
@@ -366,6 +414,35 @@ export function TokenStudio({ open, onClose }: TokenStudioProps) {
         </Cluster>
       </DrawerHeader>
       <DrawerBody>
+        {((preset !== undefined && onPresetChange) || (themeMode !== undefined && onThemeModeChange)) && (
+          <div className="sb-token-studio__toolbar">
+            {preset !== undefined && onPresetChange && (
+              <Field label="Preset" inline>
+                <Select size="sm" value={preset} onChange={(e) => onPresetChange(e.target.value)}>
+                  {presets.map((p) => (
+                    <option key={p.name} value={p.name}>
+                      {p.label ?? p.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
+            {themeMode !== undefined && onThemeModeChange && (
+              <div className="sb-field sb-field--inline">
+                <span className="sb-label">Mode</span>
+                <Tabs pills value={themeMode} onValueChange={(v) => onThemeModeChange(v as ThemeMode)}>
+                  <TabList aria-label="Color mode" role="group">
+                    {(["light", "system", "dark"] as const).map((m) => (
+                      <Tab key={m} value={m} role="button" aria-selected={themeMode === m}>
+                        {m === "system" ? "Auto" : m === "light" ? "Light" : "Dark"}
+                      </Tab>
+                    ))}
+                  </TabList>
+                </Tabs>
+              </div>
+            )}
+          </div>
+        )}
         <Tabs defaultValue="colors">
           <TabList>
             {TABS.map((tab) => (
