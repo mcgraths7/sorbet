@@ -89,11 +89,13 @@
     margin-block-end: space(2);
   }
 
-  &__title {
+  // Month + year selects, centered between the step arrows.
+  &__period {
     flex: 1;
-    text-align: center;
-    font-size: fs(sm);
-    font-weight: fw(semibold);
+    display: flex;
+    justify-content: center;
+    gap: space(1);
+    min-inline-size: 0;
   }
 
   &__nav {
@@ -133,6 +135,7 @@
   &__grid {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: space(1);
   }
 
