@@ -1,6 +1,6 @@
 export default {
   extends: ["stylelint-config-standard-scss"],
-  plugins: ["./tools/stylelint/no-raw-sorbet-token-var.js"],
+  plugins: ["./tools/stylelint/no-undeclared-custom-property.js"],
   ignoreFiles: ["**/dist/**", "**/node_modules/**", "**/_generated.scss"],
   rules: {
     // These are intentional Sorbet conventions, not formatting mistakes.
@@ -15,8 +15,8 @@ export default {
     "unit-no-unknown": null,
     "value-keyword-case": ["lower", { ignoreKeywords: ["currentColor"] }],
 
-    // Sorbet tokens must be validated by the Sass accessors in _tokens.scss.
-    // Unprefixed custom properties remain permitted as component knob APIs.
-    "sorbet/no-raw-token-var": true,
+    // Every var() reference must be backed by a local declaration. _tokens.scss
+    // is the intentional exception: it implements the validated token accessors.
+    "sorbet/no-undeclared-custom-property": true,
   },
 };
