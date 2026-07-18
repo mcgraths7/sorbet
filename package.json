@@ -11,6 +11,9 @@
   ],
   "scripts": {
     "build": "npm run build -w @sorbet/design-system -w @sorbet/component-library -w @sorbet/cli",
+    "build:design-system": "npm run build -w @sorbet/design-system",
+    "build:component-library": "npm run build -w @sorbet/component-library",
+    "build:cli": "npm run build -w @sorbet/cli",
     "check:contrast": "npm run check:contrast -w @sorbet/design-system",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
