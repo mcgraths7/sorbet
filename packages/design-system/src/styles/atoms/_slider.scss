@@ -1,0 +1,59 @@
+@use "../abstracts" as *;
+
+// Native range input, themed. Track and thumb are engine-prefixed, so the
+// rules repeat per engine (they cannot share a selector list — an unknown
+// pseudo-element invalidates the whole rule).
+//
+// <input type="range" class="sb-slider" min="0" max="100" step="1">
+.sb-slider {
+  appearance: none;
+  inline-size: 100%;
+  block-size: space(4);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  &::-webkit-slider-runnable-track {
+    block-size: space(1);
+    border-radius: radius(full);
+    background-color: clr(border);
+  }
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    inline-size: space(4);
+    block-size: space(4);
+    margin-block-start: calc((space(1) - space(4)) / 2);
+    border: token(border-width-thick) solid clr(surface);
+    border-radius: radius(full);
+    background-color: clr(primary);
+    box-shadow: shadow(sm);
+    transition: transform dur(fast) ease(spring);
+  }
+
+  &:active::-webkit-slider-thumb {
+    transform: scale(1.15);
+  }
+
+  &::-moz-range-track {
+    block-size: space(1);
+    border-radius: radius(full);
+    background-color: clr(border);
+  }
+
+  &::-moz-range-thumb {
+    inline-size: space(4);
+    block-size: space(4);
+    border: token(border-width-thick) solid clr(surface);
+    border-radius: radius(full);
+    background-color: clr(primary);
+    box-shadow: shadow(sm);
+  }
+}

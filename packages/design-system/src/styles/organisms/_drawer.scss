@@ -7,6 +7,9 @@
 
   position: fixed;
   inset: 0 0 0 auto;
+  // Modal drawers render in the top layer; modeless ones (dialog.show())
+  // stack normally and need to clear sticky chrome.
+  z-index: z(modal);
   inline-size: min(var(--drawer-size), 90vw);
   block-size: 100dvh;
   max-block-size: none;

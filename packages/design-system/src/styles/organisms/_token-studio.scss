@@ -1,0 +1,109 @@
+@use "../abstracts" as *;
+
+// Live token editor (dev tool). It composes Drawer + Tabs + Accordion and
+// the form atoms; this partial only owns the studio-specific chrome:
+// compact token rows, section headings, and the contrast report.
+.sb-token-studio {
+  --drawer-size: #{token(studio-width)};
+
+  &__rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: space(3);
+    row-gap: space(1);
+    padding-block: space(2);
+    border-block-end: token(border-width) solid clr(border-subtle);
+
+    &:last-child {
+      border-block-end: none;
+    }
+
+    // Scrubbable rows put the slider + value on their own full-width line.
+    &--wide {
+      grid-template-columns: minmax(0, 1fr) auto;
+
+      .sb-token-studio__control {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+
+  &__label {
+    min-inline-size: 0;
+    // Reserve the reset button's height so it can appear without reflow.
+    min-block-size: token(control-height-sm);
+  }
+
+  &__name {
+    font-family: font(mono);
+    font-size: fs(xs);
+    color: clr(text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  &__row[data-dirty] .sb-token-studio__name {
+    color: clr(text);
+    font-weight: fw(semibold);
+  }
+
+  &__control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: space(2);
+    min-inline-size: 0;
+  }
+
+  &__value {
+    field-sizing: content;
+    min-inline-size: calc(token(control-height-sm) * 2);
+    font-family: font(mono);
+  }
+
+  &__heading {
+    margin-block: space(4) space(1);
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    text-transform: uppercase;
+    letter-spacing: ls(wide);
+    color: clr(text-subtle);
+
+    &:first-child {
+      margin-block-start: 0;
+    }
+  }
+
+  &__report {
+    flex: 1;
+    min-inline-size: 0;
+    font-size: fs(xs);
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+  }
+
+  &__failures {
+    margin: space(2) 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
+    font-family: font(mono);
+    color: clr(danger-text);
+    max-block-size: calc(token(control-height-lg) * 3);
+    overflow-y: auto;
+  }
+}

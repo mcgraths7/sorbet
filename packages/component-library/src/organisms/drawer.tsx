@@ -10,6 +10,8 @@ export interface DrawerProps extends Omit<ComponentPropsWithRef<"dialog">, "onCl
   /** Panel width, e.g. "24rem". */
   width?: string;
   static?: boolean;
+  /** Non-modal: no scrim, page stays interactive (dev panels, inspectors). */
+  modeless?: boolean;
 }
 
 /** Edge-attached dialog: mobile nav, filter panels, detail peeks. */
@@ -19,6 +21,7 @@ export function Drawer({
   side = "end",
   width,
   static: isStatic,
+  modeless,
   className,
   style,
   ref,
@@ -30,9 +33,9 @@ export function Drawer({
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) (modeless ? dialog.show() : dialog.showModal());
     else if (!open && dialog.open) dialog.close();
-  }, [open]);
+  }, [open, modeless]);
 
   return (
     <dialog

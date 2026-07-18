@@ -4,3 +4,4 @@ export { Navbar, NavbarActions, NavbarBrand, NavbarLink, NavbarMenuButton, Navba
 export { Sidebar, SidebarFooter, SidebarHeading, SidebarItem, type SidebarItemOwnProps } from "./sidebar.tsx";
 export { DataTable, type Column, type DataTableProps } from "./table.tsx";
 export { Footer, FooterCol, FooterCols, FooterMeta, type FooterColProps } from "./footer.tsx";
+export { TokenStudio, type TokenStudioProps } from "./token-studio.tsx";
