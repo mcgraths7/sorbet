@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --port 5183 --strictPort",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@sorbet/component-library": "0.1.0",
