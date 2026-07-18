@@ -15,12 +15,13 @@
     "build:component-library": "npm run build -w @sorbet/component-library",
     "build:cli": "npm run build -w @sorbet/cli",
     "check:contrast": "npm run check:contrast -w @sorbet/design-system",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "lint:fix": "npm run lint -- --fix",
     "lint:styles": "npm run lint:styles -w @sorbet/design-system",
     "lint:styles:fix": "npm run lint:styles:fix -w @sorbet/design-system",
     "playground": "npm run dev -w playground",
-    "test": "npm run check:contrast"
+    "test": "npm run check:contrast",
+    "typecheck": "npm run typecheck -w playground"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -40,5 +41,8 @@
     "typescript-eslint": "^8.64.0",
     "stylelint": "^17.14.0",
     "stylelint-config-standard-scss": "^17.0.0"
+  },
+  "engines": {
+    "node": ">=24.17.0"
   }
 }

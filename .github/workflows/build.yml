@@ -1,4 +1,4 @@
-name: Build Check
+name: CI
 
 on:
   pull_request:
@@ -8,10 +8,45 @@ on:
     branches:
       - main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# Supersede in-flight runs for the same ref (a new push to a PR cancels the old).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+# Least privilege: every job only reads the repo.
+permissions:
+  contents: read
+
+jobs:
+  # Cheap, independent gates run in parallel so every failure is visible at once
+  # and shows up as its own check. The expensive `build` job (below) waits on the
+  # code-quality trio, so no build compute is spent on a branch a lint/type error
+  # would reject anyway.
+
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint workflow files
+        uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color
+
+  dependency-review:
+    # Reviews the dependency diff of a PR; there's no diff to review on push.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+
+  eslint:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,7 +54,63 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+  stylelint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint styles (Stylelint)
+        run: npm run lint:styles
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+  build:
+    # The one expensive job: only runs once the fast checks are green.
+    needs: [eslint, stylelint, typecheck]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
