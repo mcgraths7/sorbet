@@ -18,10 +18,20 @@
   box-shadow: shadow(md);
   z-index: z(tooltip);
 
+  // Hidden resting state + transition on the base rule so the tip fades both
+  // in and out; display/overlay allow-discrete keep it painted and in the top
+  // layer through the exit (a transition trapped in :popover-open would snap).
+  opacity: 0;
+  translate: 0 2px;
+  transition:
+    opacity dur(fast) ease(out),
+    translate dur(fast) ease(out),
+    display dur(fast) allow-discrete,
+    overlay dur(fast) allow-discrete;
+
   &:popover-open {
     opacity: 1;
     translate: 0 0;
-    transition: opacity dur(fast) ease(out), translate dur(fast) ease(out);
 
     @starting-style {
       opacity: 0;

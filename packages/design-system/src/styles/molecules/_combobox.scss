@@ -126,10 +126,21 @@
     overflow-y: auto;
     z-index: z(popover);
 
+    // Hidden resting state + transition on the base rule so the panel animates
+    // both open and closed; display/overlay allow-discrete keep it painted and
+    // in the top layer through the exit (a transition trapped in :popover-open
+    // would snap shut on close).
+    opacity: 0;
+    scale: 0.98;
+    transition:
+      opacity dur(fast) ease(out),
+      scale dur(fast) ease(spring),
+      display dur(fast) allow-discrete,
+      overlay dur(fast) allow-discrete;
+
     &:popover-open {
       opacity: 1;
       scale: 1;
-      transition: opacity dur(fast) ease(out), scale dur(fast) ease(spring);
 
       @starting-style {
         opacity: 0;

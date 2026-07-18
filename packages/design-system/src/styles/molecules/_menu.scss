@@ -16,10 +16,22 @@
   box-shadow: shadow(lg);
   z-index: z(popover);
 
+  // Hidden resting state + transition live on the base rule so the animation
+  // runs in BOTH directions — a transition trapped in :popover-open vanishes
+  // the instant the popover closes, snapping it shut. display and overlay are
+  // discrete, so allow-discrete keeps the panel painted and in the top layer
+  // until the exit finishes.
+  opacity: 0;
+  scale: 0.96;
+  transition:
+    opacity dur(fast) ease(out),
+    scale dur(fast) ease(spring),
+    display dur(fast) allow-discrete,
+    overlay dur(fast) allow-discrete;
+
   &:popover-open {
     opacity: 1;
     scale: 1;
-    transition: opacity dur(fast) ease(out), scale dur(fast) ease(spring);
 
     @starting-style {
       opacity: 0;
