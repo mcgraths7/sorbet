@@ -1,4 +1,3 @@
-import { composeRefs, cx } from "../core/index.ts";
 import {
   cloneElement,
   useEffect,
@@ -12,6 +11,8 @@ import {
   type Ref,
   type ToggleEvent,
 } from "react";
+
+import { composeRefs, cx } from "../core/index.ts";
 
 const GAP = 6;
 const EDGE = 8;
@@ -45,9 +46,13 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
   // The panel is position:fixed and can't track its trigger through page
   // scroll — dismiss instead (scrolling inside the panel is exempt).
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     const onScroll = (e: Event) => {
-      if (panelRef.current?.contains(e.target as Node)) return;
+      if (panelRef.current?.contains(e.target as Node)) {
+        return;
+      }
       panelRef.current?.hidePopover();
     };
     document.addEventListener("scroll", onScroll, { capture: true, passive: true });
@@ -57,7 +62,9 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
   const onToggle = (e: ToggleEvent<HTMLDivElement>) => {
     const isOpen = e.newState === "open";
     setOpen(isOpen);
-    if (!isOpen || !panelRef.current || !triggerRef.current) return;
+    if (!isOpen || !panelRef.current || !triggerRef.current) {
+      return;
+    }
     const panel = panelRef.current;
     const r = triggerRef.current.getBoundingClientRect();
     let left = alignEnd ? r.right - panel.offsetWidth : r.left;

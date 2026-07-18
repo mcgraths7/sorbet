@@ -8,8 +8,6 @@
  */
 
 import { withAlpha, type Hex } from "./color.ts";
-import type { Preset } from "./presets.ts";
-import { SEMANTIC_COLOR_NAMES, type Mode, type SemanticColors } from "./semantics.ts";
 import {
   breakpoints,
   containers,
@@ -23,6 +21,9 @@ import {
   tracking,
   zIndex,
 } from "./scales.ts";
+import { SEMANTIC_COLOR_NAMES, type Mode, type SemanticColors } from "./semantics.ts";
+
+import type { Preset } from "./presets.ts";
 
 const decl = (name: string, value: string) => `  --sb-${name}: ${value};`;
 

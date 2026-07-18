@@ -21,17 +21,23 @@ export class Masonry {
 
   constructor(container: HTMLElement) {
     this.#container = container;
-    if (supportsNativeMasonry()) return;
+    if (supportsNativeMasonry()) {
+      return;
+    }
 
     container.classList.add("sb-masonry--balanced");
 
     this.#resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) this.#span(entry.target as HTMLElement);
+      for (const entry of entries) {
+        this.#span(entry.target as HTMLElement);
+      }
     });
     // Span synchronously first — no unbalanced first frame, no reliance on
     // the observer's initial delivery timing.
     for (const child of container.children) {
-      if (child instanceof HTMLElement) this.#span(child);
+      if (child instanceof HTMLElement) {
+        this.#span(child);
+      }
       this.#resizeObserver.observe(child);
     }
 
@@ -44,7 +50,9 @@ export class Masonry {
           }
         }
         for (const node of mutation.removedNodes) {
-          if (node instanceof HTMLElement) this.#resizeObserver!.unobserve(node);
+          if (node instanceof HTMLElement) {
+            this.#resizeObserver!.unobserve(node);
+          }
         }
       }
     });
@@ -63,7 +71,9 @@ export class Masonry {
     this.#mutationObserver?.disconnect();
     this.#container.classList.remove("sb-masonry--balanced");
     for (const child of this.#container.children) {
-      if (child instanceof HTMLElement) child.style.gridRowEnd = "";
+      if (child instanceof HTMLElement) {
+        child.style.gridRowEnd = "";
+      }
     }
   }
 }

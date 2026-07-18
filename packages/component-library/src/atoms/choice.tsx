@@ -1,4 +1,5 @@
 import { composeRefs, cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef } from "react";
 
 export interface CheckboxProps extends Omit<ComponentPropsWithRef<"input">, "type"> {
@@ -12,7 +13,9 @@ export function Checkbox({ indeterminate, className, ref, ...rest }: CheckboxPro
       type="checkbox"
       className={cx("sb-checkbox", className)}
       ref={composeRefs<HTMLInputElement>(ref, (node) => {
-        if (node) node.indeterminate = Boolean(indeterminate);
+        if (node) {
+          node.indeterminate = Boolean(indeterminate);
+        }
       })}
       {...rest}
     />

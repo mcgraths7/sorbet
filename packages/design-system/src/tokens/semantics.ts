@@ -62,7 +62,9 @@ function lighter(step: RampStep, by = 1): RampStep {
 /** First step whose contrast against every `against` color meets `min`. */
 function pick(ramp: Ramp, candidates: readonly RampStep[], against: readonly string[], min: number): RampStep {
   for (const step of candidates) {
-    if (against.every((bg) => contrast(ramp[step], bg) >= min)) return step;
+    if (against.every((bg) => contrast(ramp[step], bg) >= min)) {
+      return step;
+    }
   }
   return candidates[candidates.length - 1]!;
 }

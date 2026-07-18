@@ -4,7 +4,9 @@
  */
 
 import { styleText } from "node:util";
+
 import { contrast, presets, RULES } from "../src/tokens/index.ts";
+
 import type { Mode } from "../src/tokens/index.ts";
 
 let failures = 0;
@@ -17,10 +19,14 @@ for (const preset of Object.values(presets)) {
     const rows: string[] = [];
     let worst = Infinity;
     for (const rule of RULES) {
-      if (rule.mode && rule.mode !== mode) continue;
+      if (rule.mode && rule.mode !== mode) {
+        continue;
+      }
       const fg = colors[rule.fg];
       const bg = colors[rule.bg];
-      if (!opaque(fg) || !opaque(bg)) continue;
+      if (!opaque(fg) || !opaque(bg)) {
+        continue;
+      }
       const ratio = contrast(fg, bg);
       worst = Math.min(worst, ratio / rule.min);
       if (ratio < rule.min) {
@@ -33,7 +39,9 @@ for (const preset of Object.values(presets)) {
         ? styleText("green", `all ${RULES.length} pairings pass (tightest margin ×${worst.toFixed(2)})`)
         : styleText("red", `${rows.length} failing`);
     console.log(`  ${mode.padEnd(5)} ${summary}`);
-    for (const row of rows) console.log(row);
+    for (const row of rows) {
+      console.log(row);
+    }
   }
 }
 

@@ -1,4 +1,5 @@
 import { cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef, MouseEventHandler } from "react";
 
 export interface ChipProps extends Omit<ComponentPropsWithRef<"button">, "onSelect"> {

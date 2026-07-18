@@ -25,7 +25,9 @@ function getPanel(): HTMLDivElement {
 
 function show(target: HTMLElement): void {
   const text = target.dataset.tooltip;
-  if (!text) return;
+  if (!text) {
+    return;
+  }
   const tip = getPanel();
   tip.textContent = text;
   shownFor = target;
@@ -36,7 +38,9 @@ function show(target: HTMLElement): void {
   let left = r.left + r.width / 2 - tip.offsetWidth / 2;
   left = Math.min(Math.max(left, GAP), window.innerWidth - tip.offsetWidth - GAP);
   let top = r.top - tip.offsetHeight - GAP;
-  if (top < GAP) top = r.bottom + GAP;
+  if (top < GAP) {
+    top = r.bottom + GAP;
+  }
   tip.style.left = `${left}px`;
   tip.style.top = `${top}px`;
 }
@@ -52,19 +56,29 @@ export function initTooltips(root: ParentNode = document): void {
 
   root.addEventListener("mouseover", (e) => {
     const t = target(e);
-    if (t && t !== shownFor) show(t);
+    if (t && t !== shownFor) {
+      show(t);
+    }
   });
   root.addEventListener("mouseout", (e) => {
-    if (target(e)) hide();
+    if (target(e)) {
+      hide();
+    }
   });
   root.addEventListener("focusin", (e) => {
     const t = target(e);
-    if (t) show(t);
+    if (t) {
+      show(t);
+    }
   });
   root.addEventListener("focusout", (e) => {
-    if (target(e)) hide();
+    if (target(e)) {
+      hide();
+    }
   });
   root.addEventListener("keydown", (e) => {
-    if ((e as KeyboardEvent).key === "Escape") hide();
+    if ((e as KeyboardEvent).key === "Escape") {
+      hide();
+    }
   });
 }

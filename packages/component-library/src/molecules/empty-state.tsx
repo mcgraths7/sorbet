@@ -1,4 +1,5 @@
 import { cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef, ReactNode } from "react";
 
 export interface EmptyStateProps extends Omit<ComponentPropsWithRef<"div">, "title"> {

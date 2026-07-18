@@ -1,5 +1,6 @@
-import { cx } from "../core/index.ts";
 import { useId, type ComponentPropsWithRef, type ReactNode } from "react";
+
+import { cx } from "../core/index.ts";
 
 export interface AccordionProps extends ComponentPropsWithRef<"div"> {
   /** Exclusive-open group (native <details name>). Defaults to a unique group. */

@@ -37,14 +37,20 @@ export class Tabs {
       tab.setAttribute("aria-selected", String(selected));
       tab.tabIndex = selected ? 0 : -1;
       const panel = this.#panels[i];
-      if (panel) panel.hidden = !selected;
+      if (panel) {
+        panel.hidden = !selected;
+      }
     });
-    if (focus) this.#tabs[index]?.focus();
+    if (focus) {
+      this.#tabs[index]?.focus();
+    }
   }
 
   #onKeydown(e: KeyboardEvent): void {
     const current = this.#tabs.indexOf(e.target as HTMLElement);
-    if (current === -1) return;
+    if (current === -1) {
+      return;
+    }
     const last = this.#tabs.length - 1;
     let next: number;
     switch (e.key) {

@@ -1,4 +1,5 @@
 import { cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef, CSSProperties } from "react";
 
 export interface FrameProps extends ComponentPropsWithRef<"div"> {

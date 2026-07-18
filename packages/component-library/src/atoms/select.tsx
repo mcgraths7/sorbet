@@ -1,4 +1,5 @@
 import { cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef } from "react";
 
 export interface SelectProps extends Omit<ComponentPropsWithRef<"select">, "size"> {

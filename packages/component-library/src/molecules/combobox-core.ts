@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import type { ToggleEvent } from "react";
 
 export interface ComboboxOption {
@@ -47,7 +48,9 @@ export function useComboboxCore(
   const filterFor = useCallback(
     (rawQuery: string | null) => {
       const q = (rawQuery ?? "").trim();
-      if (q === "") return options;
+      if (q === "") {
+        return options;
+      }
       const match =
         filter ?? ((o: ComboboxOption, text: string) => o.label.toLowerCase().includes(text.toLowerCase()));
       return options.filter((o) => match(o, q));
@@ -61,7 +64,9 @@ export function useComboboxCore(
     (from = 0, dir: 1 | -1 = 1) => {
       for (let step = 0; step < filtered.length; step++) {
         const i = (from + dir * step + filtered.length * (step + 1)) % filtered.length;
-        if (!filtered[i]?.disabled) return i;
+        if (!filtered[i]?.disabled) {
+          return i;
+        }
       }
       return -1;
     },
@@ -72,7 +77,9 @@ export function useComboboxCore(
   useEffect(() => {
     const panel = panelRef.current;
     const control = controlRef.current;
-    if (!panel || !control) return;
+    if (!panel || !control) {
+      return;
+    }
     if (open && !panel.matches(":popover-open")) {
       panel.showPopover();
       const r = control.getBoundingClientRect();
@@ -92,7 +99,9 @@ export function useComboboxCore(
 
   // Manual popovers don't light-dismiss; close on any press outside.
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     const onDocPointerDown = (e: PointerEvent) => {
       const target = e.target as Node;
       if (!controlRef.current?.contains(target) && !panelRef.current?.contains(target)) {
@@ -108,9 +117,13 @@ export function useComboboxCore(
   // scroll — dismiss instead. Scrolling *inside* the options list is exempt
   // (scroll doesn't bubble; listen in the capture phase).
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     const onScroll = (e: Event) => {
-      if (panelRef.current?.contains(e.target as Node)) return;
+      if (panelRef.current?.contains(e.target as Node)) {
+        return;
+      }
       setOpen(false);
       setQuery(null);
     };
@@ -127,14 +140,18 @@ export function useComboboxCore(
   }, [highlighted, open]);
 
   const openList = (initialHighlight?: number) => {
-    if (open) return;
+    if (open) {
+      return;
+    }
     setOpen(true);
     setHighlighted(initialHighlight != null && initialHighlight >= 0 ? initialHighlight : firstEnabled(0));
   };
 
   const closeList = (revert = true) => {
     setOpen(false);
-    if (revert) setQuery(null);
+    if (revert) {
+      setQuery(null);
+    }
   };
 
   // Safety net if anything else closes the popover.

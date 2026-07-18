@@ -22,8 +22,12 @@ export interface DropzoneRejection {
 const KB = 1024;
 
 function formatSize(bytes: number): string {
-  if (bytes < KB) return `${bytes} B`;
-  if (bytes < KB * KB) return `${parseFloat((bytes / KB).toFixed(1))} KB`;
+  if (bytes < KB) {
+    return `${bytes} B`;
+  }
+  if (bytes < KB * KB) {
+    return `${parseFloat((bytes / KB).toFixed(1))} KB`;
+  }
   return `${parseFloat((bytes / KB / KB).toFixed(1))} MB`;
 }
 
@@ -33,7 +37,9 @@ function accepts(file: File, accept: string): boolean {
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
-  if (specs.length === 0) return true;
+  if (specs.length === 0) {
+    return true;
+  }
   const name = file.name.toLowerCase();
   const type = file.type.toLowerCase();
   return specs.some((spec) =>
@@ -53,7 +59,9 @@ export class Dropzone {
 
   constructor(root: HTMLElement) {
     const input = root.querySelector<HTMLInputElement>('input[type="file"]');
-    if (!input) throw new Error("Dropzone needs an <input type=file> inside");
+    if (!input) {
+      throw new Error("Dropzone needs an <input type=file> inside");
+    }
 
     this.#root = root;
     this.#input = input;
@@ -69,33 +77,45 @@ export class Dropzone {
 
     const zone = root.querySelector<HTMLElement>(".sb-dropzone__zone") ?? root;
     zone.addEventListener("dragenter", (e) => {
-      if (!this.#usable(e)) return;
+      if (!this.#usable(e)) {
+        return;
+      }
       e.preventDefault();
       this.#depth++;
       root.dataset.dragover = "true";
     });
     zone.addEventListener("dragover", (e) => {
-      if (!this.#usable(e)) return;
+      if (!this.#usable(e)) {
+        return;
+      }
       e.preventDefault();
     });
     zone.addEventListener("dragleave", () => {
-      if (--this.#depth <= 0) this.#clearDrag();
+      if (--this.#depth <= 0) {
+        this.#clearDrag();
+      }
     });
     zone.addEventListener("drop", (e) => {
       e.preventDefault();
       this.#clearDrag();
-      if (!this.#input.disabled) this.#add([...(e.dataTransfer?.files ?? [])]);
+      if (!this.#input.disabled) {
+        this.#add([...(e.dataTransfer?.files ?? [])]);
+      }
     });
 
     // Picker selections replace input.files natively; merge them back in.
     input.addEventListener("change", () => {
-      if (this.#syncing) return;
+      if (this.#syncing) {
+        return;
+      }
       this.#add([...(input.files ?? [])]);
     });
 
     this.#list.addEventListener("click", (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>(".sb-dropzone__remove");
-      if (!button) return;
+      if (!button) {
+        return;
+      }
       const index = Number(button.dataset.index);
       this.#commit(this.#known.filter((_, i) => i !== index));
       this.#clearError();
@@ -154,7 +174,9 @@ export class Dropzone {
   #commit(next: File[]): void {
     this.#known = next;
     const dt = new DataTransfer();
-    for (const f of next) dt.items.add(f);
+    for (const f of next) {
+      dt.items.add(f);
+    }
     this.#input.files = dt.files;
     this.#render();
     this.#syncing = true;

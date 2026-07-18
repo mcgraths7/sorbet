@@ -1,4 +1,5 @@
 import { cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef } from "react";
 
 export interface AvatarProps extends ComponentPropsWithRef<"span"> {

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type PointerEvent } from "react";
+
 import { formatNumber } from "./scale.ts";
 import { ChartShell, ChartTooltip, mutedSeriesColor, seriesColor, type TooltipState } from "./shell.tsx";
 
@@ -111,24 +112,26 @@ export function DonutChart({
 
   const onMove = (e: PointerEvent) => {
     const rect = plotRef.current?.getBoundingClientRect();
-    if (rect) setPointer({ x: e.clientX - rect.left, y: e.clientY - rect.top - 12 });
+    if (rect) {
+      setPointer({ x: e.clientX - rect.left, y: e.clientY - rect.top - 12 });
+    }
   };
 
   const tooltip: TooltipState | null =
     hover === null || !arcs[hover]
       ? null
       : {
-          x: pointer.x,
-          y: pointer.y,
-          title: arcs[hover].label,
-          rows: [
-            {
-              label: formatValue(arcs[hover].value),
-              value: `${Math.round(arcs[hover].frac * 100)}%`,
-              color: arcs[hover].color,
-            },
-          ],
-        };
+        x: pointer.x,
+        y: pointer.y,
+        title: arcs[hover].label,
+        rows: [
+          {
+            label: formatValue(arcs[hover].value),
+            value: `${Math.round(arcs[hover].frac * 100)}%`,
+            color: arcs[hover].color,
+          },
+        ],
+      };
 
   const legend = legendValues ? (
     <div className="sb-chart__vlegend" role="list" aria-label="Categories">

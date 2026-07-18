@@ -1,4 +1,5 @@
 import { useMemo, useState, type PointerEvent } from "react";
+
 import { formatNumber, niceTicks, scaleLinear } from "./scale.ts";
 import { ChartShell, ChartTooltip, seriesColor, useMeasuredWidth, type Series, type TooltipState } from "./shell.tsx";
 
@@ -67,15 +68,15 @@ export function LineChart({
     hover === null
       ? null
       : {
-          x: x(hover),
-          y: TOP + 4,
-          title: labels[hover] ?? "",
-          rows: series.map((s, i) => ({
-            label: s.label,
-            value: formatValue(s.data[hover] ?? 0),
-            color: seriesColor(i),
-          })),
-        };
+        x: x(hover),
+        y: TOP + 4,
+        title: labels[hover] ?? "",
+        rows: series.map((s, i) => ({
+          label: s.label,
+          value: formatValue(s.data[hover] ?? 0),
+          color: seriesColor(i),
+        })),
+      };
 
   const points = (s: Series) => s.data.map((v, i) => `${x(i)},${y(v)}`).join(" ");
 

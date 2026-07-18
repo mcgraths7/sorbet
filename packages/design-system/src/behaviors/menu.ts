@@ -19,7 +19,9 @@ export class Menu {
   constructor(trigger: HTMLElement) {
     const targetId = trigger.getAttribute("popovertarget");
     const panel = targetId ? document.getElementById(targetId) : null;
-    if (!panel) throw new Error("Menu trigger needs popovertarget pointing at a panel");
+    if (!panel) {
+      throw new Error("Menu trigger needs popovertarget pointing at a panel");
+    }
 
     this.#trigger = trigger;
     this.#panel = panel;
@@ -29,7 +31,9 @@ export class Menu {
     // scroll — dismiss instead (scrolling inside the panel is exempt;
     // scroll doesn't bubble, so listen in the capture phase).
     const onScroll = (e: Event) => {
-      if (this.#panel.contains(e.target as Node)) return;
+      if (this.#panel.contains(e.target as Node)) {
+        return;
+      }
       this.#panel.hidePopover();
     };
 
@@ -47,7 +51,9 @@ export class Menu {
 
     panel.addEventListener("keydown", (e) => this.#onKeydown(e));
     panel.addEventListener("click", (e) => {
-      if ((e.target as HTMLElement).closest(".sb-menu__item")) this.#close();
+      if ((e.target as HTMLElement).closest(".sb-menu__item")) {
+        this.#close();
+      }
     });
   }
 
