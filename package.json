@@ -14,6 +14,8 @@
     "check:contrast": "npm run check:contrast -w @sorbet/design-system",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
+    "lint:styles": "npm run lint:styles -w @sorbet/design-system",
+    "lint:styles:fix": "npm run lint:styles:fix -w @sorbet/design-system",
     "playground": "npm run dev -w playground",
     "test": "npm run check:contrast"
   },
@@ -32,6 +34,8 @@
     "react-dom": "^19.1.0",
     "sass": "^1.83.0",
     "typescript": "^5.8.0",
-    "typescript-eslint": "^8.64.0"
+    "typescript-eslint": "^8.64.0",
+    "stylelint": "^17.14.0",
+    "stylelint-config-standard-scss": "^17.0.0"
   }
 }
