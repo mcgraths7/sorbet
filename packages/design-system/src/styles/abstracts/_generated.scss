@@ -32,7 +32,7 @@ $scale-keys: (
   "ease": ("out", "in-out", "spring"),
   "z": ("dropdown", "sticky", "overlay", "modal", "popover", "toast", "tooltip"),
   "font": ("sans", "display", "mono"),
-  "misc": ("measure", "focus-ring-width", "border-width", "border-width-thick", "control-height-sm", "control-height-md", "control-height-lg", "sidebar-width", "drawer-width", "aside-width", "content-min", "tile-min", "tile-min-narrow", "tile-min-wide", "avatar-size-sm", "avatar-size-md", "avatar-size-lg", "avatar-size-xl", "spinner-size-sm", "spinner-size-md", "spinner-size-lg", "studio-width"),
+  "misc": ("measure", "focus-ring-width", "border-width", "border-width-thick", "control-height-sm", "control-height-md", "control-height-lg", "sidebar-width", "drawer-width", "aside-width", "content-min", "tile-min", "tile-min-narrow", "tile-min-wide", "avatar-size-sm", "avatar-size-md", "avatar-size-lg", "avatar-size-xl", "spinner-size-sm", "spinner-size-md", "spinner-size-lg", "studio-width", "fab-size"),
 );
 
 // Preset-independent tokens, emitted once from base/_root.scss.
@@ -110,4 +110,5 @@ $scale-keys: (
   --sb-spinner-size-md: 1.5rem;
   --sb-spinner-size-lg: 2.5rem;
   --sb-studio-width: 26rem;
+  --sb-fab-size: 3.5rem;
 }

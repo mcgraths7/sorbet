@@ -12,5 +12,6 @@ export { Select, type SelectProps } from "./select.tsx";
 export { Checkbox, Choice, Radio, Switch, type CheckboxProps, type SwitchProps } from "./choice.tsx";
 export { Skeleton, type SkeletonProps } from "./skeleton.tsx";
 export { Slider, type SliderProps } from "./slider.tsx";
+export { Fab, type FabProps } from "./fab.tsx";
 export { ColorInput, type ColorInputProps } from "./color-input.tsx";
 export { Tooltip, type TooltipProps } from "./tooltip.tsx";
