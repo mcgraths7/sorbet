@@ -273,6 +273,7 @@ function ModeSwitch() {
 
 export function App() {
   const toast = useToast();
+  const theme = useTheme();
   const [preset, setPreset] = useState(() => localStorage.getItem("playground-preset") ?? "sorbet");
   const [studioOpen, setStudioOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -891,6 +892,8 @@ export function App() {
         onClose={() => setStudioOpen(false)}
         preset={preset}
         onPresetChange={setPreset}
+        themeMode={theme.mode}
+        onThemeModeChange={theme.set}
       />
     </AppShell>
   );

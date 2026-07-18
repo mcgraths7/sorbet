@@ -10,7 +10,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 import { Badge, Button, ColorInput, Input, Select, Slider } from "../atoms/index.ts";
-import { cx } from "../core/index.ts";
+import { cx, type ThemeMode } from "../core/index.ts";
 import { Cluster } from "../layout/index.ts";
 import { Accordion, AccordionItem, Field, Menu, MenuItem, Tab, TabList, TabPanel, Tabs } from "../molecules/index.ts";
 
@@ -234,6 +234,10 @@ export interface TokenStudioProps {
   preset?: string;
   /** The app applies the swap (e.g. point the theme <link> at the preset). */
   onPresetChange?: (name: string) => void;
+  /** Color-mode choice. With `onThemeModeChange`, shows the mode toggle. */
+  themeMode?: ThemeMode;
+  /** The app applies the mode (e.g. wire to useTheme's `set`). */
+  onThemeModeChange?: (mode: ThemeMode) => void;
 }
 
 const BUILTIN_PRESETS: TokenStudioPreset[] = Object.values(builtinPresets).map((p) => ({
@@ -247,7 +251,15 @@ const BUILTIN_PRESETS: TokenStudioPreset[] = Object.values(builtinPresets).map((
  * every color edit, and exports the overrides as a drop-in CSS file or a
  * JSON token map. Overrides persist in localStorage across reloads.
  */
-export function TokenStudio({ open, onClose, presets = BUILTIN_PRESETS, preset, onPresetChange }: TokenStudioProps) {
+export function TokenStudio({
+  open,
+  onClose,
+  presets = BUILTIN_PRESETS,
+  preset,
+  onPresetChange,
+  themeMode,
+  onThemeModeChange,
+}: TokenStudioProps) {
   const [buckets, setBuckets] = useState<Buckets>(loadBuckets);
   const [mode, setMode] = useState<Mode>("light");
   const [baseline, setBaseline] = useState<Record<string, string>>({});
@@ -402,16 +414,34 @@ export function TokenStudio({ open, onClose, presets = BUILTIN_PRESETS, preset, 
         </Cluster>
       </DrawerHeader>
       <DrawerBody>
-        {preset !== undefined && onPresetChange && (
-          <Field label="Preset" inline className="sb-token-studio__preset">
-            <Select size="sm" value={preset} onChange={(e) => onPresetChange(e.target.value)}>
-              {presets.map((p) => (
-                <option key={p.name} value={p.name}>
-                  {p.label ?? p.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
+        {((preset !== undefined && onPresetChange) || (themeMode !== undefined && onThemeModeChange)) && (
+          <div className="sb-token-studio__toolbar">
+            {preset !== undefined && onPresetChange && (
+              <Field label="Preset" inline>
+                <Select size="sm" value={preset} onChange={(e) => onPresetChange(e.target.value)}>
+                  {presets.map((p) => (
+                    <option key={p.name} value={p.name}>
+                      {p.label ?? p.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
+            {themeMode !== undefined && onThemeModeChange && (
+              <div className="sb-field sb-field--inline">
+                <span className="sb-label">Mode</span>
+                <Tabs pills value={themeMode} onValueChange={(v) => onThemeModeChange(v as ThemeMode)}>
+                  <TabList aria-label="Color mode" role="group">
+                    {(["light", "system", "dark"] as const).map((m) => (
+                      <Tab key={m} value={m} role="button" aria-selected={themeMode === m}>
+                        {m === "system" ? "Auto" : m === "light" ? "Light" : "Dark"}
+                      </Tab>
+                    ))}
+                  </TabList>
+                </Tabs>
+              </div>
+            )}
+          </div>
         )}
         <Tabs defaultValue="colors">
           <TabList>
