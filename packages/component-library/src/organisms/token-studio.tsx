@@ -342,7 +342,10 @@ export function TokenStudio({ open, onClose }: TokenStudioProps) {
   return (
     <Drawer open={open} onClose={onClose} modeless className="sb-token-studio" aria-label="Token Studio">
       <DrawerHeader onClose={onClose}>
-        <strong>Token Studio</strong> <Badge>{mode}</Badge>
+        <Cluster gap={2} nowrap>
+          <strong>Token Studio</strong>
+          <Badge>{mode}</Badge>
+        </Cluster>
       </DrawerHeader>
       <DrawerBody>
         <Tabs defaultValue="colors">
