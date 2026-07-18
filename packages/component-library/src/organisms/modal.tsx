@@ -1,6 +1,7 @@
+import { useEffect, useRef, type ComponentPropsWithRef, type ReactNode } from "react";
+
 import { Button } from "../atoms/index.ts";
 import { composeRefs, cx } from "../core/index.ts";
-import { useEffect, useRef, type ComponentPropsWithRef, type ReactNode } from "react";
 
 export interface ModalProps extends Omit<ComponentPropsWithRef<"dialog">, "onClose"> {
   open: boolean;
@@ -20,9 +21,14 @@ export function Modal({ open, onClose, size = "md", static: isStatic, className,
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    else if (!open && dialog.open) dialog.close();
+    if (!dialog) {
+      return;
+    }
+    if (open && !dialog.open) {
+      dialog.showModal();
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
   }, [open]);
 
   return (
@@ -31,7 +37,9 @@ export function Modal({ open, onClose, size = "md", static: isStatic, className,
       className={cx("sb-modal", size !== "md" && `sb-modal--${size}`, className)}
       onClose={onClose}
       onClick={(e) => {
-        if (e.target === dialogRef.current && !isStatic) dialogRef.current.close();
+        if (e.target === dialogRef.current && !isStatic) {
+          dialogRef.current.close();
+        }
       }}
       {...rest}
     >

@@ -1,4 +1,5 @@
 import { cx, type BrandTone, type Tone } from "../core/index.ts";
+
 import type { ComponentPropsWithRef } from "react";
 
 export interface BadgeProps extends ComponentPropsWithRef<"span"> {

@@ -1,6 +1,8 @@
+import { Fragment, useId, useMemo, useState, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
+
 import { Chip } from "../atoms/index.ts";
 import { composeRefs, cx, type Size } from "../core/index.ts";
-import { Fragment, useId, useMemo, useState, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
+
 import { firstEnabledIn, useComboboxCore, type ComboboxFilter, type ComboboxOption } from "./combobox-core.ts";
 
 export interface MultiComboboxProps {
@@ -70,12 +72,16 @@ export function MultiCombobox({
   const { open, query, setQuery, highlighted, setHighlighted, filtered, firstEnabled } = core;
 
   const commit = (next: string[], changed: ComboboxOption | null) => {
-    if (value === undefined) setInternal(next);
+    if (value === undefined) {
+      setInternal(next);
+    }
     onValueChange?.(next, changed);
   };
 
   const toggle = (option: ComboboxOption) => {
-    if (option.disabled) return;
+    if (option.disabled) {
+      return;
+    }
     const next = values.includes(option.value)
       ? values.filter((v) => v !== option.value)
       : [...values, option.value];
@@ -88,7 +94,9 @@ export function MultiCombobox({
 
   const removeLast = () => {
     const last = selectedOptions[selectedOptions.length - 1];
-    if (last) commit(values.slice(0, -1), last);
+    if (last) {
+      commit(values.slice(0, -1), last);
+    }
   };
 
   const clearAll = () => {
@@ -101,23 +109,33 @@ export function MultiCombobox({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        if (!open) core.openList();
-        else setHighlighted((h) => firstEnabled(h + 1, 1));
+        if (!open) {
+          core.openList();
+        } else {
+          setHighlighted((h) => firstEnabled(h + 1, 1));
+        }
         break;
       case "ArrowUp":
         e.preventDefault();
-        if (!open) core.openList();
-        else setHighlighted((h) => firstEnabled(h - 1, -1));
+        if (!open) {
+          core.openList();
+        } else {
+          setHighlighted((h) => firstEnabled(h - 1, -1));
+        }
         break;
       case "Enter":
         if (open) {
           e.preventDefault();
           const option = filtered[highlighted];
-          if (option) toggle(option);
+          if (option) {
+            toggle(option);
+          }
         }
         break;
       case "Backspace":
-        if ((query ?? "") === "" && values.length > 0) removeLast();
+        if ((query ?? "") === "" && values.length > 0) {
+          removeLast();
+        }
         break;
       case "Escape":
         if (open) {
@@ -126,7 +144,9 @@ export function MultiCombobox({
         }
         break;
       case "Tab":
-        if (open) core.closeList();
+        if (open) {
+          core.closeList();
+        }
         break;
     }
   };
@@ -176,8 +196,11 @@ export function MultiCombobox({
               const text = e.target.value;
               setQuery(text);
               const idx = firstEnabledIn(core.filterFor(text));
-              if (!open) core.openList(idx);
-              else setHighlighted(idx);
+              if (!open) {
+                core.openList(idx);
+              } else {
+                setHighlighted(idx);
+              }
             }}
             onClick={() => core.openList()}
             onKeyDown={onKeyDown}

@@ -13,8 +13,9 @@
  * band (~0.48–0.67 OKLCH L) so marks neither glare nor sink.
  */
 
-import type { Ramp, RampName, RampStep } from "./ramps.ts";
 import { ramps } from "./ramps.ts";
+
+import type { Ramp, RampName, RampStep } from "./ramps.ts";
 
 export interface ChartSlot {
   ramp: RampName;

@@ -14,7 +14,9 @@ export interface SparklineProps {
  * so it is aria-hidden.
  */
 export function Sparkline({ data, width = 96, height = 28, accentLast = true }: SparklineProps) {
-  if (data.length < 2) return null;
+  if (data.length < 2) {
+    return null;
+  }
   const min = Math.min(...data);
   const max = Math.max(...data);
   const x = scaleLinear(0, data.length - 1, 2, width - 2);

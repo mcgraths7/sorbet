@@ -7,6 +7,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { styleText } from "node:util";
+
 import { checkPreset, generatedScss, manifest, presets, themeCss } from "../src/tokens/index.ts";
 
 const pkgRoot = join(import.meta.dirname, "..");

@@ -14,7 +14,9 @@ export class ThemeManager {
   constructor() {
     this.#apply();
     this.#media.addEventListener("change", () => {
-      if (this.mode === "system") this.#notify();
+      if (this.mode === "system") {
+        this.#notify();
+      }
     });
   }
 
@@ -25,13 +27,18 @@ export class ThemeManager {
 
   /** The mode actually rendering right now. */
   get resolved(): "light" | "dark" {
-    if (this.mode === "system") return this.#media.matches ? "dark" : "light";
+    if (this.mode === "system") {
+      return this.#media.matches ? "dark" : "light";
+    }
     return this.mode;
   }
 
   set(mode: ThemeMode): void {
-    if (mode === "system") localStorage.removeItem(STORAGE_KEY);
-    else localStorage.setItem(STORAGE_KEY, mode);
+    if (mode === "system") {
+      localStorage.removeItem(STORAGE_KEY);
+    } else {
+      localStorage.setItem(STORAGE_KEY, mode);
+    }
     this.#apply();
   }
 
@@ -44,8 +51,11 @@ export class ThemeManager {
 
   #apply(): void {
     const root = document.documentElement;
-    if (this.mode === "system") delete root.dataset.theme;
-    else root.dataset.theme = this.mode;
+    if (this.mode === "system") {
+      delete root.dataset.theme;
+    } else {
+      root.dataset.theme = this.mode;
+    }
     this.#notify();
   }
 

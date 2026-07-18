@@ -2,7 +2,9 @@
 
 /** Clean tick values (1/2/2.5/5 steps) covering [0|min, max]. */
 export function niceTicks(min: number, max: number, count = 4): number[] {
-  if (min === max) max = min + 1;
+  if (min === max) {
+    max = min + 1;
+  }
   const span = max - min;
   const rawStep = span / count;
   const magnitude = 10 ** Math.floor(Math.log10(rawStep));
@@ -33,8 +35,10 @@ export function formatNumber(v: number): string {
 
 /** Series → y domain [0-or-below, nice max] with zero baseline kept. */
 export function extent(values: number[]): { min: number; max: number } {
-  let min = Math.min(0, ...values);
+  const min = Math.min(0, ...values);
   let max = Math.max(...values);
-  if (max <= min) max = min + 1;
+  if (max <= min) {
+    max = min + 1;
+  }
   return { min, max };
 }

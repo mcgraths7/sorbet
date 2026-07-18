@@ -1,4 +1,5 @@
 import { cx, type PolymorphicProps } from "../core/index.ts";
+
 import type { ComponentPropsWithRef, ElementType } from "react";
 
 export function Sidebar({ className, "aria-label": ariaLabel = "Primary", ...rest }: ComponentPropsWithRef<"nav">) {

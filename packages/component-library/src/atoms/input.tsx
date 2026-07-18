@@ -1,4 +1,5 @@
 import { cx, type Size } from "../core/index.ts";
+
 import type { ComponentPropsWithRef } from "react";
 
 export interface InputProps extends Omit<ComponentPropsWithRef<"input">, "size"> {

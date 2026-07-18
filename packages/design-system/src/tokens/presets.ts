@@ -4,10 +4,11 @@
  * contrast-verified — by `buildMode`, never hand-tuned per component.
  */
 
-import type { Hex } from "./color.ts";
-import { ramps } from "./ramps.ts";
 import { chartThemes } from "./charts.ts";
+import { ramps } from "./ramps.ts";
 import { buildMode, type Mode, type SemanticColors, type SemanticRecipe } from "./semantics.ts";
+
+import type { Hex } from "./color.ts";
 import type { RadiusStyle } from "./scales.ts";
 
 export interface Preset {
@@ -21,11 +22,11 @@ export interface Preset {
   colors: Record<Mode, SemanticColors>;
 }
 
-const SANS = `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
+const SANS = "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif";
 const ROUNDED = `ui-rounded, "SF Pro Rounded", "Nunito", "Comfortaa", ${SANS}`;
-const SERIF = `"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif`;
-const GROTESK = `"Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`;
-const MONO = `ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace`;
+const SERIF = "\"Iowan Old Style\", \"Palatino Linotype\", Palatino, Georgia, serif";
+const GROTESK = "\"Helvetica Neue\", Helvetica, Arial, system-ui, sans-serif";
+const MONO = "ui-monospace, \"SF Mono\", \"Cascadia Code\", Menlo, Consolas, \"Liberation Mono\", monospace";
 
 const STATUS = {
   success: ramps.green,

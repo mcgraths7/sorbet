@@ -33,7 +33,7 @@ export function starterPackageJson(name: string): string {
 
 export function starterIndexHtml(brand: string, preset: PresetName, darkByDefault: boolean): string {
   return `<!doctype html>
-<html lang="en"${darkByDefault ? ` data-theme="dark"` : ""}>
+<html lang="en"${darkByDefault ? " data-theme=\"dark\"" : ""}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

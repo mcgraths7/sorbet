@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState, type ReactNode } from "react";
+
 import { Button } from "../atoms/index.ts";
 import { cx } from "../core/index.ts";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+
 import { formatNumber } from "./scale.ts";
 
 export interface Series {
@@ -120,10 +122,14 @@ export function useMeasuredWidth(initial = 640): [React.RefObject<HTMLDivElement
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     const measure = () => {
       const w = el.getBoundingClientRect().width;
-      if (w > 0) setWidth(w);
+      if (w > 0) {
+        setWidth(w);
+      }
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -143,7 +149,9 @@ export interface TooltipState {
 
 /** The hover tooltip panel, positioned inside the plot wrapper. */
 export function ChartTooltip({ state }: { state: TooltipState | null }) {
-  if (!state) return null;
+  if (!state) {
+    return null;
+  }
   return (
     <div
       className="sb-chart__tooltip"

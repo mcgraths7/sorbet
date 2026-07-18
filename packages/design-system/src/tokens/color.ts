@@ -59,8 +59,11 @@ export function oklchToHex({ l, c, h }: Oklch): Hex {
     let hi = c;
     for (let i = 0; i < 24; i++) {
       chroma = (lo + hi) / 2;
-      if (inGamut(oklchToLinearSrgb(l, chroma, h))) lo = chroma;
-      else hi = chroma;
+      if (inGamut(oklchToLinearSrgb(l, chroma, h))) {
+        lo = chroma;
+      } else {
+        hi = chroma;
+      }
     }
     chroma = lo;
   }
@@ -76,7 +79,9 @@ export function rgbToHex({ r, g, b }: Rgb): Hex {
 
 export function hexToRgb(hex: string): Rgb {
   const m = /^#([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m || !m[1]) throw new Error(`Expected a 6-digit hex color, got "${hex}"`);
+  if (!m || !m[1]) {
+    throw new Error(`Expected a 6-digit hex color, got "${hex}"`);
+  }
   const n = parseInt(m[1], 16);
   return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
 }

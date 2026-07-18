@@ -1,4 +1,3 @@
-import { cx } from "../core/index.ts";
 import {
   createContext,
   useCallback,
@@ -8,6 +7,8 @@ import {
   type ComponentPropsWithRef,
   type KeyboardEvent,
 } from "react";
+
+import { cx } from "../core/index.ts";
 
 interface TabsContextValue {
   value: string;
@@ -19,7 +20,9 @@ const TabsContext = createContext<TabsContextValue | null>(null);
 
 function useTabs(component: string): TabsContextValue {
   const ctx = useContext(TabsContext);
-  if (!ctx) throw new Error(`<${component}> must be used inside <Tabs>`);
+  if (!ctx) {
+    throw new Error(`<${component}> must be used inside <Tabs>`);
+  }
   return ctx;
 }
 
@@ -59,7 +62,9 @@ export function TabList({ className, onKeyDown, ...rest }: ComponentPropsWithRef
     const list = e.currentTarget;
     const tabs = [...list.querySelectorAll<HTMLElement>('[role="tab"]:not(:disabled)')];
     const current = tabs.indexOf(document.activeElement as HTMLElement);
-    if (current === -1) return;
+    if (current === -1) {
+      return;
+    }
     const last = tabs.length - 1;
     let next: number;
     switch (e.key) {

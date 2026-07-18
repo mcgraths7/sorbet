@@ -1,5 +1,6 @@
-import { cx } from "../core/index.ts";
 import { useMemo, useState, type ComponentPropsWithRef, type ReactNode } from "react";
+
+import { cx } from "../core/index.ts";
 
 export interface Column<T> {
   key: string;
@@ -46,9 +47,13 @@ export function DataTable<T>({
   const [sort, setSort] = useState<{ key: string; direction: Direction } | null>(initialSort ?? null);
 
   const sorted = useMemo(() => {
-    if (!sort) return data;
+    if (!sort) {
+      return data;
+    }
     const col = columns.find((c) => c.key === sort.key);
-    if (!col) return data;
+    if (!col) {
+      return data;
+    }
     const value = col.sortValue ?? ((row: T) => (row as Record<string, unknown>)[col.key] as string | number);
     return [...data].sort((a, b) => {
       const [va, vb] = [value(a), value(b)];

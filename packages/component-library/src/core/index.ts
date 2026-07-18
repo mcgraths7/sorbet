@@ -31,8 +31,11 @@ export type PolymorphicProps<E extends ElementType, OwnProps> = OwnProps &
 export function composeRefs<T>(...refs: Array<Ref<T> | undefined>): (node: T | null) => void {
   return (node) => {
     for (const ref of refs) {
-      if (typeof ref === "function") ref(node);
-      else if (ref != null) (ref as { current: T | null }).current = node;
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref != null) {
+        (ref as { current: T | null }).current = node;
+      }
     }
   };
 }

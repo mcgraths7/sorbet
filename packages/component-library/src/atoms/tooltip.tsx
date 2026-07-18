@@ -1,4 +1,3 @@
-import { composeRefs } from "../core/index.ts";
 import {
   cloneElement,
   useCallback,
@@ -10,6 +9,8 @@ import {
   type Ref,
 } from "react";
 import { createPortal } from "react-dom";
+
+import { composeRefs } from "../core/index.ts";
 
 const GAP = 8;
 
@@ -42,13 +43,17 @@ export function Tooltip({ content, children }: TooltipProps) {
   useEffect(() => {
     const tip = tipRef.current;
     const anchor = anchorRef.current;
-    if (!open || !tip || !anchor) return;
+    if (!open || !tip || !anchor) {
+      return;
+    }
     tip.showPopover();
     const r = anchor.getBoundingClientRect();
     let left = r.left + r.width / 2 - tip.offsetWidth / 2;
     left = Math.min(Math.max(left, GAP), window.innerWidth - tip.offsetWidth - GAP);
     let top = r.top - tip.offsetHeight - GAP;
-    if (top < GAP) top = r.bottom + GAP;
+    if (top < GAP) {
+      top = r.bottom + GAP;
+    }
     tip.style.left = `${left}px`;
     tip.style.top = `${top}px`;
     return () => tip.hidePopover();
@@ -78,7 +83,9 @@ export function Tooltip({ content, children }: TooltipProps) {
         },
         onKeyDown: (e) => {
           child.props.onKeyDown?.(e);
-          if (e.key === "Escape") hide();
+          if (e.key === "Escape") {
+            hide();
+          }
         },
       })}
       {open &&

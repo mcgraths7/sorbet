@@ -44,7 +44,9 @@ export interface ThemeProviderProps {
  */
 export function ThemeProvider({ children, storageKey = "sb-theme" }: ThemeProviderProps) {
   const [mode, setMode] = useState<ThemeMode>(() => {
-    if (typeof window === "undefined") return "system";
+    if (typeof window === "undefined") {
+      return "system";
+    }
     const stored = localStorage.getItem(storageKey);
     return stored === "light" || stored === "dark" ? stored : "system";
   });
@@ -83,6 +85,8 @@ export function ThemeProvider({ children, storageKey = "sb-theme" }: ThemeProvid
 
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used inside <ThemeProvider>");
+  if (!ctx) {
+    throw new Error("useTheme must be used inside <ThemeProvider>");
+  }
   return ctx;
 }

@@ -11,11 +11,13 @@
  * No dependencies: parseArgs + styleText from node:util.
  */
 
-import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
+
 import { contrast, DEFAULT_PRESET, hexToRgb, PRESET_NAMES, presets, RULES, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
+
 import { behaviorTs, componentScss, starterIndexHtml, starterPackageJson, starterReadme } from "./templates.ts";
 
 // dist/index.js lives at packages/cli/dist → three levels up is the monorepo root.
@@ -78,11 +80,13 @@ async function cmdPresets(): Promise<void> {
     const chips = [c.primary, c.secondary, c.accent, c.bg, c.text].map(swatch).join("");
     console.log(`  ${chips}  ${styleText("bold", preset.name.padEnd(10))} ${styleText("dim", preset.tagline)}`);
   }
-  console.log(styleText("dim", `\n  every preset ships light + dark, WCAG AA verified\n`));
+  console.log(styleText("dim", "\n  every preset ships light + dark, WCAG AA verified\n"));
 }
 
 async function cmdTheme(): Promise<void> {
-  if (!arg) fail("Usage: sorbet theme <preset> [--out file]");
+  if (!arg) {
+    fail("Usage: sorbet theme <preset> [--out file]");
+  }
   const preset = assertPreset(arg!);
   const css = themeCss(presets[preset]);
   if (values.out) {
@@ -94,9 +98,13 @@ async function cmdTheme(): Promise<void> {
 }
 
 async function cmdCreate(): Promise<void> {
-  if (!arg) fail("Usage: sorbet create <dir> [--preset <name>] [--name <brand>]");
+  if (!arg) {
+    fail("Usage: sorbet create <dir> [--preset <name>] [--name <brand>]");
+  }
   const target = resolve(arg!);
-  if (existsSync(target)) fail(`${target} already exists`);
+  if (existsSync(target)) {
+    fail(`${target} already exists`);
+  }
 
   const preset = assertPreset(values.preset ?? DEFAULT_PRESET);
   const name = values.name ?? basename(target);
@@ -146,7 +154,9 @@ ${styleText("bold", "Next:")}
 }
 
 async function cmdComponent(): Promise<void> {
-  if (!arg) fail("Usage: sorbet component <Name> [--level atom|molecule|organism] [--behavior]");
+  if (!arg) {
+    fail("Usage: sorbet component <Name> [--level atom|molecule|organism] [--behavior]");
+  }
   const level = values.level!;
   if (!["atom", "molecule", "organism"].includes(level)) {
     fail(`--level must be atom, molecule, or organism (got "${level}")`);
@@ -158,10 +168,14 @@ async function cmdComponent(): Promise<void> {
     .replace(/[^a-z0-9-]/g, "-");
   const pascal = kebab.replace(/(^|-)(\w)/g, (_, __, ch: string) => ch.toUpperCase());
   const stylesDir = join(process.cwd(), "src", "styles");
-  if (!existsSync(stylesDir)) fail("Run inside a Sorbet project (src/styles not found)");
+  if (!existsSync(stylesDir)) {
+    fail("Run inside a Sorbet project (src/styles not found)");
+  }
 
   const partial = join(stylesDir, `${level}s`, `_${kebab}.scss`);
-  if (existsSync(partial)) fail(`${partial} already exists`);
+  if (existsSync(partial)) {
+    fail(`${partial} already exists`);
+  }
   await writeFile(partial, componentScss(kebab, level));
   ok(`src/styles/${level}s/_${kebab}.scss`);
 
@@ -181,7 +195,9 @@ async function cmdComponent(): Promise<void> {
 
   if (values.behavior) {
     const behaviorPath = join(process.cwd(), "src", "scripts", `${kebab}.ts`);
-    if (existsSync(behaviorPath)) fail(`${behaviorPath} already exists`);
+    if (existsSync(behaviorPath)) {
+      fail(`${behaviorPath} already exists`);
+    }
     await writeFile(behaviorPath, behaviorTs(pascal));
     ok(`src/scripts/${kebab}.ts — export it from src/scripts/index.ts`);
   }
@@ -196,10 +212,14 @@ async function cmdContrast(): Promise<void> {
       const colors = preset.colors[mode];
       const rows: string[] = [];
       for (const rule of RULES) {
-        if (rule.mode && rule.mode !== mode) continue;
+        if (rule.mode && rule.mode !== mode) {
+          continue;
+        }
         const fg = colors[rule.fg];
         const bg = colors[rule.bg];
-        if (!opaque(fg) || !opaque(bg)) continue;
+        if (!opaque(fg) || !opaque(bg)) {
+          continue;
+        }
         const ratio = contrast(fg, bg);
         if (ratio < rule.min) {
           failures++;
@@ -209,7 +229,9 @@ async function cmdContrast(): Promise<void> {
       console.log(
         `  ${mode.padEnd(5)} ${rows.length === 0 ? styleText("green", `all ${RULES.length} pairings pass`) : styleText("red", `${rows.length} failing`)}`,
       );
-      for (const row of rows) console.log(row);
+      for (const row of rows) {
+        console.log(row);
+      }
     }
   }
   if (failures > 0) {

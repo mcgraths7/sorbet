@@ -2,18 +2,6 @@
 // obvious which tier each piece belongs to. The package root re-exports
 // everything for the one-import option.
 import {
-  Cluster,
-  Container,
-  Frame,
-  Grid,
-  GridSpan2,
-  Masonry,
-  Split,
-  SplitAside,
-  SplitMain,
-  Stack,
-} from "@sorbet/component-library/layout";
-import {
   Avatar,
   AvatarGroup,
   Badge,
@@ -33,6 +21,20 @@ import {
   Textarea,
   Tooltip,
 } from "@sorbet/component-library/atoms";
+import { BarChart, DonutChart, LineChart, Sparkline } from "@sorbet/component-library/charts";
+import { useTheme, type ThemeMode } from "@sorbet/component-library/core";
+import {
+  Cluster,
+  Container,
+  Frame,
+  Grid,
+  GridSpan2,
+  Masonry,
+  Split,
+  SplitAside,
+  SplitMain,
+  Stack,
+} from "@sorbet/component-library/layout";
 import {
   Accordion,
   AccordionItem,
@@ -90,15 +92,12 @@ import {
   type Column,
 } from "@sorbet/component-library/organisms";
 import { AppShell, AppShellHeader, AppShellMain, AppShellSidebar } from "@sorbet/component-library/templates";
-import { BarChart, DonutChart, LineChart, Sparkline } from "@sorbet/component-library/charts";
-import { useTheme, type ThemeMode } from "@sorbet/component-library/core";
-import { useEffect, useState } from "react";
-
 import forestTheme from "@sorbet/design-system/themes/forest.css?url";
 import midnightTheme from "@sorbet/design-system/themes/midnight.css?url";
 import noirTheme from "@sorbet/design-system/themes/noir.css?url";
 import oceanTheme from "@sorbet/design-system/themes/ocean.css?url";
 import sorbetTheme from "@sorbet/design-system/themes/sorbet.css?url";
+import { useEffect, useState } from "react";
 
 const THEMES = [
   { name: "sorbet", label: "Sorbet — light and fun", url: sorbetTheme },

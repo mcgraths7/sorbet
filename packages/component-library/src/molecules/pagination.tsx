@@ -1,4 +1,5 @@
 import { cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef } from "react";
 
 export interface PaginationProps extends Omit<ComponentPropsWithRef<"nav">, "onChange"> {
@@ -14,14 +15,19 @@ type PageToken = number | "…";
 function model(page: number, pageCount: number, siblings: number): PageToken[] {
   const wanted = new Set<number>([1, pageCount]);
   for (let p = page - siblings; p <= page + siblings; p++) {
-    if (p >= 1 && p <= pageCount) wanted.add(p);
+    if (p >= 1 && p <= pageCount) {
+      wanted.add(p);
+    }
   }
   const sorted = [...wanted].sort((a, b) => a - b);
   const out: PageToken[] = [];
   let prev = 0;
   for (const p of sorted) {
-    if (p - prev === 2) out.push(prev + 1);
-    else if (p - prev > 2) out.push("…");
+    if (p - prev === 2) {
+      out.push(prev + 1);
+    } else if (p - prev > 2) {
+      out.push("…");
+    }
     out.push(p);
     prev = p;
   }
