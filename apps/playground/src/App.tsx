@@ -48,6 +48,8 @@ import {
   CardHeader,
   CardTitle,
   Combobox,
+  DatePicker,
+  type DateValidation,
   Dropzone,
   EmptyState,
   Field,
@@ -494,6 +496,7 @@ export function App() {
                         <option>Product</option>
                       </Select>
                     </Field>
+                    <DatePickerDemo />
                     <Field label="Assignee" hint="Combobox — type to filter, arrows to navigate.">
                       <Combobox options={ASSIGNEES} placeholder="Search people…" name="assignee" />
                     </Field>
@@ -896,5 +899,25 @@ export function App() {
         onThemeModeChange={theme.set}
       />
     </AppShell>
+  );
+}
+
+/** DatePicker with live status wired through Field — masks as you type in
+ *  mm/dd/yyyy and reports the two simple checks (valid + reasonable). */
+function DatePickerDemo() {
+  const [result, setResult] = useState<DateValidation | null>(null);
+  const status: { hint?: string; error?: string } = !result || result.empty
+    ? { hint: "Type digits — the slashes fill in for you." }
+    : !result.complete
+      ? { hint: "Keep typing…" }
+      : !result.valid
+        ? { error: "That's not a real calendar date." }
+        : !result.inRange
+          ? { error: "Pick a date between 1900 and 2100." }
+          : { hint: `Looks good — ${result.date?.toLocaleDateString(undefined, { dateStyle: "full" })}.` };
+  return (
+    <Field label="Birthday" hint={status.hint} error={status.error} invalid={Boolean(status.error)}>
+      <DatePicker format="mm/dd/yyyy" name="birthday" onValueChange={(_, r) => setResult(r)} />
+    </Field>
   );
 }

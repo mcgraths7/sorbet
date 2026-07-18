@@ -1,0 +1,197 @@
+@use "../abstracts" as *;
+
+// Date field (.sb-input) with a trailing calendar trigger and a popover
+// calendar. Driven by the React DatePicker — the input holds the typed/masked
+// value; the calendar is a Popover API dialog anchored to the control.
+.sb-date-picker {
+  position: relative;
+
+  &__control {
+    position: relative;
+  }
+
+  // Leave room for the trigger button on the trailing edge.
+  &__input {
+    padding-inline-end: space(10);
+  }
+
+  &__trigger {
+    @include control-reset;
+    @include focus-ring(0);
+
+    position: absolute;
+    inset-inline-end: space(1);
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    display: grid;
+    place-content: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: radius(sm);
+    color: clr(text-subtle);
+
+    > svg {
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+
+    &:hover:not(:disabled) {
+      color: clr(text);
+      background-color: clr(bg-subtle);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+  }
+
+  // Popover calendar, anchored to the control by the component.
+  &__panel {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    inline-size: max-content;
+    padding: space(2);
+    border: token(border-width) solid clr(border-subtle);
+    border-radius: radius(md);
+    background-color: clr(surface-raised);
+    color: clr(text);
+    box-shadow: shadow(lg);
+    z-index: z(popover);
+
+    // Hidden resting state + transition on the base rule so the calendar
+    // animates both open and closed; display/overlay allow-discrete keep it
+    // painted and in the top layer through the exit.
+    opacity: 0;
+    scale: 0.98;
+    transition:
+      opacity dur(fast) ease(out),
+      scale dur(fast) ease(spring),
+      display dur(fast) allow-discrete,
+      overlay dur(fast) allow-discrete;
+
+    &:popover-open {
+      opacity: 1;
+      scale: 1;
+
+      @starting-style {
+        opacity: 0;
+        scale: 0.98;
+      }
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: space(1);
+    margin-block-end: space(2);
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: fs(sm);
+    font-weight: fw(semibold);
+  }
+
+  &__nav {
+    @include control-reset;
+    @include focus-ring(0);
+
+    display: grid;
+    place-content: center;
+    inline-size: token(control-height-sm);
+    block-size: token(control-height-sm);
+    border-radius: radius(sm);
+    color: clr(text-subtle);
+
+    &:hover {
+      color: clr(text);
+      background-color: clr(bg-subtle);
+    }
+  }
+
+  &__arrow {
+    inline-size: 0.5em;
+    block-size: 0.5em;
+    border-inline-start: 2px solid currentColor;
+    border-block-start: 2px solid currentColor;
+
+    &--prev {
+      rotate: -45deg;
+      translate: 15% 0;
+    }
+
+    &--next {
+      rotate: 135deg;
+      translate: -15% 0;
+    }
+  }
+
+  &__grid {
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
+  }
+
+  &__week {
+    display: grid;
+    grid-template-columns: repeat(7, token(control-height-sm));
+    gap: space(1);
+  }
+
+  &__weekday {
+    display: grid;
+    place-content: center;
+    block-size: token(control-height-sm);
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    color: clr(text-subtle);
+    text-decoration: none;
+    cursor: default;
+  }
+
+  &__day {
+    @include control-reset;
+    @include focus-ring(0);
+
+    display: grid;
+    place-content: center;
+    block-size: token(control-height-sm);
+    border-radius: radius(sm);
+    font-size: fs(sm);
+    color: clr(text);
+    cursor: pointer;
+
+    &:hover:not([aria-disabled="true"]) {
+      background-color: clr(bg-subtle);
+    }
+
+    &[data-outside] {
+      color: clr(text-subtle);
+    }
+
+    &[data-today] {
+      font-weight: fw(bold);
+      box-shadow: inset 0 0 0 token(border-width) clr(border-strong);
+    }
+
+    &[aria-selected="true"] {
+      background-color: clr(primary);
+      color: clr(on-primary);
+      font-weight: fw(semibold);
+
+      &:hover {
+        background-color: clr(primary-hover);
+      }
+    }
+
+    &[aria-disabled="true"] {
+      color: clr(text-subtle);
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
