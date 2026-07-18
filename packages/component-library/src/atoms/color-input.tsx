@@ -1,6 +1,8 @@
-import { cx } from "../core/index.ts";
-import { Input } from "./input.tsx";
 import { useState, type ComponentPropsWithRef } from "react";
+
+import { cx } from "../core/index.ts";
+
+import { Input } from "./input.tsx";
 
 export interface ColorInputProps extends Omit<ComponentPropsWithRef<"div">, "onChange" | "defaultValue"> {
   /** Current value (controlled). #rrggbb drives the swatch; any string shows in the hex field. */

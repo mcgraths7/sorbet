@@ -55,7 +55,9 @@ export function toast(message: string, { title, tone, duration = 5000 }: ToastOp
 
   const dismiss = () => {
     clearTimeout(timer);
-    if (!el.isConnected || el.hasAttribute("data-leaving")) return;
+    if (!el.isConnected || el.hasAttribute("data-leaving")) {
+      return;
+    }
     el.setAttribute("data-leaving", "");
     el.addEventListener("transitionend", () => el.remove(), { once: true });
     // Fallback removal in case transitions are disabled (reduced motion).
@@ -63,7 +65,9 @@ export function toast(message: string, { title, tone, duration = 5000 }: ToastOp
   };
 
   dismissButton.addEventListener("click", dismiss);
-  if (duration > 0) timer = setTimeout(dismiss, duration);
+  if (duration > 0) {
+    timer = setTimeout(dismiss, duration);
+  }
 
   return dismiss;
 }

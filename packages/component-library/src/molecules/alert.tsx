@@ -1,4 +1,5 @@
 import { cx, type Tone } from "../core/index.ts";
+
 import type { ComponentPropsWithRef, ReactNode } from "react";
 
 export interface AlertProps extends Omit<ComponentPropsWithRef<"div">, "title"> {

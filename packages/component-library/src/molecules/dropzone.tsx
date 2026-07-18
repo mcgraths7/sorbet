@@ -1,5 +1,6 @@
-import { composeRefs, cx } from "../core/index.ts";
 import { useRef, useState, type ChangeEvent, type ComponentPropsWithRef, type DragEvent, type ReactNode } from "react";
+
+import { composeRefs, cx } from "../core/index.ts";
 
 export interface DropzoneRejection {
   file: File;
@@ -23,8 +24,12 @@ export interface DropzoneProps
 const KB = 1024;
 
 function formatSize(bytes: number): string {
-  if (bytes < KB) return `${bytes} B`;
-  if (bytes < KB * KB) return `${parseFloat((bytes / KB).toFixed(1))} KB`;
+  if (bytes < KB) {
+    return `${bytes} B`;
+  }
+  if (bytes < KB * KB) {
+    return `${parseFloat((bytes / KB).toFixed(1))} KB`;
+  }
   return `${parseFloat((bytes / KB / KB).toFixed(1))} MB`;
 }
 
@@ -34,7 +39,9 @@ function accepts(file: File, accept: string): boolean {
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
-  if (specs.length === 0) return true;
+  if (specs.length === 0) {
+    return true;
+  }
   const name = file.name.toLowerCase();
   const type = file.type.toLowerCase();
   return specs.some((spec) =>
@@ -73,13 +80,19 @@ export function Dropzone({
   const commit = (next: File[]) => {
     setFiles(next);
     const dt = new DataTransfer();
-    for (const f of next) dt.items.add(f);
-    if (inputRef.current) inputRef.current.files = dt.files;
+    for (const f of next) {
+      dt.items.add(f);
+    }
+    if (inputRef.current) {
+      inputRef.current.files = dt.files;
+    }
     onFilesChange?.(next);
   };
 
   const add = (incoming: File[]) => {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
     const limit = maxFiles ?? Infinity;
     const rejected: DropzoneRejection[] = [];
     const next = multiple ? [...files] : [];
@@ -125,12 +138,16 @@ export function Dropzone({
       <label
         className="sb-dropzone__zone"
         onDragEnter={(e) => {
-          if (!dragUsable(e)) return;
+          if (!dragUsable(e)) {
+            return;
+          }
           e.preventDefault();
           setDragDepth((d) => d + 1);
         }}
         onDragOver={(e) => {
-          if (dragUsable(e)) e.preventDefault();
+          if (dragUsable(e)) {
+            e.preventDefault();
+          }
         }}
         onDragLeave={() => setDragDepth((d) => Math.max(0, d - 1))}
         onDrop={(e) => {

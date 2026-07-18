@@ -1,6 +1,7 @@
+import { cloneElement, useId, type ComponentPropsWithRef, type ReactElement, type ReactNode } from "react";
+
 import { Label } from "../atoms/index.ts";
 import { cx } from "../core/index.ts";
-import { cloneElement, useId, type ComponentPropsWithRef, type ReactElement, type ReactNode } from "react";
 
 export interface FieldProps extends Omit<ComponentPropsWithRef<"div">, "children"> {
   label: ReactNode;

@@ -12,7 +12,9 @@ export class SortableTable {
 
   constructor(table: HTMLTableElement) {
     const body = table.tBodies[0];
-    if (!body) throw new Error("SortableTable needs a <tbody>");
+    if (!body) {
+      throw new Error("SortableTable needs a <tbody>");
+    }
     this.#body = body;
     this.#headers = [...table.querySelectorAll<HTMLTableCellElement>("thead th")];
 
@@ -23,9 +25,13 @@ export class SortableTable {
 
   sort(column: number): void {
     const th = this.#headers[column];
-    if (!th) return;
+    if (!th) {
+      return;
+    }
     const direction = th.getAttribute("aria-sort") === "ascending" ? "descending" : "ascending";
-    for (const header of this.#headers) header.removeAttribute("aria-sort");
+    for (const header of this.#headers) {
+      header.removeAttribute("aria-sort");
+    }
     th.setAttribute("aria-sort", direction);
 
     const numeric = (text: string) => {

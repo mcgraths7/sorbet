@@ -1,4 +1,3 @@
-import { cx, type Tone } from "../core/index.ts";
 import {
   createContext,
   useCallback,
@@ -9,6 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+
+import { cx, type Tone } from "../core/index.ts";
 
 export interface ToastOptions {
   title?: ReactNode;
@@ -31,7 +32,9 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function useToast(): ToastContextValue["toast"] {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error("useToast must be used inside <ToastProvider>");
+  if (!ctx) {
+    throw new Error("useToast must be used inside <ToastProvider>");
+  }
   return ctx.toast;
 }
 
@@ -50,7 +53,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     (message: ReactNode, { title, tone, duration = 5000 }: ToastOptions = {}) => {
       const id = nextId.current++;
       setToasts((all) => [...all, { id, message, title, tone, duration }]);
-      if (duration > 0) setTimeout(() => dismiss(id), duration);
+      if (duration > 0) {
+        setTimeout(() => dismiss(id), duration);
+      }
       return () => dismiss(id);
     },
     [dismiss],

@@ -20,19 +20,21 @@ export { initDismiss } from "./dismiss.ts";
 export { Masonry, supportsNativeMasonry } from "./masonry.ts";
 export { Dropzone, type DropzoneRejection } from "./dropzone.ts";
 
-import { getTheme } from "./theme.ts";
-import { Tabs } from "./tabs.ts";
-import { initModals } from "./modal.ts";
-import { Menu } from "./menu.ts";
-import { initTooltips } from "./tooltip.ts";
-import { SortableTable } from "./table-sort.ts";
 import { initDismiss } from "./dismiss.ts";
-import { Masonry } from "./masonry.ts";
 import { Dropzone } from "./dropzone.ts";
+import { Masonry } from "./masonry.ts";
+import { Menu } from "./menu.ts";
+import { initModals } from "./modal.ts";
+import { SortableTable } from "./table-sort.ts";
+import { Tabs } from "./tabs.ts";
+import { getTheme } from "./theme.ts";
+import { initTooltips } from "./tooltip.ts";
 
 function wire<T extends HTMLElement>(root: ParentNode, selector: string, create: (el: T) => unknown): void {
   for (const el of root.querySelectorAll<T>(selector)) {
-    if (el.dataset.sbReady) continue;
+    if (el.dataset.sbReady) {
+      continue;
+    }
     el.dataset.sbReady = "true";
     create(el);
   }

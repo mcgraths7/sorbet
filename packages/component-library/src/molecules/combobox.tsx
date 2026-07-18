@@ -1,5 +1,7 @@
-import { composeRefs, cx, type Size } from "../core/index.ts";
 import { Fragment, useId, useMemo, useState, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
+
+import { composeRefs, cx, type Size } from "../core/index.ts";
+
 import { firstEnabledIn, useComboboxCore, type ComboboxFilter, type ComboboxOption } from "./combobox-core.ts";
 
 export type { ComboboxFilter, ComboboxOption };
@@ -73,13 +75,19 @@ export function Combobox({
   const { open, query, setQuery, highlighted, setHighlighted, filtered, firstEnabled } = core;
 
   const openList = () => {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
     core.openList(filtered.findIndex((o) => o.value === selectedValue));
   };
 
   const select = (option: ComboboxOption) => {
-    if (option.disabled) return;
-    if (value === undefined) setInternal(option.value);
+    if (option.disabled) {
+      return;
+    }
+    if (value === undefined) {
+      setInternal(option.value);
+    }
     onValueChange?.(option.value, option);
     setQuery(null);
     core.closeList();
@@ -87,7 +95,9 @@ export function Combobox({
   };
 
   const clear = () => {
-    if (value === undefined) setInternal(null);
+    if (value === undefined) {
+      setInternal(null);
+    }
     onValueChange?.(null, null);
     setQuery(null);
     core.inputRef.current?.focus();
@@ -97,19 +107,27 @@ export function Combobox({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        if (!open) openList();
-        else setHighlighted((h) => firstEnabled(h + 1, 1));
+        if (!open) {
+          openList();
+        } else {
+          setHighlighted((h) => firstEnabled(h + 1, 1));
+        }
         break;
       case "ArrowUp":
         e.preventDefault();
-        if (!open) openList();
-        else setHighlighted((h) => firstEnabled(h - 1, -1));
+        if (!open) {
+          openList();
+        } else {
+          setHighlighted((h) => firstEnabled(h - 1, -1));
+        }
         break;
       case "Enter":
         if (open) {
           e.preventDefault();
           const option = filtered[highlighted];
-          if (option) select(option);
+          if (option) {
+            select(option);
+          }
         }
         break;
       case "Escape":
@@ -121,7 +139,9 @@ export function Combobox({
         }
         break;
       case "Tab":
-        if (open) core.closeList();
+        if (open) {
+          core.closeList();
+        }
         break;
     }
   };
@@ -155,8 +175,11 @@ export function Combobox({
             // Highlight is event-time state: compute it from the new query
             // now rather than waiting for an effect to catch up.
             const idx = firstEnabledIn(core.filterFor(text));
-            if (!open) core.openList(idx);
-            else setHighlighted(idx);
+            if (!open) {
+              core.openList(idx);
+            } else {
+              setHighlighted(idx);
+            }
           }}
           onClick={openList}
           onKeyDown={onKeyDown}

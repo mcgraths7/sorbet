@@ -1,4 +1,5 @@
 import { cx, type PolymorphicProps } from "../core/index.ts";
+
 import type { CSSProperties, ElementType } from "react";
 
 export interface CenterOwnProps {

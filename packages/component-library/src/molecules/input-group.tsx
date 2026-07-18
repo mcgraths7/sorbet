@@ -1,4 +1,5 @@
 import { cx } from "../core/index.ts";
+
 import type { ComponentPropsWithRef } from "react";
 
 /** Joined controls: addon + input + button share one border chain. */

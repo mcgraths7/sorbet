@@ -1,5 +1,6 @@
-import { composeRefs, cx } from "../core/index.ts";
 import { useEffect, useRef, useState, type ComponentPropsWithRef, type CSSProperties } from "react";
+
+import { composeRefs, cx } from "../core/index.ts";
 
 export type MasonryGap = 2 | 3 | 4 | 6 | 8;
 
@@ -30,8 +31,12 @@ export function Masonry({ min, cols, gap, balance = true, className, style, ref,
 
   useEffect(() => {
     const container = localRef.current;
-    if (!container || !balance) return;
-    if (typeof CSS !== "undefined" && CSS.supports("grid-template-rows", "masonry")) return;
+    if (!container || !balance) {
+      return;
+    }
+    if (typeof CSS !== "undefined" && CSS.supports("grid-template-rows", "masonry")) {
+      return;
+    }
 
     setBalanced(true);
 
@@ -42,12 +47,16 @@ export function Masonry({ min, cols, gap, balance = true, className, style, ref,
     };
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) span(entry.target as HTMLElement);
+      for (const entry of entries) {
+        span(entry.target as HTMLElement);
+      }
     });
     // Span synchronously first — no unbalanced first frame, no reliance on
     // the observer's initial delivery timing.
     for (const child of container.children) {
-      if (child instanceof HTMLElement) span(child);
+      if (child instanceof HTMLElement) {
+        span(child);
+      }
       resizeObserver.observe(child);
     }
 
@@ -61,7 +70,9 @@ export function Masonry({ min, cols, gap, balance = true, className, style, ref,
           }
         }
         for (const node of mutation.removedNodes) {
-          if (node instanceof HTMLElement) resizeObserver.unobserve(node);
+          if (node instanceof HTMLElement) {
+            resizeObserver.unobserve(node);
+          }
         }
       }
     });

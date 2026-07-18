@@ -7,6 +7,7 @@
  */
 
 import { contrast } from "./color.ts";
+
 import type { Preset } from "./presets.ts";
 import type { Mode, SemanticColorName, SemanticColors } from "./semantics.ts";
 
@@ -97,12 +98,18 @@ function isOpaqueHex(value: string): boolean {
 export function checkColors(presetName: string, mode: Mode, colors: SemanticColors): Failure[] {
   const failures: Failure[] = [];
   for (const rule of RULES) {
-    if (rule.mode && rule.mode !== mode) continue;
+    if (rule.mode && rule.mode !== mode) {
+      continue;
+    }
     const fg = colors[rule.fg];
     const bg = colors[rule.bg];
-    if (!isOpaqueHex(fg) || !isOpaqueHex(bg)) continue;
+    if (!isOpaqueHex(fg) || !isOpaqueHex(bg)) {
+      continue;
+    }
     const actual = contrast(fg, bg);
-    if (actual < rule.min) failures.push({ preset: presetName, mode, ...rule, actual });
+    if (actual < rule.min) {
+      failures.push({ preset: presetName, mode, ...rule, actual });
+    }
   }
   return failures;
 }

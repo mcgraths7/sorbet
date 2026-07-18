@@ -1,6 +1,7 @@
+import { useEffect, useRef, type ComponentPropsWithRef, type CSSProperties } from "react";
+
 import { Button } from "../atoms/index.ts";
 import { composeRefs, cx } from "../core/index.ts";
-import { useEffect, useRef, type ComponentPropsWithRef, type CSSProperties } from "react";
 
 export interface DrawerProps extends Omit<ComponentPropsWithRef<"dialog">, "onClose"> {
   open: boolean;
@@ -32,9 +33,18 @@ export function Drawer({
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) (modeless ? dialog.show() : dialog.showModal());
-    else if (!open && dialog.open) dialog.close();
+    if (!dialog) {
+      return;
+    }
+    if (open && !dialog.open) {
+      if (modeless) {
+        dialog.show();
+      } else {
+        dialog.showModal();
+      }
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
   }, [open, modeless]);
 
   return (
@@ -44,7 +54,9 @@ export function Drawer({
       style={width ? ({ "--drawer-size": width, ...style } as CSSProperties) : style}
       onClose={onClose}
       onClick={(e) => {
-        if (e.target === dialogRef.current && !isStatic) dialogRef.current.close();
+        if (e.target === dialogRef.current && !isStatic) {
+          dialogRef.current.close();
+        }
       }}
       {...rest}
     >

@@ -20,19 +20,25 @@ export function openModal(id: string): HTMLDialogElement | null {
 
 export function initModals(root: ParentNode = document): void {
   for (const trigger of root.querySelectorAll<HTMLElement>("[data-sb-open]")) {
-    if (trigger.dataset.sbReady) continue;
+    if (trigger.dataset.sbReady) {
+      continue;
+    }
     trigger.dataset.sbReady = "true";
     trigger.addEventListener("click", () => openModal(trigger.dataset.sbOpen!));
   }
 
   for (const dialog of root.querySelectorAll<HTMLDialogElement>('dialog[data-sb="modal"]')) {
-    if (dialog.dataset.sbReady) continue;
+    if (dialog.dataset.sbReady) {
+      continue;
+    }
     dialog.dataset.sbReady = "true";
 
     dialog.addEventListener("click", (e) => {
       // A click that lands on the <dialog> itself (not its children) is a
       // backdrop click, unless opted out with data-static.
-      if (e.target === dialog && !dialog.hasAttribute("data-static")) dialog.close();
+      if (e.target === dialog && !dialog.hasAttribute("data-static")) {
+        dialog.close();
+      }
     });
 
     for (const closer of dialog.querySelectorAll<HTMLElement>("[data-sb-close]")) {
