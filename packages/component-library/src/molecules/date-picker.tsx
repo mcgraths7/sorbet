@@ -11,16 +11,19 @@ import {
   type ToggleEvent,
 } from "react";
 
+import { Select } from "../atoms/index.ts";
 import { composeRefs, cx, type Size } from "../core/index.ts";
 
 import {
   addDays,
   addMonths,
   coerceDate,
+  daysInMonth,
   formatDate,
   formatDateInput,
   isoKey,
   monthGrid,
+  monthLabels,
   parseFormat,
   startOfDay,
   validate,
@@ -154,6 +157,15 @@ export function DatePicker({
     () => new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(view),
     [locale, view],
   );
+  const monthNames = useMemo(() => monthLabels(locale), [locale]);
+  // Year dropdown spans the reasonable range; fall back to a window around the
+  // shown year when a bound is open-ended.
+  const minYear = minDate ? minDate.getFullYear() : view.getFullYear() - 100;
+  const maxYear = maxDate ? maxDate.getFullYear() : view.getFullYear() + 100;
+  const years = useMemo(
+    () => Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i),
+    [minYear, maxYear],
+  );
   const todayIso = isoKey(today);
   const selectedIso = result.date ? isoKey(result.date) : null;
   const focusedIso = isoKey(focused);
@@ -199,6 +211,23 @@ export function DatePicker({
     setView(next);
     setFocused(next); // keep the roving tab stop live without stealing focus
   };
+
+  // Jump straight to a year/month from the header selects. Keeps focus on the
+  // select (no pullFocus) and just re-points the view + roving tab stop.
+  const jumpTo = (year: number, monthIndex: number) => {
+    const day = Math.min(focused.getDate(), daysInMonth(year, monthIndex + 1));
+    const target = new Date(year, monthIndex, day);
+    setView(target);
+    setFocused(clampInRange(target));
+  };
+
+  // A whole month sitting outside [min, max] — its option is disabled so you
+  // can't land on an all-unavailable grid.
+  const monthOutOfRange = (year: number, monthIndex: number) =>
+    Boolean(
+      (minDate && new Date(year, monthIndex + 1, 0) < minDate) ||
+        (maxDate && new Date(year, monthIndex, 1) > maxDate),
+    );
 
   // Anchor the popover under the control when it opens; hide it when it closes.
   useEffect(() => {
@@ -371,12 +400,40 @@ export function DatePicker({
             <button type="button" className="sb-date-picker__nav" aria-label="Previous month" onClick={() => goToMonth(-1)}>
               <i className="sb-date-picker__arrow sb-date-picker__arrow--prev" aria-hidden="true" />
             </button>
-            <strong className="sb-date-picker__title" id={titleId} aria-live="polite">
-              {monthLabel}
-            </strong>
+            <div className="sb-date-picker__period">
+              <Select
+                size="sm"
+                aria-label="Month"
+                wrapperClassName="sb-date-picker__month"
+                value={view.getMonth()}
+                onChange={(e) => jumpTo(view.getFullYear(), Number(e.target.value))}
+              >
+                {monthNames.map((name, i) => (
+                  <option key={name} value={i} disabled={monthOutOfRange(view.getFullYear(), i)}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                size="sm"
+                aria-label="Year"
+                wrapperClassName="sb-date-picker__year"
+                value={view.getFullYear()}
+                onChange={(e) => jumpTo(Number(e.target.value), view.getMonth())}
+              >
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <button type="button" className="sb-date-picker__nav" aria-label="Next month" onClick={() => goToMonth(1)}>
               <i className="sb-date-picker__arrow sb-date-picker__arrow--next" aria-hidden="true" />
             </button>
+            <span id={titleId} className="u-visually-hidden" aria-live="polite">
+              {monthLabel}
+            </span>
           </div>
 
           <div className="sb-date-picker__grid" role="grid" aria-labelledby={titleId} onKeyDown={onGridKeyDown}>

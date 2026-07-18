@@ -276,3 +276,9 @@ export function weekdayLabels(weekStartsOn = 0, locale?: string): { short: strin
     return { short: shortFmt.format(d), long: longFmt.format(d) };
   });
 }
+
+/** Full month names ("January"…), index 0 = January, in `locale`. */
+export function monthLabels(locale?: string): string[] {
+  const fmt = new Intl.DateTimeFormat(locale, { month: "long" });
+  return Array.from({ length: 12 }, (_, m) => fmt.format(new Date(2024, m, 1)));
+}
