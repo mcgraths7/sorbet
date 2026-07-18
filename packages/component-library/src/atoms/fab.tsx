@@ -1,6 +1,6 @@
-import type { ComponentPropsWithRef } from "react";
-
 import { cx } from "../core/index.ts";
+
+import type { ComponentPropsWithRef } from "react";
 
 export type FabProps = ComponentPropsWithRef<"button">;
 
