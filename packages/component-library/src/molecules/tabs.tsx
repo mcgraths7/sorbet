@@ -1,6 +1,6 @@
 import { createContext, useContext, useId, type ComponentPropsWithRef, type KeyboardEvent } from "react";
 
-import { cx, useControllableState } from "../core/index.ts";
+import { cx, rovingIndex, useControllableState } from "../core/index.ts";
 
 interface TabsContextValue {
   value: string;
@@ -42,31 +42,14 @@ export function Tabs({ value, defaultValue, onValueChange, pills, className, chi
 export function TabList({ className, onKeyDown, ...rest }: ComponentPropsWithRef<"div">) {
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(e);
-    const list = e.currentTarget;
-    const tabs = [...list.querySelectorAll<HTMLElement>('[role="tab"]:not(:disabled)')];
+    const tabs = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]:not(:disabled)')];
     const current = tabs.indexOf(document.activeElement as HTMLElement);
     if (current === -1) {
       return;
     }
-    const last = tabs.length - 1;
-    let next: number;
-    switch (e.key) {
-      case "ArrowRight":
-      case "ArrowDown":
-        next = current === last ? 0 : current + 1;
-        break;
-      case "ArrowLeft":
-      case "ArrowUp":
-        next = current === 0 ? last : current - 1;
-        break;
-      case "Home":
-        next = 0;
-        break;
-      case "End":
-        next = last;
-        break;
-      default:
-        return;
+    const next = rovingIndex(e.key, current, tabs.length, "both");
+    if (next === null) {
+      return;
     }
     e.preventDefault();
     tabs[next]?.focus();

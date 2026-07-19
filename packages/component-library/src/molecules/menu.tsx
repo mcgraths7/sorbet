@@ -12,7 +12,7 @@ import {
   type ToggleEvent,
 } from "react";
 
-import { composeRefs, cx, positionPopover } from "../core/index.ts";
+import { composeRefs, cx, positionPopover, rovingIndex } from "../core/index.ts";
 
 export interface MenuProps {
   /** The trigger element — must render a real <button> (e.g. atoms' Button). */
@@ -67,28 +67,15 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Tab") {
+      panelRef.current?.hidePopover();
+      return;
+    }
     const list = items();
-    const current = list.indexOf(document.activeElement as HTMLElement);
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        list[(current + 1) % list.length]?.focus();
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        list[current <= 0 ? list.length - 1 : current - 1]?.focus();
-        break;
-      case "Home":
-        e.preventDefault();
-        list[0]?.focus();
-        break;
-      case "End":
-        e.preventDefault();
-        list[list.length - 1]?.focus();
-        break;
-      case "Tab":
-        panelRef.current?.hidePopover();
-        break;
+    const next = rovingIndex(e.key, list.indexOf(document.activeElement as HTMLElement), list.length, "vertical");
+    if (next !== null) {
+      e.preventDefault();
+      list[next]?.focus();
     }
   };
 
