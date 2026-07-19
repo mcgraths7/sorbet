@@ -30,25 +30,68 @@ export function Drawer({
   ...rest
 }: DrawerProps) {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
+  // Keep the latest onClose without re-subscribing the light-dismiss listener.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) {
       return;
     }
-    if (open && !dialog.open) {
-      if (modeless) {
-        dialog.show();
-      } else {
-        dialog.showModal();
+
+    if (open) {
+      delete dialog.dataset.closing;
+      if (!dialog.open) {
+        if (modeless) {
+          dialog.show();
+        } else {
+          dialog.showModal();
+        }
       }
-    } else if (!open && dialog.open) {
-      dialog.close();
+      return;
     }
+
+    // Closing. Modal dialogs animate out natively — they stay painted in the
+    // top layer via `overlay`. Modeless ones don't, so slide the panel out
+    // ourselves (via [data-closing]) and only call close() once it finishes.
+    if (!dialog.open) {
+      return;
+    }
+    if (!modeless) {
+      dialog.close();
+      return;
+    }
+
+    dialog.dataset.closing = "";
+    let closed = false;
+    const finish = () => {
+      if (closed) {
+        return;
+      }
+      closed = true;
+      if (dialog.open) {
+        dialog.close();
+      }
+      delete dialog.dataset.closing;
+    };
+    const onEnd = (e: TransitionEvent) => {
+      if (e.target === dialog && e.propertyName === "translate") {
+        finish();
+      }
+    };
+    dialog.addEventListener("transitionend", onEnd);
+    // Fallback when the transition is skipped (reduced motion / zero duration).
+    const timer = window.setTimeout(finish, 600);
+    return () => {
+      dialog.removeEventListener("transitionend", onEnd);
+      window.clearTimeout(timer);
+    };
   }, [open, modeless]);
 
   // Modeless drawers have no backdrop to click; light-dismiss on any press
-  // outside the panel instead (unless `static`).
+  // outside the panel instead (unless `static`). Route through onClose so the
+  // close animation runs, rather than snapping shut via dialog.close().
   useEffect(() => {
     if (!open || !modeless || isStatic) {
       return;
@@ -56,7 +99,7 @@ export function Drawer({
     const onPointerDown = (e: PointerEvent) => {
       const dialog = dialogRef.current;
       if (dialog?.open && !dialog.contains(e.target as Node)) {
-        dialog.close();
+        onCloseRef.current();
       }
     };
     document.addEventListener("pointerdown", onPointerDown);

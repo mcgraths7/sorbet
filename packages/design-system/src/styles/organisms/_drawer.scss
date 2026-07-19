@@ -53,6 +53,17 @@
     }
   }
 
+  // Modeless drawers can't use the native close transition (no top layer, so
+  // `overlay` can't hold them open). The React layer slides them out via
+  // [data-closing] — still [open], still painted — then calls close().
+  &[open][data-closing] {
+    translate: 100% 0;
+  }
+
+  &--start[open][data-closing] {
+    translate: -100% 0;
+  }
+
   &::backdrop {
     background-color: clr(scrim);
     opacity: 0;
@@ -80,6 +91,9 @@
     flex: 1;
     padding: space(4);
     overflow-y: auto;
+    // Keep wheel/touch scrolling inside the panel — don't chain to the page
+    // once the body reaches its scroll boundary.
+    overscroll-behavior: contain;
   }
 
   &__footer {

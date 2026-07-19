@@ -2,6 +2,11 @@
 
 :root {
   @include static-tokens;
+
+  // The frame's base background follows the root element. Painting it here (not
+  // only on <body>) keeps the canvas on-token while `color-scheme` flips between
+  // modes — otherwise Chromium flashes the UA default (white) for a frame.
+  background-color: clr(bg);
 }
 
 body {
