@@ -8,11 +8,10 @@ import {
   type ComponentPropsWithRef,
   type KeyboardEvent,
   type Ref,
-  type ToggleEvent,
 } from "react";
 
 import { Select } from "../atoms/index.ts";
-import { composeRefs, cx, type Size } from "../core/index.ts";
+import { composeRefs, cx, usePopover, type Size } from "../core/index.ts";
 
 import {
   addDays,
@@ -32,9 +31,6 @@ import {
 } from "./date-core.ts";
 
 export type { DateValidation };
-
-const GAP = 6;
-const EDGE = 8;
 
 export interface DatePickerProps
   extends Omit<ComponentPropsWithRef<"input">, "value" | "defaultValue" | "onChange" | "size" | "min" | "max"> {
@@ -129,9 +125,7 @@ export function DatePicker({
 
   // ---- Calendar popover ----------------------------------------------------
   const [open, setOpen] = useState(false);
-  const controlRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
   // Set only by keyboard moves + opening, so mouse nav clicks don't yank focus
   // out of the nav button into the day grid.
   const pullFocus = useRef(false);
@@ -190,6 +184,11 @@ export function DatePicker({
     }
   };
 
+  const { anchorRef: controlRef, panelRef, popoverProps } = usePopover({
+    open,
+    onDismiss: () => closeCalendar(false),
+  });
+
   const pick = (d: Date) => {
     if (isDisabledDay(d)) {
       return;
@@ -229,66 +228,15 @@ export function DatePicker({
         (maxDate && new Date(year, monthIndex, 1) > maxDate),
     );
 
-  // Anchor the popover under the control when it opens; hide it when it closes.
-  useEffect(() => {
-    const panel = panelRef.current;
-    const control = controlRef.current;
-    if (!panel || !control) {
-      return;
-    }
-    if (open && !panel.matches(":popover-open")) {
-      panel.showPopover();
-      const r = control.getBoundingClientRect();
-      const left = Math.min(Math.max(r.left, EDGE), Math.max(EDGE, window.innerWidth - panel.offsetWidth - EDGE));
-      let top = r.bottom + GAP;
-      if (top + panel.offsetHeight > window.innerHeight - EDGE) {
-        top = Math.max(r.top - panel.offsetHeight - GAP, EDGE);
-      }
-      panel.style.left = `${left}px`;
-      panel.style.top = `${top}px`;
-    } else if (!open && panel.matches(":popover-open")) {
-      panel.hidePopover();
-    }
-  }, [open]);
-
   // Move DOM focus to the roving day after a keyboard move or on open — never
-  // on a mouse nav click (pullFocus stays false there).
+  // on a mouse nav click (pullFocus stays false there). Runs after usePopover
+  // has shown the panel (its effects register first).
   useEffect(() => {
     if (open && pullFocus.current) {
       panelRef.current?.querySelector<HTMLButtonElement>(`[data-iso="${focusedIso}"]`)?.focus();
       pullFocus.current = false;
     }
-  }, [open, focusedIso]);
-
-  // Manual popovers don't light-dismiss; close on any press outside.
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const onPointerDown = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (!controlRef.current?.contains(t) && !panelRef.current?.contains(t)) {
-        closeCalendar(false);
-      }
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
-
-  // Fixed panel can't track its anchor through page scroll — dismiss instead.
-  // Scrolling inside the panel is exempt (listen in the capture phase).
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const onScroll = (e: Event) => {
-      if (!panelRef.current?.contains(e.target as Node)) {
-        closeCalendar(false);
-      }
-    };
-    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
-    return () => document.removeEventListener("scroll", onScroll, { capture: true });
-  }, [open]);
+  }, [open, focusedIso, panelRef]);
 
   const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown" && !open && !hidePicker) {
@@ -390,11 +338,10 @@ export function DatePicker({
         <div
           id={dialogId}
           ref={panelRef}
-          popover="manual"
           role="dialog"
           aria-label="Choose date"
           className="sb-date-picker__panel"
-          onToggle={(e: ToggleEvent<HTMLDivElement>) => e.newState === "closed" && open && setOpen(false)}
+          {...popoverProps}
         >
           <div className="sb-date-picker__header">
             <button type="button" className="sb-date-picker__nav" aria-label="Previous month" onClick={() => goToMonth(-1)}>

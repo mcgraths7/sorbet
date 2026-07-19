@@ -9,10 +9,9 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
-  type ToggleEvent,
 } from "react";
 
-import { cx } from "../core/index.ts";
+import { cx, usePopover } from "../core/index.ts";
 
 import { clamp, formatHex, hexToHsv, hsvToRgb, parseHex, rgbToHsv, type Hsv } from "./color-core.ts";
 import { Input } from "./input.tsx";
@@ -28,9 +27,6 @@ declare global {
     EyeDropper?: EyeDropperCtor;
   }
 }
-
-const GAP = 6;
-const EDGE = 8;
 
 const DEFAULT_SWATCHES = [
   "#e11d48",
@@ -104,8 +100,6 @@ export function ColorInput({
   const [recents, setRecents] = useState<string[]>([]);
 
   const [open, setOpen] = useState(false);
-  const controlRef = useRef<HTMLDivElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
   const areaRef = useRef<HTMLDivElement | null>(null);
 
   const [hasEyeDropper, setHasEyeDropper] = useState(false);
@@ -161,50 +155,7 @@ export function ColorInput({
     }
   };
 
-  useEffect(() => {
-    const panel = panelRef.current;
-    const control = controlRef.current;
-    if (!panel || !control) {
-      return;
-    }
-    if (open && !panel.matches(":popover-open")) {
-      panel.showPopover();
-      const r = control.getBoundingClientRect();
-      const left = Math.min(Math.max(r.left, EDGE), Math.max(EDGE, window.innerWidth - panel.offsetWidth - EDGE));
-      let top = r.bottom + GAP;
-      if (top + panel.offsetHeight > window.innerHeight - EDGE) {
-        top = Math.max(r.top - panel.offsetHeight - GAP, EDGE);
-      }
-      panel.style.left = `${left}px`;
-      panel.style.top = `${top}px`;
-    } else if (!open && panel.matches(":popover-open")) {
-      panel.hidePopover();
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const onPointerDown = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (!controlRef.current?.contains(t) && !panelRef.current?.contains(t)) {
-        closePicker();
-      }
-    };
-    const onScroll = (e: Event) => {
-      if (!panelRef.current?.contains(e.target as Node)) {
-        closePicker();
-      }
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("scroll", onScroll, { capture: true });
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  const { anchorRef: controlRef, panelRef, popoverProps } = usePopover({ open, onDismiss: closePicker });
 
   // ---- saturation/brightness square ----------------------------------------
   const pointFromEvent = (clientX: number, clientY: number) => {
@@ -316,11 +267,10 @@ export function ColorInput({
       <div
         id={panelId}
         ref={panelRef}
-        popover="manual"
         role="dialog"
         aria-label={pickerLabel}
         className="sb-color-input__panel"
-        onToggle={(e: ToggleEvent<HTMLDivElement>) => e.newState === "closed" && open && setOpen(false)}
+        {...popoverProps}
       >
         <div
           ref={areaRef}

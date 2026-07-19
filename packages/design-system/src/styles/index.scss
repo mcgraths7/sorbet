@@ -45,6 +45,7 @@
   @include meta.load-css("atoms/slider");
   @include meta.load-css("atoms/fab");
   @include meta.load-css("atoms/color-input");
+  @include meta.load-css("atoms/popover");
   @include meta.load-css("atoms/skeleton");
   @include meta.load-css("atoms/tooltip");
 }
