@@ -73,6 +73,29 @@ with React bindings, in an npm-workspaces monorepo. The prefix everywhere is
   no force-push/deletion. All work: branch → commit → push → PR (`gh pr create`).
 - CI: `.github/workflows/build.yml` (Node 24, npm ci, npm run build).
 
+## Reuse before building (scan first)
+
+Before adding a component, behavior, or style block, grep the tree for the same
+shape. If the same logic or CSS already lives in ~2+ places, extract it into a
+shared unit FIRST, then build on it — don't paste a fourth copy. The Popover
+refactor is the template: `positionPopover` + `usePopover` were lifted into
+`core/` and now back the menu, the pickers, and the generic Popover atom.
+
+- Shared TS lives in `core/`: `usePopover`/`positionPopover` (anchored-panel
+  lifecycle + placement), `composeRefs`, `cx`, `PolymorphicProps` (the `as`
+  prop), `ThemeProvider`/`useTheme`. Combobox machinery is
+  `molecules/combobox-core.ts` (`useComboboxCore`); chart series color resolves
+  through `charts/shell.tsx`. Put a new cross-layer hook/util in `core/`.
+- Shared Sass lives in `abstracts/_mixins.scss`: `focus-ring`, `elevate`,
+  `pressable`, `truncate`, `control-reset`, `visually-hidden`, `respond`. A
+  repeated animation/surface block (e.g. the popover flyout) belongs here as a
+  mixin, not copy-pasted per partial.
+- Layout primitives (`Stack`/`Cluster`/`Grid`/`Split`/…) are for COMPOSING
+  layouts (organisms, templates, consumers). Atom/molecule internals stay BEM
+  `<div class="sb-*__part">` styled by a Sass partial — styling lives in Sass,
+  so don't swap a `.sb-card__body` for a `<Stack>`. Do prefer a real semantic
+  element over `role`-on-`div` when one exists (`<ul>`/`<li>` for a legend).
+
 ## Conventions
 
 - Layout owns ALL spacing; atoms/molecules have zero margins.
