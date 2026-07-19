@@ -10,7 +10,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 import { Badge, Button, ColorInput, Input, Select, Slider } from "../atoms/index.ts";
-import { cx, type ThemeMode } from "../core/index.ts";
+import { type ThemeMode } from "../core/index.ts";
 import { Cluster } from "../layout/index.ts";
 import { Accordion, AccordionItem, Field, Menu, MenuItem, Tab, TabList, TabPanel, Tabs } from "../molecules/index.ts";
 
@@ -198,15 +198,17 @@ function TokenRow({
     ) : (
       <Input
         size="sm"
-        className="sb-token-studio__value"
+        className="sb-token-studio__field"
         aria-label={def.name}
         value={value}
         onChange={(e) => onSet(e.target.value)}
       />
     );
 
+  // Label stacks above the control so a wide value (box shadows) wraps to its
+  // own line instead of crushing the token name.
   return (
-    <div className={cx("sb-token-studio__row", scrubbable && "sb-token-studio__row--wide")} data-dirty={dirty || undefined}>
+    <div className="sb-token-studio__row" data-dirty={dirty || undefined}>
       <Cluster gap={1} nowrap className="sb-token-studio__label">
         <code className="sb-token-studio__name">{def.name}</code>
         {dirty && (

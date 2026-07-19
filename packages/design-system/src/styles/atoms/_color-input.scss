@@ -60,7 +60,7 @@
     position: fixed;
     inset: auto;
     margin: 0;
-    inline-size: 15rem; // fits the square + fields; component-specific width
+    inline-size: 18rem; // wide enough that the RGB + hex fields aren't clipped
     padding: space(3);
     display: flex;
     flex-direction: column;
@@ -102,6 +102,9 @@
     border-radius: radius(sm);
     cursor: crosshair;
     touch-action: none;
+    // Dragging to pick shouldn't start a text selection — that flips the cursor
+    // to the text/no-drop shape and swallows the next click.
+    user-select: none;
     // White→hue across x (saturation), transparent→black down y (brightness).
     background:
       linear-gradient(to top, #000, transparent),

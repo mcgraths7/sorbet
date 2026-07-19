@@ -20,10 +20,13 @@
     opacity: 0.55;
   }
 
+  // The track is a translucent tint of the current text color so it stays
+  // visible on any surface — `clr(border)` collides with `surface-raised` in
+  // dark mode, where border and the raised surface resolve to the same value.
   &::-webkit-slider-runnable-track {
     block-size: space(1);
     border-radius: radius(full);
-    background-color: clr(border);
+    background-color: color-mix(in oklab, currentColor, transparent 80%);
   }
 
   &::-webkit-slider-thumb {
@@ -45,7 +48,7 @@
   &::-moz-range-track {
     block-size: space(1);
     border-radius: radius(full);
-    background-color: clr(border);
+    background-color: color-mix(in oklab, currentColor, transparent 80%);
   }
 
   &::-moz-range-thumb {

@@ -11,26 +11,17 @@
     flex-direction: column;
   }
 
+  // Label stacks above the control so a wide value (box shadows) wraps to its
+  // own line instead of squeezing the token name into a sliver.
   &__row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: space(3);
-    row-gap: space(1);
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
     padding-block: space(2);
     border-block-end: token(border-width) solid clr(border-subtle);
 
     &:last-child {
       border-block-end: none;
-    }
-
-    // Scrubbable rows put the slider + value on their own full-width line.
-    &--wide {
-      grid-template-columns: minmax(0, 1fr) auto;
-
-      .sb-token-studio__control {
-        grid-column: 1 / -1;
-      }
     }
   }
 
@@ -64,14 +55,35 @@
   &__control {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     gap: space(2);
     min-inline-size: 0;
+
+    // Controls fill the row now that the label sits above them.
+    .sb-color-input,
+    .sb-color-input__control {
+      inline-size: 100%;
+    }
+
+    .sb-slider {
+      flex: 1;
+      min-inline-size: 0;
+    }
   }
 
+  // Compact value beside a slider — sized to its digits. `inline-size: auto`
+  // undoes the input's default 100% so `field-sizing` can shrink it and the
+  // slider keeps the rest of the row.
   &__value {
+    inline-size: auto;
     field-sizing: content;
     min-inline-size: calc(token(control-height-sm) * 2);
+    font-family: font(mono);
+  }
+
+  // Standalone text token (shadows, easings, families) — fills the row and
+  // scrolls its own overflow rather than pushing anything sideways.
+  &__field {
+    inline-size: 100%;
     font-family: font(mono);
   }
 
