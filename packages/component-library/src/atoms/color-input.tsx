@@ -11,7 +11,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-import { cx, usePopover } from "../core/index.ts";
+import { cx, useControllableState, usePopover } from "../core/index.ts";
 
 import { clamp, formatHex, hexToHsv, hsvToRgb, parseHex, rgbToHsv, type Hsv } from "./color-core.ts";
 import { Input } from "./input.tsx";
@@ -89,8 +89,7 @@ export function ColorInput({
   const inputId = id ?? `${autoId}-hex`;
   const panelId = `${autoId}-panel`;
 
-  const [internal, setInternal] = useState(defaultValue ?? "#000000");
-  const current = value ?? internal;
+  const [current, commit] = useControllableState(value, defaultValue ?? "#000000", onValueChange);
   /** In-progress hex text that isn't valid yet; null = mirror the value. */
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -106,13 +105,6 @@ export function ColorInput({
   useEffect(() => {
     setHasEyeDropper(eyedropper && typeof window !== "undefined" && "EyeDropper" in window);
   }, [eyedropper]);
-
-  const commit = (hex: string) => {
-    if (value === undefined) {
-      setInternal(hex);
-    }
-    onValueChange?.(hex);
-  };
 
   // Push HSV changes out as hex (the swatch, hex + RGB fields all read `current`).
   const applyHsv = (nextHsv: Hsv, nextAlpha = alphaVal) => {

@@ -1,7 +1,7 @@
-import { Fragment, useId, useMemo, useState, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
+import { Fragment, useId, useMemo, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
 
 import { Chip } from "../atoms/index.ts";
-import { composeRefs, cx, type Size } from "../core/index.ts";
+import { composeRefs, cx, useControllableState, type Size } from "../core/index.ts";
 
 import { firstEnabledIn, useComboboxCore, type ComboboxFilter, type ComboboxOption } from "./combobox-core.ts";
 
@@ -61,8 +61,7 @@ export function MultiCombobox({
   const listboxId = `${autoId}-listbox`;
   const optionId = (index: number) => `${autoId}-opt-${index}`;
 
-  const [internal, setInternal] = useState<string[]>(defaultValue);
-  const values = value !== undefined ? value : internal;
+  const [values, setValues] = useControllableState<string[]>(value, defaultValue);
   const selectedOptions = useMemo(
     () => values.map((v) => options.find((o) => o.value === v)).filter((o): o is ComboboxOption => o != null),
     [options, values],
@@ -72,9 +71,7 @@ export function MultiCombobox({
   const { open, query, setQuery, highlighted, setHighlighted, filtered, firstEnabled } = core;
 
   const commit = (next: string[], changed: ComboboxOption | null) => {
-    if (value === undefined) {
-      setInternal(next);
-    }
+    setValues(next);
     onValueChange?.(next, changed);
   };
 

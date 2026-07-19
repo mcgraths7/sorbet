@@ -1,14 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useId,
-  useState,
-  type ComponentPropsWithRef,
-  type KeyboardEvent,
-} from "react";
+import { createContext, useContext, useId, type ComponentPropsWithRef, type KeyboardEvent } from "react";
 
-import { cx } from "../core/index.ts";
+import { cx, useControllableState } from "../core/index.ts";
 
 interface TabsContextValue {
   value: string;
@@ -38,16 +30,7 @@ export interface TabsProps extends Omit<ComponentPropsWithRef<"div">, "onChange"
 
 export function Tabs({ value, defaultValue, onValueChange, pills, className, children, ...rest }: TabsProps) {
   const baseId = useId();
-  const [internal, setInternal] = useState(defaultValue ?? "");
-  const selected = value ?? internal;
-
-  const setValue = useCallback(
-    (v: string) => {
-      setInternal(v);
-      onValueChange?.(v);
-    },
-    [onValueChange],
-  );
+  const [selected, setValue] = useControllableState(value, defaultValue ?? "", onValueChange);
 
   return (
     <div className={cx("sb-tabs", pills && "sb-tabs--pills", className)} {...rest}>

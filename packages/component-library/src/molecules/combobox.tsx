@@ -1,6 +1,6 @@
-import { Fragment, useId, useMemo, useState, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
+import { Fragment, useId, useMemo, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
 
-import { composeRefs, cx, type Size } from "../core/index.ts";
+import { composeRefs, cx, useControllableState, type Size } from "../core/index.ts";
 
 import { firstEnabledIn, useComboboxCore, type ComboboxFilter, type ComboboxOption } from "./combobox-core.ts";
 
@@ -64,8 +64,7 @@ export function Combobox({
   const listboxId = `${autoId}-listbox`;
   const optionId = (index: number) => `${autoId}-opt-${index}`;
 
-  const [internal, setInternal] = useState<string | null>(defaultValue);
-  const selectedValue = value !== undefined ? value : internal;
+  const [selectedValue, setSelectedValue] = useControllableState<string | null>(value, defaultValue ?? null);
   const selectedOption = useMemo(
     () => options.find((o) => o.value === selectedValue) ?? null,
     [options, selectedValue],
@@ -85,9 +84,7 @@ export function Combobox({
     if (option.disabled) {
       return;
     }
-    if (value === undefined) {
-      setInternal(option.value);
-    }
+    setSelectedValue(option.value);
     onValueChange?.(option.value, option);
     setQuery(null);
     core.closeList();
@@ -95,9 +92,7 @@ export function Combobox({
   };
 
   const clear = () => {
-    if (value === undefined) {
-      setInternal(null);
-    }
+    setSelectedValue(null);
     onValueChange?.(null, null);
     setQuery(null);
     core.inputRef.current?.focus();

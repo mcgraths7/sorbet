@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import { Select } from "../atoms/index.ts";
-import { composeRefs, cx, usePopover, type Size } from "../core/index.ts";
+import { composeRefs, cx, useControllableState, usePopover, type Size } from "../core/index.ts";
 
 import {
   addDays,
@@ -100,8 +100,7 @@ export function DatePicker({
   const dialogId = `${autoId}-calendar`;
   const titleId = `${autoId}-title`;
 
-  const [internal, setInternal] = useState(defaultValue);
-  const current = value !== undefined ? value : internal;
+  const [current, setCurrent] = useControllableState(value, defaultValue);
   const prevValue = useRef(current);
 
   const result = useMemo(() => validate(current, spec, minDate, maxDate), [current, spec, minDate, maxDate]);
@@ -110,9 +109,7 @@ export function DatePicker({
   const ariaInvalid = rest["aria-invalid"] ?? invalid ?? (badWhenComplete || undefined);
 
   const commit = (next: string) => {
-    if (value === undefined) {
-      setInternal(next);
-    }
+    setCurrent(next);
     prevValue.current = next;
     onValueChange?.(next, validate(next, spec, minDate, maxDate));
   };
