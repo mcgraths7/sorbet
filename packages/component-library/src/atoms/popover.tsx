@@ -2,7 +2,6 @@ import {
   cloneElement,
   useEffect,
   useId,
-  useState,
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement,
@@ -10,7 +9,7 @@ import {
   type Ref,
 } from "react";
 
-import { composeRefs, cx, usePopover } from "../core/index.ts";
+import { composeRefs, cx, useControllableState, usePopover } from "../core/index.ts";
 
 export interface PopoverProps {
   /** The trigger — must render a real focusable element (e.g. atoms' Button). */
@@ -49,14 +48,7 @@ export function Popover({
   ...aria
 }: PopoverProps) {
   const id = useId();
-  const [internal, setInternal] = useState(defaultOpen);
-  const open = openProp ?? internal;
-  const setOpen = (next: boolean) => {
-    if (openProp === undefined) {
-      setInternal(next);
-    }
-    onOpenChange?.(next);
-  };
+  const [open, setOpen] = useControllableState(openProp, defaultOpen, onOpenChange);
 
   const { anchorRef, panelRef, popoverProps } = usePopover<HTMLElement, HTMLDivElement>({
     open,

@@ -58,3 +58,6 @@ export {
   type UsePopoverOptions,
   type UsePopoverResult,
 } from "./use-popover.ts";
+
+// Controlled/uncontrolled state — the value/defaultValue/onChange trio.
+export { useControllableState } from "./use-controllable-state.ts";
