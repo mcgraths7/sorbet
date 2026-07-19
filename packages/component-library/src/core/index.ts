@@ -40,6 +40,16 @@ export function composeRefs<T>(...refs: Array<Ref<T> | undefined>): (node: T | n
   };
 }
 
+/** Chain event handlers into one — each runs in order, `undefined` skipped. Lets
+ *  a cloned trigger keep its own handler while we add ours. */
+export function chain<A extends unknown[]>(...fns: Array<((...args: A) => void) | undefined>): (...args: A) => void {
+  return (...args) => {
+    for (const fn of fns) {
+      fn?.(...args);
+    }
+  };
+}
+
 // Theming is a framework service, not a component layer — it lives here so
 // cherry-picked layer packages get dark mode without the umbrella.
 export {
