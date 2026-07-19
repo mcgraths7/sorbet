@@ -14,4 +14,5 @@ export { Skeleton, type SkeletonProps } from "./skeleton.tsx";
 export { Slider, type SliderProps } from "./slider.tsx";
 export { Fab, type FabProps } from "./fab.tsx";
 export { ColorInput, type ColorInputProps } from "./color-input.tsx";
+export { Popover, type PopoverProps } from "./popover.tsx";
 export { Tooltip, type TooltipProps } from "./tooltip.tsx";

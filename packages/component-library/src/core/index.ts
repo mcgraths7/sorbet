@@ -49,3 +49,12 @@ export {
   type ThemeMode,
   type ThemeProviderProps,
 } from "./theme.tsx";
+
+// Popover plumbing — shared by every top-layer flyout (atoms + molecules).
+export {
+  positionPopover,
+  usePopover,
+  type PopoverPlacement,
+  type UsePopoverOptions,
+  type UsePopoverResult,
+} from "./use-popover.ts";

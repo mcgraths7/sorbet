@@ -14,6 +14,7 @@ import {
   Fab,
   Input,
   Kbd,
+  Popover,
   Progress,
   Radio,
   Select,
@@ -795,6 +796,20 @@ export function App() {
                 <Button variant="secondary" onClick={() => setDrawerOpen(true)}>
                   Open drawer
                 </Button>
+                <Popover aria-label="Quick settings" trigger={<Button variant="outline">Popover ▾</Button>}>
+                  <Stack gap={3}>
+                    <strong>Quick settings</strong>
+                    <Field label="Project name">
+                      <Input defaultValue="Sorbet" size="sm" />
+                    </Field>
+                    <Choice>
+                      <Switch defaultChecked /> Public project
+                    </Choice>
+                    <Button size="sm" onClick={() => toast("Saved settings")}>
+                      Save
+                    </Button>
+                  </Stack>
+                </Popover>
               </Cluster>
             </Stack>
 

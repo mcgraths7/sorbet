@@ -12,10 +12,7 @@ import {
   type ToggleEvent,
 } from "react";
 
-import { composeRefs, cx } from "../core/index.ts";
-
-const GAP = 6;
-const EDGE = 8;
+import { composeRefs, cx, positionPopover } from "../core/index.ts";
 
 export interface MenuProps {
   /** The trigger element — must render a real <button> (e.g. atoms' Button). */
@@ -65,16 +62,7 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
     if (!isOpen || !panelRef.current || !triggerRef.current) {
       return;
     }
-    const panel = panelRef.current;
-    const r = triggerRef.current.getBoundingClientRect();
-    let left = alignEnd ? r.right - panel.offsetWidth : r.left;
-    left = Math.min(Math.max(left, EDGE), window.innerWidth - panel.offsetWidth - EDGE);
-    let top = r.bottom + GAP;
-    if (top + panel.offsetHeight > window.innerHeight - EDGE) {
-      top = Math.max(r.top - panel.offsetHeight - GAP, EDGE);
-    }
-    panel.style.left = `${left}px`;
-    panel.style.top = `${top}px`;
+    positionPopover(triggerRef.current, panelRef.current, { alignEnd });
     items()[0]?.focus();
   };
 
