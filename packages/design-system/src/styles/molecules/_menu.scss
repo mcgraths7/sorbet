@@ -4,40 +4,12 @@
 // <button data-sb="menu" popovertarget="m1">Options</button>
 // <div class="sb-menu" id="m1" popover>…</div>
 .sb-menu {
-  position: fixed;
-  inset: auto;
-  margin: 0;
+  @include popover-surface;
+
   min-inline-size: 12rem;
   padding: space(1);
-  border: token(border-width) solid clr(border-subtle);
-  border-radius: radius(md);
-  background-color: clr(surface-raised);
-  color: clr(text);
-  box-shadow: shadow(lg);
-  z-index: z(popover);
 
-  // Hidden resting state + transition live on the base rule so the animation
-  // runs in BOTH directions — a transition trapped in :popover-open vanishes
-  // the instant the popover closes, snapping it shut. display and overlay are
-  // discrete, so allow-discrete keeps the panel painted and in the top layer
-  // until the exit finishes.
-  opacity: 0;
-  scale: 0.96;
-  transition:
-    opacity dur(fast) ease(out),
-    scale dur(fast) ease(spring),
-    display dur(fast) allow-discrete,
-    overlay dur(fast) allow-discrete;
-
-  &:popover-open {
-    opacity: 1;
-    scale: 1;
-
-    @starting-style {
-      opacity: 0;
-      scale: 0.96;
-    }
-  }
+  @include flyout($hidden: 0.96);
 
   &__item {
     @include control-reset;

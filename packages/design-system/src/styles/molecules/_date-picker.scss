@@ -48,38 +48,12 @@
 
   // Popover calendar, anchored to the control by the component.
   &__panel {
-    position: fixed;
-    inset: auto;
-    margin: 0;
+    @include popover-surface;
+
     inline-size: max-content;
     padding: space(2);
-    border: token(border-width) solid clr(border-subtle);
-    border-radius: radius(md);
-    background-color: clr(surface-raised);
-    color: clr(text);
-    box-shadow: shadow(lg);
-    z-index: z(popover);
 
-    // Hidden resting state + transition on the base rule so the calendar
-    // animates both open and closed; display/overlay allow-discrete keep it
-    // painted and in the top layer through the exit.
-    opacity: 0;
-    scale: 0.98;
-    transition:
-      opacity dur(fast) ease(out),
-      scale dur(fast) ease(spring),
-      display dur(fast) allow-discrete,
-      overlay dur(fast) allow-discrete;
-
-    &:popover-open {
-      opacity: 1;
-      scale: 1;
-
-      @starting-style {
-        opacity: 0;
-        scale: 0.98;
-      }
-    }
+    @include flyout;
   }
 
   &__header {
