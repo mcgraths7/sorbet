@@ -108,3 +108,44 @@
     }
   }
 }
+
+/// Fixed anchored-panel chrome for the Popover-API surfaces (menu, pickers, the
+/// generic Popover). The component positions it (position:fixed, inset cleared);
+/// this is the shared shape + elevation.
+@mixin popover-surface {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  border: token(border-width) solid clr(border-subtle);
+  border-radius: radius(md);
+  background-color: clr(surface-raised);
+  color: clr(text);
+  box-shadow: shadow(lg);
+  z-index: z(popover);
+}
+
+/// Popover-API flyout: a hidden resting state + a transition on the BASE rule so
+/// it animates open AND closed (a transition trapped in :popover-open snaps shut
+/// on close); display + overlay use allow-discrete to stay painted and in the
+/// top layer through the exit. Vary the motion via the transform args — scale
+/// 0.98 → 1 by default, or e.g. `flyout($prop: translate, $hidden: 0 2px,
+/// $shown: 0 0, $ease: out)` for a slide.
+@mixin flyout($prop: scale, $hidden: 0.98, $shown: 1, $ease: spring, $dur: fast) {
+  opacity: 0;
+  #{$prop}: $hidden;
+  transition:
+    opacity dur($dur) ease(out),
+    #{$prop} dur($dur) ease($ease),
+    display dur($dur) allow-discrete,
+    overlay dur($dur) allow-discrete;
+
+  &:popover-open {
+    opacity: 1;
+    #{$prop}: $shown;
+
+    @starting-style {
+      opacity: 0;
+      #{$prop}: $hidden;
+    }
+  }
+}
