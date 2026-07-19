@@ -1,43 +1,47 @@
 @use "../abstracts" as *;
 
-// Color picker pair: a native <input type="color"> styled as a swatch,
-// beside a hex text input (the text input reuses .sb-input).
-//
-// <div class="sb-color-input">
-//   <input type="color" class="sb-color-input__swatch" aria-label="Pick color">
-//   <input type="text" class="sb-input sb-input--sm sb-color-input__hex" value="#e35789">
-// </div>
+// Translucent colors are painted over a checkerboard so alpha reads visibly.
+// The repeating-conic pattern (8px tile, a decorative literal, not a token)
+// recurs on the swatch, chips, and alpha track.
+
+// Color field: a swatch button that opens the picker popover, beside a hex
+// text input. Driven by the React ColorInput.
 .sb-color-input {
+  // Knobs set from the component via inline style (declared so they don't leak
+  // and to satisfy the token-safety lint).
+  --swatch: initial;
+  --hue: initial;
+  --thumb-x: initial;
+  --thumb-y: initial;
+  --thumb-ring: initial;
+  --alpha-color: initial;
+
   display: inline-flex;
-  align-items: center;
+  flex-direction: column;
   gap: space(2);
 
+  &__control {
+    display: inline-flex;
+    align-items: center;
+    gap: space(2);
+  }
+
   &__swatch {
-    appearance: none;
-    padding: 0;
+    @include focus-ring;
+
     inline-size: token(control-height-sm);
     block-size: token(control-height-sm);
     flex-shrink: 0;
+    padding: 0;
     border: token(border-width) solid clr(border);
     border-radius: radius(md);
-    background: none;
     cursor: pointer;
-
-    @include focus-ring;
-
-    &::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
-
-    &::-webkit-color-swatch {
-      border: none;
-      border-radius: calc(radius(md) - token(border-width));
-    }
-
-    &::-moz-color-swatch {
-      border: none;
-      border-radius: calc(radius(md) - token(border-width));
-    }
+    // The current color painted over the checkerboard, so alpha reads through.
+    background-color: clr(surface);
+    background-image:
+      linear-gradient(var(--swatch), var(--swatch)),
+      repeating-conic-gradient(clr(border-subtle) 0% 25%, transparent 0% 50%);
+    background-size: auto, 8px 8px;
 
     &:disabled {
       cursor: not-allowed;
@@ -49,5 +53,229 @@
     flex: 1;
     min-inline-size: 0;
     font-family: font(mono);
+  }
+
+  // ---- popover ------------------------------------------------------------
+  &__panel {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    inline-size: 15rem; // fits the square + fields; component-specific width
+    padding: space(3);
+    display: flex;
+    flex-direction: column;
+    gap: space(3);
+    border: token(border-width) solid clr(border-subtle);
+    border-radius: radius(md);
+    background-color: clr(surface-raised);
+    color: clr(text);
+    box-shadow: shadow(lg);
+    z-index: z(popover);
+
+    // Flyout animation shared with the other popovers (hidden state +
+    // transition on the base rule so it runs on close too).
+    opacity: 0;
+    scale: 0.98;
+    transition:
+      opacity dur(fast) ease(out),
+      scale dur(fast) ease(spring),
+      display dur(fast) allow-discrete,
+      overlay dur(fast) allow-discrete;
+
+    &:popover-open {
+      opacity: 1;
+      scale: 1;
+
+      @starting-style {
+        opacity: 0;
+        scale: 0.98;
+      }
+    }
+  }
+
+  // ---- saturation / brightness square -------------------------------------
+  &__area {
+    @include focus-ring(2);
+
+    position: relative;
+    block-size: 9rem; // picker-specific control size
+    border-radius: radius(sm);
+    cursor: crosshair;
+    touch-action: none;
+    // White→hue across x (saturation), transparent→black down y (brightness).
+    background:
+      linear-gradient(to top, #000, transparent),
+      linear-gradient(to right, #fff, transparent),
+      var(--hue, #f00);
+  }
+
+  &__area-thumb {
+    position: absolute;
+    inset-inline-start: var(--thumb-x, 0%);
+    inset-block-start: var(--thumb-y, 0%);
+    inline-size: 0.85rem;
+    block-size: 0.85rem;
+    translate: -50% -50%;
+    border-radius: radius(full);
+    border: 2px solid var(--thumb-ring, #fff);
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
+    pointer-events: none;
+  }
+
+  // ---- hue + alpha sliders -------------------------------------------------
+  &__sliders {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+  }
+
+  &__tracks {
+    flex: 1;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: space(2);
+  }
+
+  &__hue,
+  &__alpha {
+    @include focus-ring(2);
+
+    appearance: none;
+    inline-size: 100%;
+    block-size: 0.85rem;
+    border-radius: radius(full);
+    border: token(border-width) solid clr(border-subtle);
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+      inline-size: 1rem;
+      block-size: 1rem;
+      border-radius: radius(full);
+      background: clr(surface);
+      border: 2px solid clr(text);
+      box-shadow: shadow(sm);
+    }
+
+    &::-moz-range-thumb {
+      inline-size: 1rem;
+      block-size: 1rem;
+      border-radius: radius(full);
+      background: clr(surface);
+      border: 2px solid clr(text);
+      box-shadow: shadow(sm);
+    }
+  }
+
+  &__hue {
+    background: linear-gradient(
+      to right,
+      #f00 0%,
+      #ff0 17%,
+      #0f0 33%,
+      #0ff 50%,
+      #00f 67%,
+      #f0f 83%,
+      #f00 100%
+    );
+  }
+
+  &__alpha {
+    background-color: clr(surface);
+    background-image:
+      linear-gradient(to right, transparent, var(--alpha-color, #000)),
+      repeating-conic-gradient(clr(border-subtle) 0% 25%, transparent 0% 50%);
+    background-size: auto, 8px 8px;
+  }
+
+  &__eyedropper {
+    @include control-reset;
+    @include focus-ring(0);
+
+    display: grid;
+    place-content: center;
+    inline-size: token(control-height-sm);
+    block-size: token(control-height-sm);
+    flex-shrink: 0;
+    border: token(border-width) solid clr(border-strong);
+    border-radius: radius(sm);
+    color: clr(text-subtle);
+
+    > svg {
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+
+    &:hover {
+      color: clr(text);
+      background-color: clr(bg-subtle);
+    }
+  }
+
+  // ---- numeric fields ------------------------------------------------------
+  &__fields {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) 1.7fr;
+    gap: space(2);
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: space(1);
+    min-inline-size: 0;
+
+    input {
+      text-align: center;
+      font-family: font(mono);
+      padding-inline: space(1);
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+    }
+
+    &--hex input {
+      text-align: start;
+      padding-inline: space(2);
+    }
+  }
+
+  &__field-label {
+    font-size: fs(xs);
+    font-weight: fw(medium);
+    color: clr(text-subtle);
+    text-align: center;
+  }
+
+  // ---- swatches ------------------------------------------------------------
+  &__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: space(1);
+  }
+
+  &__swatch-chip {
+    @include focus-ring(1);
+
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    padding: 0;
+    border: token(border-width) solid clr(border);
+    border-radius: radius(sm);
+    cursor: pointer;
+    background-color: clr(surface);
+    background-image:
+      linear-gradient(var(--swatch), var(--swatch)),
+      repeating-conic-gradient(clr(border-subtle) 0% 25%, transparent 0% 50%);
+    background-size: auto, 8px 8px;
+
+    &[aria-pressed="true"] {
+      outline: 2px solid clr(focus-ring);
+      outline-offset: 1px;
+    }
   }
 }

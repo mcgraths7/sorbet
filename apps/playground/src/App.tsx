@@ -9,6 +9,7 @@ import {
   Checkbox,
   Chip,
   Choice,
+  ColorInput,
   Divider,
   Fab,
   Input,
@@ -497,6 +498,9 @@ export function App() {
                       </Select>
                     </Field>
                     <DatePickerDemo />
+                    <Field label="Brand color" hint="Click the swatch — SV square, hue/opacity, RGB, eyedropper.">
+                      <ColorInput defaultValue="#e35789" alpha />
+                    </Field>
                     <Field label="Assignee" hint="Combobox — type to filter, arrows to navigate.">
                       <Combobox options={ASSIGNEES} placeholder="Search people…" name="assignee" />
                     </Field>
