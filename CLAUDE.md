@@ -96,6 +96,15 @@ refactor is the template: `positionPopover` + `usePopover` were lifted into
   so don't swap a `.sb-card__body` for a `<Stack>`. Do prefer a real semantic
   element over `role`-on-`div` when one exists (`<ul>`/`<li>` for a legend).
 
+## Pre-1.0: reshape freely, don't force sharing
+
+Before 1.0 nothing here is frozen — components and these rules are all mutable
+when a better pattern emerges, so prefer reshaping over duplicating. When two
+close components can't share as-is, first try WIDENING the shared unit: give a
+mixin a parameter, a component a prop, or a helper an option so both use it
+neatly. But don't force it — if making two things share takes real contortions,
+they're distinct enough to keep their own code.
+
 ## Conventions
 
 - Layout owns ALL spacing; atoms/molecules have zero margins.
