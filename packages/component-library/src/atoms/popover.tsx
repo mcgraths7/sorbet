@@ -9,7 +9,7 @@ import {
   type Ref,
 } from "react";
 
-import { composeRefs, cx, useControllableState, usePopover } from "../core/index.ts";
+import { chain, composeRefs, cx, useControllableState, usePopover } from "../core/index.ts";
 
 export interface PopoverProps {
   /** The trigger — must render a real focusable element (e.g. atoms' Button). */
@@ -76,10 +76,7 @@ export function Popover({
         ref: composeRefs<HTMLElement>(trigger.props.ref, anchorRef),
         "aria-haspopup": "dialog",
         "aria-expanded": open,
-        onClick: (event: MouseEvent<HTMLElement>) => {
-          trigger.props.onClick?.(event);
-          setOpen(!open);
-        },
+        onClick: chain(trigger.props.onClick, () => setOpen(!open)),
       })}
       <div
         id={id}

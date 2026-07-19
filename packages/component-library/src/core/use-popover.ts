@@ -15,6 +15,10 @@ const EDGE = 8;
 export interface PopoverPlacement {
   /** Align the panel's inline-end to the trigger's (default: inline-start). */
   alignEnd?: boolean;
+  /** Center the panel horizontally on the trigger (wins over alignEnd). */
+  center?: boolean;
+  /** Prefer placing above the trigger, flipping below when tight (default: below). */
+  above?: boolean;
   /** Set the panel's min width to the trigger width (combobox-style). */
   matchWidth?: boolean;
   /** With matchWidth, cap max width at max(triggerWidth, widthFloor). */
@@ -26,8 +30,9 @@ export interface PopoverPlacement {
 }
 
 /**
- * Place a fixed-position `panel` just under `anchor`, flipping above when there
- * isn't room below, and clamp it inside the viewport.
+ * Place a fixed-position `panel` next to `anchor` — below by default (or above
+ * with `above`), flipping to the other side when there isn't room, and clamp it
+ * inside the viewport.
  */
 export function positionPopover(anchor: HTMLElement, panel: HTMLElement, opts: PopoverPlacement = {}): void {
   const gap = opts.gap ?? GAP;
@@ -41,11 +46,19 @@ export function positionPopover(anchor: HTMLElement, panel: HTMLElement, opts: P
   }
   const w = panel.offsetWidth;
   const h = panel.offsetHeight;
-  let left = opts.alignEnd ? r.right - w : r.left;
+  let left = opts.center ? r.left + r.width / 2 - w / 2 : opts.alignEnd ? r.right - w : r.left;
   left = Math.min(Math.max(left, edge), Math.max(edge, window.innerWidth - w - edge));
-  let top = r.bottom + gap;
-  if (top + h > window.innerHeight - edge) {
-    top = Math.max(r.top - h - gap, edge);
+  let top: number;
+  if (opts.above) {
+    top = r.top - h - gap;
+    if (top < edge) {
+      top = r.bottom + gap; // flip below
+    }
+  } else {
+    top = r.bottom + gap;
+    if (top + h > window.innerHeight - edge) {
+      top = Math.max(r.top - h - gap, edge); // flip above
+    }
   }
   panel.style.left = `${left}px`;
   panel.style.top = `${top}px`;
