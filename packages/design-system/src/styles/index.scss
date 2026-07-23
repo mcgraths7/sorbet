@@ -56,6 +56,8 @@
   @include meta.load-css("molecules/combobox");
   @include meta.load-css("molecules/dropzone");
   @include meta.load-css("molecules/date-picker");
+  @include meta.load-css("molecules/calendar");
+  @include meta.load-css("molecules/date-range");
   @include meta.load-css("molecules/card");
   @include meta.load-css("molecules/alert");
   @include meta.load-css("molecules/menu");

@@ -51,6 +51,8 @@ import {
   CardTitle,
   Combobox,
   DatePicker,
+  DateRange,
+  type DateRangeValidation,
   type DateValidation,
   Dropzone,
   EmptyState,
@@ -499,6 +501,7 @@ export function App() {
                       </Select>
                     </Field>
                     <DatePickerDemo />
+                    <DateRangeDemo />
                     <Field label="Brand color" hint="Click the swatch — SV square, hue/opacity, RGB, eyedropper.">
                       <ColorInput defaultValue="#e35789" alpha />
                     </Field>
@@ -936,7 +939,27 @@ function DatePickerDemo() {
           : { hint: `Looks good — ${result.date?.toLocaleDateString(undefined, { dateStyle: "full" })}.` };
   return (
     <Field label="Birthday" hint={status.hint} error={status.error} invalid={Boolean(status.error)}>
-      <DatePicker format="mm/dd/yyyy" name="birthday" onValueChange={(_, r) => setResult(r)} />
+      <DatePicker format="mm/dd/yyyy" name="birthday" disableFuture onValueChange={(_, r) => setResult(r)} />
+    </Field>
+  );
+}
+
+/** DateRange with live status — pick a start day then an end day (or type into
+ *  either input), no dates in the past, at least one night. */
+function DateRangeDemo() {
+  const [result, setResult] = useState<DateRangeValidation | null>(null);
+  const status: { hint?: string; error?: string } = !result || !result.complete
+    ? { hint: "Click a start day, then an end day — or type into either box." }
+    : !result.start.valid || !result.end.valid
+      ? { error: "One of those isn't a real calendar date." }
+      : !result.ordered
+        ? { error: "The start date must come before the end date." }
+        : !result.spanOk
+          ? { error: "The trip must be at least one night." }
+          : { hint: `${result.nights} night${result.nights === 1 ? "" : "s"} booked.` };
+  return (
+    <Field label="Trip dates" hint={status.hint} error={status.error} invalid={Boolean(status.error)}>
+      <DateRange format="mm/dd/yyyy" name="trip" disablePast minNights={1} onValueChange={(_, r) => setResult(r)} />
     </Field>
   );
 }

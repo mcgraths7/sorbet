@@ -1,0 +1,91 @@
+@use "../abstracts" as *;
+
+// Start/end date field: a bordered frame holding two bare masked inputs, a
+// separator, and the calendar trigger. The calendar popover itself is the
+// shared `.sb-calendar` (see _calendar.scss). Driven by the React DateRange —
+// focus rides :focus-within since the frame is never focused directly.
+.sb-date-range {
+  position: relative;
+
+  &__control {
+    display: flex;
+    align-items: center;
+    gap: space(1);
+    padding-inline: space(3) space(1);
+    min-block-size: token(control-height-md);
+    border: token(border-width) solid clr(border-strong);
+    border-radius: radius(sm);
+    background-color: clr(surface);
+    transition: border-color dur(fast) ease(out), box-shadow dur(fast) ease(out);
+
+    &:focus-within {
+      border-color: clr(focus-ring);
+      box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(focus-ring), transparent 70%);
+    }
+
+    &[data-invalid] {
+      border-color: clr(danger);
+
+      &:focus-within {
+        border-color: clr(danger);
+        box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(danger), transparent 70%);
+      }
+    }
+  }
+
+  &__input {
+    flex: 1;
+    min-inline-size: 0;
+    padding-block: space(2);
+    border: none;
+    background: none;
+    outline: none;
+    font: inherit;
+    color: clr(text);
+
+    &::placeholder {
+      color: clr(text-subtle);
+    }
+
+    &--sm {
+      padding-block: space(1);
+    }
+
+    &--lg {
+      padding-block: space(3);
+    }
+  }
+
+  &__sep {
+    flex-shrink: 0;
+    color: clr(text-subtle);
+  }
+
+  &__trigger {
+    @include control-reset;
+    @include focus-ring(0);
+
+    display: grid;
+    place-content: center;
+    flex-shrink: 0;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: radius(sm);
+    color: clr(text-subtle);
+
+    > svg {
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+
+    &:hover:not(:disabled) {
+      color: clr(text);
+      background-color: clr(bg-subtle);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+  }
+}
