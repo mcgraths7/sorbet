@@ -82,13 +82,18 @@ refactor is the template: `positionPopover` + `usePopover` were lifted into
 `core/` and now back the menu, the pickers, and the generic Popover atom.
 
 - Shared TS lives in `core/`: `usePopover`/`positionPopover` (anchored-panel
-  lifecycle + placement), `composeRefs`, `cx`, `PolymorphicProps` (the `as`
-  prop), `ThemeProvider`/`useTheme`. Combobox machinery is
-  `molecules/combobox-core.ts` (`useComboboxCore`); chart series color resolves
-  through `charts/shell.tsx`. Put a new cross-layer hook/util in `core/`.
+  lifecycle + placement), `useControllableState` (the value/defaultValue/onChange
+  trio), `chain` (compose event handlers), `rovingIndex` (arrow/Home/End list
+  nav), `composeRefs`, `cx`, `PolymorphicProps` (the `as` prop),
+  `ThemeProvider`/`useTheme`. Molecule-level machinery:
+  `molecules/combobox-core.ts` (`useComboboxCore`) and `molecules/calendar.tsx`
+  (`useCalendar` + `CalendarView`, shared by DatePicker + DateRange); chart
+  series color resolves through `charts/shell.tsx`. Put a new cross-layer
+  hook/util in `core/`.
 - Shared Sass lives in `abstracts/_mixins.scss`: `focus-ring`, `elevate`,
-  `pressable`, `truncate`, `control-reset`, `visually-hidden`, `respond`. A
-  repeated animation/surface block (e.g. the popover flyout) belongs here as a
+  `pressable`, `truncate`, `control-reset`, `visually-hidden`, `respond`,
+  `flyout` (the popover open/close animation), `popover-surface` (the
+  anchored-panel chrome). A repeated animation/surface block belongs here as a
   mixin, not copy-pasted per partial.
 - Layout primitives (`Stack`/`Cluster`/`Grid`/`Split`/…) are for COMPOSING
   layouts (organisms, templates, consumers). Atom/molecule internals stay BEM
