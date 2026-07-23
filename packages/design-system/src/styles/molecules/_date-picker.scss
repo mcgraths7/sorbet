@@ -1,8 +1,8 @@
 @use "../abstracts" as *;
 
-// Date field (.sb-input) with a trailing calendar trigger and a popover
-// calendar. Driven by the React DatePicker — the input holds the typed/masked
-// value; the calendar is a Popover API dialog anchored to the control.
+// Date field (.sb-input) with a trailing calendar trigger. Driven by the React
+// DatePicker — the input holds the typed/masked value; the calendar popover
+// itself is the shared `.sb-calendar` (see _calendar.scss).
 .sb-date-picker {
   position: relative;
 
@@ -43,132 +43,6 @@
     &:disabled {
       cursor: not-allowed;
       opacity: 0.55;
-    }
-  }
-
-  // Popover calendar, anchored to the control by the component.
-  &__panel {
-    @include popover-surface;
-
-    inline-size: max-content;
-    padding: space(2);
-
-    @include flyout;
-  }
-
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: space(1);
-    margin-block-end: space(2);
-  }
-
-  // Month + year selects, centered between the step arrows.
-  &__period {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    gap: space(1);
-    min-inline-size: 0;
-  }
-
-  &__nav {
-    @include control-reset;
-    @include focus-ring(0);
-
-    display: grid;
-    place-content: center;
-    inline-size: token(control-height-sm);
-    block-size: token(control-height-sm);
-    border-radius: radius(sm);
-    color: clr(text-subtle);
-
-    &:hover {
-      color: clr(text);
-      background-color: clr(bg-subtle);
-    }
-  }
-
-  &__arrow {
-    inline-size: 0.5em;
-    block-size: 0.5em;
-    border-inline-start: 2px solid currentColor;
-    border-block-start: 2px solid currentColor;
-
-    &--prev {
-      rotate: -45deg;
-      translate: 15% 0;
-    }
-
-    &--next {
-      rotate: 135deg;
-      translate: -15% 0;
-    }
-  }
-
-  &__grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: space(1);
-  }
-
-  &__week {
-    display: grid;
-    grid-template-columns: repeat(7, token(control-height-sm));
-    gap: space(1);
-  }
-
-  &__weekday {
-    display: grid;
-    place-content: center;
-    block-size: token(control-height-sm);
-    font-size: fs(xs);
-    font-weight: fw(semibold);
-    color: clr(text-subtle);
-    text-decoration: none;
-    cursor: default;
-  }
-
-  &__day {
-    @include control-reset;
-    @include focus-ring(0);
-
-    display: grid;
-    place-content: center;
-    block-size: token(control-height-sm);
-    border-radius: radius(sm);
-    font-size: fs(sm);
-    color: clr(text);
-    cursor: pointer;
-
-    &:hover:not([aria-disabled="true"]) {
-      background-color: clr(bg-subtle);
-    }
-
-    &[data-outside] {
-      color: clr(text-subtle);
-    }
-
-    &[data-today] {
-      font-weight: fw(bold);
-      box-shadow: inset 0 0 0 token(border-width) clr(border-strong);
-    }
-
-    &[aria-selected="true"] {
-      background-color: clr(primary);
-      color: clr(on-primary);
-      font-weight: fw(semibold);
-
-      &:hover {
-        background-color: clr(primary-hover);
-      }
-    }
-
-    &[aria-disabled="true"] {
-      color: clr(text-subtle);
-      opacity: 0.4;
-      cursor: not-allowed;
     }
   }
 }

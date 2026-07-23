@@ -204,6 +204,79 @@ export function validate(
   return { empty, complete, valid, inRange, date, parts };
 }
 
+export interface RangeSpanBounds {
+  /** Fewest nights the range may span (end − start). */
+  minNights?: number;
+  /** Most nights the range may span. */
+  maxNights?: number;
+}
+
+export interface DateRangeValidation {
+  /** Per-end checks (valid, inRange, complete, …), each from `validate`. */
+  start: DateValidation;
+  end: DateValidation;
+  /** Nights between the ends (end − start in days), or null until both parse. */
+  nights: number | null;
+  /** start ≤ end. */
+  ordered: boolean;
+  /** Nights within [minNights, maxNights], when those bounds are set. */
+  spanOk: boolean;
+  /** Both ends fully typed. */
+  complete: boolean;
+  /** Both parse, both reasonable, ordered, and the span is allowed. */
+  valid: boolean;
+}
+
+/**
+ * The simple checks over a start/end pair: each end runs through `validate`,
+ * plus ordering (start ≤ end) and an optional span in nights. Mirrors the
+ * single-date `validate` — a couple of comparisons, no schema framework.
+ */
+export function validateRange(
+  start: string,
+  end: string,
+  spec: DateFormatSpec,
+  min: Date | null,
+  max: Date | null,
+  bounds: RangeSpanBounds = {},
+): DateRangeValidation {
+  const s = validate(start, spec, min, max);
+  const e = validate(end, spec, min, max);
+  const nights =
+    s.date && e.date
+      ? Math.round((startOfDay(e.date).getTime() - startOfDay(s.date).getTime()) / 86_400_000)
+      : null;
+  const ordered = nights == null || nights >= 0;
+  const spanOk =
+    nights == null || nights < 0
+      ? true
+      : (bounds.minNights == null || nights >= bounds.minNights) &&
+        (bounds.maxNights == null || nights <= bounds.maxNights);
+  const complete = s.complete && e.complete;
+  const valid = s.valid && e.valid && s.inRange && e.inRange && ordered && spanOk;
+  return { start: s, end: e, nights, ordered, spanOk, complete, valid };
+}
+
+/** Coerce the min/max props to Dates, then apply the `disablePast`/
+ *  `disableFuture` shortcuts by clamping the bounds to today. */
+export function resolveBounds(
+  min: string | Date,
+  max: string | Date,
+  spec: DateFormatSpec,
+  opts: { disablePast?: boolean; disableFuture?: boolean } = {},
+): { min: Date | null; max: Date | null } {
+  const today = startOfDay(new Date());
+  let lo = coerceDate(min, spec);
+  let hi = coerceDate(max, spec);
+  if (opts.disablePast) {
+    lo = lo && lo > today ? lo : today;
+  }
+  if (opts.disableFuture) {
+    hi = hi && hi < today ? hi : today;
+  }
+  return { min: lo, max: hi };
+}
+
 /** Render a Date back into the format's string form. */
 export function formatDate(date: Date, spec: DateFormatSpec): string {
   const full: Record<DatePart, string> = {
