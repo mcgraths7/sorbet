@@ -10,9 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { composeRefs } from "../core/index.ts";
-
-const GAP = 8;
+import { chain, composeRefs, positionPopover } from "../core/index.ts";
 
 export interface TooltipProps {
   content: string;
@@ -47,15 +45,7 @@ export function Tooltip({ content, children }: TooltipProps) {
       return;
     }
     tip.showPopover();
-    const r = anchor.getBoundingClientRect();
-    let left = r.left + r.width / 2 - tip.offsetWidth / 2;
-    left = Math.min(Math.max(left, GAP), window.innerWidth - tip.offsetWidth - GAP);
-    let top = r.top - tip.offsetHeight - GAP;
-    if (top < GAP) {
-      top = r.bottom + GAP;
-    }
-    tip.style.left = `${left}px`;
-    tip.style.top = `${top}px`;
+    positionPopover(anchor, tip, { center: true, above: true, gap: 8 });
     return () => tip.hidePopover();
   }, [open]);
 
@@ -65,28 +55,15 @@ export function Tooltip({ content, children }: TooltipProps) {
       {cloneElement(child, {
         ref: composeRefs<HTMLElement>(child.props.ref, anchorRef),
         "aria-describedby": open ? id : undefined,
-        onMouseEnter: (e) => {
-          child.props.onMouseEnter?.(e);
-          show();
-        },
-        onMouseLeave: (e) => {
-          child.props.onMouseLeave?.(e);
-          hide();
-        },
-        onFocus: (e) => {
-          child.props.onFocus?.(e);
-          show();
-        },
-        onBlur: (e) => {
-          child.props.onBlur?.(e);
-          hide();
-        },
-        onKeyDown: (e) => {
-          child.props.onKeyDown?.(e);
+        onMouseEnter: chain(child.props.onMouseEnter, show),
+        onMouseLeave: chain(child.props.onMouseLeave, hide),
+        onFocus: chain(child.props.onFocus, show),
+        onBlur: chain(child.props.onBlur, hide),
+        onKeyDown: chain(child.props.onKeyDown, (e: React.KeyboardEvent) => {
           if (e.key === "Escape") {
             hide();
           }
-        },
+        }),
       })}
       {open &&
         createPortal(

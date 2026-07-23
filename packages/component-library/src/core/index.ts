@@ -40,6 +40,48 @@ export function composeRefs<T>(...refs: Array<Ref<T> | undefined>): (node: T | n
   };
 }
 
+/** Chain event handlers into one — each runs in order, `undefined` skipped. Lets
+ *  a cloned trigger keep its own handler while we add ours. */
+export function chain<A extends unknown[]>(...fns: Array<((...args: A) => void) | undefined>): (...args: A) => void {
+  return (...args) => {
+    for (const fn of fns) {
+      fn?.(...args);
+    }
+  };
+}
+
+/**
+ * Next index for roving-focus keyboard nav over a list: Arrow keys (wrapping at
+ * the ends), Home, End. Returns `null` when `key` isn't a navigation key so the
+ * caller can ignore it. `orientation` gates which arrows move — "vertical" =
+ * Up/Down, "horizontal" = Left/Right, "both" = all four.
+ */
+export function rovingIndex(
+  key: string,
+  current: number,
+  length: number,
+  orientation: "vertical" | "horizontal" | "both" = "both",
+): number | null {
+  if (length === 0) {
+    return null;
+  }
+  const vertical = orientation !== "horizontal";
+  const horizontal = orientation !== "vertical";
+  if ((vertical && key === "ArrowDown") || (horizontal && key === "ArrowRight")) {
+    return (current + 1) % length;
+  }
+  if ((vertical && key === "ArrowUp") || (horizontal && key === "ArrowLeft")) {
+    return current <= 0 ? length - 1 : current - 1;
+  }
+  if (key === "Home") {
+    return 0;
+  }
+  if (key === "End") {
+    return length - 1;
+  }
+  return null;
+}
+
 // Theming is a framework service, not a component layer — it lives here so
 // cherry-picked layer packages get dark mode without the umbrella.
 export {
