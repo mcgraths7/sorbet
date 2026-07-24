@@ -22,6 +22,7 @@ export {
 } from "./text.tsx";
 export { Label, type LabelProps } from "./label.tsx";
 export { Input, Textarea, type InputProps, type TextareaProps } from "./input.tsx";
+export { NumberInput, type NumberInputProps } from "./number-input.tsx";
 export { Select, type SelectProps } from "./select.tsx";
 export { Checkbox, Choice, Radio, Switch, type CheckboxProps, type SwitchProps } from "./choice.tsx";
 export { Skeleton, type SkeletonProps } from "./skeleton.tsx";
