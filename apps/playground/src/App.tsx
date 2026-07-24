@@ -102,6 +102,7 @@ import {
   SidebarHeading,
   SidebarItem,
   TokenStudio,
+  useConfirm,
   type Column,
 } from "@sorbet/component-library/organisms";
 import { AppShell, AppShellHeader, AppShellMain, AppShellSidebar } from "@sorbet/component-library/templates";
@@ -281,6 +282,7 @@ function ModeSwitch() {
 
 export function App() {
   const toast = useToast();
+  const confirm = useConfirm();
   const theme = useTheme();
   const [preset, setPreset] = useState(() => localStorage.getItem("playground-preset") ?? "sorbet");
   const [studioOpen, setStudioOpen] = useState(false);
@@ -767,6 +769,20 @@ export function App() {
                 </Button>
                 <Button variant="soft" onClick={() => toast("I stay until dismissed.", { title: "Sticky", tone: "info", duration: 0 })}>
                   Sticky toast
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={async() => {
+                    const ok = await confirm({
+                      title: "Delete account?",
+                      description: "This permanently removes your account and all its data. This can't be undone.",
+                      confirmLabel: "Delete account",
+                      tone: "danger",
+                    });
+                    toast(ok ? "Account deleted." : "Cancelled — nothing was removed.", { tone: ok ? "danger" : "info" });
+                  }}
+                >
+                  Delete account…
                 </Button>
               </Cluster>
 

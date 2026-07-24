@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@sorbet/component-library/core";
 import { ToastProvider } from "@sorbet/component-library/molecules";
+import { ConfirmProvider } from "@sorbet/component-library/organisms";
 import "@sorbet/design-system/css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -16,7 +17,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <ToastProvider>
-        <App />
+        <ConfirmProvider>
+          <App />
+        </ConfirmProvider>
       </ToastProvider>
     </ThemeProvider>
   </StrictMode>,
