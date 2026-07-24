@@ -20,14 +20,15 @@ npm run playground       # React kitchen sink (Vite, port 5183)
 3. [Monorepo at a glance](#monorepo-at-a-glance)
 4. [Using Sorbet in a React app](#using-sorbet-in-a-react-app)
 5. [Using Sorbet without a framework](#using-sorbet-without-a-framework)
-6. [Design tokens](#design-tokens)
-7. [Theming: presets & dark mode](#theming-presets--dark-mode)
-8. [The accessibility contract](#the-accessibility-contract)
-9. [Atomic design: how to put components together](#atomic-design-how-to-put-components-together)
-10. [Recipes](#recipes)
-11. [The CLI](#the-cli)
-12. [Extending the system](#extending-the-system)
-13. [Component catalog](#component-catalog)
+6. [Implementation: managing state](#implementation-managing-state)
+7. [Design tokens](#design-tokens)
+8. [Theming: presets & dark mode](#theming-presets--dark-mode)
+9. [The accessibility contract](#the-accessibility-contract)
+10. [Atomic design: how to put components together](#atomic-design-how-to-put-components-together)
+11. [Recipes](#recipes)
+12. [The CLI](#the-cli)
+13. [Extending the system](#extending-the-system)
+14. [Component catalog](#component-catalog)
 
 ---
 
@@ -162,6 +163,138 @@ Everything works with plain HTML classes plus the optional behavior layer:
 
 The class-level markup contracts are documented in the Sass partials and
 showcased in [demo/index.html](demo/index.html).
+
+## Implementation: managing state
+
+Sorbet is **state-agnostic by construction**. A component never reaches into a
+global store and holds no state you can't reach — so instead of *syncing* a
+component's internal state with Redux or Context, you **lift** it: your store
+becomes the component's state, and there's nothing internal left to reconcile.
+It's plain "props down, events up," which is exactly why the same components
+drop into Redux, Zustand, Jotai, Context, URL state, or a form library with no
+adapters.
+
+### The one pattern to learn
+
+Every stateful component exposes the same three-prop seam:
+
+```tsx
+value?: T | null                    // controlled — your code is the source of truth
+defaultValue?: T                    // uncontrolled — the component owns it, seeded once
+onValueChange?: (value: T) => void  // fires on every change, either way
+```
+
+Overlays name the same idea `open` / `onOpenChange` (or `onClose` on
+`Modal`/`Drawer`) for a boolean. Under the hood it's one shared hook,
+`useControllableState`, whose contract is worth internalizing:
+
+- Pass **no** `value` (it's `undefined`) → **uncontrolled**. The component keeps
+  the state; you observe it through `onValueChange`, or — for form inputs — via
+  native form submission.
+- Pass a `value`, **including `null`** → **controlled**. The component renders
+  exactly what you give it and owns nothing. (`null` counts as controlled on
+  purpose, so an externally-driven "cleared" value works.)
+
+Uncontrolled is the quick path; controlled is how you hand ownership to a store.
+
+### Driving a component from Redux
+
+Make the component a pure projection of your slice, and dispatch from
+`onValueChange`:
+
+```tsx
+function AssigneeField() {
+  const value = useSelector((s) => s.issue.assignee);
+  const dispatch = useDispatch();
+  return (
+    <Combobox
+      options={ASSIGNEES}
+      value={value}                                        // store → component
+      onValueChange={(v) => dispatch(assigneeChanged(v))}  // component → store
+    />
+  );
+}
+```
+
+Overlays wire up the same way with `open` / `onOpenChange`:
+
+```tsx
+<AlertDialog
+  open={useSelector((s) => s.ui.deleteConfirmOpen)}
+  onOpenChange={(open) => dispatch(deleteConfirmToggled(open))}
+  title="Delete project?"
+  tone="danger"
+/>
+```
+
+### Driving it from Context
+
+Identical shape — the "dispatch" is just your context's setter:
+
+```tsx
+function AssigneeField() {
+  const { assignee, setAssignee } = useContext(FormContext);
+  return <Combobox options={ASSIGNEES} value={assignee} onValueChange={setAssignee} />;
+}
+```
+
+### Middle ground: own the state, but observe it
+
+`onValueChange` fires **even when the component is uncontrolled**. So you can let
+the component keep its own state (fewer re-renders, less wiring) and still mirror
+every change into your store — handy for autosave, analytics, or a derived
+cache:
+
+```tsx
+<NumberInput
+  defaultValue={1}
+  min={1}
+  max={99}
+  onValueChange={(qty) => dispatch(quantityObserved(qty))}
+/>
+```
+
+### The exception: provider services
+
+Three pieces of Sorbet are stateful React contexts of their own rather than form
+values — `ThemeProvider`/`useTheme`, `ToastProvider`/`useToast`, and
+`ConfirmProvider`/`useConfirm`. They don't take `value`/`onValueChange`:
+
+- **`useToast()` and `useConfirm()` are imperative** — you call `toast("Saved")`
+  or `await confirm({ … })` straight from an event handler or thunk. There's no
+  state to reconcile.
+- **`useTheme()` owns mode + persistence.** If you'd rather your store own the
+  theme, bridge the two with effects:
+
+```tsx
+function ThemeBridge() {
+  const dispatch = useDispatch();
+  const { resolved, set } = useTheme();
+  const storeMode = useSelector((s) => s.prefs.theme);
+  useEffect(() => set(storeMode), [storeMode, set]);                   // store → theme
+  useEffect(() => { dispatch(themeResolved(resolved)); }, [resolved]); // theme → store
+  return null;
+}
+```
+
+### Form libraries work out of the box
+
+Because the atoms forward `ref` and `name` over native inputs, they slot into
+form libraries with no special support. With React Hook Form, map `field` onto
+the same seam through `<Controller>`:
+
+```tsx
+<Controller
+  control={control}
+  name="quantity"
+  render={({ field }) => (
+    <NumberInput value={field.value} onValueChange={field.onChange} min={1} max={99} />
+  )}
+/>
+```
+
+TanStack Form maps the same way, and a plain `<form>` + `FormData` reads the
+atoms' `name`/`value` with no library at all.
 
 ## Design tokens
 
