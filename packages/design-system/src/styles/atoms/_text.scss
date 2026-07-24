@@ -1,0 +1,87 @@
+@use "../abstracts" as *;
+
+// Typed text primitives (React Text + Heading). Consumer-facing typography;
+// component internals keep their own BEM parts. Prose/Lead/Overline reuse the
+// classes defined in base/_typography.scss.
+.sb-text {
+  line-height: lh(normal);
+
+  &--xs {
+    font-size: fs(xs);
+  }
+
+  &--sm {
+    font-size: fs(sm);
+  }
+
+  &--lg {
+    font-size: fs(lg);
+  }
+
+  &--xl {
+    font-size: fs(xl);
+  }
+
+  &--muted {
+    color: clr(text-muted);
+  }
+
+  &--subtle {
+    color: clr(text-subtle);
+  }
+
+  &--regular {
+    font-weight: fw(regular);
+  }
+
+  &--medium {
+    font-weight: fw(medium);
+  }
+
+  &--semibold {
+    font-weight: fw(semibold);
+  }
+
+  &--bold {
+    font-weight: fw(bold);
+  }
+}
+
+// One consistent heading look across levels — the tag carries semantics, the
+// size modifier carries appearance. Neutralizes the h6 default's uppercase so
+// `<Heading level={6}>` still reads as a heading, not an overline.
+.sb-heading {
+  font-family: font(display);
+  font-weight: fw(bold);
+  line-height: lh(tight);
+  text-transform: none;
+  letter-spacing: normal;
+
+  &--md {
+    font-size: fs(md);
+  }
+
+  &--lg {
+    font-size: fs(lg);
+  }
+
+  &--xl {
+    font-size: fs(xl);
+  }
+
+  &--2xl {
+    font-size: fs(2xl);
+  }
+
+  &--3xl {
+    font-size: fs(3xl);
+  }
+
+  &--4xl {
+    font-size: fs(4xl);
+  }
+
+  &--5xl {
+    font-size: fs(5xl);
+  }
+}

@@ -12,8 +12,11 @@ import {
   ColorInput,
   Divider,
   Fab,
+  Heading,
   Input,
   Kbd,
+  Lead,
+  Overline,
   Popover,
   Progress,
   Radio,
@@ -21,6 +24,7 @@ import {
   Skeleton,
   Spinner,
   Switch,
+  Text,
   Textarea,
   Tooltip,
 } from "@sorbet/component-library/atoms";
@@ -456,6 +460,30 @@ export function App() {
             </Stack>
 
             <Stack as="section" id="atoms">
+              <h2>Typography</h2>
+              <Stack gap={3}>
+                <Overline>Text primitives</Overline>
+                <Heading level={2}>Heading — semantic level, chosen size</Heading>
+                <Heading level={3} size="xl">
+                  An h3 sized like an xl (level ≠ appearance)
+                </Heading>
+                <Lead>A lead paragraph: a larger, muted intro that frames the section without shouting.</Lead>
+                <Text>
+                  Body text is the default — a plain paragraph, tokenized to the sans stack at md size and
+                  normal line height.
+                </Text>
+                <Text tone="muted" size="sm">
+                  Info text — <code>&lt;Text tone="muted" size="sm"&gt;</code> for hints and captions.
+                </Text>
+                <Cluster gap={4}>
+                  <Text weight="semibold">Semibold</Text>
+                  <Text tone="subtle">Subtle</Text>
+                  <Text as="span" size="xs" tone="muted">
+                    xs muted span
+                  </Text>
+                </Cluster>
+              </Stack>
+
               <h2>Buttons</h2>
               <Cluster>
                 <Button>Primary</Button>
