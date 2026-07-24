@@ -6,6 +6,20 @@ export { Spinner, type SpinnerProps } from "./spinner.tsx";
 export { Progress, type ProgressProps } from "./progress.tsx";
 export { Divider, type DividerProps } from "./divider.tsx";
 export { Kbd } from "./kbd.tsx";
+export {
+  Heading,
+  Lead,
+  Overline,
+  Prose,
+  Text,
+  type HeadingLevel,
+  type HeadingProps,
+  type HeadingSize,
+  type TextOwnProps,
+  type TextSize,
+  type TextTone,
+  type TextWeight,
+} from "./text.tsx";
 export { Label, type LabelProps } from "./label.tsx";
 export { Input, Textarea, type InputProps, type TextareaProps } from "./input.tsx";
 export { Select, type SelectProps } from "./select.tsx";
