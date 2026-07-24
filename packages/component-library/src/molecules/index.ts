@@ -8,6 +8,12 @@ export { InputGroup, InputGroupAddon } from "./input-group.tsx";
 export { Card, CardBody, CardFooter, CardHeader, CardMedia, CardTitle, type CardFooterProps, type CardOwnProps } from "./card.tsx";
 export { Alert, type AlertProps } from "./alert.tsx";
 export { Tab, TabList, TabPanel, Tabs, type TabPanelProps, type TabProps, type TabsProps } from "./tabs.tsx";
+export {
+  Segment,
+  SegmentedControl,
+  type SegmentedControlProps,
+  type SegmentProps,
+} from "./segmented-control.tsx";
 export { Menu, MenuHeading, MenuItem, MenuSeparator, type MenuItemProps, type MenuProps } from "./menu.tsx";
 export { Accordion, AccordionItem, type AccordionItemProps, type AccordionProps } from "./accordion.tsx";
 export { Breadcrumb, BreadcrumbItem, type BreadcrumbItemProps, type BreadcrumbProps } from "./breadcrumb.tsx";

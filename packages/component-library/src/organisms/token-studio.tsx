@@ -12,7 +12,19 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, ColorInput, Input, Select, Slider } from "../atoms/index.ts";
 import { type ThemeMode } from "../core/index.ts";
 import { Cluster } from "../layout/index.ts";
-import { Accordion, AccordionItem, Field, Menu, MenuItem, Tab, TabList, TabPanel, Tabs } from "../molecules/index.ts";
+import {
+  Accordion,
+  AccordionItem,
+  Field,
+  Menu,
+  MenuItem,
+  Segment,
+  SegmentedControl,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+} from "../molecules/index.ts";
 
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from "./drawer.tsx";
 
@@ -432,15 +444,16 @@ export function TokenStudio({
             {themeMode !== undefined && onThemeModeChange && (
               <div className="sb-field sb-field--inline">
                 <span className="sb-label">Mode</span>
-                <Tabs pills value={themeMode} onValueChange={(v) => onThemeModeChange(v as ThemeMode)}>
-                  <TabList aria-label="Color mode" role="group">
-                    {(["light", "system", "dark"] as const).map((m) => (
-                      <Tab key={m} value={m} role="button" aria-selected={themeMode === m}>
-                        {m === "system" ? "Auto" : m === "light" ? "Light" : "Dark"}
-                      </Tab>
-                    ))}
-                  </TabList>
-                </Tabs>
+                <SegmentedControl
+                  aria-label="Color mode"
+                  size="sm"
+                  value={themeMode}
+                  onValueChange={(v) => onThemeModeChange(v as ThemeMode)}
+                >
+                  <Segment value="light">Light</Segment>
+                  <Segment value="system">Auto</Segment>
+                  <Segment value="dark">Dark</Segment>
+                </SegmentedControl>
               </div>
             )}
           </div>

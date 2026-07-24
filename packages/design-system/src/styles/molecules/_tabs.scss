@@ -79,9 +79,11 @@
       }
 
       &[aria-selected="true"] {
-        background-color: clr(surface);
+        // surface-raised (not surface) so the active pill stays distinct from
+        // the bg-subtle track in dark mode, where surface == bg-subtle.
+        background-color: clr(surface-raised);
         color: clr(text);
-        box-shadow: shadow(xs);
+        box-shadow: shadow(sm);
       }
     }
   }

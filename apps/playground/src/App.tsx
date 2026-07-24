@@ -69,6 +69,8 @@ import {
   MenuSeparator,
   MultiCombobox,
   Pagination,
+  Segment,
+  SegmentedControl,
   Stat,
   Tab,
   TabList,
@@ -269,15 +271,11 @@ const demoBox: React.CSSProperties = {
 function ModeSwitch() {
   const { mode, set } = useTheme();
   return (
-    <Tabs pills value={mode} onValueChange={(v) => set(v as ThemeMode)}>
-      <TabList aria-label="Color mode" role="group">
-        {(["light", "system", "dark"] as const).map((m) => (
-          <Tab key={m} value={m} role="button" aria-selected={mode === m}>
-            {m === "system" ? "Auto" : m === "light" ? "Light" : "Dark"}
-          </Tab>
-        ))}
-      </TabList>
-    </Tabs>
+    <SegmentedControl aria-label="Color mode" size="sm" value={mode} onValueChange={(v) => set(v as ThemeMode)}>
+      <Segment value="light">Light</Segment>
+      <Segment value="system">Auto</Segment>
+      <Segment value="dark">Dark</Segment>
+    </SegmentedControl>
   );
 }
 

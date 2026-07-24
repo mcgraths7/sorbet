@@ -63,6 +63,7 @@
   @include meta.load-css("molecules/alert");
   @include meta.load-css("molecules/menu");
   @include meta.load-css("molecules/tabs");
+  @include meta.load-css("molecules/segmented-control");
   @include meta.load-css("molecules/accordion");
   @include meta.load-css("molecules/breadcrumb");
   @include meta.load-css("molecules/pagination");

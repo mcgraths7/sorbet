@@ -1,0 +1,52 @@
+@use "../abstracts" as *;
+
+// Single-select button group (radiogroup) styled as a segmented bar, driven by
+// the React SegmentedControl. The selected segment rides `elevate` — a raised
+// surface + shadow — so it stays distinct from the `bg-subtle` track in BOTH
+// modes; plain `surface` collides with the track in dark mode.
+.sb-segmented {
+  display: inline-flex;
+  gap: space(1);
+  padding: space(1);
+  border-radius: radius(full);
+  background-color: clr(bg-subtle);
+
+  &__option {
+    @include control-reset;
+    @include focus-ring(-2px);
+
+    padding: space(2) space(4);
+    border-radius: radius(full);
+    font-size: fs(sm);
+    font-weight: fw(medium);
+    color: clr(text-muted);
+    white-space: nowrap;
+    transition:
+      color dur(fast) ease(out),
+      background-color dur(fast) ease(out),
+      box-shadow dur(fast) ease(out);
+
+    &:hover:not(:disabled, [aria-checked="true"]) {
+      color: clr(text);
+    }
+
+    &[aria-checked="true"] {
+      @include elevate(sm);
+
+      color: clr(text);
+      font-weight: fw(semibold);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &--sm {
+    .sb-segmented__option {
+      padding: space(1) space(3);
+      font-size: fs(xs);
+    }
+  }
+}
