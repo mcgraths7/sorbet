@@ -40,6 +40,7 @@
   @include meta.load-css("atoms/text");
   @include meta.load-css("atoms/label");
   @include meta.load-css("atoms/input");
+  @include meta.load-css("atoms/number-input");
   @include meta.load-css("atoms/select");
   @include meta.load-css("atoms/choice");
   @include meta.load-css("atoms/switch");

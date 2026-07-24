@@ -16,6 +16,7 @@ import {
   Input,
   Kbd,
   Lead,
+  NumberInput,
   Overline,
   Popover,
   Progress,
@@ -527,6 +528,9 @@ export function App() {
                         <option>Designer</option>
                         <option>Product</option>
                       </Select>
+                    </Field>
+                    <Field label="Quantity" hint="± steppers, Arrow keys, hold to repeat. Clamps 1–99.">
+                      <NumberInput defaultValue={1} min={1} max={99} aria-label="Quantity" />
                     </Field>
                     <DatePickerDemo />
                     <DateRangeDemo />
