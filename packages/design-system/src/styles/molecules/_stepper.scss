@@ -1,0 +1,171 @@
+@use "../abstracts" as *;
+
+// <ol class="sb-stepper sb-stepper--horizontal">
+//   <li class="sb-stepper__step" data-status="complete|current|upcoming">
+//     <button|span class="sb-stepper__button">
+//       <span class="sb-stepper__marker">1</span>
+//       <span class="sb-stepper__text">…label + desc…</span>
+//     </button>
+//     <span class="sb-stepper__connector" />   (between steps)
+//   </li>
+// The connector reflects the *leaving* step: filled once that step is complete.
+.sb-stepper {
+  --marker: 2rem;
+
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  &__step {
+    position: relative;
+    display: flex;
+  }
+
+  &__button {
+    display: flex;
+    gap: space(2);
+    align-items: center;
+    appearance: none;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    cursor: default;
+  }
+
+  // Only the navigable (button) variant is interactive.
+  button.sb-stepper__button {
+    cursor: pointer;
+    border-radius: radius(sm);
+    @include focus-ring(3px);
+  }
+
+  &__marker {
+    position: relative; // paints above the connector
+    z-index: 1;
+    display: grid;
+    place-content: center;
+    inline-size: var(--marker);
+    block-size: var(--marker);
+    flex: 0 0 auto;
+    border: token(border-width-thick) solid clr(border);
+    border-radius: radius(full);
+    background-color: clr(surface);
+    color: clr(text-muted);
+    font-size: fs(sm);
+    font-weight: fw(semibold);
+    font-variant-numeric: tabular-nums;
+    transition:
+      border-color dur(fast) ease(out),
+      background-color dur(fast) ease(out),
+      color dur(fast) ease(out);
+
+    svg {
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+  }
+
+  &__label {
+    display: block;
+    color: clr(text);
+    font-weight: fw(medium);
+    line-height: lh(tight);
+  }
+
+  &__desc {
+    display: block;
+    margin-block-start: space(1);
+    color: clr(text-muted);
+    font-size: fs(xs);
+    line-height: lh(tight);
+  }
+
+  &__connector {
+    position: absolute;
+    z-index: 0;
+    background-color: clr(border);
+  }
+
+  // ---- status --------------------------------------------------------------
+  &__step[data-status="complete"] {
+    .sb-stepper__marker {
+      border-color: clr(primary);
+      background-color: clr(primary);
+      color: clr(on-primary);
+    }
+
+    .sb-stepper__connector {
+      background-color: clr(primary);
+    }
+  }
+
+  &__step[data-status="current"] .sb-stepper__marker {
+    border-color: clr(primary);
+    color: clr(primary);
+  }
+
+  &__step[data-status="upcoming"] {
+    .sb-stepper__label {
+      color: clr(text-muted);
+      font-weight: fw(regular);
+    }
+  }
+
+  // ---- horizontal: markers in a row, label beneath, rail between centers ---
+  &--horizontal {
+    align-items: flex-start;
+
+    .sb-stepper__step {
+      flex: 1 1 0;
+    }
+
+    .sb-stepper__button {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-inline: space(2);
+    }
+
+    .sb-stepper__connector {
+      inset-block-start: calc(var(--marker) / 2);
+      inset-inline-start: 50%;
+      inline-size: 100%;
+      block-size: token(border-width-thick);
+      transform: translateY(-50%);
+    }
+  }
+
+  // ---- vertical: markers stacked, label beside, rail running down ----------
+  &--vertical {
+    flex-direction: column;
+
+    .sb-stepper__step {
+      padding-block-end: space(5);
+
+      &:last-child {
+        padding-block-end: 0;
+      }
+    }
+
+    .sb-stepper__button {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    .sb-stepper__text {
+      padding-block-start: space(1);
+    }
+
+    .sb-stepper__connector {
+      inset-block-start: var(--marker);
+      inset-inline-start: calc(var(--marker) / 2);
+      inline-size: token(border-width-thick);
+      block-size: 100%;
+      transform: translateX(-50%);
+    }
+  }
+}
