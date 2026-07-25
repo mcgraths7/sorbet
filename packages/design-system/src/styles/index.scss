@@ -79,6 +79,7 @@
   @include meta.load-css("organisms/navbar");
   @include meta.load-css("organisms/sidebar");
   @include meta.load-css("organisms/modal");
+  @include meta.load-css("organisms/command-palette");
   @include meta.load-css("organisms/drawer");
   @include meta.load-css("organisms/table");
   @include meta.load-css("organisms/footer");

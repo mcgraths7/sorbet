@@ -6,6 +6,7 @@ export {
   type AlertDialogProps,
   type ConfirmOptions,
 } from "./alert-dialog.tsx";
+export { CommandPalette, type CommandItem, type CommandPaletteProps } from "./command-palette.tsx";
 export { Drawer, DrawerBody, DrawerFooter, DrawerHeader, type DrawerHeaderProps, type DrawerProps } from "./drawer.tsx";
 export { Navbar, NavbarActions, NavbarBrand, NavbarLink, NavbarMenuButton, NavbarNav, type NavbarLinkProps } from "./navbar.tsx";
 export { Sidebar, SidebarFooter, SidebarHeading, SidebarItem, type SidebarItemOwnProps } from "./sidebar.tsx";
