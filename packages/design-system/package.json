@@ -23,12 +23,12 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "npm run lint:styles && npm run build:tokens && npm run build:css && npm run build:ts",
+    "build": "pnpm run lint:styles && pnpm run build:tokens && pnpm run build:css && pnpm run build:ts",
     "build:tokens": "node tools/build-tokens.ts",
     "build:css": "sass src/styles/index.scss:dist/css/sorbet.css --style=expanded --no-source-map",
     "build:ts": "tsc -p tsconfig.tokens.json && tsc -p tsconfig.behaviors.json",
     "lint:styles": "stylelint \"src/styles/**/*.scss\"",
-    "lint:styles:fix": "npm run lint:styles -- --fix",
+    "lint:styles:fix": "pnpm run lint:styles -- --fix",
     "watch:css": "sass --watch src/styles/index.scss:dist/css/sorbet.css",
     "check:contrast": "node tools/check-contrast.ts"
   }

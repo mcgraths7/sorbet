@@ -55,15 +55,20 @@ with React bindings, in an npm-workspaces monorepo. The prefix everywhere is
   published custom-property API directly — raw `var(--sb-*)` is correct THERE
   (no Sass compile at runtime); the accessor-function rule applies to the
   library's Sass, not to consumers.
-- `.claude/launch.json` (gitignored): `playground` (npm run dev -w playground)
+- `.claude/launch.json` (gitignored): `playground` (pnpm --filter playground dev)
   and `sorbet-demo` (python3 -m http.server 4181 -d .).
 
 ## Commands
 
-- Build all: `npm run build` (design-system → component-library → cli; includes
-  the WCAG gate — an inaccessible palette fails the build).
-- `npm run check:contrast` — full per-preset/mode report.
-- Node via nvm: prefix PATH with `$HOME/.nvm/versions/node/v24.17.0/bin`.
+- Package manager is **pnpm** (pinned via the root `packageManager` field;
+  provision it with `corepack enable`). `pnpm install` links the workspace;
+  `pnpm-workspace.yaml` holds the package globs + the shared-version `catalog:`.
+- Build all: `pnpm build` (runs the packages topologically — design-system →
+  component-library + cli; includes the WCAG gate — an inaccessible palette
+  fails the build).
+- `pnpm check:contrast` — full per-preset/mode report.
+- Node via nvm: prefix PATH with `$HOME/.nvm/versions/node/v24.17.0/bin`
+  (the pnpm corepack shim lives there too).
 - gh CLI at `/opt/homebrew/bin/gh` (authed as mcgraths7).
 
 ## Governance (do not bypass)
@@ -71,7 +76,8 @@ with React bindings, in an npm-workspaces monorepo. The prefix everywhere is
 - `main` is protected by ruleset "Protect main": PRs only, required status
   check `build` (the CI job name, Actions-scoped), strict up-to-date policy,
   no force-push/deletion. All work: branch → commit → push → PR (`gh pr create`).
-- CI: `.github/workflows/build.yml` (Node 24, npm ci, npm run build).
+- CI: `.github/workflows/build.yml` (Node 24, pnpm install --frozen-lockfile,
+  pnpm run build).
 
 ## Reuse before building (scan first)
 

@@ -6,9 +6,10 @@ packages. Five presets, light + dark for each, and a WCAG AA contrast contract
 that is *enforced at build time* — an inaccessible theme literally fails the build.
 
 ```sh
-npm install
-npm run build            # tokens → themes, Sass → css, tsc → every package
-npm run playground       # React kitchen sink (Vite, port 5183)
+corepack enable          # provisions the pinned pnpm (skip if you already have it)
+pnpm install
+pnpm build               # tokens → themes, Sass → css, tsc → every package
+pnpm playground          # React kitchen sink (Vite, port 5183)
 ```
 
 ---
@@ -83,11 +84,12 @@ packages/
 │                              one folder per layer → one subpath export each
 └── cli/                    the `sorbet` binary + scaffold templates
 apps/
-└── playground/   Vite React kitchen sink (npm run playground)
+└── playground/   Vite React kitchen sink (pnpm playground)
 demo/             no-framework kitchen sink (python3 -m http.server, /demo/)
 ```
 
-Build order is dependency order; the root `npm run build` handles it. The key
+Build order is dependency order; the root `pnpm build` handles it (pnpm runs the
+packages topologically). The key
 property: **the stylesheet compiles once and is shared by both worlds** — the
 vanilla demo and the React playground load the same `sorbet.css` and theme
 files, so the two flavors can never drift apart visually.
@@ -353,7 +355,7 @@ strong borders, focus rings. Every build measures all of them for **every
 preset in both modes** and fails on any regression:
 
 ```sh
-npm run check:contrast    # per-preset, per-mode report with tightest margins
+pnpm check:contrast       # per-preset, per-mode report with tightest margins
 ```
 
 Beyond color: visible `:focus-visible` rings everywhere, `prefers-reduced-motion`
