@@ -73,11 +73,14 @@ import {
   Segment,
   SegmentedControl,
   Stat,
+  Stepper,
   Tab,
   TabList,
   TabPanel,
   Tabs,
   useToast,
+  Wizard,
+  WizardStep,
 } from "@sorbet/component-library/molecules";
 import {
   type CommandItem,
@@ -825,6 +828,27 @@ export function App() {
                 </Breadcrumb>
                 <Pagination page={page} pageCount={12} onPageChange={setPage} />
               </Cluster>
+
+              <h2>Stepper &amp; wizard</h2>
+              <Split>
+                <SplitMain>
+                  <WizardDemo />
+                </SplitMain>
+                <SplitAside>
+                  <Text size="sm" tone="muted">
+                    Standalone Stepper (read-only, vertical):
+                  </Text>
+                  <Stepper
+                    orientation="vertical"
+                    current={1}
+                    steps={[
+                      { label: "Order placed", description: "Mar 3" },
+                      { label: "Shipped", description: "In transit" },
+                      { label: "Delivered" },
+                    ]}
+                  />
+                </SplitAside>
+              </Split>
 
               <h2>Menu</h2>
               <Cluster>
