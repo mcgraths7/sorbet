@@ -1,0 +1,20 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+
+# pnpm blocks dependency post-install scripts by default and FAILS the install
+# until each is explicitly allowed or denied. Approve the ones we trust + need:
+# esbuild (Vite's bundler for the playground) links its native binary here;
+# @parcel/watcher builds an optional native file-watcher.
+allowBuilds:
+  esbuild: true
+  "@parcel/watcher": true
+
+# Catalog: single source of truth for versions shared across packages, so the
+# React major stays linked in the root, the playground, and (as a peer range)
+# the component library. Reference with `"react": "catalog:"` in a package.
+catalog:
+  react: ^19.1.0
+  react-dom: ^19.1.0
+  "@types/react": ^19.1.0
+  "@types/react-dom": ^19.1.0

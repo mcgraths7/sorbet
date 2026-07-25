@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sorbet/component-library": "0.1.0",
-    "@sorbet/design-system": "0.1.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "@sorbet/component-library": "workspace:*",
+    "@sorbet/design-system": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.4.1",

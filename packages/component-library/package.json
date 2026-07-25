@@ -44,7 +44,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@sorbet/design-system": "0.1.0"
+    "@sorbet/design-system": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.0.0",
