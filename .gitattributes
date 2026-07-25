@@ -1,0 +1,10 @@
+# Append-only aggregator files: when two branches each add a line (a new export,
+# a new @include), keep BOTH additions instead of raising a conflict. `union`
+# merges the two sides line-wise — review the result, since it won't dedupe or
+# reorder. Applied only to files that are pure one-item-per-line lists.
+
+# Component-library barrels (one `export … from "./x.tsx";` per line).
+packages/component-library/src/**/index.ts   merge=union
+
+# Sass cascade-layer registration (one `@include meta.load-css("…");` per line).
+packages/design-system/src/styles/index.scss merge=union

@@ -565,13 +565,101 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 
 ## Component catalog
 
-**Layout** Container · Stack(+Push) · Cluster(+Push) · Grid(+Span2) · Split(+Aside/Main) · Center · Cover · Masonry · Frame
-**Atoms** Text / Heading (level ≠ size) / Prose / Lead / Overline (typed text primitives) · Button (8 variants × 3 sizes, loading, icon, polymorphic) · Input · Textarea (autosize) · NumberInput (± steppers, hold-to-repeat, clamp, spinbutton) · Select · Checkbox (indeterminate) · Radio · Switch · Choice · Slider (native range) · ColorInput (swatch + hex, popover picker: SV square/hue/opacity, RGB, eyedropper, swatches) · Fab (floating action button) · Label · Badge · Chip · Avatar(+Group) · Spinner · Progress (+indeterminate) · Skeleton · Divider · Kbd · Tooltip · Popover (anchored panel of any content)
-**Molecules** Field · Combobox / MultiCombobox (list autocomplete, chip multi-select) · DatePicker (format-masked typed entry + validity/range checks + calendar popover) · DateRange (start/end pick with span checks, shares the calendar) · Dropzone (drag-and-drop upload over a real file input) · InputGroup(+Addon) · Card (header/body/footer/media/title, 5 variants) · Alert · Tabs/TabList/Tab/TabPanel · SegmentedControl(+Segment) (single-select radiogroup) · Stepper (step indicator, horizontal/vertical, complete/current/upcoming) · Wizard(+WizardStep) (linear multi-step flow: builds its Stepper, per-step canAdvance gating, panels stay mounted) · Menu (heading/item/separator) · Accordion(+Item) · Breadcrumb(+Item) · Pagination · ToastProvider/useToast · Stat · EmptyState
-**Organisms** Navbar (brand/nav/link/actions/menu-button) · Sidebar (heading/item/footer) · Modal · AlertDialog + ConfirmProvider/useConfirm (imperative `await confirm(…)`) · CommandPalette (⌘K, grouped fuzzy actions, keyboard-first, global hotkey) · Drawer (modal or modeless) · DataTable · Footer (cols/col/meta) · TokenStudio (live token editor with WCAG report + export)
-**Templates** AppShell (header/sidebar/main) · AuthLayout
-**Charts** LineChart (multi-series, area, crosshair+tooltip) · BarChart (grouped/stacked) · DonutChart (center total, Other folding, value legend) · Sparkline · ChartShell (legend + table view) · validated chart tokens
-**Providers** ThemeProvider/useTheme · ToastProvider/useToast
+<!-- One component per line, on purpose: a new component is a new *line*, so two
+     branches adding components in parallel merge cleanly instead of colliding on
+     a single shared line. Keep it that way — append your entry, don't reflow. -->
+
+**Layout**
+
+- Container
+- Stack(+Push)
+- Cluster(+Push)
+- Grid(+Span2)
+- Split(+Aside/Main)
+- Center
+- Cover
+- Masonry
+- Frame
+
+**Atoms**
+
+- Text / Heading (level ≠ size) / Prose / Lead / Overline (typed text primitives)
+- Button (8 variants × 3 sizes, loading, icon, polymorphic)
+- Input
+- Textarea (autosize)
+- NumberInput (± steppers, hold-to-repeat, clamp, spinbutton)
+- Select
+- Checkbox (indeterminate)
+- Radio
+- Switch
+- Choice
+- Slider (native range)
+- ColorInput (swatch + hex, popover picker: SV square/hue/opacity, RGB, eyedropper, swatches)
+- Fab (floating action button)
+- Label
+- Badge
+- Chip
+- Avatar(+Group)
+- Spinner
+- Progress (+indeterminate)
+- Skeleton
+- Divider
+- Kbd
+- Tooltip
+- Popover (anchored panel of any content)
+
+**Molecules**
+
+- Field
+- Combobox / MultiCombobox (list autocomplete, chip multi-select)
+- DatePicker (format-masked typed entry + validity/range checks + calendar popover)
+- DateRange (start/end pick with span checks, shares the calendar)
+- Dropzone (drag-and-drop upload over a real file input)
+- InputGroup(+Addon)
+- Card (header/body/footer/media/title, 5 variants)
+- Alert
+- Tabs/TabList/Tab/TabPanel
+- SegmentedControl(+Segment) (single-select radiogroup)
+- Stepper (step indicator, horizontal/vertical, complete/current/upcoming)
+- Wizard(+WizardStep) (linear multi-step flow: builds its Stepper, per-step canAdvance gating, panels stay mounted)
+- Menu (heading/item/separator)
+- Accordion(+Item)
+- Breadcrumb(+Item)
+- Pagination
+- ToastProvider/useToast
+- Stat
+- EmptyState
+
+**Organisms**
+
+- Navbar (brand/nav/link/actions/menu-button)
+- Sidebar (heading/item/footer)
+- Modal
+- AlertDialog + ConfirmProvider/useConfirm (imperative `await confirm(…)`)
+- CommandPalette (⌘K, grouped fuzzy actions, keyboard-first, global hotkey)
+- Drawer (modal or modeless)
+- DataTable
+- Footer (cols/col/meta)
+- TokenStudio (live token editor with WCAG report + export)
+
+**Templates**
+
+- AppShell (header/sidebar/main)
+- AuthLayout
+
+**Charts**
+
+- LineChart (multi-series, area, crosshair+tooltip)
+- BarChart (grouped/stacked)
+- DonutChart (center total, Other folding, value legend)
+- Sparkline
+- ChartShell (legend + table view)
+- validated chart tokens
+
+**Providers**
+
+- ThemeProvider/useTheme
+- ToastProvider/useToast
 
 ---
 
