@@ -1,0 +1,149 @@
+@use "../abstracts" as *;
+
+// A ⌘K palette: the Modal box, re-anchored near the top and split into a search
+// row, a scrolling listbox, and a hint footer. Highlight rides [data-highlighted]
+// (keyboard) and mirrors combobox's active-option styling.
+.sb-command {
+  // Beat the base .sb-modal (centered) with an equal-parts compound selector.
+  &.sb-modal {
+    margin: 12vh auto auto;
+    inline-size: min(40rem, calc(100vw - #{space(8)}));
+    max-block-size: min(70dvh, 32rem);
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: space(3);
+    padding: space(4) space(5);
+    border-block-end: token(border-width) solid clr(border-subtle);
+  }
+
+  &__search-icon {
+    flex: 0 0 auto;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    color: clr(text-subtle);
+  }
+
+  &__input {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    border: none;
+    background: none;
+    outline: none;
+    color: clr(text);
+    font: inherit;
+    font-size: fs(lg);
+
+    &::placeholder {
+      color: clr(text-subtle);
+    }
+  }
+
+  &__list {
+    flex: 1 1 auto;
+    margin: 0;
+    padding: space(2);
+    list-style: none;
+    overflow-y: auto;
+  }
+
+  &__empty {
+    padding: space(6) space(4);
+    color: clr(text-muted);
+    text-align: center;
+  }
+
+  &__heading {
+    padding: space(3) space(3) space(1);
+    color: clr(text-subtle);
+    font-size: fs(xs);
+    font-weight: fw(semibold);
+    letter-spacing: ls(wide);
+    text-transform: uppercase;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: space(3);
+    padding: space(2) space(3);
+    border-radius: radius(md);
+    color: clr(text);
+    cursor: pointer;
+
+    &[data-highlighted] {
+      background-color: clr(primary-subtle);
+      color: clr(primary-text);
+    }
+
+    &[aria-disabled="true"] {
+      color: clr(text-subtle);
+      cursor: not-allowed;
+    }
+  }
+
+  &__icon {
+    display: grid;
+    flex: 0 0 auto;
+    place-content: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    color: clr(text-muted);
+
+    [data-highlighted] & {
+      color: clr(primary-text);
+    }
+
+    svg {
+      inline-size: 1.1rem;
+      block-size: 1.1rem;
+    }
+  }
+
+  &__label {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+  }
+
+  &__desc {
+    color: clr(text-subtle);
+    font-size: fs(sm);
+
+    [data-highlighted] & {
+      color: clr(primary-text);
+      opacity: 0.8;
+    }
+  }
+
+  &__shortcut {
+    display: flex;
+    flex: 0 0 auto;
+    gap: space(1);
+  }
+
+  &__footer {
+    display: flex;
+    gap: space(4);
+    align-items: center;
+    justify-content: flex-end;
+    padding: space(3) space(5);
+    border-block-start: token(border-width) solid clr(border-subtle);
+    color: clr(text-subtle);
+    font-size: fs(xs);
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: space(1);
+    }
+  }
+
+  &__footer-hint {
+    margin-inline-start: auto;
+  }
+}

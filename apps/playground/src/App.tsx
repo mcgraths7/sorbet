@@ -80,6 +80,8 @@ import {
   useToast,
 } from "@sorbet/component-library/molecules";
 import {
+  type CommandItem,
+  CommandPalette,
   DataTable,
   Drawer,
   DrawerBody,
@@ -863,6 +865,9 @@ export function App() {
             </Stack>
 
             <Stack as="section" id="organisms">
+              <h2>Command palette</h2>
+              <CommandPaletteDemo />
+
               <h2>Data table</h2>
               <DataTable
                 columns={columns}
@@ -972,6 +977,36 @@ export function App() {
 
 /** DatePicker with live status wired through Field — masks as you type in
  *  mm/dd/yyyy and reports the two simple checks (valid + reasonable). */
+/** ⌘K palette wired to real actions — grouped, with icons + shortcuts, one
+ *  disabled item, and a trigger button. Press ⌘K (Ctrl+K) anywhere too. */
+function CommandPaletteDemo() {
+  const [open, setOpen] = useState(false);
+  const toast = useToast();
+  const { set, toggle } = useTheme();
+  const commands: CommandItem[] = [
+    { id: "dash", label: "Go to Dashboard", group: "Navigate", icon: "📊", keywords: ["home"], onSelect: () => toast("Opened Dashboard") },
+    { id: "settings", label: "Go to Settings", group: "Navigate", icon: "⚙️", onSelect: () => toast("Opened Settings") },
+    { id: "profile", label: "Go to Profile", group: "Navigate", icon: "👤", onSelect: () => toast("Opened Profile") },
+    { id: "new", label: "New project", description: "Create a blank project", group: "Actions", icon: "➕", shortcut: ["⌘", "N"], onSelect: () => toast("Creating project…", { tone: "success" }) },
+    { id: "invite", label: "Invite teammate", group: "Actions", icon: "✉️", keywords: ["member", "add"], onSelect: () => toast("Invite sent") },
+    { id: "archive", label: "Archive project", description: "Requires owner role", group: "Actions", icon: "🗄️", disabled: true, onSelect: () => {} },
+    { id: "light", label: "Switch to light", group: "Theme", icon: "☀️", onSelect: () => set("light") },
+    { id: "dark", label: "Switch to dark", group: "Theme", icon: "🌙", onSelect: () => set("dark") },
+    { id: "toggle", label: "Toggle theme", group: "Theme", icon: "🌗", shortcut: ["⌘", "J"], onSelect: () => toggle() },
+  ];
+  return (
+    <>
+      <Cluster>
+        <Button variant="outline" onClick={() => setOpen(true)}>
+          Open command palette&nbsp;&nbsp;<Kbd>⌘</Kbd>
+          <Kbd>K</Kbd>
+        </Button>
+      </Cluster>
+      <CommandPalette open={open} onOpenChange={setOpen} commands={commands} />
+    </>
+  );
+}
+
 function DatePickerDemo() {
   const [result, setResult] = useState<DateValidation | null>(null);
   const status: { hint?: string; error?: string } = !result || result.empty
