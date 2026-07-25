@@ -73,11 +73,14 @@ import {
   Segment,
   SegmentedControl,
   Stat,
+  Stepper,
   Tab,
   TabList,
   TabPanel,
   Tabs,
   useToast,
+  Wizard,
+  WizardStep,
 } from "@sorbet/component-library/molecules";
 import {
   DataTable,
@@ -824,6 +827,27 @@ export function App() {
                 <Pagination page={page} pageCount={12} onPageChange={setPage} />
               </Cluster>
 
+              <h2>Stepper &amp; wizard</h2>
+              <Split>
+                <SplitMain>
+                  <WizardDemo />
+                </SplitMain>
+                <SplitAside>
+                  <Text size="sm" tone="muted">
+                    Standalone Stepper (read-only, vertical):
+                  </Text>
+                  <Stepper
+                    orientation="vertical"
+                    current={1}
+                    steps={[
+                      { label: "Order placed", description: "Mar 3" },
+                      { label: "Shipped", description: "In transit" },
+                      { label: "Delivered" },
+                    ]}
+                  />
+                </SplitAside>
+              </Split>
+
               <h2>Menu</h2>
               <Cluster>
                 <Menu
@@ -972,6 +996,45 @@ export function App() {
 
 /** DatePicker with live status wired through Field — masks as you type in
  *  mm/dd/yyyy and reports the two simple checks (valid + reasonable). */
+/** A 3-step flow: the first step gates Next until a name is typed (canAdvance),
+ *  panels stay mounted so entered data survives Back/Next, Finish toasts. */
+function WizardDemo() {
+  const toast = useToast();
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState("");
+  return (
+    <Wizard
+      value={step}
+      onValueChange={setStep}
+      onFinish={() => {
+        toast(`Account created for ${name || "you"}!`, { tone: "success" });
+        setStep(0);
+        setName("");
+      }}
+    >
+      <WizardStep label="Account" description="Your details" canAdvance={name.trim().length > 0}>
+        <Field label="Full name" hint="Next stays disabled until this is filled.">
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ada Lovelace" />
+        </Field>
+      </WizardStep>
+      <WizardStep label="Workspace" description="Pick a plan">
+        <Field label="Plan">
+          <Select defaultValue="Pro">
+            <option>Free</option>
+            <option>Pro</option>
+            <option>Team</option>
+          </Select>
+        </Field>
+      </WizardStep>
+      <WizardStep label="Review">
+        <Text tone="muted">
+          Creating an account for <strong>{name || "—"}</strong>. Press Finish to confirm.
+        </Text>
+      </WizardStep>
+    </Wizard>
+  );
+}
+
 function DatePickerDemo() {
   const [result, setResult] = useState<DateValidation | null>(null);
   const status: { hint?: string; error?: string } = !result || result.empty

@@ -1,0 +1,22 @@
+@use "../abstracts" as *;
+
+// <div class="sb-wizard">
+//   <ol class="sb-stepper" …/>            (built from the step labels)
+//   <div class="sb-wizard__panels">…active panel…</div>
+//   <div class="sb-wizard__footer">Back … Next/Finish</div>
+// </div>
+.sb-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: space(6);
+
+  &__panel[hidden] {
+    display: none;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    gap: space(3);
+  }
+}
