@@ -106,7 +106,7 @@ export function useCalendar({ open, panelRef, min, max, weekStartsOn, locale, on
   const isDisabledDay = (d: Date) => Boolean((min && d < min) || (max && d > max));
 
   const onGridKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    let next: Date | null = null;
+    let next: Date;
     const offset = (focused.getDay() - weekStartsOn + 7) % 7;
     switch (e.key) {
       case "ArrowLeft":
