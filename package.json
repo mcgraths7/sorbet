@@ -13,7 +13,7 @@
     "build:cli": "pnpm --filter @sorbet/cli build",
     "check:contrast": "pnpm --filter @sorbet/design-system check:contrast",
     "lint": "eslint . --max-warnings 0",
-    "lint:fix": "pnpm run lint -- --fix",
+    "lint:fix": "eslint . --max-warnings 0 --fix",
     "lint:styles": "pnpm --filter @sorbet/design-system lint:styles",
     "lint:styles:fix": "pnpm --filter @sorbet/design-system lint:styles:fix",
     "playground": "pnpm --filter playground dev",
