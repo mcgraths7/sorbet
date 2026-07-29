@@ -9,6 +9,8 @@ packages:
 allowBuilds:
   esbuild: true
   "@parcel/watcher": true
+  # eslint-plugin-import-x's native (napi-rs) module resolver — links its binary.
+  unrs-resolver: true
 
 # Catalog: single source of truth for versions shared across packages, so the
 # React major stays linked in the root, the playground, and (as a peer range)

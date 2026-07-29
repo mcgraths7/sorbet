@@ -1,6 +1,6 @@
 import js from "@eslint/js";
 import stylistic from "@stylistic/eslint-plugin";
-import importPlugin from "eslint-plugin-import";
+import importX from "eslint-plugin-import-x";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
@@ -23,7 +23,7 @@ export default tseslint.config(
     },
     plugins: {
       "@stylistic": stylistic,
-      import: importPlugin,
+      "import-x": importX,
     },
     rules: {
       curly: "error",
@@ -37,8 +37,8 @@ export default tseslint.config(
       "object-shorthand": ["error", "properties"],
       "prefer-const": "error",
       "prefer-template": "error",
-      "import/no-duplicates": "error",
-      "import/order": [
+      "import-x/no-duplicates": "error",
+      "import-x/order": [
         "error",
         {
           groups: ["builtin", "external", "internal", "parent", "sibling", "index", "object", "type"],
@@ -82,7 +82,16 @@ export default tseslint.config(
   },
   {
     files: ["**/*.{ts,tsx}"],
-    ...reactHooks.configs["recommended-latest"],
+    // Supply the plugin object ourselves — react-hooks' preset still ships
+    // legacy array-form `plugins`, which flat config (eslint 10) rejects.
+    // Enforce just the classic two rules: react-hooks 7 also bundles new
+    // React-Compiler-era rules (set-state-in-effect, …) in its preset, but
+    // adopting those is a deliberate refactor for its own PR, not this one.
+    plugins: { "react-hooks": reactHooks },
+    rules: {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "error",
+    },
   },
   {
     files: ["apps/playground/**/*.{jsx,tsx}"],

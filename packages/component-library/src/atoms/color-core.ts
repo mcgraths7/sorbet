@@ -87,9 +87,7 @@ export function hsvToRgb({ h, s, v }: Hsv): Rgb {
   const hh = (((h % 360) + 360) % 360) / 60;
   const x = c * (1 - Math.abs((hh % 2) - 1));
   const m = vn - c;
-  let r = 0;
-  let g = 0;
-  let b = 0;
+  let r: number, g: number, b: number;
   if (hh < 1) {
     [r, g, b] = [c, x, 0];
   } else if (hh < 2) {
