@@ -5,7 +5,7 @@ import { useToast } from "@sorbet/component-library/molecules";
 import { CommandPalette, type CommandItem } from "@sorbet/component-library/organisms";
 import { useState } from "react";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 /** ⌘K palette wired to real actions — grouped, with icons + shortcuts, one
  *  disabled item, and a trigger button. Press ⌘K (Ctrl+K) anywhere too. */
@@ -37,9 +37,4 @@ export function CommandPaletteDemo() {
   );
 }
 
-export const demo: Demo = {
-  title: "Command palette",
-  layer: "organisms",
-  order: 10,
-  Component: CommandPaletteDemo,
-};
+CommandPaletteDemo.demo = { title: "Command palette", layer: "organisms", order: 10 } satisfies DemoMeta;

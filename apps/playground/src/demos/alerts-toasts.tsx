@@ -3,7 +3,7 @@ import { Cluster, Stack } from "@sorbet/component-library/layout";
 import { Alert, useToast } from "@sorbet/component-library/molecules";
 import { useConfirm } from "@sorbet/component-library/organisms";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 export function AlertsToastsDemo() {
   const toast = useToast();
@@ -47,4 +47,4 @@ export function AlertsToastsDemo() {
   );
 }
 
-export const demo: Demo = { title: "Alerts & toasts", layer: "molecules", order: 30, Component: AlertsToastsDemo };
+AlertsToastsDemo.demo = { title: "Alerts & toasts", layer: "molecules", order: 30 } satisfies DemoMeta;

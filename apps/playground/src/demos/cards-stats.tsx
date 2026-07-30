@@ -2,7 +2,7 @@ import { Button } from "@sorbet/component-library/atoms";
 import { Grid } from "@sorbet/component-library/layout";
 import { Card, CardBody, EmptyState, Stat } from "@sorbet/component-library/molecules";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 export function CardsStatsDemo() {
   return (
@@ -28,4 +28,4 @@ export function CardsStatsDemo() {
   );
 }
 
-export const demo: Demo = { title: "Cards & stats", layer: "molecules", order: 10, Component: CardsStatsDemo };
+CardsStatsDemo.demo = { title: "Cards & stats", layer: "molecules", order: 10 } satisfies DemoMeta;

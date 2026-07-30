@@ -12,7 +12,7 @@ import {
 } from "@sorbet/component-library/molecules";
 import { useState } from "react";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 export function WayfindingDemo() {
   const [page, setPage] = useState(2);
@@ -54,9 +54,4 @@ export function WayfindingDemo() {
   );
 }
 
-export const demo: Demo = {
-  title: "Tabs, accordion & wayfinding",
-  layer: "molecules",
-  order: 40,
-  Component: WayfindingDemo,
-};
+WayfindingDemo.demo = { title: "Tabs, accordion & wayfinding", layer: "molecules", order: 40 } satisfies DemoMeta;

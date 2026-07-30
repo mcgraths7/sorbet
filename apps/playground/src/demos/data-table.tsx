@@ -1,7 +1,7 @@
 import { Badge, Divider } from "@sorbet/component-library/atoms";
 import { DataTable, type Column } from "@sorbet/component-library/organisms";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 interface Invoice {
   id: string;
@@ -52,4 +52,4 @@ export function DataTableDemo() {
   );
 }
 
-export const demo: Demo = { title: "Data table", layer: "organisms", order: 20, Component: DataTableDemo };
+DataTableDemo.demo = { title: "Data table", layer: "organisms", order: 20 } satisfies DemoMeta;
