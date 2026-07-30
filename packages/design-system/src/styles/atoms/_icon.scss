@@ -1,0 +1,73 @@
+@use "../abstracts" as *;
+
+// The box an icon lives in. Any provider's SVG works: they draw with
+// currentColor and scale to their box, so this rule owns size + color and the
+// glyph inherits both.
+//
+// <span class="sb-icon sb-icon--lg sb-icon--danger"><svg>…</svg></span>
+.sb-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  // Square, sized in em so it tracks the surrounding text by default — the
+  // size modifiers below just change that font-size.
+  inline-size: 1em;
+  block-size: 1em;
+  // Optical alignment: sit on the text baseline instead of hanging below it.
+  vertical-align: -0.125em;
+
+  > svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  &--xs {
+    font-size: fs(xs);
+  }
+
+  &--sm {
+    font-size: fs(sm);
+  }
+
+  &--md {
+    font-size: fs(md);
+  }
+
+  &--lg {
+    font-size: fs(lg);
+  }
+
+  &--xl {
+    font-size: fs(xl);
+  }
+
+  &--muted {
+    color: clr(text-muted);
+  }
+
+  &--subtle {
+    color: clr(text-subtle);
+  }
+
+  &--primary {
+    color: clr(primary);
+  }
+
+  &--success {
+    color: clr(success);
+  }
+
+  &--warning {
+    color: clr(warning);
+  }
+
+  &--danger {
+    color: clr(danger);
+  }
+
+  &--info {
+    color: clr(info);
+  }
+}

@@ -1,5 +1,6 @@
 import { Children, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
+import { ChevronIcon } from "../atoms/index.ts";
 import { cx, useControllableState } from "../core/index.ts";
 
 export type CarouselGap = 2 | 3 | 4 | 6 | 8;
@@ -27,19 +28,6 @@ export interface CarouselProps {
   /** Any children: cards, quotes, images, whatever. Each becomes one slide. */
   children: ReactNode;
 }
-
-const Chevron = ({ back }: { back?: boolean }) => (
-  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" style={back ? { rotate: "180deg" } : undefined}>
-    <path
-      d="m6 3 5 5-5 5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 /**
  * A content-agnostic carousel built on CSS scroll snap: every child becomes a
@@ -176,7 +164,7 @@ export function Carousel({
               disabled={atStart}
               onClick={() => scrollToSlide(visible - 1)}
             >
-              <Chevron back />
+              <ChevronIcon direction="left" />
             </button>
           )}
 
@@ -205,7 +193,7 @@ export function Carousel({
               disabled={atEnd}
               onClick={() => scrollToSlide(visible + 1)}
             >
-              <Chevron />
+              <ChevronIcon />
             </button>
           )}
         </div>

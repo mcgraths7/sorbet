@@ -1,5 +1,6 @@
 import { useRef, useState, type ChangeEvent, type ComponentPropsWithRef, type DragEvent, type ReactNode } from "react";
 
+import { UploadIcon } from "../atoms/index.ts";
 import { composeRefs, cx } from "../core/index.ts";
 
 export interface DropzoneRejection {
@@ -167,20 +168,7 @@ export function Dropzone({
           onChange={handleChange}
         />
         <span className="sb-dropzone__icon" aria-hidden="true">
-          <svg
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <path d="m17 8-5-5-5 5" />
-            <path d="M12 3v12" />
-          </svg>
+          <UploadIcon />
         </span>
         <span className="sb-dropzone__title">
           {prompt ?? (

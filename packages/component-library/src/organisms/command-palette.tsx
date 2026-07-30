@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { Kbd } from "../atoms/index.ts";
+import { Kbd, SearchIcon } from "../atoms/index.ts";
 import { cx, useControllableState, useModifierKey } from "../core/index.ts";
 
 import { Modal } from "./modal.tsx";
@@ -46,16 +46,6 @@ export interface CommandPaletteProps {
   /** Accessible name for the dialog + listbox. */
   label?: string;
   className?: string;
-}
-
-/** Shared by the palette's search row and the trigger below it. */
-function SearchIcon({ className }: { className: string }) {
-  return (
-    <svg className={className} viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <line x1="13.5" y1="13.5" x2="17.5" y2="17.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
 }
 
 function matchHotkey(e: KeyboardEvent | globalThis.KeyboardEvent, hotkey: string, isMac: boolean): boolean {

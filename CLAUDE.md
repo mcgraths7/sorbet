@@ -44,7 +44,11 @@ with React bindings, in an npm-workspaces monorepo. The prefix everywhere is
   resolve through `src/charts/shell.tsx` (`seriesColor`, `mutedSeriesColor`) —
   the only place chart `var(--sb-chart-*)` strings live. Styling belongs in
   the Sass partials; inline `style` in components is reserved for setting
-  knob custom props from props (`--min`, `--aside`, `--ratio`, …).
+  knob custom props from props (`--min`, `--aside`, `--ratio`, …). Icons: every
+  glyph lives in `src/atoms/icons.tsx` (plain `currentColor` SVGs, house weight
+  1.5-on-16 scaled per viewBox) — never inline a new `<svg>` in a component;
+  `atoms/icon.tsx` (`Icon`) is the size/tone/a11y box and wraps any provider's
+  icon, so Sorbet never ships an icon *set*.
 - `packages/cli` (`@sorbet/cli`) — bin `sorbet` (create/theme/component/
   presets/contrast). `create` copies design-system sources + `scaffold/`
   templates into a standalone project; scaffold files are inert in place

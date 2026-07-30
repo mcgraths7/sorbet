@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 
+import { CheckIcon } from "../atoms/index.ts";
 import { cx } from "../core/index.ts";
 
 export interface StepItem {
@@ -22,19 +23,6 @@ export interface StepperProps {
   className?: string;
 }
 
-const CheckIcon = (
-  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-    <path
-      d="M13 4.5 6.5 11 3 7.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 type Status = "complete" | "current" | "upcoming";
 
 /**
@@ -49,7 +37,7 @@ export function Stepper({ steps, current, orientation = "horizontal", onStepClic
       {steps.map((step, i) => {
         const status: Status = i < current ? "complete" : i === current ? "current" : "upcoming";
         const navigable = onStepClick != null && status !== "upcoming";
-        const marker = status === "complete" ? CheckIcon : (step.icon ?? i + 1);
+        const marker = status === "complete" ? <CheckIcon /> : (step.icon ?? i + 1);
 
         const body = (
           <>

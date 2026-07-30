@@ -9,6 +9,7 @@ import {
   type Ref,
 } from "react";
 
+import { CalendarIcon } from "../atoms/index.ts";
 import { composeRefs, cx, useControllableState, usePopover, type Size } from "../core/index.ts";
 
 import { CalendarView, useCalendar } from "./calendar.tsx";
@@ -210,16 +211,7 @@ export function DatePicker({
             onPointerDown={(e) => e.preventDefault()}
             onClick={() => (open ? closeCalendar() : openCalendar())}
           >
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <rect x="2" y="3" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
-              <path
-                d="M2 6h12M5 1.5v3M11 1.5v3"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            </svg>
+            <CalendarIcon />
           </button>
         )}
       </div>
