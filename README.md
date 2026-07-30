@@ -622,6 +622,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Alert
 - Tabs/TabList/Tab/TabPanel
 - SegmentedControl(+Segment) (single-select radiogroup)
+- Marquee (CSS-animated infinite row, constant px/s, pauses on hover/focus/button + reduced-motion)
 - Carousel (CSS scroll-snap; any children become slides, perView/gap/align, arrows + position dots)
 - Stepper (step indicator, horizontal/vertical, complete/current/upcoming)
 - Wizard(+WizardStep) (linear multi-step flow: builds its Stepper, per-step canAdvance gating, panels stay mounted)

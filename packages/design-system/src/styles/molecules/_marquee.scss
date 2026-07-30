@@ -1,0 +1,124 @@
+@use "../abstracts" as *;
+
+// An infinite scrolling row. The track is duplicated and translated by exactly
+// one set's width, so the restart lands the next copy where the last one was —
+// no seam. JS only measures (distance + duration); CSS does all the moving,
+// which is what keeps it on the compositor instead of the main thread.
+//
+// <div class="sb-marquee" data-paused data-reverse data-pause-on-hover>
+//   <button class="sb-marquee__toggle">Pause scrolling</button>
+//   <div class="sb-marquee__track">
+//     <div class="sb-marquee__item">…</div>   (repeated; copies are aria-hidden)
+//   </div>
+// </div>
+@keyframes sb-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(-1 * var(--marquee-distance)));
+  }
+}
+
+.sb-marquee {
+  // Set by the component once it has measured. The 0px default means the row
+  // simply sits still until then — never a wrong-speed flash.
+  --marquee-distance: 0px;
+  --marquee-duration: 20s;
+  // Custom properties inherit; reset so a parent's gap never leaks in.
+  --gap: initial;
+
+  position: relative;
+  overflow: hidden;
+
+  &__track {
+    display: flex;
+    inline-size: max-content;
+    gap: var(--gap, #{space(6)});
+    animation: sb-marquee-scroll var(--marquee-duration) linear infinite;
+    // Promote once: this element animates for as long as it's on screen.
+    will-change: transform;
+  }
+
+  &__item {
+    flex: 0 0 auto;
+  }
+
+  // ---- pausing ------------------------------------------------------------
+  // Motion on a loop needs a way to stop it (WCAG 2.2.2). Every route below
+  // pauses the same animation rather than tearing it down, so resuming picks up
+  // exactly where it left off.
+  &[data-paused] &__track {
+    animation-play-state: paused;
+  }
+
+  &[data-pause-on-hover]:hover &__track {
+    animation-play-state: paused;
+  }
+
+  // Keyboard equivalent of the hover pause — without this, a keyboard user
+  // tabbing through links inside the row would be chasing moving targets.
+  &:focus-within &__track {
+    animation-play-state: paused;
+  }
+
+  &[data-reverse] &__track {
+    animation-direction: reverse;
+  }
+
+  // ---- the pause control --------------------------------------------------
+  // Out of the way until it's needed: hidden like a skip link, and it shows
+  // itself on focus so keyboard users get a real control without putting
+  // chrome on what is usually a decorative row.
+  &__toggle {
+    @include visually-hidden;
+    @include control-reset;
+
+    // Reveal on :focus, not :focus-visible — this is a skip-link-style control,
+    // so it must appear however focus arrived. :focus-visible is for the ring.
+    &:focus {
+      position: absolute;
+      inset-block-start: space(2);
+      inset-inline-start: space(2);
+      z-index: 1;
+      inline-size: auto;
+      block-size: auto;
+      padding: space(1) space(3);
+      margin: 0;
+      overflow: visible;
+      clip-path: none;
+      border-radius: radius(full);
+      background-color: clr(surface-raised);
+      color: clr(text);
+      font-size: fs(sm);
+      box-shadow: shadow(md);
+    }
+
+    &:focus-visible {
+      @include focus-ring-style;
+    }
+  }
+
+  // ---- edge fade ----------------------------------------------------------
+  &--fade {
+    mask-image: linear-gradient(to right, transparent, #000 var(--gap, #{space(6)}), #000 calc(100% - var(--gap, #{space(6)})), transparent);
+  }
+
+  @each $step in (2, 3, 4, 6, 8) {
+    &--gap-#{$step} {
+      --gap: #{space($step)};
+    }
+  }
+
+  // Looping motion is exactly what this preference is about: stop it, and let
+  // the row scroll by hand so nothing becomes unreachable.
+  @media (prefers-reduced-motion: reduce) {
+    overflow-x: auto;
+
+    .sb-marquee__track {
+      animation: none;
+      will-change: auto;
+    }
+  }
+}
