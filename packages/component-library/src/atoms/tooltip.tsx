@@ -53,6 +53,9 @@ export function Tooltip({ content, children }: TooltipProps) {
   return (
     <>
       {cloneElement(child, {
+        // See popover.tsx: composeRefs only stores into refs, never reads
+        // .current, but the rule can't see that through the helper.
+        // eslint-disable-next-line react-hooks/refs
         ref: composeRefs<HTMLElement>(child.props.ref, anchorRef),
         "aria-describedby": open ? id : undefined,
         onMouseEnter: chain(child.props.onMouseEnter, show),

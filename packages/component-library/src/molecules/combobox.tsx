@@ -71,7 +71,11 @@ export function Combobox({
   );
 
   const core = useComboboxCore(options, filter, optionId);
+  // Destructured (not read as `core.x` in the JSX) so the refs reach `ref=`
+  // as plain values — reading them off the hook object counts as touching a
+  // ref during render.
   const { open, query, setQuery, highlighted, setHighlighted, filtered, firstEnabled } = core;
+  const { controlRef, inputRef, panelRef, onPanelToggle } = core;
 
   const openList = () => {
     if (disabled) {
@@ -88,14 +92,14 @@ export function Combobox({
     onValueChange?.(option.value, option);
     setQuery(null);
     core.closeList();
-    core.inputRef.current?.focus();
+    inputRef.current?.focus();
   };
 
   const clear = () => {
     setSelectedValue(null);
     onValueChange?.(null, null);
     setQuery(null);
-    core.inputRef.current?.focus();
+    inputRef.current?.focus();
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -142,14 +146,13 @@ export function Combobox({
   };
 
   const displayValue = query ?? selectedOption?.label ?? "";
-  let lastGroup: string | undefined;
 
   return (
     <div className={cx("sb-combobox", className)}>
-      <div className="sb-combobox__control" ref={core.controlRef}>
+      <div className="sb-combobox__control" ref={controlRef}>
         <input
           id={inputId}
-          ref={composeRefs(ref, core.inputRef)}
+          ref={composeRefs(ref, inputRef)}
           className={cx("sb-input", size !== "md" && `sb-input--${size}`)}
           role="combobox"
           aria-expanded={open}
@@ -198,7 +201,7 @@ export function Combobox({
             tabIndex={-1}
             disabled={disabled}
             onPointerDown={(e) => e.preventDefault()}
-            onClick={() => (open ? core.closeList() : (core.inputRef.current?.focus(), openList()))}
+            onClick={() => (open ? core.closeList() : (inputRef.current?.focus(), openList()))}
           >
             <i className="sb-combobox__chevron" aria-hidden="true" />
           </button>
@@ -207,22 +210,23 @@ export function Combobox({
 
       <div
         id={listboxId}
-        ref={core.panelRef}
+        ref={panelRef}
         popover="manual"
         role="listbox"
         aria-label={listLabel}
         className="sb-combobox__panel"
-        onToggle={core.onPanelToggle}
+        onToggle={onPanelToggle}
       >
         {filtered.length === 0 && <div className="sb-combobox__empty">{emptyMessage}</div>}
         {filtered.map((option, i) => {
+          // Compare against the previous option rather than carrying a mutable
+          // accumulator across the map — same headings, no render-scoped state.
           const heading =
-            option.group && option.group !== lastGroup ? (
+            option.group && option.group !== filtered[i - 1]?.group ? (
               <div className="sb-combobox__heading" role="presentation" key={`h-${option.group}`}>
                 {option.group}
               </div>
             ) : null;
-          lastGroup = option.group;
           return (
             <Fragment key={option.value}>
               {heading}

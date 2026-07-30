@@ -95,12 +95,13 @@ export function DonutChart({
       ];
     }
     const total = kept.reduce((s, d) => s + d.value, 0) || 1;
-    let cursor = 0;
+    // Each arc starts where the preceding values end. Derived per slice rather
+    // than carried in a running cursor — there are at most `maxSlices` of them.
     const arcs: Arc[] = kept.map((d, i) => {
       const frac = d.value / total;
-      const a0 = cursor * TAU;
-      cursor += frac;
-      return { ...d, frac, a0, a1: cursor * TAU, color: d.isOther ? mutedSeriesColor : seriesColor(i) };
+      const startFrac = kept.slice(0, i).reduce((s, x) => s + x.value, 0) / total;
+      const a0 = startFrac * TAU;
+      return { ...d, frac, a0, a1: a0 + frac * TAU, color: d.isOther ? mutedSeriesColor : seriesColor(i) };
     });
     return { arcs, total };
   }, [data, maxSlices, otherLabel]);

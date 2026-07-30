@@ -68,7 +68,11 @@ export function MultiCombobox({
   );
 
   const core = useComboboxCore(options, filter, optionId);
+  // Destructured (not read as `core.x` in the JSX) so the refs reach `ref=`
+  // as plain values — reading them off the hook object counts as touching a
+  // ref during render.
   const { open, query, setQuery, highlighted, setHighlighted, filtered, firstEnabled } = core;
+  const { controlRef, inputRef, panelRef, onPanelToggle } = core;
 
   const commit = (next: string[], changed: ComboboxOption | null) => {
     setValues(next);
@@ -86,7 +90,7 @@ export function MultiCombobox({
     // Stay open for serial picking; show the full list again.
     setQuery(null);
     setHighlighted(Math.max(options.indexOf(option), 0));
-    core.inputRef.current?.focus();
+    inputRef.current?.focus();
   };
 
   const removeLast = () => {
@@ -99,7 +103,7 @@ export function MultiCombobox({
   const clearAll = () => {
     commit([], null);
     setQuery(null);
-    core.inputRef.current?.focus();
+    inputRef.current?.focus();
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -148,11 +152,9 @@ export function MultiCombobox({
     }
   };
 
-  let lastGroup: string | undefined;
-
   return (
     <div className={cx("sb-combobox", "sb-combobox--multi", className)}>
-      <div className="sb-combobox__control" ref={core.controlRef}>
+      <div className="sb-combobox__control" ref={controlRef}>
         <div
           className={cx("sb-combobox__field", size !== "md" && `sb-combobox__field--${size}`)}
           data-invalid={invalid || undefined}
@@ -161,7 +163,7 @@ export function MultiCombobox({
             // Clicking the frame (not a chip) focuses the input and opens.
             if (e.target === e.currentTarget && !disabled) {
               e.preventDefault();
-              core.inputRef.current?.focus();
+              inputRef.current?.focus();
               core.openList();
             }
           }}
@@ -173,7 +175,7 @@ export function MultiCombobox({
           ))}
           <input
             id={inputId}
-            ref={composeRefs(ref, core.inputRef)}
+            ref={composeRefs(ref, inputRef)}
             role="combobox"
             aria-expanded={open}
             aria-controls={listboxId}
@@ -222,7 +224,7 @@ export function MultiCombobox({
             tabIndex={-1}
             disabled={disabled}
             onPointerDown={(e) => e.preventDefault()}
-            onClick={() => (open ? core.closeList() : (core.inputRef.current?.focus(), core.openList()))}
+            onClick={() => (open ? core.closeList() : (inputRef.current?.focus(), core.openList()))}
           >
             <i className="sb-combobox__chevron" aria-hidden="true" />
           </button>
@@ -231,23 +233,22 @@ export function MultiCombobox({
 
       <div
         id={listboxId}
-        ref={core.panelRef}
+        ref={panelRef}
         popover="manual"
         role="listbox"
         aria-label={listLabel}
         aria-multiselectable="true"
         className="sb-combobox__panel"
-        onToggle={core.onPanelToggle}
+        onToggle={onPanelToggle}
       >
         {filtered.length === 0 && <div className="sb-combobox__empty">{emptyMessage}</div>}
         {filtered.map((option, i) => {
           const heading =
-            option.group && option.group !== lastGroup ? (
+            option.group && option.group !== filtered[i - 1]?.group ? (
               <div className="sb-combobox__heading" role="presentation" key={`h-${option.group}`}>
                 {option.group}
               </div>
             ) : null;
-          lastGroup = option.group;
           return (
             <Fragment key={option.value}>
               {heading}

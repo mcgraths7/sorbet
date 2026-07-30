@@ -84,9 +84,13 @@ export function NumberInput({
   /** In-progress text that isn't a clean number yet; null = mirror the value. */
   const [draft, setDraft] = useState<string | null>(null);
   // Mirrors the committed number so a hold-repeat burst reads the fresh value
-  // between renders (useControllableState's setter isn't functional).
+  // between renders (useControllableState's setter isn't functional). Synced
+  // after commit rather than during render; a burst stays correct because
+  // `commit` writes this ref itself on every step.
   const latest = useRef(current);
-  latest.current = current;
+  useEffect(() => {
+    latest.current = current;
+  });
 
   const decimals = (String(step).split(".")[1] ?? "").length;
   const clampValue = (n: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, n));
