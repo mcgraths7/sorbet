@@ -73,6 +73,10 @@ export function Popover({
   return (
     <>
       {cloneElement(trigger, {
+        // composeRefs only *stores* into the refs it's given; it never reads
+        // .current. The rule can't see that through the helper, and inside a
+        // cloneElement props object it can't tell this is a ref slot either.
+        // eslint-disable-next-line react-hooks/refs
         ref: composeRefs<HTMLElement>(trigger.props.ref, anchorRef),
         "aria-haspopup": "dialog",
         "aria-expanded": open,

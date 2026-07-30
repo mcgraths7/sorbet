@@ -330,6 +330,9 @@ export function TokenStudio({
   // Re-capture when the mode flips…
   useEffect(() => {
     if (open) {
+      // captureBaseline reads live computed styles, which only exist after
+      // commit — there's no render-time value to derive this from.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       captureBaseline();
     }
   }, [open, mode, captureBaseline]);
@@ -358,6 +361,9 @@ export function TokenStudio({
     const colors = Object.fromEntries(
       SEMANTIC_COLOR_NAMES.map((n) => [n, styles.getPropertyValue(`--sb-${n}`).trim()]),
     ) as SemanticColors;
+    // Same reason: the colors come from getComputedStyle on the live document,
+    // so this check can only run after commit.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFailures(checkColors("studio", mode, colors));
   }, [open, mode, buckets, baseline]);
 

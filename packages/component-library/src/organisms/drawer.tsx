@@ -31,8 +31,12 @@ export function Drawer({
 }: DrawerProps) {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   // Keep the latest onClose without re-subscribing the light-dismiss listener.
+  // Written after commit (not during render); it's only read from the listener,
+  // which by then always sees the current value.
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     const dialog = dialogRef.current;

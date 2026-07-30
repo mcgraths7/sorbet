@@ -108,10 +108,8 @@ export function CommandPalette({
   const [isOpen, setOpen] = useControllableState<boolean>(open, defaultOpen ?? false, onOpenChange);
   const [query, setQuery] = useState("");
   const [highlighted, setHighlighted] = useState(0);
-  const openRef = useRef(isOpen);
-  openRef.current = isOpen;
 
-  const isMac = useMemo(isMacPlatform, []);
+  const isMac = useMemo(() => isMacPlatform(), []);
 
   const filterCommands = useCallback(
     (raw: string) => {
@@ -142,7 +140,8 @@ export function CommandPalette({
     return -1;
   };
 
-  // Global hotkey — toggles from anywhere. openRef keeps the closure fresh.
+  // Global hotkey — toggles from anywhere. `isOpen` is a dep so the closure
+  // always sees the current state; re-subscribing a keydown listener is cheap.
   useEffect(() => {
     if (!hotkey) {
       return;
@@ -150,22 +149,32 @@ export function CommandPalette({
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (matchHotkey(e, hotkey, isMac)) {
         e.preventDefault();
-        setOpen(!openRef.current);
+        setOpen(!isOpen);
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [hotkey, isMac, setOpen]);
+  }, [hotkey, isMac, isOpen, setOpen]);
 
-  // Fresh search each time it opens; focus the input (belt-and-suspenders with
-  // the dialog's autofocus).
-  useEffect(() => {
+  // Fresh search each time it opens. This is React's "adjust state when a prop
+  // changes" pattern — done during render (not in an effect) so the reset is
+  // applied in the same pass that opens the palette, with no extra paint.
+  const [prevOpen, setPrevOpen] = useState(isOpen);
+  if (isOpen !== prevOpen) {
+    setPrevOpen(isOpen);
     if (isOpen) {
       setQuery("");
       setHighlighted(firstEnabled(commands));
+    }
+  }
+
+  // Focus is a DOM side effect, so it stays here (belt-and-suspenders with the
+  // dialog's own autofocus).
+  useEffect(() => {
+    if (isOpen) {
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [isOpen, commands]);
+  }, [isOpen]);
 
   // Keep the active option in view — but when it's the topmost item, scroll the
   // list fully to the top so its group heading isn't clipped above it.
@@ -223,7 +232,6 @@ export function CommandPalette({
     }
   };
 
-  let lastGroup: string | undefined;
   const modKey = isMac ? "⌘" : "Ctrl";
 
   return (
@@ -260,13 +268,14 @@ export function CommandPalette({
           </li>
         )}
         {filtered.map((item, i) => {
+          // Compare against the previous item rather than carrying a mutable
+          // accumulator across the map — same headings, no render-scoped state.
           const heading =
-            item.group && item.group !== lastGroup ? (
+            item.group && item.group !== filtered[i - 1]?.group ? (
               <li className="sb-command__heading" role="presentation" key={`h-${item.group}`}>
                 {item.group}
               </li>
             ) : null;
-          lastGroup = item.group;
           return (
             <Fragment key={item.id}>
               {heading}

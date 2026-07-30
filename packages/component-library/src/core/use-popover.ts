@@ -97,8 +97,12 @@ export function usePopover<A extends HTMLElement = HTMLDivElement, P extends HTM
   const anchorRef = useRef<A | null>(null);
   const panelRef = useRef<P | null>(null);
   // Keep the latest onDismiss without re-subscribing listeners every render.
+  // Written after commit (not during render); it's only ever read from
+  // listeners, which by then always see the current value.
   const dismissRef = useRef(onDismiss);
-  dismissRef.current = onDismiss;
+  useEffect(() => {
+    dismissRef.current = onDismiss;
+  });
 
   const reposition = () => {
     const anchor = anchorRef.current;

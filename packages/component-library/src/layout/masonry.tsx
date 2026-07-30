@@ -38,6 +38,12 @@ export function Masonry({ min, cols, gap, balance = true, className, style, ref,
       return;
     }
 
+    // Deliberately post-commit: the balanced class switches the container from
+    // multi-column to grid, and the row spans below must already be applied or
+    // the first frame paints a broken layout. So we measure, span, then flip —
+    // which is exactly the state-in-effect the rule warns about, and here it's
+    // the point. (Derived state can't work: it would flip before the spans.)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setBalanced(true);
 
     const span = (item: HTMLElement) => {

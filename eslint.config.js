@@ -84,12 +84,12 @@ export default tseslint.config(
     files: ["**/*.{ts,tsx}"],
     // Supply the plugin object ourselves — react-hooks' preset still ships
     // legacy array-form `plugins`, which flat config (eslint 10) rejects.
-    // Enforce just the classic two rules: react-hooks 7 also bundles new
-    // React-Compiler-era rules (set-state-in-effect, …) in its preset, but
-    // adopting those is a deliberate refactor for its own PR, not this one.
     plugins: { "react-hooks": reactHooks },
     rules: {
-      "react-hooks/rules-of-hooks": "error",
+      // The full react-hooks 7 preset: the classic two plus the React-Compiler
+      // era rules (set-state-in-effect, purity, refs, immutability, …).
+      ...reactHooks.configs["recommended-latest"].rules,
+      // The preset ships this as a warning; we've always treated it as an error.
       "react-hooks/exhaustive-deps": "error",
     },
   },

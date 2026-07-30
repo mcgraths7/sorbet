@@ -82,6 +82,9 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
   return (
     <>
       {cloneElement(trigger, {
+        // See popover.tsx: composeRefs only stores into refs, never reads
+        // .current, but the rule can't see that through the helper.
+        // eslint-disable-next-line react-hooks/refs
         ref: composeRefs<HTMLElement>(trigger.props.ref, triggerRef),
         popoverTarget: id,
         "aria-haspopup": "menu",

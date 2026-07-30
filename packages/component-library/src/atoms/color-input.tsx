@@ -1,10 +1,10 @@
 import { contrast } from "@sorbet/design-system/tokens";
 import {
-  useEffect,
   useId,
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type AriaAttributes,
   type CSSProperties,
   type KeyboardEvent,
@@ -27,6 +27,10 @@ declare global {
     EyeDropper?: EyeDropperCtor;
   }
 }
+
+/** Support never changes at runtime, so the store has nothing to subscribe to. */
+const subscribeNever = () => () => {};
+const hasEyeDropperNow = () => typeof window !== "undefined" && "EyeDropper" in window;
 
 const DEFAULT_SWATCHES = [
   "#e11d48",
@@ -101,10 +105,11 @@ export function ColorInput({
   const [open, setOpen] = useState(false);
   const areaRef = useRef<HTMLDivElement | null>(null);
 
-  const [hasEyeDropper, setHasEyeDropper] = useState(false);
-  useEffect(() => {
-    setHasEyeDropper(eyedropper && typeof window !== "undefined" && "EyeDropper" in window);
-  }, [eyedropper]);
+  // Browser-capability read, done without state or an effect: the server
+  // snapshot is `false`, so SSR renders without the button and the client
+  // adopts the real answer on hydration — no mismatch, no cascading render.
+  const supportsEyeDropper = useSyncExternalStore(subscribeNever, hasEyeDropperNow, () => false);
+  const hasEyeDropper = eyedropper && supportsEyeDropper;
 
   // Push HSV changes out as hex (the swatch, hex + RGB fields all read `current`).
   const applyHsv = (nextHsv: Hsv, nextAlpha = alphaVal) => {
