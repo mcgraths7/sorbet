@@ -639,6 +639,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Modal
 - AlertDialog + ConfirmProvider/useConfirm (imperative `await confirm(…)`)
 - CommandPalette (⌘K, grouped fuzzy actions, keyboard-first, global hotkey)
+- CommandTrigger (search-shaped button that advertises the palette, platform-correct ⌘K/Ctrl K chip)
 - Drawer (modal or modeless)
 - DataTable
 - Footer (cols/col/meta)
