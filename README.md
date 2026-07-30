@@ -610,6 +610,8 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Skeleton
 - Divider
 - Kbd
+- Icon (sizes to the type scale, semantic tones, decorative-vs-labelled a11y — wraps any provider's SVG)
+- Icon glyphs (Check, Chevron, Close, Search, Calendar, Upload, Eyedropper, Plus, Minus — what the components themselves use)
 - Tooltip
 - Popover (anchored panel of any content)
 

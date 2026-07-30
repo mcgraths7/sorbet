@@ -6,6 +6,20 @@ export { Spinner, type SpinnerProps } from "./spinner.tsx";
 export { Progress, type ProgressProps } from "./progress.tsx";
 export { Divider, type DividerProps } from "./divider.tsx";
 export { Kbd } from "./kbd.tsx";
+export { Icon, type IconProps, type IconSize, type IconTone } from "./icon.tsx";
+export {
+  CalendarIcon,
+  CheckIcon,
+  ChevronIcon,
+  CloseIcon,
+  EyedropperIcon,
+  MinusIcon,
+  PlusIcon,
+  SearchIcon,
+  UploadIcon,
+  type ChevronIconProps,
+  type IconGlyphProps,
+} from "./icons.tsx";
 export {
   Heading,
   Lead,

@@ -14,6 +14,7 @@ import {
 import { cx, useControllableState, usePopover } from "../core/index.ts";
 
 import { clamp, formatHex, hexToHsv, hsvToRgb, parseHex, rgbToHsv, type Hsv } from "./color-core.ts";
+import { EyedropperIcon } from "./icons.tsx";
 import { Input } from "./input.tsx";
 
 interface EyeDropperResult {
@@ -287,15 +288,7 @@ export function ColorInput({
         <div className="sb-color-input__sliders">
           {hasEyeDropper && (
             <button type="button" className="sb-color-input__eyedropper" aria-label="Pick from screen" onClick={openEyeDropper}>
-              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                <path
-                  d="M10.5 2.5a1.6 1.6 0 0 1 2.3 2.3l-1 1 .8.8-1 1-.8-.8-4.2 4.2c-.2.2-.4.3-.7.4l-2.3.6.6-2.3c.1-.3.2-.5.4-.7l4.2-4.2-.8-.8 1-1 .8.8 1-1Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <EyedropperIcon />
             </button>
           )}
           <div className="sb-color-input__tracks">

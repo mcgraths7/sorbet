@@ -12,6 +12,8 @@ import {
 
 import { composeRefs, cx, useControllableState, type Size } from "../core/index.ts";
 
+import { MinusIcon, PlusIcon } from "./icons.tsx";
+
 export interface NumberInputProps {
   /** Current value (controlled); `null` is the empty field. */
   value?: number | null;
@@ -37,18 +39,6 @@ export interface NumberInputProps {
   incrementLabel?: string;
   ref?: Ref<HTMLInputElement>;
 }
-
-const MinusIcon = (
-  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-    <line x1="3.5" y1="8" x2="12.5" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-const PlusIcon = (
-  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-    <line x1="3.5" y1="8" x2="12.5" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="8" y1="3.5" x2="8" y2="12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
 
 /**
  * A numeric field with ± steppers over a bare input. Free typing lives in a
@@ -213,7 +203,7 @@ export function NumberInput({
         onPointerLeave={stopHold}
         onPointerCancel={stopHold}
       >
-        {MinusIcon}
+        <MinusIcon />
       </button>
       <input
         ref={composeRefs(inputRef, ref)}
@@ -249,7 +239,7 @@ export function NumberInput({
         onPointerLeave={stopHold}
         onPointerCancel={stopHold}
       >
-        {PlusIcon}
+        <PlusIcon />
       </button>
     </div>
   );
