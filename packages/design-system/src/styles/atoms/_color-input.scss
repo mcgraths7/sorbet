@@ -61,11 +61,20 @@
 
     inline-size: 18rem; // wide enough that the RGB + hex fields aren't clipped
     padding: space(3);
-    display: flex;
     flex-direction: column;
     gap: space(3);
 
     @include flyout;
+
+    // `display` belongs ONLY here. Declaring it on the base rule would beat the
+    // UA's `[popover]:not(:popover-open) { display: none }` — leaving a closed,
+    // invisible (opacity: 0) fixed panel laid out on top of the page, where it
+    // swallows hover (showing this panel's crosshair cursor) and scroll. The
+    // flyout transition animates display with allow-discrete, so the panel
+    // stays painted through its exit.
+    &:popover-open {
+      display: flex;
+    }
   }
 
   // ---- saturation / brightness square -------------------------------------
