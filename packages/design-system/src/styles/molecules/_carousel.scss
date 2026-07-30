@@ -1,0 +1,138 @@
+@use "../abstracts" as *;
+
+// A scroll-snap carousel. The scroll container IS the mechanism: native swipe,
+// momentum and keyboard scrolling come free, and the only JS is "which slide is
+// showing" plus scrollTo() for the controls.
+//
+// <div class="sb-carousel" role="group" aria-roledescription="carousel">
+//   <div class="sb-carousel__viewport" data-align="start" tabindex="0">
+//     <div class="sb-carousel__slide" role="group" aria-roledescription="slide">…</div>
+//   </div>
+//   <div class="sb-carousel__controls">
+//     <button class="sb-carousel__arrow">…</button>
+//     <div class="sb-carousel__dots"><button class="sb-carousel__dot" aria-current="true"></button></div>
+//   </div>
+// </div>
+.sb-carousel {
+  // Custom properties inherit; reset so a parent carousel never leaks in.
+  --gap: initial;
+  --per-view: initial;
+
+  display: flex;
+  flex-direction: column;
+  gap: space(3);
+
+  &__viewport {
+    display: flex;
+    gap: var(--gap, #{space(4)});
+    overflow-x: auto;
+    // The carousel itself: slides settle on a snap point instead of anywhere.
+    scroll-snap-type: x mandatory;
+    // scrollTo() inherits this, so the JS never picks a motion mode.
+    scroll-behavior: smooth;
+    // Hide the scrollbar — the dots and arrows are the affordance. The
+    // container stays scrollable (and focusable) either way.
+    scrollbar-width: none;
+    @include focus-ring(2px);
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    &[data-align="center"] .sb-carousel__slide {
+      scroll-snap-align: center;
+    }
+  }
+
+  &__slide {
+    // perView slides across, minus the gaps between them.
+    flex: 0 0
+      calc((100% - (var(--gap, #{space(4)}) * (var(--per-view, 1) - 1))) / var(--per-view, 1));
+    min-inline-size: 0;
+    scroll-snap-align: start;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: space(3);
+  }
+
+  &__arrow {
+    @include control-reset;
+    @include pressable;
+
+    display: grid;
+    place-content: center;
+    inline-size: token(control-height-sm);
+    block-size: token(control-height-sm);
+    border: token(border-width) solid clr(border);
+    border-radius: radius(full);
+    background-color: clr(surface);
+    color: clr(text-muted);
+    transition: color dur(fast) ease(out), border-color dur(fast) ease(out);
+    @include focus-ring;
+
+    svg {
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: clr(border-strong);
+      color: clr(text);
+    }
+
+    &:disabled {
+      color: clr(text-subtle);
+    }
+  }
+
+  &__dots {
+    display: flex;
+    align-items: center;
+    gap: space(2);
+  }
+
+  // Position markers, not progress: every dot is reachable, and the current one
+  // is marked with aria-current rather than a "completed" state.
+  &__dot {
+    @include control-reset;
+    @include focus-ring(3px);
+
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: radius(full);
+    background-color: clr(border-strong);
+    transition: background-color dur(fast) ease(out), inline-size dur(base) ease(spring);
+
+    &:hover {
+      background-color: clr(text-muted);
+    }
+
+    &[aria-current] {
+      // Stadium rather than a bigger circle — reads as "you are here" without
+      // shifting the row's rhythm.
+      inline-size: 1.25rem;
+      background-color: clr(primary);
+    }
+  }
+
+  @each $step in (2, 3, 4, 6, 8) {
+    &--gap-#{$step} {
+      --gap: #{space($step)};
+    }
+  }
+
+  // Snapping and smooth scrolling are motion; honor the OS preference.
+  @media (prefers-reduced-motion: reduce) {
+    .sb-carousel__viewport {
+      scroll-behavior: auto;
+    }
+
+    .sb-carousel__dot {
+      transition: background-color dur(fast) ease(out);
+    }
+  }
+}
