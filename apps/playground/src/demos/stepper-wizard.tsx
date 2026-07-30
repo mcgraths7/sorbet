@@ -3,7 +3,7 @@ import { Split, SplitAside, SplitMain } from "@sorbet/component-library/layout";
 import { Field, Stepper, Wizard, WizardStep, useToast } from "@sorbet/component-library/molecules";
 import { useState } from "react";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 /** A 3-step flow: the first step gates Next until a name is typed (canAdvance),
  *  panels stay mounted so entered data survives Back/Next, Finish toasts. */
@@ -68,9 +68,4 @@ export function StepperWizardDemo() {
   );
 }
 
-export const demo: Demo = {
-  title: "Stepper & wizard",
-  layer: "molecules",
-  order: 50,
-  Component: StepperWizardDemo,
-};
+StepperWizardDemo.demo = { title: "Stepper & wizard", layer: "molecules", order: 50 } satisfies DemoMeta;

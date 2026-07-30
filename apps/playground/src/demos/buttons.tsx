@@ -1,7 +1,7 @@
 import { Button, Tooltip } from "@sorbet/component-library/atoms";
 import { Cluster } from "@sorbet/component-library/layout";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 export function ButtonsDemo() {
   return (
@@ -35,4 +35,4 @@ export function ButtonsDemo() {
   );
 }
 
-export const demo: Demo = { title: "Buttons", layer: "atoms", order: 20, Component: ButtonsDemo };
+ButtonsDemo.demo = { title: "Buttons", layer: "atoms", order: 20 } satisfies DemoMeta;

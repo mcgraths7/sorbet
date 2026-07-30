@@ -28,7 +28,7 @@ import {
 } from "@sorbet/component-library/molecules";
 import { useState } from "react";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 const LABELS = [
   { value: "bug", label: "Bug", description: "Something is broken" },
@@ -181,4 +181,4 @@ export function FormControlsDemo() {
   );
 }
 
-export const demo: Demo = { title: "Form controls", layer: "atoms", order: 30, Component: FormControlsDemo };
+FormControlsDemo.demo = { title: "Form controls", layer: "atoms", order: 30 } satisfies DemoMeta;

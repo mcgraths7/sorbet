@@ -1,7 +1,7 @@
 import { Cluster, Grid, GridSpan2, Split, SplitAside, SplitMain, Stack } from "@sorbet/component-library/layout";
 import { Card, CardBody, CardHeader } from "@sorbet/component-library/molecules";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 import type { CSSProperties } from "react";
 
 const demoBox: CSSProperties = {
@@ -59,4 +59,4 @@ export function LayoutDemo() {
   );
 }
 
-export const demo: Demo = { title: "Layout", layer: "layout", order: 10, Component: LayoutDemo };
+LayoutDemo.demo = { title: "Layout", layer: "layout", order: 10 } satisfies DemoMeta;

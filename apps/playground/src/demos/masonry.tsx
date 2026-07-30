@@ -1,7 +1,7 @@
 import { Cluster, Frame, Masonry } from "@sorbet/component-library/layout";
 import { Card } from "@sorbet/component-library/molecules";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 interface Shot {
   emoji: string;
@@ -70,10 +70,4 @@ export function MasonryDemo() {
   );
 }
 
-export const demo: Demo = {
-  title: "Masonry",
-  layer: "layout",
-  order: 20,
-  anchor: "masonry",
-  Component: MasonryDemo,
-};
+MasonryDemo.demo = { title: "Masonry", layer: "layout", order: 20, anchor: "masonry" } satisfies DemoMeta;

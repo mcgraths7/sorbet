@@ -1,7 +1,7 @@
 import { Heading, Lead, Overline, Text } from "@sorbet/component-library/atoms";
 import { Cluster, Stack } from "@sorbet/component-library/layout";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 export function TypographyDemo() {
   return (
@@ -29,4 +29,4 @@ export function TypographyDemo() {
   );
 }
 
-export const demo: Demo = { title: "Typography", layer: "atoms", order: 10, Component: TypographyDemo };
+TypographyDemo.demo = { title: "Typography", layer: "atoms", order: 10 } satisfies DemoMeta;

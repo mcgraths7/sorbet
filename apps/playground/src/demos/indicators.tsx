@@ -11,7 +11,7 @@ import {
 import { Cluster, Grid, Stack } from "@sorbet/component-library/layout";
 import { useState } from "react";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 export function IndicatorsDemo() {
   const [chips, setChips] = useState(["Design", "Engineering", "Research"]);
@@ -52,9 +52,4 @@ export function IndicatorsDemo() {
   );
 }
 
-export const demo: Demo = {
-  title: "Badges, chips & indicators",
-  layer: "atoms",
-  order: 40,
-  Component: IndicatorsDemo,
-};
+IndicatorsDemo.demo = { title: "Badges, chips & indicators", layer: "atoms", order: 40 } satisfies DemoMeta;

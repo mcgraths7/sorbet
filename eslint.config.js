@@ -97,13 +97,4 @@ export default tseslint.config(
     files: ["apps/playground/**/*.{jsx,tsx}"],
     ...reactRefresh.configs.vite,
   },
-  {
-    // Playground demo files pair their component with a `demo` metadata export
-    // (that pairing is what makes registration zero-touch) — allow it alongside
-    // the component without losing fast refresh.
-    files: ["apps/playground/src/demos/**/*.tsx"],
-    rules: {
-      "react-refresh/only-export-components": ["error", { allowExportNames: ["demo"] }],
-    },
-  },
 );

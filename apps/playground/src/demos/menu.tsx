@@ -13,7 +13,7 @@ import {
 } from "@sorbet/component-library/organisms";
 import { useState } from "react";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 /** Menu + Popover, plus the Modal and Drawer they open — the overlays live here
  *  rather than in App so the whole interaction is one self-contained demo. */
@@ -116,4 +116,4 @@ export function MenuDemo() {
   );
 }
 
-export const demo: Demo = { title: "Menu", layer: "molecules", order: 60, Component: MenuDemo };
+MenuDemo.demo = { title: "Menu", layer: "molecules", order: 60 } satisfies DemoMeta;

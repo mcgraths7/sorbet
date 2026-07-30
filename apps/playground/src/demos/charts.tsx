@@ -2,7 +2,7 @@ import { BarChart, DonutChart, LineChart, Sparkline } from "@sorbet/component-li
 import { Grid } from "@sorbet/component-library/layout";
 import { Card, CardBody, Stat } from "@sorbet/component-library/molecules";
 
-import type { Demo } from "./types.ts";
+import type { DemoMeta } from "./types.ts";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -139,10 +139,4 @@ export function ChartsDemo() {
   );
 }
 
-export const demo: Demo = {
-  title: "Data visualization",
-  layer: "molecules",
-  order: 20,
-  anchor: "charts",
-  Component: ChartsDemo,
-};
+ChartsDemo.demo = { title: "Data visualization", layer: "molecules", order: 20, anchor: "charts" } satisfies DemoMeta;
