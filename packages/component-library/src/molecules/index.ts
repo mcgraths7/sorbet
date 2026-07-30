@@ -14,6 +14,7 @@ export {
   type SegmentedControlProps,
   type SegmentProps,
 } from "./segmented-control.tsx";
+export { Marquee, type MarqueeGap, type MarqueeProps } from "./marquee.tsx";
 export { Stepper, type StepItem, type StepperProps } from "./stepper.tsx";
 export { Wizard, WizardStep, type WizardProps, type WizardStepProps } from "./wizard.tsx";
 export { Menu, MenuHeading, MenuItem, MenuSeparator, type MenuItemProps, type MenuProps } from "./menu.tsx";
