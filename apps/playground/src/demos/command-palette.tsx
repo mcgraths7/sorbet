@@ -1,14 +1,14 @@
-import { Button, Kbd } from "@sorbet/component-library/atoms";
 import { useTheme } from "@sorbet/component-library/core";
 import { Cluster } from "@sorbet/component-library/layout";
 import { useToast } from "@sorbet/component-library/molecules";
-import { CommandPalette, type CommandItem } from "@sorbet/component-library/organisms";
+import { CommandPalette, CommandTrigger, type CommandItem } from "@sorbet/component-library/organisms";
 import { useState } from "react";
 
 import type { DemoMeta } from "./types.ts";
 
 /** ⌘K palette wired to real actions — grouped, with icons + shortcuts, one
- *  disabled item, and a trigger button. Press ⌘K (Ctrl+K) anywhere too. */
+ *  disabled item, and the search-shaped CommandTrigger that advertises it.
+ *  Press ⌘K (Ctrl+K) anywhere too. */
 export function CommandPaletteDemo() {
   const [open, setOpen] = useState(false);
   const toast = useToast();
@@ -27,10 +27,7 @@ export function CommandPaletteDemo() {
   return (
     <>
       <Cluster>
-        <Button variant="outline" onClick={() => setOpen(true)}>
-          Open command palette&nbsp;&nbsp;<Kbd>⌘</Kbd>
-          <Kbd>K</Kbd>
-        </Button>
+        <CommandTrigger onClick={() => setOpen(true)} />
       </Cluster>
       <CommandPalette open={open} onOpenChange={setOpen} commands={commands} />
     </>

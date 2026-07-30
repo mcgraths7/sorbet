@@ -147,3 +147,62 @@
     margin-inline-start: auto;
   }
 }
+
+// The trigger: a search-shaped button that opens the palette. Reads as a muted
+// search field so it's obvious what it does, with the shortcut chip pinned to
+// the end teaching the keyboard path.
+//
+// <button class="sb-command-trigger" aria-keyshortcuts="Meta+K">
+//   <svg class="sb-command-trigger__icon">…</svg>
+//   <span class="sb-command-trigger__label">Search…</span>
+//   <span class="sb-command-trigger__shortcut"><kbd>⌘</kbd><kbd>K</kbd></span>
+// </button>
+.sb-command-trigger {
+  @include control-reset;
+  @include focus-ring;
+
+  // Custom properties inherit; reset so a parent's width never leaks in.
+  --trigger-width: initial;
+
+  display: inline-flex;
+  align-items: center;
+  gap: space(2);
+  // Wide enough to read as a search field; --trigger-width overrides per site.
+  inline-size: var(--trigger-width, 16rem);
+  max-inline-size: 100%;
+  block-size: token(control-height-md);
+  padding-inline: space(3);
+  border: token(border-width) solid clr(border);
+  border-radius: radius(md);
+  background-color: clr(bg-subtle);
+  color: clr(text-subtle);
+  font-size: fs(sm);
+  text-align: start;
+  transition: border-color dur(fast) ease(out), background-color dur(fast) ease(out), color dur(fast) ease(out);
+
+  &:hover:not(:disabled) {
+    border-color: clr(border-strong);
+    background-color: clr(surface);
+    color: clr(text-muted);
+  }
+
+  &__icon {
+    flex: 0 0 auto;
+    inline-size: 1rem;
+    block-size: 1rem;
+  }
+
+  &__label {
+    @include truncate;
+
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  // Pinned to the end, and visually quieter than the label.
+  &__shortcut {
+    display: flex;
+    flex: 0 0 auto;
+    gap: space(1);
+  }
+}

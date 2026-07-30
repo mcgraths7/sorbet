@@ -103,3 +103,6 @@ export {
 
 // Controlled/uncontrolled state — the value/defaultValue/onChange trio.
 export { useControllableState } from "./use-controllable-state.ts";
+
+// Platform shortcut modifier — ⌘ vs Ctrl, for matching and for display.
+export { useModifierKey, type ModifierKey } from "./use-modifier-key.ts";

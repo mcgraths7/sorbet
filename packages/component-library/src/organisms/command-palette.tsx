@@ -6,12 +6,13 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentPropsWithRef,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
 
 import { Kbd } from "../atoms/index.ts";
-import { cx, useControllableState } from "../core/index.ts";
+import { cx, useControllableState, useModifierKey } from "../core/index.ts";
 
 import { Modal } from "./modal.tsx";
 
@@ -47,18 +48,14 @@ export interface CommandPaletteProps {
   className?: string;
 }
 
-const SearchIcon = (
-  <svg className="sb-command__search-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-    <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-    <line x1="13.5" y1="13.5" x2="17.5" y2="17.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-  </svg>
-);
-
-function isMacPlatform(): boolean {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
-  return /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
+/** Shared by the palette's search row and the trigger below it. */
+function SearchIcon({ className }: { className: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <line x1="13.5" y1="13.5" x2="17.5" y2="17.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 function matchHotkey(e: KeyboardEvent | globalThis.KeyboardEvent, hotkey: string, isMac: boolean): boolean {
@@ -109,7 +106,7 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [highlighted, setHighlighted] = useState(0);
 
-  const isMac = useMemo(() => isMacPlatform(), []);
+  const { isApple: isMac, label: modKey } = useModifierKey();
 
   const filterCommands = useCallback(
     (raw: string) => {
@@ -232,12 +229,10 @@ export function CommandPalette({
     }
   };
 
-  const modKey = isMac ? "⌘" : "Ctrl";
-
   return (
     <Modal open={isOpen} onClose={() => setOpen(false)} aria-label={label} className={cx("sb-command", className)}>
       <div className="sb-command__search">
-        {SearchIcon}
+        <SearchIcon className="sb-command__search-icon" />
         <input
           ref={inputRef}
           className="sb-command__input"
@@ -329,5 +324,49 @@ export function CommandPalette({
         </span>
       </div>
     </Modal>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The affordance that tells people the palette exists.
+
+export interface CommandTriggerProps extends Omit<ComponentPropsWithRef<"button">, "children"> {
+  /** Placeholder-style text inside the control. */
+  label?: string;
+  /** Key shown beside the platform modifier. `null` hides the shortcut chip. */
+  shortcutKey?: string | null;
+}
+
+/**
+ * A search-shaped button that opens the palette: magnifier, muted placeholder
+ * text, and a platform-correct `⌘K` / `Ctrl K` chip pinned to the end.
+ *
+ * This is the discoverable half of a command palette — the chip teaches the
+ * shortcut to people who reach for the mouse, so they graduate to the keyboard
+ * on their own. Wire it to the same state the palette uses:
+ *
+ *   <CommandTrigger onClick={() => setOpen(true)} />
+ *   <CommandPalette open={open} onOpenChange={setOpen} commands={commands} />
+ */
+export function CommandTrigger({ label = "Search…", shortcutKey = "K", className, ...rest }: CommandTriggerProps) {
+  const { label: modKey, ariaName } = useModifierKey();
+  return (
+    <button
+      type="button"
+      className={cx("sb-command-trigger", className)}
+      // Announces the shortcut to assistive tech, not just to people who can
+      // see the chip. `ariaName` is the platform's real modifier (Meta/Control).
+      aria-keyshortcuts={shortcutKey ? `${ariaName}+${shortcutKey}` : undefined}
+      {...rest}
+    >
+      <SearchIcon className="sb-command-trigger__icon" />
+      <span className="sb-command-trigger__label">{label}</span>
+      {shortcutKey && (
+        <span className="sb-command-trigger__shortcut" aria-hidden="true">
+          <Kbd>{modKey}</Kbd>
+          <Kbd>{shortcutKey}</Kbd>
+        </span>
+      )}
+    </button>
   );
 }
