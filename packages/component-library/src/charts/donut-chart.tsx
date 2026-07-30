@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState, type PointerEvent } from "react";
 
+import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "../molecules/table.tsx";
+
 import { formatNumber } from "./scale.ts";
 import { ChartShell, ChartTooltip, mutedSeriesColor, seriesColor, type TooltipState } from "./shell.tsx";
 
@@ -148,30 +150,28 @@ export function DonutChart({
   ) : undefined;
 
   const table = (
-    <div className="sb-table-wrap sb-chart__table">
-      <table className="sb-table sb-table--compact">
-        <thead>
-          <tr>
-            <th scope="col">Category</th>
-            <th scope="col" data-numeric>
-              Value
-            </th>
-            <th scope="col" data-numeric>
-              Share
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {arcs.map((arc) => (
-            <tr key={arc.label}>
-              <th scope="row">{arc.label}</th>
-              <td data-numeric>{formatValue(arc.value)}</td>
-              <td data-numeric>{Math.round(arc.frac * 100)}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table compact wrapClassName="sb-chart__table">
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell scope="col">Category</TableHeaderCell>
+          <TableHeaderCell scope="col" numeric>
+            Value
+          </TableHeaderCell>
+          <TableHeaderCell scope="col" numeric>
+            Share
+          </TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {arcs.map((arc) => (
+          <TableRow key={arc.label}>
+            <TableHeaderCell scope="row">{arc.label}</TableHeaderCell>
+            <TableCell numeric>{formatValue(arc.value)}</TableCell>
+            <TableCell numeric>{Math.round(arc.frac * 100)}%</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 
   return (

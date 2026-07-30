@@ -1,6 +1,6 @@
 import { useMemo, useState, type ComponentPropsWithRef, type ReactNode } from "react";
 
-import { cx } from "../core/index.ts";
+import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "../molecules/table.tsx";
 
 export interface Column<T> {
   key: string;
@@ -30,7 +30,14 @@ export interface DataTableProps<T> extends Omit<ComponentPropsWithRef<"table">, 
 
 type Direction = "ascending" | "descending";
 
-/** Sortable data table. The wrapper owns horizontal overflow. */
+/**
+ * The interactive table: columns in, sorted rows out.
+ *
+ * It renders the presentational `Table` parts rather than its own markup, so
+ * the two can't drift apart visually — this file owns only the behavior. If you
+ * just need to show rows, import `Table` instead and none of this sorting
+ * machinery gets bundled.
+ */
 export function DataTable<T>({
   columns,
   data,
@@ -41,7 +48,6 @@ export function DataTable<T>({
   stickyHeader,
   initialSort,
   wrapClassName,
-  className,
   ...rest
 }: DataTableProps<T>) {
   const [sort, setSort] = useState<{ key: string; direction: Direction } | null>(initialSort ?? null);
@@ -73,49 +79,45 @@ export function DataTable<T>({
     );
 
   return (
-    <div className={cx("sb-table-wrap", wrapClassName)}>
-      <table
-        className={cx(
-          "sb-table",
-          hover && "sb-table--hover",
-          striped && "sb-table--striped",
-          compact && "sb-table--compact",
-          stickyHeader && "sb-table--sticky-header",
-          className,
-        )}
-        {...rest}
-      >
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                data-numeric={col.numeric || undefined}
-                aria-sort={sort?.key === col.key ? sort.direction : undefined}
-              >
-                {col.sortable ? (
-                  <button type="button" className="sb-table__sort" onClick={() => toggle(col.key)}>
-                    {col.header}
-                  </button>
-                ) : (
-                  col.header
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((row) => (
-            <tr key={rowKey(row)}>
-              {columns.map((col) => (
-                <td key={col.key} data-numeric={col.numeric || undefined}>
-                  {col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as ReactNode)}
-                </td>
-              ))}
-            </tr>
+    <Table
+      hover={hover}
+      striped={striped}
+      compact={compact}
+      stickyHeader={stickyHeader}
+      wrapClassName={wrapClassName}
+      {...rest}
+    >
+      <TableHead>
+        <TableRow>
+          {columns.map((col) => (
+            <TableHeaderCell
+              key={col.key}
+              scope="col"
+              numeric={col.numeric}
+              sort={sort?.key === col.key ? sort.direction : undefined}
+            >
+              {col.sortable ? (
+                <button type="button" className="sb-table__sort" onClick={() => toggle(col.key)}>
+                  {col.header}
+                </button>
+              ) : (
+                col.header
+              )}
+            </TableHeaderCell>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {sorted.map((row) => (
+          <TableRow key={rowKey(row)}>
+            {columns.map((col) => (
+              <TableCell key={col.key} numeric={col.numeric}>
+                {col.render ? col.render(row) : ((row as Record<string, unknown>)[col.key] as ReactNode)}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "../atoms/index.ts";
 import { cx } from "../core/index.ts";
+import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "../molecules/table.tsx";
 
 import { formatNumber } from "./scale.ts";
 
@@ -82,32 +83,30 @@ export function ChartShell({
       {showTable && table ? (
         table
       ) : showTable ? (
-        <div className="sb-table-wrap sb-chart__table">
-          <table className="sb-table sb-table--compact">
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                {series.map((s) => (
-                  <th scope="col" key={s.label} data-numeric>
-                    {s.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {labels.map((label, row) => (
-                <tr key={label}>
-                  <th scope="row">{label}</th>
-                  {series.map((s) => (
-                    <td key={s.label} data-numeric>
-                      {formatValue(s.data[row] ?? 0)}
-                    </td>
-                  ))}
-                </tr>
+        <Table compact wrapClassName="sb-chart__table">
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell scope="col" />
+              {series.map((s) => (
+                <TableHeaderCell scope="col" key={s.label} numeric>
+                  {s.label}
+                </TableHeaderCell>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {labels.map((label, row) => (
+              <TableRow key={label}>
+                <TableHeaderCell scope="row">{label}</TableHeaderCell>
+                {series.map((s) => (
+                  <TableCell key={s.label} numeric>
+                    {formatValue(s.data[row] ?? 0)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       ) : (
         children
       )}
