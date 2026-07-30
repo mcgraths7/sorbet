@@ -143,8 +143,11 @@ Highlights of the React API:
   platform; light dismiss is on by default (`static` opts out).
 - **`Menu`** rides the Popover API: `trigger={<Button…>}` gets `popoverTarget`
   cloned on; arrow keys, shortcuts and danger items included.
-- **`DataTable`** is data-driven: typed `columns`, `sortValue`, custom cell
-  renderers, `aria-sort` handled.
+- **Two tables, pick your weight**: `Table` (+`TableRow`/`TableCell`/…) is
+  presentational — semantic markup with the house style, no state. `DataTable`
+  adds the data-driven behavior on top: typed `columns`, `sortValue`, custom
+  cell renderers, `aria-sort` handled. Reach for `Table` when you're just
+  showing rows and none of the sorting machinery gets bundled.
 - **`useTheme()`**: `{ mode, resolved, set, toggle }`, persisted, live-tracking
   the OS in `system` mode.
 
@@ -618,6 +621,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - DateRange (start/end pick with span checks, shares the calendar)
 - Dropzone (drag-and-drop upload over a real file input)
 - InputGroup(+Addon)
+- Table(+Head/Body/Foot/Row/Cell/HeaderCell/Caption) (presentational — no state, no sorting)
 - Card (header/body/footer/media/title, 5 variants)
 - Alert
 - Tabs/TabList/Tab/TabPanel
@@ -643,7 +647,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - CommandPalette (⌘K, grouped fuzzy actions, keyboard-first, global hotkey)
 - CommandTrigger (search-shaped button that advertises the palette, platform-correct ⌘K/Ctrl K chip)
 - Drawer (modal or modeless)
-- DataTable
+- DataTable (sortable; built on the presentational Table)
 - Footer (cols/col/meta)
 - TokenStudio (live token editor with WCAG report + export)
 

@@ -7,6 +7,19 @@ export { DateRange, type DateRangeProps, type DateRangeValue, type DateRangeVali
 export { InputGroup, InputGroupAddon } from "./input-group.tsx";
 export { Card, CardBody, CardFooter, CardHeader, CardMedia, CardTitle, type CardFooterProps, type CardOwnProps } from "./card.tsx";
 export { Alert, type AlertProps } from "./alert.tsx";
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFoot,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+  type TableCellProps,
+  type TableHeaderCellProps,
+  type TableProps,
+} from "./table.tsx";
 export { Tab, TabList, TabPanel, Tabs, type TabPanelProps, type TabProps, type TabsProps } from "./tabs.tsx";
 export {
   Segment,
