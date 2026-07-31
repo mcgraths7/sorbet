@@ -1,6 +1,7 @@
 import { Button, Heading, NumberInput, Select, Text } from "@sorbet/component-library/atoms";
 import { Cluster, Grid, Split, SplitAside, SplitMain, Stack } from "@sorbet/component-library/layout";
 import {
+  Section,
   Card,
   CardBody,
   CardFooter,
@@ -44,11 +45,11 @@ export function PlanBuilder() {
   const delivery = subtotal > 40 ? 0 : 3.99;
 
   return (
-    <Stack gap={6} as="section" id="build">
-      <Stack gap={2}>
-        <Heading level={2}>Build your box</Heading>
-        <Text tone="muted">Change anything week to week — this is just where you start.</Text>
-      </Stack>
+    <Section
+      id="build"
+      title="Build your box"
+      description="Change anything week to week — this is just where you start."
+    >
 
       <Split aside="22rem">
         <SplitMain>
@@ -166,6 +167,6 @@ export function PlanBuilder() {
           </Card>
         </SplitAside>
       </Split>
-    </Stack>
+    </Section>
   );
 }
