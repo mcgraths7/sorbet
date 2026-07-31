@@ -192,15 +192,13 @@ export function Dropzone({
               <span className="sb-dropzone__size">{formatSize(file.size)}</span>
               <button
                 type="button"
-                className="sb-dropzone__remove"
+                className="sb-dropzone__remove sb-close"
                 aria-label={`Remove ${file.name}`}
                 onClick={() => {
                   commit(files.filter((_, index) => index !== i));
                   setError(null);
                 }}
-              >
-                ✕
-              </button>
+              />
             </li>
           ))}
         </ul>

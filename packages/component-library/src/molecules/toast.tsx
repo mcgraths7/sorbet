@@ -80,12 +80,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               </div>
               <button
                 type="button"
-                className="sb-toast__dismiss"
+                className="sb-toast__dismiss sb-close"
                 aria-label="Dismiss notification"
                 onClick={() => dismiss(t.id)}
-              >
-                ×
-              </button>
+              />
             </div>
           ))}
         </div>,

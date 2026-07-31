@@ -138,9 +138,14 @@ export function DrawerHeader({ onClose, closeLabel = "Close", className, childre
     <header className={cx("sb-drawer__header", className)} {...rest}>
       {children}
       {onClose && (
-        <Button variant="ghost" size="sm" iconOnly aria-label={closeLabel} onClick={onClose}>
-          ×
-        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          iconOnly
+          className="sb-close"
+          aria-label={closeLabel}
+          onClick={onClose}
+        />
       )}
     </header>
   );

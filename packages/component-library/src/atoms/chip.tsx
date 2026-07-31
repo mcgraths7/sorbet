@@ -21,9 +21,12 @@ export function Chip({ selected, onRemove, removeLabel = "Remove", className, ch
     return (
       <span className={classes} {...(spanSafe as ComponentPropsWithRef<"span">)}>
         {children}
-        <button type="button" className="sb-chip__remove" aria-label={removeLabel} onClick={onRemove}>
-          ×
-        </button>
+        <button
+          type="button"
+          className="sb-chip__remove sb-close"
+          aria-label={removeLabel}
+          onClick={onRemove}
+        />
       </span>
     );
   }

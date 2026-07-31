@@ -28,9 +28,12 @@ export function Alert({ tone = "info", title, icon, onDismiss, dismissLabel = "D
         {children}
       </div>
       {onDismiss && (
-        <button type="button" className="sb-alert__dismiss" aria-label={dismissLabel} onClick={onDismiss}>
-          ×
-        </button>
+        <button
+          type="button"
+          className="sb-alert__dismiss sb-close"
+          aria-label={dismissLabel}
+          onClick={onDismiss}
+        />
       )}
     </div>
   );

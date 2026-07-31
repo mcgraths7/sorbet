@@ -1,0 +1,42 @@
+// Vector glyphs for CSS-only icons.
+//
+// Some icons can't live in markup: they're painted by a pseudo-element so the
+// React and vanilla flavors get them from the same stylesheet, with no markup
+// contract to keep in sync. Those used to be Unicode characters (↕ ↑ ↓ →),
+// which meant the user's font decided how they looked — weight, size and
+// baseline all drifted between platforms, and some fonts substitute or drop
+// them entirely.
+//
+// Instead we mask an inline SVG. It's a real vector — identical everywhere,
+// tinted by `currentColor` like any other glyph, and drawn on the same 16 grid
+// with the same 1.5 stroke as the React icon set, so the two match.
+
+/// Paint `$svg` (a URL-encoded <svg>) as a glyph tinted by currentColor.
+@mixin glyph($svg, $size: 1em) {
+  display: inline-block;
+  inline-size: $size;
+  block-size: $size;
+  background-color: currentColor;
+  mask: $svg center / contain no-repeat;
+  // No text inside — the shape comes entirely from the mask.
+  content: "";
+}
+
+/// Wrap path data in the house SVG shell. Stroke is opaque black because a
+/// mask only reads alpha; the color comes from background-color.
+@function glyph-svg($paths) {
+  @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E#{$paths}%3C/svg%3E");
+}
+
+// Sort indicators — a double-headed arrow for "sortable, unsorted", and single
+// arrows once a direction is chosen.
+$glyph-sort: glyph-svg("%3Cpath d='M5 6l3-3 3 3M5 10l3 3 3-3'/%3E");
+$glyph-arrow-up: glyph-svg("%3Cpath d='M8 13V3M4 7l4-4 4 4'/%3E");
+$glyph-arrow-down: glyph-svg("%3Cpath d='M8 3v10M4 9l4 4 4-4'/%3E");
+$glyph-arrow-right: glyph-svg("%3Cpath d='M3 8h10M9 4l4 4-4 4'/%3E");
+
+// Chevron, matching the React ChevronIcon path exactly.
+$glyph-chevron: glyph-svg("%3Cpath d='m6 3 5 5-5 5'/%3E");
+
+// Close / dismiss / remove, matching the React CloseIcon path exactly.
+$glyph-close: glyph-svg("%3Cpath d='M4 4l8 8M12 4l-8 8'/%3E");
