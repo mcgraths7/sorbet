@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    // Vite bundles this app and we never emit here, so the source-import
+    // extension rewrite (an emit concern) doesn't apply — it only trips over
+    // the bare `@sorbet/*` specifiers that `paths` resolves to .ts/.tsx source.
+    "rewriteRelativeImportExtensions": false,
+    // Type-check against the workspace SOURCE (not built dist), so this runs
+    // without a prior build and catches library/consumer drift immediately.
+    "paths": {
+      "@sorbet/component-library/*": [
+        "../../packages/component-library/src/*/index.ts",
+        "../../packages/component-library/src/*/index.tsx"
+      ],
+      "@sorbet/design-system/tokens": ["../../packages/design-system/src/tokens/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

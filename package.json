@@ -17,8 +17,9 @@
     "lint:styles": "pnpm --filter @sorbet/design-system lint:styles",
     "lint:styles:fix": "pnpm --filter @sorbet/design-system lint:styles:fix",
     "playground": "pnpm --filter playground dev",
+    "example": "pnpm --filter meal-kit dev",
     "test": "pnpm run check:contrast",
-    "typecheck": "pnpm --filter playground typecheck"
+    "typecheck": "pnpm --filter \"./apps/*\" typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
