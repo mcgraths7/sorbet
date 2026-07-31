@@ -10,8 +10,13 @@
   @include truncate;
 }
 
+// Text alignment. Logical (start/end, not left/right) so it follows the
+// writing direction. These back the `align` prop on Text/Heading/Lead, so the
+// React and vanilla flavors are the same rule rather than two that can drift.
+.u-text-start { text-align: start; }
 .u-text-center { text-align: center; }
 .u-text-end { text-align: end; }
+.u-text-justify { text-align: justify; }
 .u-text-muted { color: clr(text-muted); }
 .u-text-subtle { color: clr(text-subtle); }
 .u-text-sm { font-size: fs(sm); }

@@ -588,7 +588,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 
 **Atoms**
 
-- Text / Heading (level ≠ size) / Prose / Lead / Overline (typed text primitives)
+- Text / Heading (level ≠ size) / Prose / Lead / Overline (typed text primitives; `align` for start/center/end/justify)
 - Button (8 variants × 3 sizes, loading, icon, polymorphic)
 - Input
 - Textarea (autosize)

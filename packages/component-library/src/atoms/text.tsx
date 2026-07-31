@@ -10,6 +10,18 @@ export type TextSize = "xs" | "sm" | "md" | "lg" | "xl";
 export type TextTone = "default" | "muted" | "subtle";
 export type TextWeight = "regular" | "medium" | "semibold" | "bold";
 
+/**
+ * Logical alignment — `start`/`end` rather than left/right, so it follows the
+ * writing direction. Emitted as the shared `u-text-*` utility rather than a
+ * per-component modifier: text-align is the same concern on a heading, a
+ * paragraph or a plain div, so it's one rule, and the vanilla flavor reaches it
+ * by class name with identical results.
+ */
+export type TextAlign = "start" | "center" | "end" | "justify";
+
+/** Alignment is a utility, not a per-component modifier — see TextAlign. */
+const alignClass = (align: TextAlign | undefined) => align && `u-text-${align}`;
+
 export interface TextOwnProps {
   /** Font size (token scale); defaults to md (body). */
   size?: TextSize;
@@ -17,13 +29,15 @@ export interface TextOwnProps {
   tone?: TextTone;
   /** Font weight; defaults to the element's own. */
   weight?: TextWeight;
+  /** Text alignment; inherits when omitted. */
+  align?: TextAlign;
   className?: string;
 }
 
 /** Body / inline text. `<Text>` is a paragraph; `<Text as="span" tone="muted">`
  *  for inline hints, etc. */
 export function Text<E extends ElementType = "p">(props: PolymorphicProps<E, TextOwnProps>) {
-  const { as, size, tone, weight, className, ...rest } = props;
+  const { as, size, tone, weight, align, className, ...rest } = props;
   const Tag: ElementType = as ?? "p";
   return (
     <Tag
@@ -32,6 +46,7 @@ export function Text<E extends ElementType = "p">(props: PolymorphicProps<E, Tex
         size && size !== "md" && `sb-text--${size}`,
         tone && tone !== "default" && `sb-text--${tone}`,
         weight && `sb-text--${weight}`,
+        alignClass(align),
         className,
       )}
       {...rest}
@@ -51,14 +66,21 @@ export interface HeadingProps extends Omit<ComponentPropsWithRef<"h2">, "color">
   /** Visual size, decoupled from the level (default: the level's natural size).
    *  Lets an `<h2>` look like an `<h1>` without breaking the outline. */
   size?: HeadingSize;
+  /** Text alignment; inherits when omitted. */
+  align?: TextAlign;
   className?: string;
 }
 
 /** A semantic heading whose look is consistent across levels; pick the tag with
  *  `level` and the appearance with `size`. */
-export function Heading({ level = 2, size, className, ...rest }: HeadingProps) {
+export function Heading({ level = 2, size, align, className, ...rest }: HeadingProps) {
   const Tag = `h${level}` as `h${HeadingLevel}`;
-  return <Tag className={cx("sb-heading", `sb-heading--${size ?? LEVEL_SIZE[level]}`, className)} {...rest} />;
+  return (
+    <Tag
+      className={cx("sb-heading", `sb-heading--${size ?? LEVEL_SIZE[level]}`, alignClass(align), className)}
+      {...rest}
+    />
+  );
 }
 
 /** Long-form content — the one place elements get flow margins (see `.sb-prose`). */
@@ -68,9 +90,14 @@ export function Prose<E extends ElementType = "div">(props: PolymorphicProps<E, 
   return <Tag className={cx("sb-prose", className)} {...rest} />;
 }
 
+export interface LeadProps extends ComponentPropsWithRef<"p"> {
+  /** Text alignment; inherits when omitted. */
+  align?: TextAlign;
+}
+
 /** Larger muted intro paragraph. */
-export function Lead({ className, ...rest }: ComponentPropsWithRef<"p">) {
-  return <p className={cx("sb-lead", className)} {...rest} />;
+export function Lead({ align, className, ...rest }: LeadProps) {
+  return <p className={cx("sb-lead", alignClass(align), className)} {...rest} />;
 }
 
 /** Small uppercase eyebrow/kicker above a heading. */
