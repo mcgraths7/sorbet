@@ -1,0 +1,83 @@
+@use "../abstracts" as *;
+
+// Star rating with a true fractional fill. Two stacked rows: an empty track and
+// a filled copy clipped to --rating-fill. Pure CSS, so any percentage works and
+// it stays sharp at any size.
+//
+// The stars have NO gap between cells — the spacing lives inside each cell
+// (a 1em glyph centred in a wider box), so every cell is the same width and the
+// percentage maps exactly onto the value. A flex gap would make the fill edge
+// drift away from the number it's claiming to show.
+//
+// <span class="sb-rating" style="--rating-fill: 86%" role="img" aria-label="4.3 out of 5">
+//   <span class="sb-rating__stars">
+//     <span class="sb-rating__row"><i class="sb-rating__star"></i>…</span>
+//     <span class="sb-rating__row sb-rating__row--fill"><i class="sb-rating__star"></i>…</span>
+//   </span>
+//   <span class="sb-rating__value">4.3</span>
+// </span>
+.sb-rating {
+  --rating-fill: 0%;
+  --star-box: 1.35em;
+  --star-glyph: 1em;
+
+  display: inline-flex;
+  align-items: center;
+  gap: space(2);
+  // The row sizes from this, so the size modifiers only touch font-size.
+  font-size: fs(md);
+  line-height: 1;
+
+  &__stars {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  &__row {
+    display: flex;
+  }
+
+  // The filled copy, clipped to the rating. Logical inset so it fills from the
+  // start edge in RTL too.
+  &__row--fill {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: var(--rating-fill);
+    overflow: hidden;
+    color: var(--rating-color, #{clr(warning)});
+  }
+
+  &__star {
+    @include glyph($glyph-star, var(--star-box), var(--star-glyph));
+
+    flex: 0 0 auto;
+  }
+
+  // Track: the unfilled remainder, quiet enough to read as "empty" but still
+  // visible against the page.
+  &__row:not(&__row--fill) {
+    color: clr(border-strong);
+  }
+
+  &__value {
+    color: clr(text-muted);
+    font-size: fs(sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--sm {
+    font-size: fs(sm);
+  }
+
+  &--lg {
+    font-size: fs(xl);
+  }
+
+  @each $tone in (primary, secondary, accent, success, warning, danger, info) {
+    &--#{$tone} {
+      --rating-color: #{clr($tone)};
+    }
+  }
+}

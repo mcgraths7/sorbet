@@ -607,6 +607,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Avatar(+Group)
 - Spinner
 - Progress (+indeterminate)
+- Rating (read-only stars, true fractional fill, any tone and scale)
 - Skeleton
 - Divider
 - Kbd
