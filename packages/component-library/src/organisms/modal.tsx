@@ -59,9 +59,14 @@ export function ModalHeader({ onClose, closeLabel = "Close", className, children
     <header className={cx("sb-modal__header", className)} {...rest}>
       {children}
       {onClose && (
-        <Button variant="ghost" size="sm" iconOnly aria-label={closeLabel} onClick={onClose}>
-          ×
-        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          iconOnly
+          className="sb-close"
+          aria-label={closeLabel}
+          onClick={onClose}
+        />
       )}
     </header>
   );

@@ -209,13 +209,11 @@ export function MultiCombobox({
           {clearable && values.length > 0 && !disabled && (
             <button
               type="button"
-              className="sb-combobox__button"
+              className="sb-combobox__button sb-close"
               aria-label="Clear all selections"
               onPointerDown={(e) => e.preventDefault()}
               onClick={clearAll}
-            >
-              ×
-            </button>
+            />
           )}
           <button
             type="button"

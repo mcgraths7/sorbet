@@ -32,11 +32,12 @@
     font-size: fs(sm);
     font-weight: fw(semibold);
 
+    // Masked vectors rather than Unicode arrows — see abstracts/_glyphs.scss.
     &[data-trend="up"] {
       color: clr(success-text);
 
       &::before {
-        content: "↑";
+        @include glyph($glyph-arrow-up);
       }
     }
 
@@ -44,7 +45,7 @@
       color: clr(danger-text);
 
       &::before {
-        content: "↓";
+        @include glyph($glyph-arrow-down);
       }
     }
 
@@ -52,7 +53,7 @@
       color: clr(text-subtle);
 
       &::before {
-        content: "→";
+        @include glyph($glyph-arrow-right);
       }
     }
   }

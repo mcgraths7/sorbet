@@ -42,14 +42,13 @@
     }
   }
 
+  // A masked vector rather than the rotated-borders trick, so it's the same
+  // chevron shape (and round joins) as the React ChevronIcon.
   &__chevron {
-    inline-size: 0.55em;
-    block-size: 0.55em;
-    rotate: 45deg;
-    translate: 0 -25%;
-    border-inline-end: 2px solid currentColor;
-    border-block-end: 2px solid currentColor;
-    transition: rotate dur(fast) ease(out), translate dur(fast) ease(out);
+    @include glyph($glyph-chevron, 0.9em);
+
+    rotate: 90deg;
+    transition: rotate dur(fast) ease(out);
   }
 
   // Multi-select control: an input-look frame holding chips + a bare input.

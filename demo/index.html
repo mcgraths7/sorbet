@@ -246,7 +246,7 @@
               <span class="sb-badge sb-badge--info">Beta</span>
             </div>
             <div class="sb-cluster">
-              <button class="sb-chip" data-selected>Design <span class="sb-chip__remove" aria-hidden="true">×</span></button>
+              <button class="sb-chip" data-selected>Design <span class="sb-chip__remove sb-close" aria-hidden="true"></span></button>
               <button class="sb-chip">Engineering</button>
               <button class="sb-chip">Research</button>
               <span class="sb-avatar-group">
@@ -324,11 +324,11 @@
             <div class="sb-stack sb-stack--gap-3">
               <div class="sb-alert sb-alert--success" role="status">
                 <div><p class="sb-alert__title">Deployed</p><p>Build 214 is live in production.</p></div>
-                <button class="sb-alert__dismiss" data-sb-dismiss aria-label="Dismiss">×</button>
+                <button class="sb-alert__dismiss sb-close" data-sb-dismiss aria-label="Dismiss"></button>
               </div>
               <div class="sb-alert sb-alert--warning" role="status">
                 <div><p class="sb-alert__title">Certificate expiring</p><p>Renew within 14 days to avoid downtime.</p></div>
-                <button class="sb-alert__dismiss" data-sb-dismiss aria-label="Dismiss">×</button>
+                <button class="sb-alert__dismiss sb-close" data-sb-dismiss aria-label="Dismiss"></button>
               </div>
               <div class="sb-alert sb-alert--danger" role="alert">
                 <div><p class="sb-alert__title">Payment failed</p><p>We couldn't charge your card. <a href="#feedback" style="color: inherit">Update billing</a>.</p></div>
@@ -433,7 +433,7 @@
   <dialog class="sb-modal" id="demo-modal" data-sb="modal">
     <header class="sb-modal__header">
       <h2>Delete project?</h2>
-      <button class="sb-button sb-button--ghost sb-button--icon sb-button--sm" data-sb-close aria-label="Close">×</button>
+      <button class="sb-button sb-button--ghost sb-button--icon sb-button--sm sb-close" data-sb-close aria-label="Close"></button>
     </header>
     <div class="sb-modal__body sb-stack sb-stack--gap-3">
       <p>This permanently removes <strong>sorbet-demo</strong> and all of its data. This action cannot be undone.</p>
@@ -451,7 +451,7 @@
   <dialog class="sb-drawer" id="demo-drawer" data-sb="modal">
     <header class="sb-drawer__header">
       <h3>Filters</h3>
-      <button class="sb-button sb-button--ghost sb-button--icon sb-button--sm" data-sb-close aria-label="Close">×</button>
+      <button class="sb-button sb-button--ghost sb-button--icon sb-button--sm sb-close" data-sb-close aria-label="Close"></button>
     </header>
     <div class="sb-drawer__body sb-stack">
       <div class="sb-field">

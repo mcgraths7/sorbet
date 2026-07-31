@@ -71,3 +71,16 @@
     color: clr(info);
   }
 }
+
+// The close / dismiss / remove glyph, painted from CSS.
+//
+// Add it to any dismiss control and leave the control empty — the aria-label
+// carries the meaning. Coming from the stylesheet rather than the markup is
+// deliberate: React and the vanilla flavor then render the identical glyph
+// with no markup contract to keep in sync, and it can't be a Unicode "×"
+// whose shape and weight depend on the user's font.
+//
+// <button class="sb-alert__dismiss sb-close" aria-label="Dismiss"></button>
+.sb-close::before {
+  @include glyph($glyph-close, 0.8em);
+}

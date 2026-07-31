@@ -3,7 +3,7 @@
 // <div class="sb-alert sb-alert--success" role="status">
 //   <svg class="sb-alert__icon">…</svg>
 //   <div><p class="sb-alert__title">Saved</p><p>Your changes are live.</p></div>
-//   <button class="sb-alert__dismiss" aria-label="Dismiss">×</button>
+//   <button class="sb-alert__dismiss sb-close" aria-label="Dismiss"></button>
 // </div>
 // Use role="alert" only for urgent interruptions (danger).
 .sb-alert {

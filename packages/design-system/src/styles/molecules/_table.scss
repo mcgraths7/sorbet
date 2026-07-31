@@ -73,19 +73,23 @@
     text-transform: inherit;
     color: inherit;
 
+    // Masked vectors rather than Unicode arrows — the shape can't drift with
+    // the user's font, and it matches the React icon set's grid and weight.
     &::after {
-      content: "↕";
+      @include glyph($glyph-sort, 0.9em);
+
       opacity: 0.4;
-      font-size: 0.9em;
     }
 
     [aria-sort="ascending"] &::after {
-      content: "↑";
+      @include glyph($glyph-arrow-up, 0.9em);
+
       opacity: 1;
     }
 
     [aria-sort="descending"] &::after {
-      content: "↓";
+      @include glyph($glyph-arrow-down, 0.9em);
+
       opacity: 1;
     }
 

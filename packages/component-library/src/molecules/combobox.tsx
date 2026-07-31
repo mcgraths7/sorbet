@@ -186,13 +186,11 @@ export function Combobox({
           {clearable && selectedValue != null && !disabled && (
             <button
               type="button"
-              className="sb-combobox__button"
+              className="sb-combobox__button sb-close"
               aria-label="Clear selection"
               onPointerDown={(e) => e.preventDefault()}
               onClick={clear}
-            >
-              ×
-            </button>
+            />
           )}
           <button
             type="button"
