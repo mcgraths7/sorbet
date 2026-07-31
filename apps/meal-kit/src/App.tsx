@@ -17,9 +17,11 @@ function ClosingCta() {
   return (
     <Card variant="sunken" as="section">
       <CardBody>
-        <Stack gap={4} style={{ alignItems: "center", textAlign: "center" }}>
-          <Heading level={2}>Your first box, £20 off</Heading>
-          <Lead>Pick three meals and see whether it sticks. Skip the week after if it doesn't.</Lead>
+        <Stack gap={4} align="center">
+          <Heading level={2} align="center">
+            Your first box, £20 off
+          </Heading>
+          <Lead align="center">Pick three meals and see whether it sticks. Skip the week after if it doesn't.</Lead>
           <Cluster gap={3}>
             <Button size="lg" as="a" href="#build">
               Build my box

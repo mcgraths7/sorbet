@@ -25,6 +25,21 @@ export function TypographyDemo() {
           xs muted span
         </Text>
       </Cluster>
+
+      <Overline>Alignment</Overline>
+      <Text align="start" tone="muted" size="sm">
+        start — the default, and how you reset an inherited alignment.
+      </Text>
+      <Text align="center" tone="muted" size="sm">
+        center
+      </Text>
+      <Text align="end" tone="muted" size="sm">
+        end — logical, so it flips with the writing direction rather than pinning right.
+      </Text>
+      <Text align="justify" tone="muted" size="sm">
+        justify — spreads each line to both edges. Worth a look on a paragraph long enough to wrap, which is why
+        this sentence keeps going for a while longer than it strictly needs to.
+      </Text>
     </Stack>
   );
 }
