@@ -1,6 +1,7 @@
-import { Avatar, Badge, Button, CheckIcon, Heading, Icon, Lead, Text } from "@sorbet/component-library/atoms";
+import { Avatar, Badge, Button, CheckIcon, Icon, Text } from "@sorbet/component-library/atoms";
 import { Cluster, Grid, Stack } from "@sorbet/component-library/layout";
 import {
+  Section,
   Accordion,
   AccordionItem,
   Card,
@@ -68,11 +69,10 @@ const FAQS = [
 
 export function Testimonials() {
   return (
-    <Stack gap={6} as="section">
-      <Stack gap={2}>
-        <Heading level={2}>Cooks who stuck with it</Heading>
-        <Lead>The honest test of a meal kit is month six, not week one.</Lead>
-      </Stack>
+    <Section
+      title="Cooks who stuck with it"
+      description="The honest test of a meal kit is month six, not week one."
+    >
       <Carousel aria-label="Customer stories" perView={2} gap={4}>
         {QUOTES.map((item) => (
           <Card key={item.name} variant="sunken">
@@ -93,17 +93,17 @@ export function Testimonials() {
           </Card>
         ))}
       </Carousel>
-    </Stack>
+    </Section>
   );
 }
 
 export function Plans() {
   return (
-    <Stack gap={6} as="section" id="plans">
-      <Stack gap={2}>
-        <Heading level={2}>Plans &amp; pricing</Heading>
-        <Text tone="muted">Per serving, and it drops as the box grows. Cancel whenever.</Text>
-      </Stack>
+    <Section
+      id="plans"
+      title="Plans & pricing"
+      description="Per serving, and it drops as the box grows. Cancel whenever."
+    >
 
       <Table>
         <TableHead>
@@ -151,14 +151,13 @@ export function Plans() {
           </Cluster>
         ))}
       </Grid>
-    </Stack>
+    </Section>
   );
 }
 
 export function Faq() {
   return (
-    <Stack gap={6} as="section" id="faq">
-      <Heading level={2}>Questions we actually get</Heading>
+    <Section id="faq" title="Questions we actually get">
       <Accordion name="faq">
         {FAQS.map((item, i) => (
           <AccordionItem key={item.q} name="faq" summary={item.q} defaultOpen={i === 0}>
@@ -166,6 +165,6 @@ export function Faq() {
           </AccordionItem>
         ))}
       </Accordion>
-    </Stack>
+    </Section>
   );
 }

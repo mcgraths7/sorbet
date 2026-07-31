@@ -1,0 +1,50 @@
+@use "../abstracts" as *;
+
+// A titled page section: heading row (with an optional trailing action), then
+// the body. The header wraps rather than squashing the title, so a long title
+// and a "See all" button don't collide on narrow screens.
+//
+// <section class="sb-section">
+//   <header class="sb-section__header">
+//     <div class="sb-section__intro">
+//       <h2 class="sb-heading">This week's menu</h2>
+//       <p class="sb-lead">Rotating every Monday.</p>
+//     </div>
+//     <div class="sb-section__action"><button class="sb-button">See all</button></div>
+//   </header>
+//   …body…
+// </section>
+.sb-section {
+  // Custom properties inherit; reset so a parent's --gap never leaks in.
+  --gap: initial;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap, #{space(6)});
+
+  @each $step in (0, 1, 2, 3, 4, 6, 8, 12, 16) {
+    &--gap-#{$step} {
+      --gap: #{space($step)};
+    }
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: space(4);
+  }
+
+  // Title + description stay together as one block, tighter than the section gap.
+  &__intro {
+    display: flex;
+    flex-direction: column;
+    gap: space(2);
+    min-inline-size: 0;
+  }
+
+  &__action {
+    flex-shrink: 0;
+  }
+}

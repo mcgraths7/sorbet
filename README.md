@@ -624,6 +624,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Dropzone (drag-and-drop upload over a real file input)
 - InputGroup(+Addon)
 - Table(+Head/Body/Foot/Row/Cell/HeaderCell/Caption) (presentational — no state, no sorting)
+- Section (titled page section: heading, description, trailing action)
 - Card (header/body/footer/media/title, 5 variants)
 - Alert
 - Tabs/TabList/Tab/TabPanel

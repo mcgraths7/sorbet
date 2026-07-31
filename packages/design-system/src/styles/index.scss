@@ -64,6 +64,7 @@
   @include meta.load-css("molecules/marquee");
   @include meta.load-css("molecules/carousel");
   @include meta.load-css("molecules/table");
+  @include meta.load-css("molecules/section");
   @include meta.load-css("molecules/card");
   @include meta.load-css("molecules/alert");
   @include meta.load-css("molecules/stepper");

@@ -1,6 +1,6 @@
-import { Badge, Button, Heading, Lead, Text } from "@sorbet/component-library/atoms";
+import { Badge, Button, Heading, Text } from "@sorbet/component-library/atoms";
 import { Cluster, Frame, Grid, Stack } from "@sorbet/component-library/layout";
-import { Card, CardBody, Stepper } from "@sorbet/component-library/molecules";
+import { Section, Card, CardBody, Stepper } from "@sorbet/component-library/molecules";
 
 const STEPS = [
   { label: "Pick your meals", description: "Swap any week" },
@@ -77,29 +77,28 @@ const MEALS: Meal[] = [
 
 export function HowItWorks() {
   return (
-    <Stack gap={6} as="section" id="how">
-      <Stack gap={2}>
-        <Heading level={2}>Three steps, then dinner</Heading>
-        <Lead>No subscriptions to decode. Choose, cook, repeat — or skip a week entirely.</Lead>
-      </Stack>
+    <Section
+      id="how"
+      title="Three steps, then dinner"
+      description="No subscriptions to decode. Choose, cook, repeat — or skip a week entirely."
+    >
       <Stepper current={1} steps={STEPS} />
-    </Stack>
+    </Section>
   );
 }
 
 export function WeeklyMenu() {
   return (
-    <Stack gap={6} as="section" id="menu">
-      <Cluster justify="between">
-        <Stack gap={2}>
-          <Heading level={2}>This week's menu</Heading>
-          <Text tone="muted">Twelve recipes, rotating every Monday. Here are six we're proud of.</Text>
-        </Stack>
+    <Section
+      id="menu"
+      title="This week's menu"
+      description="Twelve recipes, rotating every Monday. Here are six we're proud of."
+      action={
         <Button variant="outline" as="a" href="#build">
           See all 12
         </Button>
-      </Cluster>
-
+      }
+    >
       <Grid cols={3}>
         {MEALS.map((meal) => (
           <Card key={meal.name}>
@@ -144,6 +143,6 @@ export function WeeklyMenu() {
           </Card>
         ))}
       </Grid>
-    </Stack>
+    </Section>
   );
 }

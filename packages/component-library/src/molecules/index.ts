@@ -7,6 +7,7 @@ export { DateRange, type DateRangeProps, type DateRangeValue, type DateRangeVali
 export { InputGroup, InputGroupAddon } from "./input-group.tsx";
 export { Card, CardBody, CardFooter, CardHeader, CardMedia, CardTitle, type CardFooterProps, type CardOwnProps } from "./card.tsx";
 export { Alert, type AlertProps } from "./alert.tsx";
+export { Section, type SectionGap, type SectionProps } from "./section.tsx";
 export {
   Table,
   TableBody,
