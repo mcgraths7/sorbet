@@ -4,6 +4,7 @@ export { Chip, type ChipProps } from "./chip.tsx";
 export { Avatar, AvatarGroup, type AvatarProps } from "./avatar.tsx";
 export { Spinner, type SpinnerProps } from "./spinner.tsx";
 export { Progress, type ProgressProps } from "./progress.tsx";
+export { Rating, type RatingProps, type RatingTone } from "./rating.tsx";
 export { Divider, type DividerProps } from "./divider.tsx";
 export { Kbd } from "./kbd.tsx";
 export { Icon, type IconProps, type IconSize, type IconTone } from "./icon.tsx";

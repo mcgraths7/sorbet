@@ -1,4 +1,4 @@
-import { Avatar, Badge, Button, CheckIcon, Icon, Text } from "@sorbet/component-library/atoms";
+import { Avatar, Badge, Button, CheckIcon, Icon, Rating, Text } from "@sorbet/component-library/atoms";
 import { Cluster, Grid, Stack } from "@sorbet/component-library/layout";
 import {
   Section,
@@ -21,24 +21,28 @@ const QUOTES = [
     name: "Priya R.",
     detail: "Bristol · 14 months",
     initials: "PR",
+    rating: 5,
   },
   {
     quote: "I cook for one and still don't waste anything. The portions are genuinely portions.",
     name: "Marcus O.",
     detail: "Leeds · 8 months",
     initials: "MO",
+    rating: 4.5,
   },
   {
     quote: "The kids eat what we eat now. That alone is worth the money.",
     name: "Hannah & Tom",
     detail: "Cardiff · 2 years",
     initials: "HT",
+    rating: 5,
   },
   {
     quote: "Skipped six weeks over summer with two taps. No guilt-trip emails.",
     name: "Dee L.",
     detail: "Glasgow · 11 months",
     initials: "DL",
+    rating: 4,
   },
 ];
 
@@ -78,6 +82,7 @@ export function Testimonials() {
           <Card key={item.name} variant="sunken">
             <CardBody>
               <Stack gap={4}>
+                <Rating value={item.rating} size="sm" showValue />
                 <Text size="lg">“{item.quote}”</Text>
                 <Cluster gap={3}>
                   <Avatar>{item.initials}</Avatar>

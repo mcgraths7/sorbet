@@ -1,15 +1,15 @@
-import { Badge, Button, CheckIcon, Heading, Icon, Lead, Text } from "@sorbet/component-library/atoms";
+import { Badge, Button, CheckIcon, Heading, Icon, Lead, Rating, Text } from "@sorbet/component-library/atoms";
 import { Cluster, Grid, Stack } from "@sorbet/component-library/layout";
 import { Card, CardBody, Marquee, Stat } from "@sorbet/component-library/molecules";
 
 const PROMISES = ["Farm-picked produce", "Recipes in 30 minutes", "Skip any week", "Carbon-neutral delivery"];
 
-const PRESS = [
-  "“The box we actually finish.” — Weeknight Weekly",
-  "★★★★★ Best value 2026 — Kitchen Report",
-  "“Produce that tastes picked, not shipped.” — The Grove",
-  "Editor's pick — Slow Food Digest",
-  "“Genuinely 30 minutes.” — Time Poor Cook",
+const PRESS: Array<{ key: string; rating?: number; quote: string }> = [
+  { key: "weeknight", quote: "“The box we actually finish.” — Weeknight Weekly" },
+  { key: "kitchen", rating: 5, quote: "Best value 2026 — Kitchen Report" },
+  { key: "grove", quote: "“Produce that tastes picked, not shipped.” — The Grove" },
+  { key: "slowfood", rating: 4.5, quote: "Editor's pick — Slow Food Digest" },
+  { key: "timepoor", quote: "“Genuinely 30 minutes.” — Time Poor Cook" },
 ];
 
 export function Hero() {
@@ -66,10 +66,13 @@ export function Hero() {
       </Grid>
 
       <Marquee aria-label="Press coverage" speed={30}>
-        {PRESS.map((quote) => (
-          <Text key={quote} tone="muted" size="sm">
-            {quote}
-          </Text>
+        {PRESS.map((item) => (
+          <Cluster key={item.key} gap={2}>
+            {item.rating != null && <Rating value={item.rating} size="sm" />}
+            <Text tone="muted" size="sm">
+              {item.quote}
+            </Text>
+          </Cluster>
         ))}
       </Marquee>
     </Stack>
