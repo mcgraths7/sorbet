@@ -18,11 +18,16 @@
     "header"
     "main";
 
+  // The rail is only reserved when a sidebar is actually there. Without this
+  // guard a sidebar-less shell still allocated the column, leaving main — and
+  // anything inside it, footer included — shoved right by an empty rail.
   @include respond(lg) {
-    grid-template-columns: token(sidebar-width) 1fr;
-    grid-template-areas:
-      "header header"
-      "sidebar main";
+    &:has(> .sb-app-shell__sidebar) {
+      grid-template-columns: token(sidebar-width) 1fr;
+      grid-template-areas:
+        "header header"
+        "sidebar main";
+    }
   }
 
   &__header {
