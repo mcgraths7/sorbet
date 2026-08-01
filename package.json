@@ -18,6 +18,7 @@
     "lint:styles:fix": "pnpm --filter @sorbet/design-system lint:styles:fix",
     "playground": "pnpm --filter playground dev",
     "example": "pnpm --filter meal-kit dev",
+    "example:admin": "pnpm --filter admin dev",
     "test": "pnpm run check:contrast",
     "typecheck": "pnpm --filter \"./apps/*\" typecheck"
   },

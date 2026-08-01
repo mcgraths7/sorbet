@@ -84,7 +84,9 @@ packages/
 │                              one folder per layer → one subpath export each
 └── cli/                    the `sorbet` binary + scaffold templates
 apps/
-└── playground/   Vite React kitchen sink (pnpm playground)
+├── playground/   Vite React kitchen sink — every component (pnpm playground)
+├── meal-kit/     worked example: a marketing site (pnpm example)
+└── admin/        worked example: the ops dashboard behind it (pnpm example:admin)
 demo/             no-framework kitchen sink (python3 -m http.server, /demo/)
 ```
 

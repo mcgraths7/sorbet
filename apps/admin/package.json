@@ -1,0 +1,23 @@
+{
+  "name": "admin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A worked example: the ops dashboard behind the meal-kit site, composed from Sorbet.",
+  "scripts": {
+    "dev": "vite --port 5185 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sorbet/component-library": "workspace:*",
+    "@sorbet/design-system": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "vite": "^6.3.5"
+  }
+}
