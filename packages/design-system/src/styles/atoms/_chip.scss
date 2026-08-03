@@ -52,4 +52,15 @@ button.sb-chip {
   &:hover:not([data-selected], .sb-chip--selected) {
     background-color: clr(bg-subtle);
   }
+
+  // button.sb-chip (0,1,1) otherwise beats .sb-chip--selected (0,1,0) on
+  // every contested property via control-reset's unconditional background/
+  // color/font resets — restate the selected look at matching specificity.
+  &[data-selected],
+  &.sb-chip--selected {
+    background-color: clr(primary-subtle);
+    border-color: clr(primary);
+    color: clr(primary-text);
+    font-weight: fw(medium);
+  }
 }
