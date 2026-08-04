@@ -10,7 +10,22 @@ const sourceFiles = ["**/*.{js,mjs,cjs,ts,tsx}"];
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "packages/cli/scaffold/**"],
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "packages/cli/scaffold/**",
+      // design-sync working trees. `ds-bundle/` (the generated bundle +
+      // vendored deps + preview build) and `.ds-sync/` (the tool's own
+      // bundled library) are gitignored build artifacts regenerated on every
+      // sync — nothing in them is ours to style.
+      "ds-bundle/**",
+      ".ds-sync/**",
+      // Committed forks of files from `.ds-sync/lib/`, each carrying one
+      // documented upstream fix (see `libOverrides` in config.json). Their
+      // value is being a minimal, auditable diff against the upstream file,
+      // so they keep upstream's formatting rather than ours.
+      ".design-sync/overrides/**",
+    ],
   },
   {
     files: sourceFiles,
