@@ -1,0 +1,27 @@
+/* Sourced from Google Fonts (Nunito, Comfortaa, Cascadia Code — all SIL Open
+ * Font License) for the "sorbet" preset's font stack. Variable fonts, latin
+ * subset only. See .design-sync/NOTES.md for provenance and licensing. */
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("./nunito-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Comfortaa";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./comfortaa-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cascadia Code";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./cascadia-code-variable.woff2") format("woff2");
+}
