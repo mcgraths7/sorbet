@@ -1,6 +1,5 @@
-import { useState } from "react";
-
 import { TokenStudio, type ThemeMode } from "@sorbet/component-library";
+import { useState } from "react";
 
 /**
  * The live token editor, open with the preset selector and mode toggle wired

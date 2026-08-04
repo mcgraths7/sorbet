@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { ToastProvider, useToast } from "@sorbet/component-library";
+import { useEffect } from "react";
 
 // ToastProvider has no visual output of its own — it's context + an
 // aria-live region portaled to document.body (like ThemeProvider was).

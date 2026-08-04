@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { Combobox, Field, type ComboboxOption } from "@sorbet/component-library";
+import { useEffect, useRef } from "react";
 
 // Combobox has no `open`/`defaultOpen` prop — the listbox popover is internal
 // state (useComboboxCore), opened by the input's own onClick handler. The

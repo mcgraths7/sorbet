@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { DateRange } from "@sorbet/component-library";
+import { useEffect, useRef } from "react";
 
 // DateRange declares a `ref` prop in its type but never wires it to anything
 // in the component body (it's unused dead prop surface — not something to

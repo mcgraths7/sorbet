@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { MultiCombobox, type ComboboxOption } from "@sorbet/component-library";
+import { useEffect, useRef } from "react";
 
 // Same technique as Combobox — no open prop, ref forwards to the real text
 // input, and the input's own onClick opens the listbox. A mount-time .click()

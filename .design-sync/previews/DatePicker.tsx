@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { DatePicker, Field } from "@sorbet/component-library";
+import { useEffect, useRef } from "react";
 
 // DatePicker's own `ref` forwards to the typed-entry <input>, not to the
 // calendar trigger button — clicking the input doesn't open the calendar

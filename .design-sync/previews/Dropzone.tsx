@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { Dropzone } from "@sorbet/component-library";
+import { useEffect, useRef } from "react";
 
 /** A real File with a spoofed `size`, so the preview doesn't have to allocate
  * megabytes of actual bytes to demonstrate size-based validation/formatting. */
@@ -17,13 +17,17 @@ function fakeFile(name: string, type: string, size: number): File {
 // so the component's own onChange/add() validation logic runs for real.
 function useSeedFiles(files: File[]) {
   const ref = useRef<HTMLInputElement>(null);
+  // Seeding is a one-shot on mount. Callers build the array inline, so it's a
+  // new identity every render — captured once here rather than tracked as a
+  // dependency, which would re-seed the input on every render instead.
+  const seed = useRef(files);
   useEffect(() => {
     const input = ref.current;
     if (!input) {
       return;
     }
     const dt = new DataTransfer();
-    for (const file of files) {
+    for (const file of seed.current) {
       dt.items.add(file);
     }
     input.files = dt.files;

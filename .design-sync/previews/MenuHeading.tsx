@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { Button, Menu, MenuHeading, MenuItem, MenuSeparator } from "@sorbet/component-library";
+import { useEffect, useRef } from "react";
 
 // Menu opens on native popovertarget invocation and has no `open` prop (unlike
 // Popover/Tooltip). Firing a real click on the trigger right after mount opens

@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-
 import { ConfirmProvider, useConfirm } from "@sorbet/component-library";
+import { useEffect } from "react";
 
 // ConfirmProvider has no visual output of its own (like ThemeProvider /
 // ToastProvider) — it renders one shared AlertDialog and hands out an
