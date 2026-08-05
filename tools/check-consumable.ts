@@ -154,6 +154,49 @@ for (const pkg of PACKAGES) {
   }
 }
 
+// "use client" does not exempt a component from server rendering — the server
+// still renders it for the initial HTML — so a browser global touched during
+// render is a hard 500 for any SSR consumer, not a graceful degradation. That
+// is invisible to the import check above, which only evaluates modules.
+//
+// Every exported component is rendered with no props. Most throw for want of
+// required props, and that is fine: this is only looking for the browser
+// globals. Discriminating on the message rather than curating a fixture per
+// component is what keeps this from rotting as components are added.
+console.log(styleText("bold", "\nserver-rendering…"));
+writeFileSync(
+  probe,
+  `import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import * as all from "@sorbet/component-library";
+
+const BROWSER = /\\b(document|window|navigator|localStorage|sessionStorage|matchMedia)\\b.*(is not defined|of undefined)|Cannot read propert.*of undefined \\(reading '(document|window)'\\)/;
+const bad = [];
+let rendered = 0;
+for (const [name, Component] of Object.entries(all)) {
+  if (typeof Component !== "function" || !/^[A-Z]/.test(name)) continue;
+  try {
+    renderToStaticMarkup(createElement(Component, null, "x"));
+    rendered++;
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err).split("\\n")[0];
+    if (BROWSER.test(msg)) bad.push(name + ": " + msg);
+  }
+}
+console.log(JSON.stringify({ rendered, bad }));
+`,
+);
+try {
+  const out = execFileSync("node", [probe], { cwd: temp, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  const { rendered, bad } = JSON.parse(out.trim().split("\n").pop()!);
+  console.log(`  ${rendered} component(s) render with no props; ${bad.length} reach for a browser global`);
+  for (const entry of bad) {
+    failures.push(`${entry} — touches a browser global during render, so it 500s on any SSR consumer`);
+  }
+} catch(err) {
+  failures.push(`could not server-render the library: ${reason(err)}`);
+}
+
 // The RSC boundary has to survive packing, or a Next.js consumer is back to
 // square one. Assert both directions: interactive modules keep the directive,
 // layout primitives stay server-capable.
