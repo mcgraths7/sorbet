@@ -130,3 +130,9 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      # Everything in this repo consumes Sorbet by symlink, which hides what
+      # breaks a real consumer. Pack the tarballs and install them into a
+      # throwaway project outside the workspace. --no-build reuses the step above.
+      - name: Verify packages are consumable outside the monorepo
+        run: pnpm run check:consumable --no-build
