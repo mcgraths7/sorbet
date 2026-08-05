@@ -13,6 +13,7 @@
     "build:cli": "pnpm --filter @sorbet/cli build",
     "check:contrast": "pnpm --filter @sorbet/design-system check:contrast",
     "check:client": "pnpm --filter @sorbet/component-library check:client",
+    "pack:vendor": "node tools/pack-vendor.ts",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
     "lint:styles": "pnpm --filter @sorbet/design-system lint:styles",

@@ -173,6 +173,31 @@ Two things stay your side of the boundary, as they would with any library:
 client component near the root; and a Server Component still can't pass a
 function prop, so `onClick` belongs in a client component.
 
+### Consuming Sorbet outside this repo
+
+Sorbet is unpublished pre-1.0, so a project that lives elsewhere vendors it:
+
+```bash
+pnpm pack:vendor --to ../your-project/vendor
+```
+
+That builds, packs both packages, and drops the tarballs in your project, which
+commits them and installs with `file:` specifiers — no registry, no auth, and
+CI or a deploy builds from what is checked in. Re-run it to pick up changes.
+
+One sharp edge, which the script prints wiring for: `pnpm pack` rewrites
+`workspace:*` to a plain version, so the packed component library asks for
+`@sorbet/design-system@<version>` from the registry, where it does not exist.
+Redirect it with a pnpm `overrides` entry — and note that in pnpm 11 overrides
+live in `pnpm-workspace.yaml`; in `package.json` they are ignored with only a
+warning.
+
+```yaml
+# pnpm-workspace.yaml, in the consuming project
+overrides:
+  "@sorbet/design-system": "file:./vendor/sorbet-design-system-0.1.0.tgz"
+```
+
 ## Using Sorbet without a framework
 
 Everything works with plain HTML classes plus the optional behavior layer:
