@@ -1,0 +1,87 @@
+version: 2
+
+# Dependabot and the dependency-review job in build.yml are not alternatives.
+# dependency-review inspects a pull request's diff and blocks one that
+# introduces a dependency with a known vulnerability. Dependabot watches the
+# lockfile that is already merged, and proposes upgrades and fixes on a
+# schedule. Neither notices what the other does: dependency-review cannot tell
+# you a dependency merged last month just had a CVE published, and Dependabot
+# cannot stop someone adding a bad package in a PR today.
+#
+# What gets ignored follows one rule: a major update is noise when the version
+# is DERIVED from something already pinned, and signal when it is a genuine
+# decision.
+#
+#   derived  — @types/* must describe the runtime or library actually
+#              installed. A newer major describes APIs that do not exist here,
+#              so it type-checks green and fails at runtime.
+#   decision — react, typescript, sass, eslint. Worth a PR even when the answer
+#              is "not yet": TypeScript 7 currently fails because
+#              typescript-eslint has no support for it, which is exactly the
+#              kind of thing worth being reminded of periodically.
+#
+# One entry covers the whole workspace. Dependabot reads pnpm-lock.yaml at the
+# root, which resolves every package under packages/* and apps/*.
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+    ignore:
+      # Must track the Node in .nvmrc (24.x). The tools/ scripts are type-checked
+      # against these and run on that Node, so types ahead of the runtime compile
+      # clean and throw in the build.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+      # Must track React's major, which the catalog pins at 19 and the component
+      # library peer-depends on.
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+
+    # Grouped so a set that moves together arrives as one PR and one CI run
+    # rather than several that each need review.
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      typescript:
+        patterns:
+          - "typescript"
+          - "typescript-eslint"
+          - "@types/*"
+        exclude-patterns:
+          - "@types/react"
+          - "@types/react-dom"
+      lint:
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "@stylistic/*"
+          - "stylelint*"
+          - "globals"
+      build:
+        patterns:
+          - "sass"
+          - "vite"
+          - "@vitejs/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
