@@ -35,7 +35,7 @@
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^16.5.0",
+    "globals": "^17.9.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "sass": "^1.83.0",
