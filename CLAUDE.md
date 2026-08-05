@@ -82,6 +82,12 @@ with React bindings, in an npm-workspaces monorepo. The prefix everywhere is
   no force-push/deletion. All work: branch → commit → push → PR (`gh pr create`).
 - CI: `.github/workflows/build.yml` (Node 24, pnpm install --frozen-lockfile,
   pnpm run build).
+- Dependencies: `dependency-review` blocks a PR that *introduces* a known
+  vulnerability; Dependabot (`.github/dependabot.yml`) watches what is already
+  merged and proposes upgrades weekly. They cover opposite halves — keep both.
+  Majors on `@types/*` are ignored because those versions are derived, not
+  chosen: they must describe the Node in `.nvmrc` and the React in the catalog,
+  and running ahead type-checks green then fails at runtime.
 
 ## Reuse before building (scan first)
 
