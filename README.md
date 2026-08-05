@@ -185,6 +185,13 @@ That builds, packs both packages, and drops the tarballs in your project, which
 commits them and installs with `file:` specifiers — no registry, no auth, and
 CI or a deploy builds from what is checked in. Re-run it to pick up changes.
 
+`pnpm check:consumable` proves this path stays working: it packs, installs into
+a throwaway project outside the workspace, and checks that every subpath in
+both `exports` maps resolves, that both packages evaluate in a bare Node
+process, and that the `"use client"` boundaries survive packing. It runs in CI
+after the build, because every app in this repo consumes Sorbet by symlink and
+so can't catch a broken `exports` entry.
+
 One sharp edge, which the script prints wiring for: `pnpm pack` rewrites
 `workspace:*` to a plain version, so the packed component library asks for
 `@sorbet/design-system@<version>` from the registry, where it does not exist.
