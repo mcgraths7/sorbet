@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState, type PointerEvent } from "react";
 
 import { formatNumber, niceTicks, scaleLinear } from "./scale.ts";

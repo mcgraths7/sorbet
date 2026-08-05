@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState, type ComponentPropsWithRef, type CSSProperties } from "react";
 
 import { composeRefs, cx } from "../core/index.ts";

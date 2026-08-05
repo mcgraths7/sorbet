@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, type ComponentPropsWithRef, type CSSProperties } from "react";
 
 import { Button } from "../atoms/index.ts";

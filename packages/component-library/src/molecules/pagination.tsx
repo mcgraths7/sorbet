@@ -1,3 +1,5 @@
+"use client";
+
 import { cx } from "../core/index.ts";
 
 import type { ComponentPropsWithRef } from "react";

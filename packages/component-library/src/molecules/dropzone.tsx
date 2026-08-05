@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useState, type ChangeEvent, type ComponentPropsWithRef, type DragEvent, type ReactNode } from "react";
 
 import { UploadIcon } from "../atoms/index.ts";

@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Shared machinery for Combobox and MultiCombobox: filtering, highlight
  * management, and the listbox popover (via the shared usePopover lifecycle).

@@ -1,3 +1,5 @@
+"use client";
+
 import { contrast } from "@sorbet/design-system/tokens";
 import {
   useId,

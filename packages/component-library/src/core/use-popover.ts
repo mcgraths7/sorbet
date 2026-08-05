@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Shared popover plumbing. Every Sorbet flyout (menu, combobox, date + color
  * pickers, the generic Popover) is a top-layer element that has to be anchored

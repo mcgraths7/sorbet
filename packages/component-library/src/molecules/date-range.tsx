@@ -1,3 +1,5 @@
+"use client";
+
 import { useId, useMemo, useRef, useState, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
 
 import { CalendarIcon } from "../atoms/index.ts";

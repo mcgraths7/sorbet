@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 
 import { Select } from "../atoms/index.ts";
