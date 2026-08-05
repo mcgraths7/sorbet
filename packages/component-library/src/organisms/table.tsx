@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState, type ComponentPropsWithRef, type ReactNode } from "react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "../molecules/table.tsx";

@@ -1,3 +1,5 @@
+"use client";
+
 import { cloneElement, useId, type ComponentPropsWithRef, type ReactElement, type ReactNode } from "react";
 
 import { Label } from "../atoms/index.ts";

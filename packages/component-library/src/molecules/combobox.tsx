@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, useId, useMemo, type AriaAttributes, type KeyboardEvent, type Ref } from "react";
 
 import { composeRefs, cx, useControllableState, type Size } from "../core/index.ts";

@@ -153,6 +153,26 @@ Highlights of the React API:
 - **`useTheme()`**: `{ mode, resolved, set, toggle }`, persisted, live-tracking
   the OS in `system` mode.
 
+### React Server Components
+
+Sorbet ships `"use client"` on exactly the modules that need it — the ones that
+call a hook, create a context, reach for a browser global, or attach an inline
+handler. Everything else stays a Server Component, so a static page can render
+`<Stack>`, `<Container>`, `<Text>`, `<Card>` and a link-flavoured
+`<Button as="a" href>` with no client bundle at all. Import anything from a
+Server Component; the interactive pieces bring their own boundary.
+
+Blanket-marking the library would have been the easy wrong answer — it works,
+but it drags every layout primitive into the client bundle. The split is
+enforced rather than maintained by hand: `pnpm check:client` (part of `build`)
+fails if a module gains a hook without the directive, or carries the directive
+without needing it.
+
+Two things stay your side of the boundary, as they would with any library:
+`ThemeProvider` and `ToastProvider` are context providers, so mount them in a
+client component near the root; and a Server Component still can't pass a
+function prop, so `onClick` belongs in a client component.
+
 ## Using Sorbet without a framework
 
 Everything works with plain HTML classes plus the optional behavior layer:

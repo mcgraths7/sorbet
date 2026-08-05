@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useRef, useState, type PointerEvent } from "react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "../molecules/table.tsx";

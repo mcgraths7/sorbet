@@ -1,3 +1,5 @@
+"use client";
+
 import { Children, isValidElement, useId, type ReactElement, type ReactNode } from "react";
 
 import { Button } from "../atoms/index.ts";

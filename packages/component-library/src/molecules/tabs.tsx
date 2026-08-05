@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useId, type ComponentPropsWithRef, type KeyboardEvent } from "react";
 
 import { cx, rovingIndex, useControllableState } from "../core/index.ts";

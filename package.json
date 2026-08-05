@@ -12,6 +12,7 @@
     "build:component-library": "pnpm --filter @sorbet/component-library build",
     "build:cli": "pnpm --filter @sorbet/cli build",
     "check:contrast": "pnpm --filter @sorbet/design-system check:contrast",
+    "check:client": "pnpm --filter @sorbet/component-library check:client",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
     "lint:styles": "pnpm --filter @sorbet/design-system lint:styles",
@@ -19,7 +20,7 @@
     "playground": "pnpm --filter playground dev",
     "example": "pnpm --filter meal-kit dev",
     "example:admin": "pnpm --filter admin dev",
-    "test": "pnpm run check:contrast",
+    "test": "pnpm run check:contrast && pnpm run check:client",
     "typecheck": "pnpm --filter \"./apps/*\" typecheck"
   },
   "devDependencies": {
