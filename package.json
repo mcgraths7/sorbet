@@ -24,7 +24,8 @@
     "example:admin": "pnpm --filter admin dev",
     "test": "pnpm run check:contrast && pnpm run check:client",
     "typecheck": "pnpm --filter \"./apps/*\" typecheck",
-    "check:cli": "node tools/check-cli.ts"
+    "check:cli": "node tools/check-cli.ts",
+    "check:catalog": "node tools/check-catalog.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

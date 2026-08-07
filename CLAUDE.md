@@ -100,12 +100,14 @@ refactor is the template: `positionPopover` + `usePopover` were lifted into
 `core/` and now back the menu, the pickers, and the generic Popover atom.
 
 Orient without scanning the whole tree: the full component roster is the
-README's "Component catalog" (kept current per PR — convention, no gate yet); a component's props/behavior
+README's "Component catalog" (gated: `pnpm check:catalog` fails the build on
+a missing export); a component's props/behavior
 is one file read (`src/<layer>/<name>.tsx`); the architecture — tokens, cascade
 layers, shared units — is the Packages section above.
 
 - Shared TS lives in `core/`: `usePopover`/`positionPopover` (anchored-panel
-  lifecycle + placement), `useControllableState` (the value/defaultValue/onChange
+  lifecycle + placement), `useScrollDismiss` (fixed-flyout scroll dismissal —
+  consumed by usePopover, Menu, Tooltip), `useControllableState` (the value/defaultValue/onChange
   trio), `chain` (compose event handlers), `rovingIndex` (arrow/Home/End list
   nav), `composeRefs`, `cx`, `PolymorphicProps` (the `as` prop),
   `useModifierKey` (⌘ vs Ctrl — both the match flag and the display label),

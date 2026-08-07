@@ -143,3 +143,8 @@ jobs:
       # same false reason everything in-repo does.
       - name: Verify the packed CLI works standalone
         run: pnpm run check:cli
+
+      # "Kept current per PR" used to be a memory; now an exported component
+      # missing from the README catalog fails the build naming it.
+      - name: Verify the component catalog is complete
+        run: pnpm run check:catalog
