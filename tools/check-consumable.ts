@@ -159,10 +159,11 @@ for (const pkg of PACKAGES) {
 // render is a hard 500 for any SSR consumer, not a graceful degradation. That
 // is invisible to the import check above, which only evaluates modules.
 //
-// Every exported component is rendered with no props. Most throw for want of
-// required props, and that is fine: this is only looking for the browser
-// globals. Discriminating on the message rather than curating a fixture per
-// component is what keeps this from rotting as components are added.
+// Every exported component is rendered with no props (retrying without
+// children for self-closing controls). Components that throw for want of
+// required props stay OUTSIDE this check's reach — a browser global behind a
+// required-prop guard is invisible here — so the skipped set is printed, and
+// the floor below turns silent coverage shrinkage into a failure.
 console.log(styleText("bold", "\nserver-rendering…"));
 writeFileSync(
   probe,
@@ -172,26 +173,52 @@ import * as all from "@sorbet/component-library";
 
 const BROWSER = /\\b(document|window|navigator|localStorage|sessionStorage|matchMedia)\\b.*(is not defined|of undefined)|Cannot read propert.*of undefined \\(reading '(document|window)'\\)/;
 const bad = [];
+const skipped = [];
 let rendered = 0;
 for (const [name, Component] of Object.entries(all)) {
   if (typeof Component !== "function" || !/^[A-Z]/.test(name)) continue;
-  try {
-    renderToStaticMarkup(createElement(Component, null, "x"));
-    rendered++;
-  } catch (err) {
-    const msg = String(err && err.message ? err.message : err).split("\\n")[0];
-    if (BROWSER.test(msg)) bad.push(name + ": " + msg);
+  // Two attempts: with children, then without — self-closing controls
+  // (input, hr) reject children, and that is a probe artifact, not a reason
+  // to lose their SSR coverage.
+  let ok = false, firstMsg = "";
+  for (const kids of ["x", null]) {
+    try {
+      renderToStaticMarkup(createElement(Component, null, kids));
+      ok = true;
+      break;
+    } catch (err) {
+      const msg = String(err && err.message ? err.message : err).split("\\n")[0];
+      if (BROWSER.test(msg)) { bad.push(name + ": " + msg); ok = true; break; }
+      firstMsg = firstMsg || msg;
+    }
   }
+  if (ok && !bad.find((b) => b.startsWith(name + ":"))) rendered++;
+  else if (!ok) skipped.push(name + " — " + firstMsg.slice(0, 90));
 }
-console.log(JSON.stringify({ rendered, bad }));
+console.log(JSON.stringify({ rendered, bad, skipped }));
 `,
 );
+// Components that throw for a missing prop before touching any global are
+// OUTSIDE this check's coverage — a browser global behind a required-prop
+// guard is invisible here. The floor keeps that boundary honest: coverage may
+// grow freely, but shrinking it (a component gaining a required prop and
+// silently leaving the checked set) has to be a conscious edit to this number.
+const RENDERED_FLOOR = 126;
 try {
   const out = execFileSync("node", [probe], { cwd: temp, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  const { rendered, bad } = JSON.parse(out.trim().split("\n").pop()!);
+  const { rendered, bad, skipped } = JSON.parse(out.trim().split("\n").pop()!);
   console.log(`  ${rendered} component(s) render with no props; ${bad.length} reach for a browser global`);
+  if (skipped.length > 0) {
+    console.log(styleText("dim", "  outside SSR coverage (throw before any global could be reached):"));
+    for (const entry of skipped) {
+      console.log(styleText("dim", `    ${entry}`));
+    }
+  }
   for (const entry of bad) {
     failures.push(`${entry} — touches a browser global during render, so it 500s on any SSR consumer`);
+  }
+  if (rendered < RENDERED_FLOOR) {
+    failures.push(`SSR coverage shrank: ${rendered} rendered, floor is ${RENDERED_FLOOR} — a component left the checked set; raise its coverage or consciously lower the floor`);
   }
 } catch(err) {
   failures.push(`could not server-render the library: ${reason(err)}`);
