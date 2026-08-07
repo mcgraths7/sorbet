@@ -19,9 +19,13 @@
     },
     "./css": "./dist/css/sorbet.css",
     "./themes/*": "./dist/themes/*",
-    "./scss/*": "./src/styles/*"
+    "./scss/*": "./src/styles/*",
+    "./package.json": "./package.json"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "pnpm run lint:styles && pnpm run build:tokens && pnpm run build:css && pnpm run build:ts",
     "build:tokens": "node tools/build-tokens.ts",
