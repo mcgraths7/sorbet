@@ -639,6 +639,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Cover
 - Masonry
 - Frame
+- Layer(+Content) (z-stack media/content: scrim, place, round)
 
 **Atoms**
 

@@ -26,6 +26,7 @@
   @include meta.load-css("layout/center");
   @include meta.load-css("layout/masonry");
   @include meta.load-css("layout/frame");
+  @include meta.load-css("layout/layer");
 }
 
 @layer sb.atoms {
