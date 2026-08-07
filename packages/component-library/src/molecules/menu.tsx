@@ -2,7 +2,6 @@
 
 import {
   cloneElement,
-  useEffect,
   useId,
   useRef,
   useState,
@@ -14,7 +13,7 @@ import {
   type ToggleEvent,
 } from "react";
 
-import { composeRefs, cx, positionPopover, rovingIndex } from "../core/index.ts";
+import { composeRefs, cx, positionPopover, rovingIndex, useScrollDismiss } from "../core/index.ts";
 
 export interface MenuProps {
   /** The trigger element — must render a real <button> (e.g. atoms' Button). */
@@ -43,20 +42,8 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
     [...(panelRef.current?.querySelectorAll<HTMLElement>(".sb-menu__item:not(:disabled)") ?? [])];
 
   // The panel is position:fixed and can't track its trigger through page
-  // scroll — dismiss instead (scrolling inside the panel is exempt).
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const onScroll = (e: Event) => {
-      if (panelRef.current?.contains(e.target as Node)) {
-        return;
-      }
-      panelRef.current?.hidePopover();
-    };
-    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
-    return () => document.removeEventListener("scroll", onScroll, { capture: true });
-  }, [open]);
+  // scroll — dismiss instead (shared lifecycle piece; panel scroll exempt).
+  useScrollDismiss(panelRef, open, () => panelRef.current?.hidePopover());
 
   const onToggle = (e: ToggleEvent<HTMLDivElement>) => {
     const isOpen = e.newState === "open";
