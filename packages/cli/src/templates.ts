@@ -21,10 +21,13 @@ export function starterPackageJson(name: string): string {
         dev: "npx -y serve public",
       },
       devDependencies: {
-        "@types/node": "^26.0.0",
+        // Derived, not chosen: must describe the Node the scaffold's tools
+        // run on (type-stripping needs 24+), not the newest types on npm.
+        "@types/node": "^24.0.0",
         sass: "^1.83.0",
         typescript: "^5.8.0",
       },
+      engines: { node: ">=24.17.0" },
     },
     null,
     2,

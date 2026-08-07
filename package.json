@@ -2,7 +2,7 @@
   "name": "sorbet",
   "version": "0.1.0",
   "private": true,
-  "description": "Sorbet — a fun, themeable, accessibility-first design system. Sass + TypeScript core with React bindings per atomic layer.",
+  "description": "Sorbet \u2014 a fun, themeable, accessibility-first design system. Sass + TypeScript core with React bindings per atomic layer.",
   "type": "module",
   "license": "MIT",
   "packageManager": "pnpm@11.17.0",
@@ -23,7 +23,8 @@
     "example": "pnpm --filter meal-kit dev",
     "example:admin": "pnpm --filter admin dev",
     "test": "pnpm run check:contrast && pnpm run check:client",
-    "typecheck": "pnpm --filter \"./apps/*\" typecheck"
+    "typecheck": "pnpm --filter \"./apps/*\" typecheck",
+    "check:cli": "node tools/check-cli.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

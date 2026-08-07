@@ -13,15 +13,22 @@
 
 import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { createRequire } from "node:module";
+import { basename, dirname, join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
 
 import { contrast, DEFAULT_PRESET, hexToRgb, PRESET_NAMES, presets, RULES, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
 
 import { behaviorTs, componentScss, starterIndexHtml, starterPackageJson, starterReadme } from "./templates.ts";
 
-// dist/index.js lives at packages/cli/dist → three levels up is the monorepo root.
-const monorepoRoot = join(import.meta.dirname, "..", "..", "..");
+// The design system is a real dependency of this package, so resolve its
+// installed location rather than assuming a monorepo layout. In this repo the
+// workspace symlink resolves to packages/design-system; installed from a
+// registry or tarball it resolves to node_modules/@sorbet/design-system —
+// which ships both src/ and dist/, everything `create` copies. The previous
+// "three levels up is the monorepo root" arithmetic pointed at node_modules/
+// when installed, reaching for files the published package never contained.
+const dsRoot = dirname(createRequire(import.meta.url).resolve("@sorbet/design-system/package.json"));
 // Inert template files shipped with the CLI (never executed in place).
 const scaffoldDir = join(import.meta.dirname, "..", "scaffold");
 
@@ -115,12 +122,12 @@ async function cmdCreate(): Promise<void> {
   // The code is yours: token engine, Sass, and behaviors are copied in from
   // the workspace packages, not depended on. The scaffold is standalone.
   const dirs: Array<[from: string, to: string]> = [
-    ["packages/design-system/src/tokens", "src/tokens"],
-    ["packages/design-system/src/styles", "src/styles"],
-    ["packages/design-system/src/behaviors", "src/scripts"],
+    ["src/tokens", "src/tokens"],
+    ["src/styles", "src/styles"],
+    ["src/behaviors", "src/scripts"],
   ];
   for (const [from, to] of dirs) {
-    await cp(join(monorepoRoot, from), join(target, to), { recursive: true });
+    await cp(join(dsRoot, from), join(target, to), { recursive: true });
     ok(to);
   }
 
@@ -132,10 +139,15 @@ async function cmdCreate(): Promise<void> {
   ok("src/tools + tsconfigs");
 
   // Prebuilt assets so the starter renders before the first build.
+  // Installed packages always ship dist/; a source checkout only has it after
+  // a build, so say so instead of surfacing a raw ENOENT.
+  if (!existsSync(join(dsRoot, "dist", "css"))) {
+    fail("@sorbet/design-system has no dist/ here — run `pnpm build:design-system` first (source checkout only; installed packages ship it prebuilt)");
+  }
   await mkdir(join(target, "public"), { recursive: true });
-  await cp(join(monorepoRoot, "packages", "design-system", "dist", "themes"), join(target, "public", "themes"), { recursive: true });
-  await cp(join(monorepoRoot, "packages", "design-system", "dist", "css"), join(target, "public", "css"), { recursive: true });
-  await cp(join(monorepoRoot, "packages", "design-system", "dist", "behaviors"), join(target, "public", "ds"), { recursive: true });
+  await cp(join(dsRoot, "dist", "themes"), join(target, "public", "themes"), { recursive: true });
+  await cp(join(dsRoot, "dist", "css"), join(target, "public", "css"), { recursive: true });
+  await cp(join(dsRoot, "dist", "behaviors"), join(target, "public", "ds"), { recursive: true });
   ok("public/ (prebuilt css, themes, behaviors)");
 
   const darkByDefault = presets[preset].defaultMode === "dark";

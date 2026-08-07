@@ -136,3 +136,10 @@ jobs:
       # throwaway project outside the workspace. --no-build reuses the step above.
       - name: Verify packages are consumable outside the monorepo
         run: pnpm run check:consumable --no-build
+
+      # The CLI's create command once shipped resolving files relative to a
+      # monorepo root that doesn't exist when installed. This runs the PACKED
+      # tarball in a temp project — the checkout's dist would pass for the
+      # same false reason everything in-repo does.
+      - name: Verify the packed CLI works standalone
+        run: pnpm run check:cli
