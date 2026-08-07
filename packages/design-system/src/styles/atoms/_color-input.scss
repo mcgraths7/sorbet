@@ -261,7 +261,7 @@
     background-size: auto, 8px 8px;
 
     &[aria-pressed="true"] {
-      outline: 2px solid clr(focus-ring);
+      outline: token(focus-ring-width) solid clr(focus-ring);
       outline-offset: 1px;
     }
   }

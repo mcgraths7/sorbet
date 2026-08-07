@@ -17,8 +17,8 @@
 
   &:focus-visible {
     outline: none;
-    border-color: clr(focus-ring);
-    box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(focus-ring), transparent 70%);
+
+    @include control-glow;
   }
 
   &:disabled {
@@ -34,8 +34,7 @@
     border-color: clr(danger);
 
     &:focus-visible {
-      border-color: clr(danger);
-      box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr(danger), transparent 70%);
+      @include control-glow(danger);
     }
   }
 }

@@ -84,8 +84,7 @@
     }
 
     &:has(a:focus-visible) {
-      outline: token(focus-ring-width) solid clr(focus-ring);
-      outline-offset: 2px;
+      @include focus-ring-style;
     }
   }
 }
