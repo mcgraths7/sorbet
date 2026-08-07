@@ -6,7 +6,7 @@
  * (borders of inputs, focus indicators).
  */
 
-import { contrast } from "./color.ts";
+import { worstCaseContrast } from "./color.ts";
 
 import type { Preset } from "./presets.ts";
 import type { Mode, SemanticColorName, SemanticColors } from "./semantics.ts";
@@ -34,6 +34,12 @@ export const RULES: Rule[] = [
   { fg: "link", bg: "bg", min: 4.5 },
   { fg: "link", bg: "surface", min: 4.5 },
   { fg: "link-hover", bg: "bg", min: 4.5 },
+
+  // The scrim is translucent, so these are checked as worst-case composites:
+  // the scrim over pure white AND over pure black — the extremes of whatever
+  // image sits behind it. Text over a scrim is a promise about ANY photo.
+  { fg: "on-scrim", bg: "scrim", min: 4.5 },
+  { fg: "on-scrim-muted", bg: "scrim", min: 4.5 },
 
   { fg: "on-primary", bg: "primary", min: 4.5 },
   { fg: "on-primary", bg: "primary-hover", min: 4.5 },
@@ -91,10 +97,6 @@ export interface Failure {
   actual: number;
 }
 
-function isOpaqueHex(value: string): boolean {
-  return /^#[0-9a-f]{6}$/i.test(value);
-}
-
 export function checkColors(presetName: string, mode: Mode, colors: SemanticColors): Failure[] {
   const failures: Failure[] = [];
   for (const rule of RULES) {
@@ -103,10 +105,13 @@ export function checkColors(presetName: string, mode: Mode, colors: SemanticColo
     }
     const fg = colors[rule.fg];
     const bg = colors[rule.bg];
-    if (!isOpaqueHex(fg) || !isOpaqueHex(bg)) {
+    // Null = unmeasurable (translucent fg or exotic value): no claim is made,
+    // and no rule should name such a pair. Translucent BACKGROUNDS are
+    // measurable — worst-case composite over white and black.
+    const actual = worstCaseContrast(fg, bg);
+    if (actual === null) {
       continue;
     }
-    const actual = contrast(fg, bg);
     if (actual < rule.min) {
       failures.push({ preset: presetName, mode, ...rule, actual });
     }
