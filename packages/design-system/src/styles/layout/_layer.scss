@@ -1,0 +1,62 @@
+@use "../abstracts" as *;
+
+// Z-axis stacking: media behind, content in front — the text-over-hero-image,
+// caption-over-photo, poster-with-play-button shape. Grid stacking rather than
+// absolute positioning: every child lands in the same cell, so the box sizes
+// itself from its largest child (normally the media) and stays in document
+// flow. Compose the media side with .sb-frame for the ratio.
+//
+//   <div class="sb-layer sb-layer--scrim">
+//     <div class="sb-frame sb-frame--wide"><img …></div>
+//     <div class="sb-layer__content">…</div>
+//   </div>
+.sb-layer {
+  --pad: initial;
+
+  display: grid;
+  overflow: hidden;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+
+  // The scrim is a generated box (::after paints over the media without extra
+  // markup); z-index restacks it under the content — grid items honour
+  // z-index without positioning.
+  &--scrim::after {
+    content: "";
+    z-index: 1;
+    grid-area: 1 / 1;
+    background: linear-gradient(to top, clr(scrim), transparent 65%);
+    pointer-events: none;
+  }
+
+  // Centered content wants an even wash, not a bottom band.
+  &--scrim.sb-layer--center::after {
+    background: clr(scrim);
+  }
+
+  &--scrim &__content {
+    color: clr(on-scrim);
+  }
+
+  &--round {
+    border-radius: radius(lg);
+  }
+
+  &__content {
+    z-index: 2;
+    align-self: end;
+    padding: var(--pad, #{space(6)});
+    min-inline-size: 0;
+  }
+
+  &--center &__content {
+    place-self: center;
+    text-align: center;
+  }
+
+  &--start &__content {
+    align-self: start;
+  }
+}

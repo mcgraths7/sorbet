@@ -12,7 +12,7 @@ import { contrast, withAlpha, type Hex } from "./color.ts";
 import { RAMP_STEPS, type Ramp, type RampStep } from "./ramps.ts";
 
 export const SEMANTIC_COLOR_NAMES = [
-  "bg", "bg-subtle", "surface", "surface-raised", "surface-sunken", "scrim",
+  "bg", "bg-subtle", "surface", "surface-raised", "surface-sunken", "scrim", "on-scrim",
   "text", "text-muted", "text-subtle", "text-inverse",
   "border", "border-subtle", "border-strong",
   "focus-ring",
@@ -143,6 +143,10 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
     out["surface-raised"] = WHITE;
     out["surface-sunken"] = neutral[100];
     out.scrim = withAlpha(neutral[950], 0.5);
+    // Content sitting ON the scrim. The scrim is dark in BOTH modes, so this
+    // is always the lightest neutral — unlike text-inverse, which flips with
+    // the mode and would go dark exactly when the scrim needs light text.
+    out["on-scrim"] = neutral[50];
     out.text = neutral[900];
     out["text-muted"] = neutral[pick(neutral, [600, 700], [pageBg, WHITE, neutral[100]], 4.5)];
     out["text-subtle"] = neutral[pick(neutral, [500, 600], [pageBg, WHITE], 3)];
@@ -157,6 +161,7 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
     out["surface-raised"] = neutral[800];
     out["surface-sunken"] = neutral[950];
     out.scrim = withAlpha("#000000", 0.6);
+    out["on-scrim"] = neutral[50];
     out.text = neutral[100];
     out["text-muted"] = neutral[pick(neutral, [400, 300], [neutral[950], neutral[900], neutral[800]], 4.5)];
     out["text-subtle"] = neutral[pick(neutral, [500, 400], [neutral[950], neutral[900]], 3)];

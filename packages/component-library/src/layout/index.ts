@@ -6,3 +6,4 @@ export { Split, SplitAside, SplitMain, type SplitProps } from "./split.tsx";
 export { Center, Cover, type CenterOwnProps, type CoverOwnProps } from "./center.tsx";
 export { Masonry, type MasonryGap, type MasonryProps } from "./masonry.tsx";
 export { Frame, type FrameProps } from "./frame.tsx";
+export { Layer, LayerContent, type LayerContentProps, type LayerOwnProps } from "./layer.tsx";
