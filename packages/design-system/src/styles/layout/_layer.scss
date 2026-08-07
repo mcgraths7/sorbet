@@ -44,10 +44,10 @@
   // Interactive tints (the ghost hover wash) derive from on-scrim rather than
   // introducing another token.
   &--scrim &__content {
-    --sb-color-text: #{clr(on-scrim)};
-    --sb-color-text-muted: #{clr(on-scrim-muted)};
-    --sb-color-text-subtle: #{clr(on-scrim-muted)};
-    --sb-color-bg-subtle: #{color-mix(in oklab, clr(on-scrim) 15%, transparent)};
+    --sb-text: #{clr(on-scrim)};
+    --sb-text-muted: #{clr(on-scrim-muted)};
+    --sb-text-subtle: #{clr(on-scrim-muted)};
+    --sb-bg-subtle: #{color-mix(in oklab, clr(on-scrim) 15%, transparent)};
 
     color: clr(on-scrim);
   }
