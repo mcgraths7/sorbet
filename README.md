@@ -54,9 +54,10 @@ Four rules, ruthlessly applied:
    (`clr(primary)`, `space(4)`); React components emit the same `sb-` classes.
    A typo'd token is a build error, not a silently broken UI.
 
-2. **Layout owns spacing.** Atoms and molecules have **zero margins**. A button
-   never knows how far it sits from its neighbor — a layout primitive (`Stack`,
-   `Cluster`, `Grid`, `Split`) places and spaces it. This is what makes any
+2. **Layout owns spacing.** Atoms and molecules have **no outer margins** — a
+   button never knows how far it sits from its neighbor; a layout primitive
+   (`Stack`, `Cluster`, `Grid`, `Split`) places and spaces it. Spacing *inside*
+   a component's own parts is the component's business. This is what makes any
    component composable anywhere without spacing fights.
 
 3. **Accessibility is a contract, not a hope.** Semantic color pairings are
@@ -207,7 +208,13 @@ overrides:
 
 ## Using Sorbet without a framework
 
-Everything works with plain HTML classes plus the optional behavior layer:
+The class-level markup renders everywhere — every component's look is plain
+HTML classes on the compiled stylesheet. Interactivity is covered by the
+behavior layer for ten widgets: theme, tabs, modals, menus, toasts, tooltips,
+sortable tables, dismissibles, masonry, and dropzones. The React-only
+remainder is the deeply stateful set — Combobox/MultiCombobox, the date
+pickers, ColorInput, CommandPalette, and Carousel's controls — which have no
+vanilla wiring today; their markup renders, but it stays inert:
 
 ```html
 <link rel="stylesheet" href="node_modules/@sorbet/design-system/dist/themes/ocean.css">
@@ -667,6 +674,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Divider
 - Kbd
 - Icon (sizes to the type scale, semantic tones, decorative-vs-labelled a11y — wraps any provider's SVG)
+- House glyphs (Check/Chevron/Close/Search/Calendar/Upload/Eyedropper/Plus/Minus — the nine icons Sorbet's own components use, exported for reuse; still not an icon *set*, bring your own via Icon)
 - Icon glyphs (Check, Chevron, Close, Search, Calendar, Upload, Eyedropper, Plus, Minus — what the components themselves use)
 - Tooltip
 - Popover (anchored panel of any content)

@@ -48,7 +48,9 @@ with React bindings, in an npm-workspaces monorepo. The prefix everywhere is
   glyph lives in `src/atoms/icons.tsx` (plain `currentColor` SVGs, house weight
   1.5-on-16 scaled per viewBox) — never inline a new `<svg>` in a component;
   `atoms/icon.tsx` (`Icon`) is the size/tone/a11y box and wraps any provider's
-  icon, so Sorbet never ships an icon *set*.
+  icon, so Sorbet never ships an icon *set* — the nine house glyphs ARE
+  exported public API though (they're in the catalog). Charts are inline SVG
+  by nature; the no-new-`<svg>` rule is about icon glyphs, not chart marks.
 - `packages/cli` (`@sorbet/cli`) — bin `sorbet` (create/theme/component/
   presets/contrast). `create` copies design-system sources + `scaffold/`
   templates into a standalone project; scaffold files are inert in place
@@ -98,7 +100,7 @@ refactor is the template: `positionPopover` + `usePopover` were lifted into
 `core/` and now back the menu, the pickers, and the generic Popover atom.
 
 Orient without scanning the whole tree: the full component roster is the
-README's "Component catalog" (kept current per PR); a component's props/behavior
+README's "Component catalog" (kept current per PR — convention, no gate yet); a component's props/behavior
 is one file read (`src/<layer>/<name>.tsx`); the architecture — tokens, cascade
 layers, shared units — is the Packages section above.
 
@@ -134,7 +136,8 @@ they're distinct enough to keep their own code.
 
 ## Conventions
 
-- Layout owns ALL spacing; atoms/molecules have zero margins.
+- Layout owns ALL spacing between components; atoms/molecules have no OUTER
+  margins (internal part spacing is theirs). Convention, not yet gated.
 - Platform first: native `<dialog>`, Popover API, `@starting-style`,
   `:user-invalid`, `field-sizing`; React components are thin typed wrappers
   over the `sb-` classes.
