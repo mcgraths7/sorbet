@@ -92,6 +92,16 @@
   box-shadow: shadow($level);
 }
 
+/// The text-control focus glow: ring-colored border plus a soft halo one
+/// ring-width wide. Every input-shaped control shares this exact chrome; the
+/// selector that triggers it stays with the component (native controls use
+/// :focus-visible, composite wrappers :focus-within), the glow itself lives
+/// once. Pass `danger` for the invalid flavor.
+@mixin control-glow($color: focus-ring) {
+  border-color: clr($color);
+  box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr($color), transparent 70%);
+}
+
 /// Playful press feedback that respects prefers-reduced-motion.
 @mixin pressable {
   transition: transform dur(fast) ease(spring);
