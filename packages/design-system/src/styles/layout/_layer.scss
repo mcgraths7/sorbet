@@ -36,7 +36,19 @@
     background: clr(scrim);
   }
 
+  // Inside a scrim, the text ROLES are re-pointed at the on-scrim pair, not
+  // just the inherited color — Lead, Overline, ghost Button and anything else
+  // that reads text/text-muted/text-subtle resolves legibly without being
+  // named here. Assigning semantic properties is theming's own mechanism,
+  // scoped to this context; reads still go through clr(), which validates.
+  // Interactive tints (the ghost hover wash) derive from on-scrim rather than
+  // introducing another token.
   &--scrim &__content {
+    --sb-color-text: #{clr(on-scrim)};
+    --sb-color-text-muted: #{clr(on-scrim-muted)};
+    --sb-color-text-subtle: #{clr(on-scrim-muted)};
+    --sb-color-bg-subtle: #{color-mix(in oklab, clr(on-scrim) 15%, transparent)};
+
     color: clr(on-scrim);
   }
 

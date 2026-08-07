@@ -109,3 +109,52 @@ export function withAlpha(hex: string, alpha: number): string {
   const { r, g, b } = hexToRgb(hex);
   return `rgb(${r} ${g} ${b} / ${alpha})`;
 }
+
+/** Parses withAlpha's output back. Null for anything else. */
+function parseAlphaColor(value: string): { rgb: Rgb; alpha: number } | null {
+  const m = /^rgb\((\d+) (\d+) (\d+) \/ ([0-9.]+)\)$/.exec(value.trim());
+  if (!m) {
+    return null;
+  }
+  return {
+    rgb: { r: Number(m[1]), g: Number(m[2]), b: Number(m[3]) },
+    alpha: Number(m[4]),
+  };
+}
+
+/** Straight-alpha composite of a translucent color over an opaque backdrop. */
+export function compositeOver(value: string, backdrop: Hex): Hex {
+  const parsed = parseAlphaColor(value);
+  if (!parsed) {
+    return value as Hex;
+  }
+  const back = hexToRgb(backdrop);
+  const mix = (fg: number, bg: number) => Math.round(fg * parsed.alpha + bg * (1 - parsed.alpha));
+  return rgbToHex({ r: mix(parsed.rgb.r, back.r), g: mix(parsed.rgb.g, back.g), b: mix(parsed.rgb.b, back.b) });
+}
+
+/**
+ * Contrast that a translucent background can actually PROMISE. An opaque pair
+ * measures directly; a translucent background (the scrim) is composited over
+ * both pure white and pure black — the extremes of whatever image sits under
+ * it — and the worst of the two is the ratio. This is what lets translucent
+ * tokens into the WCAG contract instead of being silently skipped.
+ *
+ * Null means unmeasurable (translucent foreground, or an unparseable value) —
+ * callers treat that as "no claim", never as a pass.
+ */
+export function worstCaseContrast(fg: string, bg: string): number | null {
+  if (!/^#[0-9a-f]{6}$/i.test(fg)) {
+    return null;
+  }
+  if (/^#[0-9a-f]{6}$/i.test(bg)) {
+    return contrast(fg, bg);
+  }
+  if (parseAlphaColor(bg)) {
+    return Math.min(
+      contrast(fg, compositeOver(bg, "#ffffff")),
+      contrast(fg, compositeOver(bg, "#000000")),
+    );
+  }
+  return null;
+}

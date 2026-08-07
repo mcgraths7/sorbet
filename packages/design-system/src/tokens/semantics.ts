@@ -8,11 +8,11 @@
  */
 
 import { chartColors, chartMuted, type ChartTheme } from "./charts.ts";
-import { contrast, withAlpha, type Hex } from "./color.ts";
+import { compositeOver, contrast, withAlpha, type Hex } from "./color.ts";
 import { RAMP_STEPS, type Ramp, type RampStep } from "./ramps.ts";
 
 export const SEMANTIC_COLOR_NAMES = [
-  "bg", "bg-subtle", "surface", "surface-raised", "surface-sunken", "scrim", "on-scrim",
+  "bg", "bg-subtle", "surface", "surface-raised", "surface-sunken", "scrim", "on-scrim", "on-scrim-muted",
   "text", "text-muted", "text-subtle", "text-inverse",
   "border", "border-subtle", "border-strong",
   "focus-ring",
@@ -67,6 +67,16 @@ function pick(ramp: Ramp, candidates: readonly RampStep[], against: readonly str
     }
   }
   return candidates[candidates.length - 1]!;
+}
+
+/**
+ * Muted text over the scrim: the darkest light step that still clears AA over
+ * the scrim's worst-case composites (a pure-white and a pure-black image
+ * behind it) — muted must read as muted, but legibly, over ANY photo.
+ */
+function onScrimMuted(neutral: Ramp, scrim: string): Hex {
+  const worst = [compositeOver(scrim, "#ffffff"), compositeOver(scrim, "#000000")];
+  return neutral[pick(neutral, [300, 200, 100, 50], worst, 4.5)];
 }
 
 interface Solid {
@@ -142,11 +152,16 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
     out.surface = WHITE;
     out["surface-raised"] = WHITE;
     out["surface-sunken"] = neutral[100];
-    out.scrim = withAlpha(neutral[950], 0.5);
+    // 0.6 black, same as dark mode: the worst-case rules (scrim composited
+    // over a pure-white image) need this much wash for AA — a neutral tint at
+    // 0.5 composites too light and fails the very contract the scrim exists
+    // to keep. Verified by the gate, not by eye.
+    out.scrim = withAlpha("#000000", 0.6);
     // Content sitting ON the scrim. The scrim is dark in BOTH modes, so this
     // is always the lightest neutral — unlike text-inverse, which flips with
     // the mode and would go dark exactly when the scrim needs light text.
     out["on-scrim"] = neutral[50];
+    out["on-scrim-muted"] = onScrimMuted(neutral, out.scrim);
     out.text = neutral[900];
     out["text-muted"] = neutral[pick(neutral, [600, 700], [pageBg, WHITE, neutral[100]], 4.5)];
     out["text-subtle"] = neutral[pick(neutral, [500, 600], [pageBg, WHITE], 3)];
@@ -162,6 +177,7 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
     out["surface-sunken"] = neutral[950];
     out.scrim = withAlpha("#000000", 0.6);
     out["on-scrim"] = neutral[50];
+    out["on-scrim-muted"] = onScrimMuted(neutral, out.scrim);
     out.text = neutral[100];
     out["text-muted"] = neutral[pick(neutral, [400, 300], [neutral[950], neutral[900], neutral[800]], 4.5)];
     out["text-subtle"] = neutral[pick(neutral, [500, 400], [neutral[950], neutral[900]], 3)];
