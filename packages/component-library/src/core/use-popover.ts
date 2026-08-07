@@ -73,6 +73,37 @@ export interface UsePopoverOptions extends PopoverPlacement {
   onDismiss: () => void;
 }
 
+/**
+ * Dismiss a fixed-position panel when the page scrolls out from under it —
+ * capture phase, since scroll doesn't bubble; scrolling inside the panel is
+ * exempt. The one piece of the popover lifecycle every fixed flyout needs,
+ * whatever its open/close model: usePopover consumes it for manual popovers,
+ * the Menu (an auto popover) and the Tooltip attach it directly.
+ */
+export function useScrollDismiss(
+  panelRef: RefObject<HTMLElement | null>,
+  active: boolean,
+  onDismiss: () => void,
+): void {
+  const dismissRef = useRef(onDismiss);
+  useEffect(() => {
+    dismissRef.current = onDismiss;
+  });
+  useEffect(() => {
+    if (!active) {
+      return;
+    }
+    const onScroll = (e: Event) => {
+      if (!panelRef.current?.contains(e.target as Node)) {
+        dismissRef.current();
+      }
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScroll, { capture: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+}
+
 export interface UsePopoverResult<A extends HTMLElement, P extends HTMLElement> {
   /** Attach to the trigger/control the panel anchors to. */
   anchorRef: RefObject<A | null>;
@@ -130,9 +161,9 @@ export function usePopover<A extends HTMLElement = HTMLDivElement, P extends HTM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Manual popovers don't light-dismiss; a fixed panel can't follow scroll.
-  // Close on an outside press, or on any scroll outside the panel (capture
-  // phase, since scroll doesn't bubble — panel-internal scroll is exempt).
+  // Manual popovers don't light-dismiss: close on an outside press. Scroll
+  // dismissal is the shared hook — same behaviour, one implementation.
+  useScrollDismiss(panelRef, open, () => dismissRef.current());
   useEffect(() => {
     if (!open) {
       return;
@@ -143,17 +174,8 @@ export function usePopover<A extends HTMLElement = HTMLDivElement, P extends HTM
         dismissRef.current();
       }
     };
-    const onScroll = (e: Event) => {
-      if (!panelRef.current?.contains(e.target as Node)) {
-        dismissRef.current();
-      }
-    };
     document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("scroll", onScroll, { capture: true });
-    };
+    return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
   const popoverProps = {

@@ -96,6 +96,7 @@ export {
 export {
   positionPopover,
   usePopover,
+  useScrollDismiss,
   type PopoverPlacement,
   type UsePopoverOptions,
   type UsePopoverResult,

@@ -12,7 +12,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { chain, composeRefs, positionPopover } from "../core/index.ts";
+import { chain, composeRefs, positionPopover, useScrollDismiss } from "../core/index.ts";
 
 export interface TooltipProps {
   content: string;
@@ -39,6 +39,10 @@ export function Tooltip({ content, children }: TooltipProps) {
 
   const show = useCallback(() => setOpen(true), []);
   const hide = useCallback(() => setOpen(false), []);
+
+  // Fixed-position tip can't follow its anchor through scroll — hide instead.
+  // The other fixed flyouts all do this; the tooltip was the one that drifted.
+  useScrollDismiss(tipRef, open, hide);
 
   useEffect(() => {
     const tip = tipRef.current;
