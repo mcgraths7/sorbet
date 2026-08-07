@@ -34,6 +34,7 @@
     "lint:styles": "stylelint \"src/styles/**/*.scss\"",
     "lint:styles:fix": "pnpm run lint:styles -- --fix",
     "watch:css": "sass --watch src/styles/index.scss:dist/css/sorbet.css",
-    "check:contrast": "node tools/check-contrast.ts"
+    "check:contrast": "node tools/check-contrast.ts",
+    "check:cvd": "node tools/check-cvd.ts"
   }
 }

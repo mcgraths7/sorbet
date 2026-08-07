@@ -10,6 +10,8 @@ import { styleText } from "node:util";
 
 import { checkPreset, generatedScss, manifest, presets, themeCss } from "../src/tokens/index.ts";
 
+import { checkCvd } from "./check-cvd.ts";
+
 const pkgRoot = join(import.meta.dirname, "..");
 const themesDir = join(pkgRoot, "dist", "themes");
 
@@ -67,4 +69,18 @@ console.log(styleText("green", `✓ contrast contract holds for ${Object.keys(pr
     process.exit(1);
   }
   console.log(styleText("green", "✓ every --sb- assignment in the partials targets an emitted token"));
+}
+
+// Chart slot order is the CVD guarantee; the comments used to claim numbers no
+// tool could reproduce. Now the gate is the claim.
+{
+  const cvdFailures = checkCvd();
+  if (cvdFailures.length > 0) {
+    console.error(styleText("red", `\n✗ ${cvdFailures.length} chart palette(s) below their CVD separation floor:`));
+    for (const f of cvdFailures) {
+      console.error(`  ${f.preset}/${f.mode}: min adjacent ΔE ${f.min.toFixed(1)} < ${f.floor} at ${f.worstPair}`);
+    }
+    process.exit(1);
+  }
+  console.log(styleText("green", "✓ adjacent chart slots stay separable under protanopia and deuteranopia"));
 }

@@ -30,11 +30,14 @@ const slot = (ramp: RampName, light: RampStep, dark: RampStep): ChartSlot => ({ 
 /**
  * Slot orders are brand-led (slot 1 = the preset's lead hue family) and then
  * optimized: candidate orders were run through the six-checks validator and
- * the order maximizing the minimum adjacent CVD ΔE was kept.
+ * the order maximizing the minimum adjacent CVD ΔE was kept. That property is
+ * now enforced by tools/check-cvd.ts (runs in the build); its floors are the
+ * measured per-preset minima under a documented method. The figures formerly
+ * quoted in these comments used an unrecorded method and were not reproducible.
  */
 export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "midnight"]: ChartTheme } = {
   sorbet: [
-    // Validated (six checks, both modes): worst adjacent CVD ΔE 38.6 light / 38.7 dark.
+    // CVD separation gated by tools/check-cvd.ts (pnpm check:cvd).
     slot("raspberry", 600, 500),
     slot("blue", 600, 500),
     slot("amber", 600, 500),
@@ -44,7 +47,7 @@ export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "m
     slot("grape", 600, 500),
     slot("green", 700, 600),
   ],
-  // Validated: worst adjacent CVD ΔE 34.0 light / 26.2 dark.
+  // CVD-gated by tools/check-cvd.ts.
   ocean: [
     slot("blue", 600, 500),
     slot("teal", 600, 600),
@@ -55,7 +58,7 @@ export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "m
     slot("fuchsia", 500, 600),
     slot("coral", 700, 500),
   ],
-  // Validated: worst adjacent CVD ΔE 22.4 light / 14.7 dark.
+  // CVD-gated by tools/check-cvd.ts.
   forest: [
     slot("green", 600, 500),
     slot("violet", 600, 500),
@@ -66,7 +69,7 @@ export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "m
     slot("coral", 700, 500),
     slot("grape", 600, 600),
   ],
-  // Same theme as ocean (validated identically) — noir keeps hue for data.
+  // Same theme as ocean — noir keeps hue for data. CVD-gated by tools/check-cvd.ts.
   noir: [
     slot("blue", 600, 500),
     slot("teal", 600, 600),
@@ -77,7 +80,7 @@ export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "m
     slot("fuchsia", 500, 600),
     slot("coral", 700, 500),
   ],
-  // Validated: worst adjacent CVD ΔE 20.6 light / 26.2 dark.
+  // CVD-gated by tools/check-cvd.ts.
   midnight: [
     slot("violet", 600, 500),
     slot("teal", 600, 600),
