@@ -674,7 +674,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Divider
 - Kbd
 - Icon (sizes to the type scale, semantic tones, decorative-vs-labelled a11y — wraps any provider's SVG)
-- House glyphs (Check/Chevron/Close/Search/Calendar/Upload/Eyedropper/Plus/Minus — the nine icons Sorbet's own components use, exported for reuse; still not an icon *set*, bring your own via Icon)
+- House glyphs: CheckIcon/ChevronIcon/CloseIcon/SearchIcon/CalendarIcon/UploadIcon/EyedropperIcon/PlusIcon/MinusIcon (the nine icons Sorbet's own components use, exported for reuse; still not an icon *set*, bring your own via Icon)
 - Icon glyphs (Check, Chevron, Close, Search, Calendar, Upload, Eyedropper, Plus, Minus — what the components themselves use)
 - Tooltip
 - Popover (anchored panel of any content)
@@ -709,11 +709,11 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 
 - Navbar (brand/nav/link/actions/menu-button)
 - Sidebar (heading/item/footer)
-- Modal
+- Modal(+Header/Body/Footer)
 - AlertDialog + ConfirmProvider/useConfirm (imperative `await confirm(…)`)
 - CommandPalette (⌘K, grouped fuzzy actions, keyboard-first, global hotkey)
 - CommandTrigger (search-shaped button that advertises the palette, platform-correct ⌘K/Ctrl K chip)
-- Drawer (modal or modeless)
+- Drawer(+Header/Body/Footer) (modal or modeless)
 - DataTable (sortable; built on the presentational Table)
 - Footer (cols/col/meta)
 - TokenStudio (live token editor with WCAG report + export)
@@ -730,6 +730,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - DonutChart (center total, Other folding, value legend)
 - Sparkline
 - ChartShell (legend + table view)
+- ChartTooltip (the shared crosshair/hover readout the charts compose)
 - validated chart tokens
 
 **Providers**
