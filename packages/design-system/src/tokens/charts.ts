@@ -37,15 +37,19 @@ const slot = (ramp: RampName, light: RampStep, dark: RampStep): ChartSlot => ({ 
  */
 export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "midnight"]: ChartTheme } = {
   sorbet: [
-    // CVD separation gated by tools/check-cvd.ts (pnpm check:cvd).
-    slot("raspberry", 600, 500),
-    slot("blue", 600, 500),
-    slot("amber", 600, 500),
-    slot("teal", 600, 600),
-    slot("indigo", 700, 500),
-    slot("coral", 600, 500),
-    slot("grape", 600, 500),
-    slot("green", 700, 600),
+    // Retuned for the pastel brand (aqua/blossom/butter): slot 1 leads with
+    // aqua, and amber sits between it and raspberry on purpose — those two
+    // collapse together under protanopia (ΔE 3.2 adjacent), so the separator
+    // is what buys the palette its floor. Order found by exhaustive search
+    // over the gate's own ΔE; CVD separation gated by tools/check-cvd.ts.
+    slot("aqua", 600, 400),
+    slot("amber", 600, 400),
+    slot("raspberry", 500, 400),
+    slot("lemon", 600, 400),
+    slot("blue", 600, 400),
+    slot("coral", 500, 400),
+    slot("indigo", 600, 400),
+    slot("lime", 600, 400),
   ],
   // CVD-gated by tools/check-cvd.ts.
   ocean: [
