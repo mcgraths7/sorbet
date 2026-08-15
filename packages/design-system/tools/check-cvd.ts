@@ -42,7 +42,7 @@ const MACHADO: Record<Deficiency, number[][]> = {
 
 /** Per-preset/mode floors: min adjacent ΔE over both deficiencies. */
 const FLOORS: Record<string, Record<Mode, number>> = {
-  sorbet: { light: 11.1, dark: 11.6 },
+  sorbet: { light: 14.6, dark: 14.9 },
   ocean: { light: 11.6, dark: 5.8 },
   forest: { light: 10.0, dark: 3.9 },
   noir: { light: 11.6, dark: 5.8 },
@@ -70,7 +70,7 @@ function oklab([r, g, b]: [number, number, number]): [number, number, number] {
   ];
 }
 
-function cvdDeltaE(hexA: string, hexB: string, d: Deficiency): number {
+export function cvdDeltaE(hexA: string, hexB: string, d: Deficiency): number {
   const lin = (hex: string): [number, number, number] => {
     const { r, g, b } = hexToRgb(hex);
     return [linearize(r / 255), linearize(g / 255), linearize(b / 255)];
