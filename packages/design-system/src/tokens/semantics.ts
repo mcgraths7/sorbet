@@ -44,6 +44,18 @@ export interface SemanticRecipe {
   charts: ChartTheme;
   /** true → pure white page + surfaces; false → softly tinted neutral-50 page */
   pureSurfaces?: boolean;
+  /**
+   * "vivid" (default): light-mode brand fills are saturated mid-ramp solids
+   * with white text. "pastel": secondary and accent fills sit at the ramp's
+   * light end with near-black text — the walk dark mode always uses, pointed
+   * the other way. PRIMARY is exempt on purpose: it paints unlabeled control
+   * affordances (checkbox fill, slider track, tab indicator), which the
+   * 3:1-on-bg rule protects, and no pastel can clear 3:1 against a light
+   * page. The deep primary is the palette's anchor; the pastels are the
+   * palette. Dark mode is unaffected — its fills are already pastel-adjacent
+   * by construction.
+   */
+  brandStyle?: "vivid" | "pastel";
   overrides?: Partial<Record<Mode, Partial<SemanticColors>>>;
 }
 
@@ -88,8 +100,10 @@ interface Solid {
 
 /**
  * A solid fill (buttons, badges). `onColor` is fixed; the fill shade is chosen
- * so the pairing measures ≥ 4.5:1. Hover moves *away* from the text color so
- * contrast only ever improves.
+ * so the pairing measures ≥ 4.5:1. Hover direction is the caller's choice:
+ * away from the text color and contrast improves by construction; toward it
+ * (the pastel scheme rests pale and deepens on hover) and every state must be
+ * — and is — gate-verified, including active.
  */
 function solid(ramp: Ramp, onColor: string, candidates: readonly RampStep[], hoverDir: "darker" | "lighter"): Solid {
   const move = hoverDir === "darker" ? darker : lighter;
@@ -108,7 +122,12 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
 
   const brand = (role: "primary" | "secondary" | "accent", ramp: Ramp) => {
     if (mode === "light") {
-      const s = solid(ramp, WHITE, [500, 600, 700, 800], "darker");
+      const pastel = recipe.brandStyle === "pastel" && role !== "primary";
+      // Pastel rests at the palest step that carries its text and DEEPENS on
+      // hover — the pale shade is the identity, the saturated one the response.
+      const s = pastel
+        ? solid(ramp, neutral[950], [200, 300, 100], "darker")
+        : solid(ramp, WHITE, [500, 600, 700, 800], "darker");
       out[role] = s.base;
       out[`${role}-hover`] = s.hover;
       out[`${role}-active`] = s.active;

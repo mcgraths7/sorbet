@@ -51,11 +51,13 @@ export const RULES: Rule[] = [
 
   { fg: "on-secondary", bg: "secondary", min: 4.5 },
   { fg: "on-secondary", bg: "secondary-hover", min: 4.5 },
+  { fg: "on-secondary", bg: "secondary-active", min: 4.5 },
   { fg: "secondary-text", bg: "bg", min: 4.5 },
   { fg: "secondary-text", bg: "secondary-subtle", min: 4.5 },
 
   { fg: "on-accent", bg: "accent", min: 4.5 },
   { fg: "on-accent", bg: "accent-hover", min: 4.5 },
+  { fg: "on-accent", bg: "accent-active", min: 4.5 },
   { fg: "accent-text", bg: "bg", min: 4.5 },
   { fg: "accent-text", bg: "accent-subtle", min: 4.5 },
 
