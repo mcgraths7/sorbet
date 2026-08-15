@@ -100,8 +100,10 @@ interface Solid {
 
 /**
  * A solid fill (buttons, badges). `onColor` is fixed; the fill shade is chosen
- * so the pairing measures ≥ 4.5:1. Hover moves *away* from the text color so
- * contrast only ever improves.
+ * so the pairing measures ≥ 4.5:1. Hover direction is the caller's choice:
+ * away from the text color and contrast improves by construction; toward it
+ * (the pastel scheme rests pale and deepens on hover) and every state must be
+ * — and is — gate-verified, including active.
  */
 function solid(ramp: Ramp, onColor: string, candidates: readonly RampStep[], hoverDir: "darker" | "lighter"): Solid {
   const move = hoverDir === "darker" ? darker : lighter;
@@ -121,8 +123,10 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
   const brand = (role: "primary" | "secondary" | "accent", ramp: Ramp) => {
     if (mode === "light") {
       const pastel = recipe.brandStyle === "pastel" && role !== "primary";
+      // Pastel rests at the palest step that carries its text and DEEPENS on
+      // hover — the pale shade is the identity, the saturated one the response.
       const s = pastel
-        ? solid(ramp, neutral[950], [300, 400, 200], "lighter")
+        ? solid(ramp, neutral[950], [200, 300, 100], "darker")
         : solid(ramp, WHITE, [500, 600, 700, 800], "darker");
       out[role] = s.base;
       out[`${role}-hover`] = s.hover;
