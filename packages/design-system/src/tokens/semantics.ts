@@ -44,6 +44,18 @@ export interface SemanticRecipe {
   charts: ChartTheme;
   /** true → pure white page + surfaces; false → softly tinted neutral-50 page */
   pureSurfaces?: boolean;
+  /**
+   * "vivid" (default): light-mode brand fills are saturated mid-ramp solids
+   * with white text. "pastel": secondary and accent fills sit at the ramp's
+   * light end with near-black text — the walk dark mode always uses, pointed
+   * the other way. PRIMARY is exempt on purpose: it paints unlabeled control
+   * affordances (checkbox fill, slider track, tab indicator), which the
+   * 3:1-on-bg rule protects, and no pastel can clear 3:1 against a light
+   * page. The deep primary is the palette's anchor; the pastels are the
+   * palette. Dark mode is unaffected — its fills are already pastel-adjacent
+   * by construction.
+   */
+  brandStyle?: "vivid" | "pastel";
   overrides?: Partial<Record<Mode, Partial<SemanticColors>>>;
 }
 
@@ -108,7 +120,10 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
 
   const brand = (role: "primary" | "secondary" | "accent", ramp: Ramp) => {
     if (mode === "light") {
-      const s = solid(ramp, WHITE, [500, 600, 700, 800], "darker");
+      const pastel = recipe.brandStyle === "pastel" && role !== "primary";
+      const s = pastel
+        ? solid(ramp, neutral[950], [300, 400, 200], "lighter")
+        : solid(ramp, WHITE, [500, 600, 700, 800], "darker");
       out[role] = s.base;
       out[`${role}-hover`] = s.hover;
       out[`${role}-active`] = s.active;

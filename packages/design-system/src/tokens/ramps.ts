@@ -75,6 +75,9 @@ const specs = {
   lime: { hue: 128, chroma: 0.185 },
   green: { hue: 152, chroma: 0.16 },
   teal: { hue: 176, chroma: 0.14 },
+  // robin's-egg territory: between teal and cyan, softer than both; drifts
+  // slightly green at the light end so pastel steps read duck-egg, not ice.
+  aqua: { hue: 204, chroma: 0.115, drift: -4 },
   cyan: { hue: 215, chroma: 0.135 },
   blue: { hue: 255, chroma: 0.175 },
   indigo: { hue: 275, chroma: 0.185 },
