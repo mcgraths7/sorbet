@@ -1,10 +1,7 @@
-# Append-only aggregator files: when two branches each add a line (a new export,
-# a new @include), keep BOTH additions instead of raising a conflict. `union`
-# merges the two sides line-wise — review the result, since it won't dedupe or
-# reorder. Applied only to files that are pure one-item-per-line lists.
-
-# Component-library barrels (one `export … from "./x.tsx";` per line).
-packages/component-library/src/**/index.ts   merge=union
-
-# Sass cascade-layer registration (one `@include meta.load-css("…");` per line).
-packages/design-system/src/styles/index.scss merge=union
+# Lockfiles are derived state and are never hand-merged. On conflict, git
+# keeps the current side wholesale (the built-in "ours" driver) instead of
+# emitting conflict markers into 3,000 lines of YAML nobody wrote by hand.
+# The step that makes this correct: run `pnpm install` afterwards so the
+# resolver re-derives the file from the already-merged package.json — the
+# lockfile that lands must always be one the resolver wrote.
+pnpm-lock.yaml merge=ours
