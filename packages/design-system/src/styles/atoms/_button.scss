@@ -112,6 +112,10 @@
   }
 
   &--ghost {
+    // Chromeless by definition: no fill to separate from the page, so the
+    // edge and its falloff would be drawing a boundary around nothing.
+    border-color: transparent;
+    box-shadow: none;
     background-color: transparent;
     color: clr(text-muted);
 
@@ -123,6 +127,9 @@
   }
 
   &--link {
+    // Reads as text, not as a control: it takes no box chrome at all.
+    border-color: transparent;
+    box-shadow: none;
     background-color: transparent;
     color: clr(link);
     padding-inline: space(1);
