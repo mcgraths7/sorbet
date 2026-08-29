@@ -145,7 +145,10 @@ they're distinct enough to keep their own code.
   over the `sb-` classes.
 - Fixed-position popovers (combobox/menu) dismiss on outside scroll
   (capture-phase listener; panel-internal scroll exempt).
-- Commit footer: `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
+- Commit footer: `Co-Authored-By: Claude <noreply@anthropic.com>` — deliberately
+  without a model name. Pinning a version dates the convention, goes stale the
+  moment the model changes, and makes the git history a record of which model was
+  current rather than of what changed.
 
 ## Browser-pane testing gotchas (this dev environment)
 
