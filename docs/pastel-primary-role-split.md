@@ -60,6 +60,39 @@ deep teal. The gate was faithfully reporting a contradiction in the model; it
 read as "pastel primary is impossible" because the rule had no rationale
 attached to point anywhere else.
 
+## Audit: is any other preset compromised?
+
+No. Measured light-mode `primary` for every preset:
+
+| preset | primary | step | intent | verdict |
+|---|---|---|---|---|
+| sorbet | `#008289` | aqua-600 | "light and fun… robin's-egg" | **mismatch** |
+| ocean | `#0f70d5` | blue-600 | "confident blues" | on intent |
+| forest | `#008944` | green-600 | "deep greens" | on intent |
+| noir | `#333537` | gray-900 | "editorial monochrome" | on intent |
+| midnight | `#804ed7` | violet-600 | "sleek and electric, dark-first" | on intent |
+
+Every preset lands on the same deep step with white text. For four of them that
+*is* the brand — the rule and the intent point the same way, so nothing is lost.
+Sorbet is the only preset whose stated identity is pale, and therefore the only
+one where the rule and the intent oppose. The system is not broadly compromised;
+it has one blind spot, and it happens to sit on the flagship.
+
+Two further findings worth recording:
+
+- **Within sorbet, `primary` is the odd one out.** `secondary` is
+  `raspberry-200` and `accent` is `lemon-200` — genuinely pastel, because both
+  are exempt from the 3:1-on-bg rule. The theme is two-thirds pastel with a deep
+  teal anchor, which is precisely the "doesn't read pastel" complaint.
+- **Dark mode already does what light mode cannot.** Sorbet's dark `primary` is
+  `aqua-400 #4cc7d1` with near-black text at 7.74:1, clearing 3:1 against the
+  dark page comfortably. A pale fill under dark text is already shipping and
+  already passing — in dark mode the two requirements point the *same*
+  direction (pale contrasts with both a dark page and dark text), so the token
+  is not overloaded there at all. **The conflict is light-mode-only.** That is
+  also the proof the proposal works: the pattern is not hypothetical, it is what
+  half of every existing theme already does.
+
 ## Proposal
 
 **Split the role.**
@@ -109,6 +142,37 @@ the brand, the deeper shade is the shape-maker.
 - The 1.3:1 floor is a judgement, not a standard. It exists to stop `primary`
   drifting invisibly pale, and the mandatory border is what actually satisfies
   the accessibility requirement.
+
+## Documentation owed to theme authors
+
+This trap is currently invisible to anyone authoring a preset. `README.md`
+§"Extending the system" says:
+
+> **Change brand colors** — edit a preset… (swap which ramps map to
+> `primary`/`secondary`/`accent`…). Rebuild; the contrast contract re-verifies.
+
+That is true and incomplete. It presents the gate as a *checker*, when for
+`primary` it is also a *chooser*: it walks the ramp and takes the first step
+that satisfies every rule. An author who picks a pale ramp expecting a pale
+brand will get a deep one, with no failure and no warning — the build passes,
+and the intent is silently discarded. That is exactly how this went unnoticed.
+
+Three sections need updating alongside the code change:
+
+- **§"Extending the system"** — say plainly that `primary` is selected, not
+  merely validated, and that its floor is set by the unlabelled-affordance rule.
+  Point pale-brand authors at `primary` vs `primary-solid` and note that hover
+  must deepen rather than lighten for a pale base.
+- **§"Theming: presets & dark mode"** — document the light/dark asymmetry: in
+  dark mode a pale fill satisfies both requirements at once, in light mode it
+  cannot, which is why the two modes resolve so differently from the same ramp.
+- **§"The accessibility contract"** — name the figure/ground distinction, since
+  it is the concept that makes the token split make sense: the same colour is a
+  *background* under a button label (needs 4.5 against the text) and a
+  *foreground* as a checkbox fill (needs 3:1 against the page).
+
+A worked example belongs here too — "authoring a pastel preset" — because the
+correct answer is non-obvious and currently undiscoverable.
 
 ## Also worth doing
 
