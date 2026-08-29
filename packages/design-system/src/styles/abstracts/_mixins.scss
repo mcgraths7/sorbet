@@ -116,17 +116,55 @@
 }
 
 /// Playful press feedback that respects prefers-reduced-motion.
-@mixin pressable {
-  transition: transform dur(fast) ease(spring);
+///
+/// Pass a length as `$lift` and the control also RISES while hovered and drops
+/// back to rest when pressed, so the click reads as the button travelling down
+/// rather than merely changing colour. Three deliberate choices:
+///
+/// - It uses the standalone `translate` property, not `transform`, so the rise
+///   COMPOSES with the press `scale` below instead of overwriting it. (The
+///   individual properties apply before `transform`, so both survive.) This is
+///   already the house idiom — card, drawer, modal and toast all translate.
+/// - `--lift` is a knob, so a flat variant sits it out with `--lift: 0` rather
+///   than re-declaring the hover rule at higher specificity.
+/// - The rise is gated on `hover: hover`. A touch device leaves `:hover` stuck
+///   after a tap, and a button frozen in the raised position reads as being
+///   permanently active. Touch still gets the press, which is the half that
+///   matters there.
+@mixin pressable($lift: 0) {
+  transition:
+    translate dur(fast) ease(spring),
+    transform dur(fast) ease(spring);
+
+  @if $lift != 0 {
+    --lift: #{$lift};
+
+    @media (hover: hover) {
+      &:hover:not(:disabled, [aria-disabled="true"]) {
+        translate: 0 calc(-1 * var(--lift));
+      }
+
+      // Back to the page on press. The drop IS the click.
+      &:active:not(:disabled, [aria-disabled="true"]) {
+        translate: 0 0;
+      }
+    }
+  }
 
   &:active:not(:disabled, [aria-disabled="true"]) {
     transform: scale(0.97);
   }
 
+  // Unlike the colour mixins, this can't lean on the global reset: that
+  // collapses transition-duration, which would leave the travel intact and
+  // merely instant. Motion sensitivity is about the displacement itself, so
+  // both the rise and the press are removed outright.
   @media (prefers-reduced-motion: reduce) {
     transition: none;
 
+    &:hover:not(:disabled, [aria-disabled="true"]),
     &:active:not(:disabled, [aria-disabled="true"]) {
+      translate: none;
       transform: none;
     }
   }
