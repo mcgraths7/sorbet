@@ -31,6 +31,8 @@
       color: clr(text-muted);
     }
 
+    @include color-transition;
+
     &:hover,
     &:focus-visible {
       outline: none;

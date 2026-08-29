@@ -102,6 +102,19 @@
   box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr($color), transparent 70%);
 }
 
+/// The standard tint change: text, fill and edge eased together. Any control
+/// whose hover or focus state swaps a colour token should use this rather than
+/// snapping — and rather than re-declaring the same triple per partial.
+///
+/// No reduced-motion guard needed: base/_reset.scss already collapses every
+/// transition-duration to 0.01ms under `prefers-reduced-motion: reduce`.
+@mixin color-transition($speed: fast) {
+  transition:
+    color dur($speed) ease(out),
+    background-color dur($speed) ease(out),
+    border-color dur($speed) ease(out);
+}
+
 /// Playful press feedback that respects prefers-reduced-motion.
 @mixin pressable {
   transition: transform dur(fast) ease(spring);

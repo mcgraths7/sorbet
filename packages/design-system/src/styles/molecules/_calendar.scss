@@ -118,6 +118,8 @@
       border-radius: 0;
     }
 
+    @include color-transition;
+
     &[aria-selected="true"] {
       background-color: clr(primary);
       color: clr(on-primary);

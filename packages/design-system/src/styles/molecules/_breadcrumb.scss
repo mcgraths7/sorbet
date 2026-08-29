@@ -35,6 +35,8 @@
     color: clr(text-muted);
     text-decoration: none;
 
+    @include color-transition;
+
     &:hover {
       color: clr(link);
       text-decoration: underline;
