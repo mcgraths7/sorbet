@@ -15,7 +15,7 @@
   block-size: var(--size);
   border-radius: radius(full);
   border: calc(var(--size) / 9) solid clr(primary-subtle);
-  border-block-start-color: clr(primary);
+  border-block-start-color: clr(primary-solid);
   animation: sb-spin 0.7s linear infinite;
 
   &--sm { --size: #{token(spinner-size-sm)}; }

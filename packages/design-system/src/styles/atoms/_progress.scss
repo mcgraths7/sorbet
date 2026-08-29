@@ -13,7 +13,7 @@
   &__bar {
     block-size: 100%;
     border-radius: inherit;
-    background-color: clr(primary);
+    background-color: clr(primary-solid);
     transition: inline-size dur(slow) ease(out);
   }
 

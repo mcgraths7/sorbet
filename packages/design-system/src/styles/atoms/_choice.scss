@@ -24,8 +24,8 @@
   }
 
   &:checked {
-    background-color: clr(primary);
-    border-color: clr(primary);
+    background-color: clr(primary-solid);
+    border-color: clr(primary-solid);
 
     &::before {
       transform: scale(1);
@@ -50,8 +50,8 @@
   }
 
   &:indeterminate {
-    background-color: clr(primary);
-    border-color: clr(primary);
+    background-color: clr(primary-solid);
+    border-color: clr(primary-solid);
 
     &::before {
       transform: scale(1);

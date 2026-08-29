@@ -28,7 +28,7 @@
   }
 
   &:checked {
-    background-color: clr(primary);
+    background-color: clr(primary-solid);
 
     &::before {
       translate: 1rem 0;
