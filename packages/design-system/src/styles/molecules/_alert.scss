@@ -50,6 +50,8 @@
     font-size: fs(lg);
     line-height: 1;
 
+    @include color-transition;
+
     &:hover {
       background-color: color-mix(in oklab, currentColor, transparent 88%);
     }

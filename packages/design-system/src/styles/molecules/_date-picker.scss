@@ -30,6 +30,8 @@
     border-radius: radius(sm);
     color: clr(text-subtle);
 
+    @include color-transition;
+
     > svg {
       inline-size: 1rem;
       block-size: 1rem;

@@ -27,6 +27,7 @@
   button {
     @include control-reset;
     @include focus-ring(0);
+    @include color-transition;
 
     &:hover {
       background-color: clr(bg-subtle);
