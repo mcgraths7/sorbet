@@ -17,7 +17,7 @@ export const SEMANTIC_COLOR_NAMES = [
   "border", "border-subtle", "border-strong",
   "focus-ring",
   "primary", "primary-hover", "primary-active", "primary-subtle", "primary-text", "on-primary",
-  "primary-solid",
+  "primary-solid", "secondary-solid", "accent-solid",
   "secondary", "secondary-hover", "secondary-active", "secondary-subtle", "secondary-text", "on-secondary",
   "accent", "accent-hover", "accent-active", "accent-subtle", "accent-text", "on-accent",
   "success", "success-hover", "success-subtle", "success-text", "on-success",
@@ -143,8 +143,8 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
       // opposite ways. Vivid themes fall through to the default at the end of
       // buildMode, where `primary-solid` simply becomes whatever `primary`
       // finally is — overrides included.
-      if (role === "primary" && pastel) {
-        out["primary-solid"] = ramp[pick(ramp, [600, 700, 800], [out.bg!], 3)];
+      if (pastel) {
+        out[`${role}-solid`] = ramp[pick(ramp, [600, 700, 800], [out.bg!], 3)];
       }
     } else {
       const s = solid(ramp, neutral[950], [400, 300, 500, 200], "lighter");
@@ -246,6 +246,8 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
   // different colour on its checkboxes and sliders. Dark mode lands here too:
   // a pale fill there contrasts with BOTH the dark page and dark text, so the
   // two requirements point the same way and no split is needed.
-  merged["primary-solid"] ??= merged.primary;
+  for (const role of ["primary", "secondary", "accent"] as const) {
+    merged[`${role}-solid`] ??= merged[role];
+  }
   return merged;
 }

@@ -54,6 +54,10 @@ export const RULES: Rule[] = [
   // covers; holding it to 3:1 as well is what forced every pastel brand deep.
   { fg: "primary-solid", bg: "bg", min: 3 },
   { fg: "primary-solid", bg: "surface", min: 3 },
+  // Secondary and accent paint no affordances, but a pastel fill still needs an
+  // edge that can be seen: their `-solid` carries the button border.
+  { fg: "secondary-solid", bg: "bg", min: 3 },
+  { fg: "accent-solid", bg: "bg", min: 3 },
 
   { fg: "on-secondary", bg: "secondary", min: 4.5 },
   { fg: "on-secondary", bg: "secondary-hover", min: 4.5 },
