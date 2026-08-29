@@ -47,7 +47,17 @@ export const RULES: Rule[] = [
   { fg: "primary-text", bg: "bg", min: 4.5 },
   { fg: "primary-text", bg: "surface", min: 4.5 },
   { fg: "primary-text", bg: "primary-subtle", min: 4.5 },
-  { fg: "primary", bg: "bg", min: 3 },
+  // The shape-maker owes 3:1 to the page (WCAG 1.4.11 non-text contrast): it
+  // paints affordances that have no label to carry them — checkbox fills,
+  // slider tracks, tab indicators, switch tracks, spinners. `primary` itself is
+  // exempt because it is always the fill BEHIND a label, which `on-primary`
+  // covers; holding it to 3:1 as well is what forced every pastel brand deep.
+  { fg: "primary-solid", bg: "bg", min: 3 },
+  { fg: "primary-solid", bg: "surface", min: 3 },
+  // Secondary and accent paint no affordances, but a pastel fill still needs an
+  // edge that can be seen: their `-solid` carries the button border.
+  { fg: "secondary-solid", bg: "bg", min: 3 },
+  { fg: "accent-solid", bg: "bg", min: 3 },
 
   { fg: "on-secondary", bg: "secondary", min: 4.5 },
   { fg: "on-secondary", bg: "secondary-hover", min: 4.5 },

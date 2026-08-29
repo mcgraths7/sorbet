@@ -38,7 +38,7 @@
       background-color dur(fast) ease(out);
 
     &:hover {
-      border-color: clr(primary);
+      border-color: clr(primary-solid);
     }
   }
 
@@ -52,7 +52,7 @@
   }
 
   &[data-dragover] .sb-dropzone__zone {
-    border-color: clr(primary);
+    border-color: clr(primary-solid);
     background-color: clr(primary-subtle);
   }
 
@@ -66,7 +66,7 @@
   }
 
   &__icon {
-    color: clr(primary);
+    color: clr(primary-solid);
   }
 
   &__title {

@@ -26,6 +26,30 @@
   // default = solid primary
   background-color: clr(primary);
   color: clr(on-primary);
+  // A pastel fill can sit close to the page in luminance, leaving the button's
+  // SHAPE ambiguous even when its label is perfectly legible. `primary-solid`
+  // is the one shade guaranteed 3:1 against the page, so it carries the edge.
+  // In a vivid theme it equals `primary`, the border is invisible, and no
+  // existing preset changes.
+  // `--edge` is the knob every filled variant re-points at its own shape-maker,
+  // so a pink button never wears a teal outline.
+  --edge: #{clr(primary-solid)};
+
+  border: token(border-width) solid var(--edge);
+  // The border is the guarantee; this is the softening. A box-shadow's blur IS
+  // a gradient — full colour at the edge, fading outward — so the edge reads as
+  // a falloff rather than a hard rule. Two layers shape that curve: a tight,
+  // stronger one hugging the border and a wider, fainter one carrying it into
+  // the page.
+  //
+  // Tinted with `--edge` rather than the neutral shadow tint on purpose. A
+  // warm-grey falloff under a coloured border reads as two stacked effects; a
+  // hue-matched one reads as a single edge dissolving. Decoration only —
+  // forced-colors mode strips box-shadow while keeping the border, which is
+  // exactly why the border, not this, carries the 3:1 claim.
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--edge) 22%, transparent),
+    0 2px 6px color-mix(in oklab, var(--edge) 12%, transparent);
 
   &:hover:not(:disabled, [aria-disabled="true"]) {
     background-color: clr(primary-hover);
@@ -37,6 +61,12 @@
 
   @each $variant in (secondary, accent, danger) {
     &--#{$variant} {
+      @if $variant == danger {
+        --edge: #{clr(danger)};
+      } @else {
+        --edge: #{clr(#{$variant}-solid)};
+      }
+
       background-color: clr($variant);
       color: clr(on-#{$variant});
 
@@ -55,6 +85,10 @@
   }
 
   &--soft {
+    // A tinted, low-emphasis fill: the subtle background already separates it
+    // from the page, so it takes neither border nor lift.
+    border-color: transparent;
+    box-shadow: none;
     background-color: clr(primary-subtle);
     color: clr(primary-text);
 
@@ -65,6 +99,8 @@
   }
 
   &--outline {
+    // Owns its own ring; the filled-button border and lift would double it.
+    border-color: transparent;
     background-color: transparent;
     color: clr(text);
     box-shadow: inset 0 0 0 1px clr(border-strong);

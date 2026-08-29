@@ -17,7 +17,7 @@
   &[data-selected],
   &--selected {
     background-color: clr(primary-subtle);
-    border-color: clr(primary);
+    border-color: clr(primary-solid);
     color: clr(primary-text);
     font-weight: fw(medium);
   }
@@ -59,7 +59,7 @@ button.sb-chip {
   &[data-selected],
   &.sb-chip--selected {
     background-color: clr(primary-subtle);
-    border-color: clr(primary);
+    border-color: clr(primary-solid);
     color: clr(primary-text);
     font-weight: fw(medium);
   }

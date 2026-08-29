@@ -78,7 +78,7 @@ a:not([class]) {
 
   blockquote {
     padding-inline-start: space(4);
-    border-inline-start: 3px solid clr(primary);
+    border-inline-start: 3px solid clr(primary-solid);
     color: clr(text-muted);
     font-style: italic;
   }

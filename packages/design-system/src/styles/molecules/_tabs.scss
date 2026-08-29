@@ -46,7 +46,7 @@
       color: clr(primary-text);
 
       &::after {
-        background-color: clr(primary);
+        background-color: clr(primary-solid);
       }
     }
   }
