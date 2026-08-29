@@ -82,6 +82,14 @@ with React bindings, in an npm-workspaces monorepo. The prefix everywhere is
 - `main` is protected by ruleset "Protect main": PRs only, required status
   check `build` (the CI job name, Actions-scoped), strict up-to-date policy,
   no force-push/deletion. All work: branch → commit → push → PR (`gh pr create`).
+- **A PR may be large; a commit may not be broad.** Each distinct area of a
+  change is its own commit, so it can be read, reviewed, bisected and reverted
+  on its own. A token/model change, the mechanical re-routing that follows from
+  it, and a visual decision made alongside it are three commits, not one — even
+  when they ship together and only make sense together. The test: every commit
+  should build and pass the gates by itself, and its message should be
+  answerable without reading the others. Split before pushing; an unpushed
+  commit is free to reshape.
 - CI: `.github/workflows/build.yml` (Node 24, pnpm install --frozen-lockfile,
   pnpm run build).
 - Dependencies: `dependency-review` blocks a PR that *introduces* a known
