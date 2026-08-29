@@ -36,7 +36,7 @@
     margin-block-start: calc((space(1) - space(4)) / 2);
     border: token(border-width-thick) solid clr(surface);
     border-radius: radius(full);
-    background-color: clr(primary);
+    background-color: clr(primary-solid);
     box-shadow: shadow(sm);
     transition: transform dur(fast) ease(spring);
   }
@@ -56,7 +56,7 @@
     block-size: space(4);
     border: token(border-width-thick) solid clr(surface);
     border-radius: radius(full);
-    background-color: clr(primary);
+    background-color: clr(primary-solid);
     box-shadow: shadow(sm);
   }
 }

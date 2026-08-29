@@ -17,6 +17,7 @@ export const SEMANTIC_COLOR_NAMES = [
   "border", "border-subtle", "border-strong",
   "focus-ring",
   "primary", "primary-hover", "primary-active", "primary-subtle", "primary-text", "on-primary",
+  "primary-solid", "secondary-solid", "accent-solid",
   "secondary", "secondary-hover", "secondary-active", "secondary-subtle", "secondary-text", "on-secondary",
   "accent", "accent-hover", "accent-active", "accent-subtle", "accent-text", "on-accent",
   "success", "success-hover", "success-subtle", "success-text", "on-success",
@@ -122,7 +123,7 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
 
   const brand = (role: "primary" | "secondary" | "accent", ramp: Ramp) => {
     if (mode === "light") {
-      const pastel = recipe.brandStyle === "pastel" && role !== "primary";
+      const pastel = recipe.brandStyle === "pastel";
       // Pastel rests at the palest step that carries its text and DEEPENS on
       // hover — the pale shade is the identity, the saturated one the response.
       const s = pastel
@@ -134,6 +135,17 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
       out[`on-${role}`] = s.on;
       out[`${role}-subtle`] = ramp[100];
       out[`${role}-text`] = ramp[pick(ramp, [600, 700, 800, 900], [out.bg!, out.surface!, ramp[100]], 4.5)];
+      // The shape-maker, for pastel themes only. `primary` is the fill BEHIND a
+      // label, so it is free to be pale; `primary-solid` is the fill that IS
+      // the shape — a checkbox tick, a slider track, a tab indicator — with no
+      // text to carry it, so it owes 3:1 to the page (WCAG 1.4.11). One token
+      // cannot be both: pale under text and dark against a light page pull
+      // opposite ways. Vivid themes fall through to the default at the end of
+      // buildMode, where `primary-solid` simply becomes whatever `primary`
+      // finally is — overrides included.
+      if (pastel) {
+        out[`${role}-solid`] = ramp[pick(ramp, [600, 700, 800], [out.bg!], 3)];
+      }
     } else {
       const s = solid(ramp, neutral[950], [400, 300, 500, 200], "lighter");
       out[role] = s.base;
@@ -227,5 +239,15 @@ export function buildMode(recipe: SemanticRecipe, mode: Mode): SemanticColors {
   out.link = out["primary-text"]!;
   out["link-hover"] = mode === "light" ? primary[darker(600, 2)] : primary[100];
 
-  return { ...(out as SemanticColors), ...recipe.overrides?.[mode] };
+  const merged = { ...(out as SemanticColors), ...recipe.overrides?.[mode] };
+
+  // A vivid theme's shape-maker IS its primary — including any override, so a
+  // preset that hand-picks its primary (noir does) does not silently get a
+  // different colour on its checkboxes and sliders. Dark mode lands here too:
+  // a pale fill there contrasts with BOTH the dark page and dark text, so the
+  // two requirements point the same way and no split is needed.
+  for (const role of ["primary", "secondary", "accent"] as const) {
+    merged[`${role}-solid`] ??= merged[role];
+  }
+  return merged;
 }

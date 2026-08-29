@@ -93,19 +93,19 @@
   // ---- status --------------------------------------------------------------
   &__step[data-status="complete"] {
     .sb-stepper__marker {
-      border-color: clr(primary);
+      border-color: clr(primary-solid);
       background-color: clr(primary);
       color: clr(on-primary);
     }
 
     .sb-stepper__connector {
-      background-color: clr(primary);
+      background-color: clr(primary-solid);
     }
   }
 
   &__step[data-status="current"] .sb-stepper__marker {
-    border-color: clr(primary);
-    color: clr(primary);
+    border-color: clr(primary-solid);
+    color: clr(primary-text);
   }
 
   &__step[data-status="upcoming"] {
