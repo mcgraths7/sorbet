@@ -26,6 +26,12 @@
   // default = solid primary
   background-color: clr(primary);
   color: clr(on-primary);
+  // A pastel fill can sit close to the page in luminance, leaving the button's
+  // SHAPE ambiguous even when its label is perfectly legible. `primary-solid`
+  // is the one shade guaranteed 3:1 against the page, so it carries the edge.
+  // In a vivid theme it equals `primary`, the border is invisible, and no
+  // existing preset changes.
+  border: token(border-width) solid clr(primary-solid);
 
   &:hover:not(:disabled, [aria-disabled="true"]) {
     background-color: clr(primary-hover);
