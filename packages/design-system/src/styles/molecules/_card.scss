@@ -79,8 +79,27 @@
 
     &:hover {
       box-shadow: shadow(lg);
-      translate: 0 -2px;
       border-color: clr(border);
+    }
+
+    // Only the displacement is gated, not the whole hover state. A touch
+    // device leaves `:hover` stuck after a tap, and a card frozen 2px off the
+    // page reads as permanently active — but the shadow and border landing on
+    // touch is fine, they just say "this responded", which is what a tap
+    // should say.
+    @media (hover: hover) {
+      &:hover {
+        translate: 0 -2px;
+      }
+    }
+
+    // The global reset only collapses transition-duration, which would leave
+    // the 2px jump intact and merely instant. Motion sensitivity is about the
+    // displacement itself, so it is removed rather than shortened.
+    @media (prefers-reduced-motion: reduce) {
+      &:hover {
+        translate: none;
+      }
     }
 
     &:has(a:focus-visible) {
