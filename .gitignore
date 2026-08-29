@@ -4,7 +4,13 @@ dist/
 # vendor-dist/ holds the tarballs from `pnpm pack:vendor`; they're build output
 # here and get committed in the CONSUMING repo, not this one.
 vendor-dist/
-.claude/
+
+# .claude/ holds team agent config — skills, subagents, CLAUDE.md's companions.
+# Those are reviewed like code and ARE committed. Only per-developer state is
+# ignored: launch.json is machine-local paths, settings.local.json is personal
+# permission overrides.
+.claude/launch.json
+.claude/settings.local.json
 
 # claude.ai/design sync — staged converter scripts, build output, and
 # machine-generated verification state. .design-sync/config.json, NOTES.md,
