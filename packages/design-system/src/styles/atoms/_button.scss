@@ -1,9 +1,19 @@
 @use "../abstracts" as *;
 
+/// Variants that sit flat on the page: no falloff in any state, and nothing to
+/// lift. Shared by --soft, --ghost and --link, which differ in fill but agree
+/// completely about elevation.
+@mixin flat-elevation {
+  --lift: 0;
+  --shadow-rest: none;
+  --shadow-hover: none;
+  --shadow-press: none;
+}
+
 .sb-button {
   @include control-reset;
   @include focus-ring;
-  @include pressable;
+  @include pressable(1px);
 
   display: inline-flex;
   align-items: center;
@@ -16,10 +26,13 @@
   font-size: fs(sm);
   white-space: nowrap;
   text-decoration: none;
+  // This shorthand overrides the one `pressable` sets, so it has to restate
+  // the travel properties — translate for the lift, transform for the press.
   transition:
     background-color dur(fast) ease(out),
     color dur(fast) ease(out),
     box-shadow dur(fast) ease(out),
+    translate dur(fast) ease(spring),
     transform dur(fast) ease(spring);
 
   // ----- fills -------------------------------------------------------------
@@ -47,16 +60,33 @@
   // hue-matched one reads as a single edge dissolving. Decoration only —
   // forced-colors mode strips box-shadow while keeping the border, which is
   // exactly why the border, not this, carries the 3:1 claim.
-  box-shadow:
+  //
+  // Three elevations of that same falloff, so the shadow tracks the lift: rest
+  // sits just off the page, hover opens the gap the rise creates, and press
+  // pulls in TIGHTER than rest — a button held down is flush against the page,
+  // so its shadow should be smaller than its resting one, not merely restored.
+  // All three read `--edge`, so a variant that repoints the edge gets a
+  // matching falloff in every state for free.
+  --shadow-rest:
     0 1px 2px color-mix(in oklab, var(--edge) 22%, transparent),
     0 2px 6px color-mix(in oklab, var(--edge) 12%, transparent);
+  --shadow-hover:
+    0 2px 4px color-mix(in oklab, var(--edge) 26%, transparent),
+    0 6px 14px color-mix(in oklab, var(--edge) 14%, transparent);
+  --shadow-press:
+    0 1px 1px color-mix(in oklab, var(--edge) 26%, transparent),
+    0 1px 2px color-mix(in oklab, var(--edge) 14%, transparent);
+
+  box-shadow: var(--shadow-rest);
 
   &:hover:not(:disabled, [aria-disabled="true"]) {
     background-color: clr(primary-hover);
+    box-shadow: var(--shadow-hover);
   }
 
   &:active:not(:disabled, [aria-disabled="true"]) {
     background-color: clr(primary-active);
+    box-shadow: var(--shadow-press);
   }
 
   @each $variant in (secondary, accent, danger) {
@@ -86,9 +116,10 @@
 
   &--soft {
     // A tinted, low-emphasis fill: the subtle background already separates it
-    // from the page, so it takes neither border nor lift.
+    // from the page, so it takes neither border, falloff, nor lift.
+    @include flat-elevation;
+
     border-color: transparent;
-    box-shadow: none;
     background-color: clr(primary-subtle);
     color: clr(primary-text);
 
@@ -99,11 +130,19 @@
   }
 
   &--outline {
-    // Owns its own ring; the filled-button border and lift would double it.
+    // Owns its own ring; the filled-button border, falloff and lift would all
+    // double it. The ring is the shape in every state, so it is pinned across
+    // the three elevations rather than being swapped out on hover.
+    $ring: inset 0 0 0 1px #{clr(border-strong)};
+
+    --lift: 0;
+    --shadow-rest: #{$ring};
+    --shadow-hover: #{$ring};
+    --shadow-press: #{$ring};
+
     border-color: transparent;
     background-color: transparent;
     color: clr(text);
-    box-shadow: inset 0 0 0 1px clr(border-strong);
 
     &:hover:not(:disabled, [aria-disabled="true"]),
     &:active:not(:disabled, [aria-disabled="true"]) {
@@ -113,9 +152,11 @@
 
   &--ghost {
     // Chromeless by definition: no fill to separate from the page, so the
-    // edge and its falloff would be drawing a boundary around nothing.
+    // edge and its falloff would be drawing a boundary around nothing, and
+    // there is no slab to raise.
+    @include flat-elevation;
+
     border-color: transparent;
-    box-shadow: none;
     background-color: transparent;
     color: clr(text-muted);
 
@@ -127,9 +168,11 @@
   }
 
   &--link {
-    // Reads as text, not as a control: it takes no box chrome at all.
+    // Reads as text, not as a control: it takes no box chrome at all, and
+    // text does not rise off the page.
+    @include flat-elevation;
+
     border-color: transparent;
-    box-shadow: none;
     background-color: transparent;
     color: clr(link);
     padding-inline: space(1);
