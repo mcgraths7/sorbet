@@ -26,6 +26,13 @@ export interface UseCalendarOptions {
   onPick: (date: Date) => void;
   /** Escape in the grid. */
   onClose: () => void;
+  /**
+   * Month to open on, when that isn't today — an always-mounted calendar has
+   * no "open" moment at which to call `recenter`, and `recenter` would pull
+   * DOM focus into the grid anyway. Seeds the initial view only; later changes
+   * are ignored, so it can't fight the user's navigation.
+   */
+  initialDate?: Date;
 }
 
 export interface CalendarApi {
@@ -47,10 +54,21 @@ export interface CalendarApi {
   isDisabledDay: (date: Date) => boolean;
 }
 
-export function useCalendar({ open, panelRef, min, max, weekStartsOn, locale, onPick, onClose }: UseCalendarOptions): CalendarApi {
+export function useCalendar({
+  open,
+  panelRef,
+  min,
+  max,
+  weekStartsOn,
+  locale,
+  onPick,
+  onClose,
+  initialDate,
+}: UseCalendarOptions): CalendarApi {
   const today = startOfDay(new Date());
-  const [view, setView] = useState(today); // any day within the shown month
-  const [focused, setFocused] = useState(today); // roving-focus day
+  const start = initialDate ? startOfDay(initialDate) : today;
+  const [view, setView] = useState(start); // any day within the shown month
+  const [focused, setFocused] = useState(start); // roving-focus day
   // Set only by keyboard moves + opening, so mouse nav clicks don't yank focus
   // out of the nav button into the day grid.
   const pullFocus = useRef(false);

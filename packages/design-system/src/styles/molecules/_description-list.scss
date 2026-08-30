@@ -1,0 +1,73 @@
+@use "../abstracts" as *;
+
+// Term/value pairs — the third list type, alongside ul and ol. Key-value facts
+// are not a grid: they have no meaningful second axis, so a table's row/column
+// semantics describe them wrongly. `dl` pairs each value with its own label
+// instead, and reflows to one pair per line on a narrow screen for free.
+//
+// The `__item` wrapper is a plain <div>, which HTML permits inside <dl> and
+// which is what makes each pair a grid/flex unit. Without it the dt and dd are
+// siblings in one long run and can't be laid out as pairs.
+.sb-description-list {
+  display: grid;
+  gap: space(3);
+
+  &__item {
+    display: grid;
+    gap: space(1);
+  }
+
+  &__term {
+    font-size: fs(sm);
+    font-weight: fw(medium);
+    color: clr(text-muted);
+  }
+
+  &__detail {
+    // Browsers indent dd by ~40px; the pair layout owns spacing here.
+    margin: 0;
+    color: clr(text);
+  }
+
+  // Label left, value hard right — the order-summary/receipt shape.
+  &--inline {
+    .sb-description-list__item {
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: space(4);
+    }
+
+    .sb-description-list__detail {
+      text-align: end;
+      // Values in a vertical run are read by comparing digits; lining figures
+      // keep the decimal points stacked.
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // Deliberately NOT here: an aligned term-column ("spec sheet") variant. Each
+  // __item is its own grid, so a column width set per item would not align
+  // across rows; making it align needs `display: contents` on the item, which
+  // then has nothing to hang the `--divided` border on. Worth doing properly
+  // when something actually needs it, rather than shipping a variant that only
+  // looks aligned until the terms differ in length.
+  &--divided {
+    gap: 0;
+
+    .sb-description-list__item {
+      padding-block: space(3);
+    }
+
+    .sb-description-list__item + .sb-description-list__item {
+      border-block-start: token(border-width) solid clr(border-subtle);
+    }
+
+    .sb-description-list__item:first-child {
+      padding-block-start: 0;
+    }
+
+    .sb-description-list__item:last-child {
+      padding-block-end: 0;
+    }
+  }
+}

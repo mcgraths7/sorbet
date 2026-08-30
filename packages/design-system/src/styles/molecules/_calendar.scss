@@ -12,6 +12,21 @@
 
   @include flyout;
 
+  // Always-visible variant: the same grid placed in normal flow rather than in
+  // a popover. Undoes the two things `popover-surface` + `flyout` assume — that
+  // it is positioned out of flow, and that it rests hidden until something
+  // opens it. Without this it would be a fixed, fully transparent panel.
+  // The shadow goes too: it is not floating above anything any more. The
+  // border stays, so it still reads as one surface.
+  &--inline {
+    position: static;
+    z-index: auto;
+    opacity: 1;
+    scale: 1;
+    transition: none;
+    box-shadow: none;
+  }
+
   &__header {
     display: flex;
     align-items: center;

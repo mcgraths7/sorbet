@@ -79,6 +79,7 @@
   @include meta.load-css("molecules/pagination");
   @include meta.load-css("molecules/toast");
   @include meta.load-css("molecules/stat");
+  @include meta.load-css("molecules/description-list");
   @include meta.load-css("molecules/empty-state");
 }
 
