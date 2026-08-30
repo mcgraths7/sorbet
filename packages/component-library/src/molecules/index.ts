@@ -39,3 +39,12 @@ export { Pagination, type PaginationProps } from "./pagination.tsx";
 export { ToastProvider, useToast, type ToastOptions } from "./toast.tsx";
 export { Stat, type StatProps } from "./stat.tsx";
 export { EmptyState, type EmptyStateProps } from "./empty-state.tsx";
+export {
+  DescriptionDetail,
+  DescriptionItem,
+  DescriptionList,
+  DescriptionTerm,
+  type DescriptionItemProps,
+  type DescriptionLayout,
+  type DescriptionListProps,
+} from "./description-list.tsx";

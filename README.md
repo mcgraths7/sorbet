@@ -703,6 +703,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Pagination
 - ToastProvider/useToast
 - Stat
+- DescriptionList(+DescriptionItem/DescriptionTerm/DescriptionDetail) (term/value pairs, stacked or inline-receipt, optional rules)
 - EmptyState
 
 **Organisms**
