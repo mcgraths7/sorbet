@@ -685,6 +685,7 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Combobox / MultiCombobox (list autocomplete, chip multi-select)
 - DatePicker (format-masked typed entry + validity/range checks + calendar popover)
 - DateRange (start/end pick with span checks, shares the calendar)
+- Calendar (always-visible month grid: same grid, keyboard model and bounds as DatePicker, no input or popover)
 - Dropzone (drag-and-drop upload over a real file input)
 - InputGroup(+Addon)
 - Table(+Head/Body/Foot/Row/Cell/HeaderCell/Caption) (presentational — no state, no sorting)

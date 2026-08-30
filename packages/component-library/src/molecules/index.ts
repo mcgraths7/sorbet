@@ -48,3 +48,4 @@ export {
   type DescriptionLayout,
   type DescriptionListProps,
 } from "./description-list.tsx";
+export { Calendar, type CalendarProps } from "./calendar-inline.tsx";
