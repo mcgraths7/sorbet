@@ -5,7 +5,17 @@
   display: inline-flex;
   align-items: center;
   gap: space(1);
-  block-size: 1.75rem;
+  // A chip carries a LABEL, and a label wraps when the column is narrow — a
+  // table cell, a sidebar, a two-up grid. A fixed block-size does not grow with
+  // it, so the text simply leaves the border. `min-block-size` keeps the pill
+  // proportions for the single-line case, which is nearly all of them, and lets
+  // the box grow instead of breaking.
+  //
+  // The block padding only matters once it has wrapped: at 14px/1.25 the content
+  // box is 25.5px, so `min-block-size` still wins and a single-line chip is
+  // exactly as tall as it was before.
+  min-block-size: 1.75rem;
+  padding-block: space(1);
   padding-inline: space(3);
   border-radius: radius(full);
   border: token(border-width) solid clr(border);
