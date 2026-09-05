@@ -21,6 +21,9 @@
 
     position: relative;
     padding: space(3) space(4);
+    // Padding already lands a tab near the medium control height on a
+    // mouse; the floor is what makes it grow on a coarse pointer.
+    min-block-size: token(control-height-md);
     font-size: fs(sm);
     font-weight: fw(medium);
     color: clr(text-muted);

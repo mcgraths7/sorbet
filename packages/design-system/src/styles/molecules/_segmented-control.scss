@@ -16,6 +16,9 @@
     @include focus-ring(-2px);
 
     padding: space(2) space(4);
+    // Same reasoning as the tab: a floor at the small control height,
+    // which only bites on a coarse pointer.
+    min-block-size: token(control-height-sm);
     border-radius: radius(full);
     font-size: fs(sm);
     font-weight: fw(medium);

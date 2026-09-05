@@ -7,6 +7,22 @@
   // only on <body>) keeps the canvas on-token while `color-scheme` flips between
   // modes — otherwise Chromium flashes the UA default (white) for a frame.
   background-color: clr(bg);
+
+  // Touch targets. A finger needs ~44px where a pointer needs 32; rather
+  // than each component carrying its own media query, the control-height
+  // tokens themselves change under a coarse pointer and everything sized
+  // from them — buttons, inputs, selects, chips, tabs, segmented options,
+  // number inputs, comboboxes, pagination, calendar cells — follows. The
+  // values live in scales.ts beside the ones they replace. This block SETS
+  // the custom properties the accessors read everywhere else, the same
+  // thing static-tokens above does, which is why raw --sb-* names are the
+  // right form here and nowhere else in the library.
+  @media (pointer: coarse) {
+    --sb-control-height-sm: #{token(control-height-sm-coarse)};
+    --sb-control-height-md: #{token(control-height-md-coarse)};
+    --sb-control-height-lg: #{token(control-height-lg-coarse)};
+    --sb-choice-size: #{token(choice-size-coarse)};
+  }
 }
 
 body {

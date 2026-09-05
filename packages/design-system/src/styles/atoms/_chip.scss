@@ -14,7 +14,10 @@
   // The block padding only matters once it has wrapped: at 14px/1.25 the content
   // box is 25.5px, so `min-block-size` still wins and a single-line chip is
   // exactly as tall as it was before.
-  min-block-size: 1.75rem;
+  // A chip is a control (see the comment at the top), so it takes the small
+  // control height like a small button — and grows with it on a coarse
+  // pointer. Was a hand-written 1.75rem; on a mouse this is 4px taller.
+  min-block-size: token(control-height-sm);
   padding-block: space(1);
   padding-inline: space(3);
   border-radius: radius(full);

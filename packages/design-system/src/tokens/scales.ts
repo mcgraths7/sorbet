@@ -116,6 +116,19 @@ export const misc = {
   "control-height-sm": "2rem",
   "control-height-md": "2.5rem",
   "control-height-lg": "3rem",
+  // What the three heights become on a coarse pointer (a finger, not a
+  // mouse): base/_root.scss reassigns the live tokens to these under
+  // `@media (pointer: coarse)`, so every control sized from them grows at
+  // once. md lands on 44px, the size a fingertip actually covers; sm stays
+  // distinct at 40px; lg keeps its step. Measured on imagefeed's admin page
+  // (2026-09-05): the touch sizing, not the theme, was the whole difference.
+  "control-height-sm-coarse": "2.5rem",
+  "control-height-md-coarse": "2.75rem",
+  "control-height-lg-coarse": "3.25rem",
+  // Checkbox and radio box, and its coarse-pointer size. A 20px square is
+  // fine to click and hard to tap; 24px with the label's hit area is enough.
+  "choice-size": "1.25rem",
+  "choice-size-coarse": "1.5rem",
   "sidebar-width": "16.5rem",
   "drawer-width": "20rem",
   "aside-width": "16rem",
