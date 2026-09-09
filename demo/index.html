@@ -365,6 +365,25 @@
                 <summary>How do themes stay accessible?</summary>
                 <div class="sb-accordion__body">Semantic color pairings are contrast-checked at build time; a failing palette fails the build.</div>
               </details>
+              <!-- NESTED, on purpose. The caret rules were descendant
+                   selectors until 2026-09-09, so an inner accordion's caret
+                   was pinned to the open rotation whenever the outer one was
+                   open — which it must be for the inner to be visible. It
+                   looked correct in every top-level example, which is why it
+                   survived. Open this one and leave the inner closed: the
+                   inner caret must point the other way. -->
+              <details class="sb-accordion">
+                <summary>Can accordions nest?</summary>
+                <div class="sb-accordion__body">
+                  Yes. The caret rules are scoped with a child combinator so an
+                  inner caret follows its own <code>open</code> state, not its
+                  ancestor's.
+                  <details class="sb-accordion">
+                    <summary>An accordion inside an accordion</summary>
+                    <div class="sb-accordion__body">Its caret should point down while this is closed, even though the accordion around it is open.</div>
+                  </details>
+                </div>
+              </details>
             </div>
             <div class="sb-cluster sb-cluster--between">
               <nav class="sb-breadcrumb" aria-label="Breadcrumb">

@@ -17,7 +17,10 @@
     margin-block-start: space(2);
   }
 
-  summary {
+  // DIRECT CHILD, not a descendant. A nested accordion's <summary> is also
+  // a descendant of the outer one, so `summary` here styled both — and the
+  // [open] rule below is where that stopped being harmless.
+  > summary {
     @include focus-ring(-2px);
 
     display: flex;
@@ -46,7 +49,14 @@
     }
   }
 
-  &[open] summary::after {
+  // THE BUG THIS FIXES. As `&[open] summary::after` this was a descendant
+  // selector, so it matched the summary of a NESTED accordion whenever the
+  // OUTER one was open — which it must be for the nested one to be on
+  // screen at all. Every nested caret was therefore pinned to the open
+  // rotation regardless of its own state, while top-level ones worked
+  // perfectly. Found in imagefeed's admin, where a feed card's "queries as
+  // sent" accordion lives inside a group accordion.
+  &[open] > summary::after {
     rotate: 225deg;
     translate: 0 25%;
   }
