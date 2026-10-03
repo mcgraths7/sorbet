@@ -116,7 +116,9 @@ export function checkCvd(report = false): CvdFailure[] {
   return failures;
 }
 
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+// import.meta.main: comparing process.argv[1] with this file's URL is false for
+// a path with a space or a symlink in it, and the report then prints nothing.
+if (import.meta.main) {
   console.log(styleText("bold", "adjacent-slot CVD separation (Machado 1.0, OKLab ΔE×100):"));
   const failures = checkCvd(true);
   if (failures.length > 0) {
