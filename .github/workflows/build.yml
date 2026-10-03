@@ -131,6 +131,24 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # The build compares every theme file with its golden copy. That cannot
+      # see a golden that was rewritten in the same pull request — both sides
+      # match — so the frozen ones are also held to the base branch's copy,
+      # the one thing a pull request cannot edit. (On a push to main there is
+      # no base; the pull request that got it there already ran this.)
+      - name: Verify the frozen golden files are the base branch's
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          pnpm run check:golden:base "origin/${BASE_REF}"
+
+      # A gate that has stopped working looks like a gate that passes. This
+      # breaks the golden comparison on purpose and fails if it stays green.
+      - name: Verify the golden gate still bites
+        run: pnpm run test:golden
+
       # Everything in this repo consumes Sorbet by symlink, which hides what
       # breaks a real consumer. Pack the tarballs and install them into a
       # throwaway project outside the workspace. --no-build reuses the step above.

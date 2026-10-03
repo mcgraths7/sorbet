@@ -5,3 +5,9 @@
 # resolver re-derives the file from the already-merged package.json — the
 # lockfile that lands must always be one the resolver wrote.
 pnpm-lock.yaml merge=ours
+
+# The golden theme files are compared with the build's output BYTE FOR BYTE
+# (packages/design-system/tools/check-golden.ts). `-text` tells git never to
+# convert their line endings: on a checkout with core.autocrlf on they would
+# otherwise arrive as CRLF, and every theme would fail a gate it had not broken.
+packages/design-system/tools/golden/*.css -text
