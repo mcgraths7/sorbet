@@ -14,6 +14,9 @@ export default tseslint.config(
       "**/dist/**",
       "**/node_modules/**",
       "packages/cli/scaffold/**",
+      // The record behind docs/pastel-legibility-contract.md: one-off measuring
+      // scripts kept as evidence of how its numbers were made, not maintained code.
+      "docs/pastel-legibility-evidence/**",
       // design-sync working trees. `ds-bundle/` (the generated bundle +
       // vendored deps + preview build) and `.ds-sync/` (the tool's own
       // bundled library) are gitignored build artifacts regenerated on every

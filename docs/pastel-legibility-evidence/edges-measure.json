@@ -1,0 +1,1880 @@
+{
+ "Light": [
+  {
+   "name": "Card",
+   "on": "page",
+   "backdrop": "#fef4dc",
+   "fill": "#fffbf1",
+   "fillStep": 2.8,
+   "sides": {
+    "top": {
+     "strength": 13.1,
+     "worstSim": 12.7,
+     "hex": "#e4cfad",
+     "chroma": 0.051,
+     "bandPx": 4
+    },
+    "side": {
+     "strength": 16.2,
+     "worstSim": 15.8,
+     "hex": "#dcc4a1",
+     "chroma": 0.054,
+     "bandPx": 5
+    },
+    "bottom": {
+     "strength": 19.4,
+     "worstSim": 19,
+     "hex": "#d5b992",
+     "chroma": 0.061,
+     "bandPx": 8
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 13.1,
+    "worstSim": 12.7,
+    "hex": "#e4cfad",
+    "chroma": 0.051,
+    "bandPx": 4
+   },
+   "strongest": 19.4
+  },
+  {
+   "name": "Sunken panel",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#f7ecd1",
+   "fillStep": 5,
+   "sides": {
+    "top": {
+     "strength": 14.8,
+     "worstSim": 14.4,
+     "hex": "#e0c9a5",
+     "chroma": 0.054,
+     "bandPx": 1.5
+    },
+    "side": {
+     "strength": 13.7,
+     "worstSim": 13.3,
+     "hex": "#e2cdaa",
+     "chroma": 0.052,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 12.5,
+     "worstSim": 12.1,
+     "hex": "#e5d1af",
+     "chroma": 0.05,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "bottom",
+    "strength": 12.5,
+    "worstSim": 12.1,
+    "hex": "#e5d1af",
+    "chroma": 0.05,
+    "bandPx": 1
+   },
+   "strongest": 14.8
+  },
+  {
+   "name": "Raised box",
+   "on": "well",
+   "backdrop": "#f7ecd1",
+   "fill": "#fffbf1",
+   "fillStep": 5,
+   "sides": {
+    "top": {
+     "strength": 14.8,
+     "worstSim": 14.4,
+     "hex": "#dfc9a6",
+     "chroma": 0.053,
+     "bandPx": 3.5
+    },
+    "side": {
+     "strength": 17.6,
+     "worstSim": 17.1,
+     "hex": "#d8c099",
+     "chroma": 0.059,
+     "bandPx": 5
+    },
+    "bottom": {
+     "strength": 21,
+     "worstSim": 20.6,
+     "hex": "#d0b48b",
+     "chroma": 0.064,
+     "bandPx": 7
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 14.8,
+    "worstSim": 14.4,
+    "hex": "#dfc9a6",
+    "chroma": 0.053,
+    "bandPx": 3.5
+   },
+   "strongest": 21
+  },
+  {
+   "name": "Floating menu",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#fffbf1",
+   "fillStep": 0,
+   "sides": {
+    "top": {
+     "strength": 13.1,
+     "worstSim": 12.8,
+     "hex": "#e1ceb4",
+     "chroma": 0.041,
+     "bandPx": 7.5
+    },
+    "side": {
+     "strength": 17.8,
+     "worstSim": 17.4,
+     "hex": "#d7be9f",
+     "chroma": 0.051,
+     "bandPx": 8
+    },
+    "bottom": {
+     "strength": 21.3,
+     "worstSim": 20.9,
+     "hex": "#cfb290",
+     "chroma": 0.057,
+     "bandPx": 8
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 13.1,
+    "worstSim": 12.8,
+    "hex": "#e1ceb4",
+    "chroma": 0.041,
+    "bandPx": 7.5
+   },
+   "strongest": 21.3
+  },
+  {
+   "name": "Lilac button",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#dac5fc",
+   "fillStep": 15.8,
+   "sides": {
+    "top": {
+     "strength": 16.5,
+     "worstSim": 14.9,
+     "hex": "#d7c0ea",
+     "chroma": 0.063,
+     "bandPx": 3
+    },
+    "side": {
+     "strength": 19.4,
+     "worstSim": 17.6,
+     "hex": "#cfb6e7",
+     "chroma": 0.073,
+     "bandPx": 3.5
+    },
+    "bottom": {
+     "strength": 22.3,
+     "worstSim": 20.2,
+     "hex": "#c7ace6",
+     "chroma": 0.086,
+     "bandPx": 4.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 16.5,
+    "worstSim": 14.9,
+    "hex": "#d7c0ea",
+    "chroma": 0.063,
+    "bandPx": 3
+   },
+   "strongest": 22.3
+  },
+  {
+   "name": "Blush button",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#f9c3c6",
+   "fillStep": 13.6,
+   "sides": {
+    "top": {
+     "strength": 16.3,
+     "worstSim": 14.8,
+     "hex": "#f3b9b9",
+     "chroma": 0.067,
+     "bandPx": 2.5
+    },
+    "side": {
+     "strength": 19.7,
+     "worstSim": 17.8,
+     "hex": "#f0abae",
+     "chroma": 0.081,
+     "bandPx": 3
+    },
+    "bottom": {
+     "strength": 22.5,
+     "worstSim": 20.3,
+     "hex": "#eca0a6",
+     "chroma": 0.091,
+     "bandPx": 4.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 16.3,
+    "worstSim": 14.8,
+    "hex": "#f3b9b9",
+    "chroma": 0.067,
+    "bandPx": 2.5
+   },
+   "strongest": 22.5
+  },
+  {
+   "name": "Butter button",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#f5e3a2",
+   "fillStep": 10.2,
+   "sides": {
+    "top": {
+     "strength": 16.9,
+     "worstSim": 14.7,
+     "hex": "#dccc81",
+     "chroma": 0.097,
+     "bandPx": 3.5
+    },
+    "side": {
+     "strength": 20.2,
+     "worstSim": 18,
+     "hex": "#d5c16c",
+     "chroma": 0.108,
+     "bandPx": 3.5
+    },
+    "bottom": {
+     "strength": 22.6,
+     "worstSim": 20.2,
+     "hex": "#cfba5c",
+     "chroma": 0.117,
+     "bandPx": 5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 16.9,
+    "worstSim": 14.7,
+    "hex": "#dccc81",
+    "chroma": 0.097,
+    "bandPx": 3.5
+   },
+   "strongest": 22.6
+  },
+  {
+   "name": "Robin button",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#a6edee",
+   "fillStep": 11.7,
+   "sides": {
+    "top": {
+     "strength": 18.7,
+     "worstSim": 13.3,
+     "hex": "#80d7d4",
+     "chroma": 0.084,
+     "bandPx": 3
+    },
+    "side": {
+     "strength": 21.9,
+     "worstSim": 16,
+     "hex": "#69cfcd",
+     "chroma": 0.095,
+     "bandPx": 3.5
+    },
+    "bottom": {
+     "strength": 24.4,
+     "worstSim": 18,
+     "hex": "#56c9c7",
+     "chroma": 0.103,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 18.7,
+    "worstSim": 13.3,
+    "hex": "#80d7d4",
+    "chroma": 0.084,
+    "bandPx": 3
+   },
+   "strongest": 24.4
+  },
+  {
+   "name": "Quiet button",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#fffbf1",
+   "fillStep": 0,
+   "sides": {
+    "top": {
+     "strength": 13.1,
+     "worstSim": 12.8,
+     "hex": "#e1ceb4",
+     "chroma": 0.041,
+     "bandPx": 3
+    },
+    "side": {
+     "strength": 16.3,
+     "worstSim": 16,
+     "hex": "#dac3a5",
+     "chroma": 0.048,
+     "bandPx": 3.5
+    },
+    "bottom": {
+     "strength": 19.2,
+     "worstSim": 18.8,
+     "hex": "#d4b999",
+     "chroma": 0.053,
+     "bandPx": 5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 13.1,
+    "worstSim": 12.8,
+    "hex": "#e1ceb4",
+    "chroma": 0.041,
+    "bandPx": 3
+   },
+   "strongest": 19.2
+  },
+  {
+   "name": "Butter button",
+   "on": "page",
+   "backdrop": "#fef4dc",
+   "fill": "#f5e3a2",
+   "fillStep": 7.5,
+   "sides": {
+    "top": {
+     "strength": 15.4,
+     "worstSim": 13.5,
+     "hex": "#dcc877",
+     "chroma": 0.104,
+     "bandPx": 2.5
+    },
+    "side": {
+     "strength": 18.4,
+     "worstSim": 16.3,
+     "hex": "#d5bf63",
+     "chroma": 0.115,
+     "bandPx": 3
+    },
+    "bottom": {
+     "strength": 20.8,
+     "worstSim": 18.7,
+     "hex": "#cfb755",
+     "chroma": 0.121,
+     "bandPx": 5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 15.4,
+    "worstSim": 13.5,
+    "hex": "#dcc877",
+    "chroma": 0.104,
+    "bandPx": 2.5
+   },
+   "strongest": 20.8
+  },
+  {
+   "name": "Robin button",
+   "on": "page",
+   "backdrop": "#fef4dc",
+   "fill": "#a6edee",
+   "fillStep": 11.1,
+   "sides": {
+    "top": {
+     "strength": 18.2,
+     "worstSim": 12.3,
+     "hex": "#7fd4c9",
+     "chroma": 0.085,
+     "bandPx": 4
+    },
+    "side": {
+     "strength": 21.2,
+     "worstSim": 14.7,
+     "hex": "#68cdc5",
+     "chroma": 0.096,
+     "bandPx": 4
+    },
+    "bottom": {
+     "strength": 23.5,
+     "worstSim": 16.7,
+     "hex": "#56c7c0",
+     "chroma": 0.103,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 18.2,
+    "worstSim": 12.3,
+    "hex": "#7fd4c9",
+    "chroma": 0.085,
+    "bandPx": 4
+   },
+   "strongest": 23.5
+  },
+  {
+   "name": "Quiet button",
+   "on": "page",
+   "backdrop": "#fef4dc",
+   "fill": "#fffbf1",
+   "fillStep": 2.8,
+   "sides": {
+    "top": {
+     "strength": 14.7,
+     "worstSim": 14.4,
+     "hex": "#e1c9a5",
+     "chroma": 0.055,
+     "bandPx": 3
+    },
+    "side": {
+     "strength": 17.7,
+     "worstSim": 17.3,
+     "hex": "#d9bf99",
+     "chroma": 0.059,
+     "bandPx": 3.5
+    },
+    "bottom": {
+     "strength": 20.4,
+     "worstSim": 19.9,
+     "hex": "#d3b68d",
+     "chroma": 0.064,
+     "bandPx": 4.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 14.7,
+    "worstSim": 14.4,
+    "hex": "#e1c9a5",
+    "chroma": 0.055,
+    "bandPx": 3
+   },
+   "strongest": 20.4
+  },
+  {
+   "name": "Text field",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#fefaf0",
+   "fillStep": 0.3,
+   "sides": {
+    "top": {
+     "strength": 15.9,
+     "worstSim": 15.6,
+     "hex": "#d5c6aa",
+     "chroma": 0.041,
+     "bandPx": 2
+    },
+    "side": {
+     "strength": 13.8,
+     "worstSim": 13.4,
+     "hex": "#dbcdb3",
+     "chroma": 0.038,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 11.7,
+     "worstSim": 11.4,
+     "hex": "#e0d4bd",
+     "chroma": 0.034,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "bottom",
+    "strength": 11.7,
+    "worstSim": 11.4,
+    "hex": "#e0d4bd",
+    "chroma": 0.034,
+    "bandPx": 1
+   },
+   "strongest": 15.9
+  },
+  {
+   "name": "Checkbox, off",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#fffbf1",
+   "fillStep": 0,
+   "sides": {
+    "top": {
+     "strength": 29,
+     "worstSim": 27,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1.5
+    },
+    "side": {
+     "strength": 29,
+     "worstSim": 27,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 29,
+     "worstSim": 27,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 29,
+    "worstSim": 27,
+    "hex": "#b096d7",
+    "chroma": 0.097,
+    "bandPx": 1.5
+   },
+   "strongest": 29
+  },
+  {
+   "name": "Switch, off",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#f7ecd1",
+   "fillStep": 5,
+   "sides": {
+    "top": {
+     "strength": 29,
+     "worstSim": 27,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 2
+    },
+    "side": {
+     "strength": 30.2,
+     "worstSim": 28.3,
+     "hex": "#ac92d4",
+     "chroma": 0.098,
+     "bandPx": 3
+    },
+    "bottom": {
+     "strength": 29,
+     "worstSim": 27,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 2
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 29,
+    "worstSim": 27,
+    "hex": "#b096d7",
+    "chroma": 0.097,
+    "bandPx": 2
+   },
+   "strongest": 30.2
+  },
+  {
+   "name": "Status box",
+   "on": "card",
+   "backdrop": "#fffbf1",
+   "fill": "#d3f4f0",
+   "fillStep": 6.1,
+   "sides": {
+    "top": {
+     "strength": 15.7,
+     "worstSim": 10.9,
+     "hex": "#96ded8",
+     "chroma": 0.072,
+     "bandPx": 1.5
+    },
+    "side": {
+     "strength": 18.6,
+     "worstSim": 13,
+     "hex": "#7fd8d4",
+     "chroma": 0.086,
+     "bandPx": 2
+    },
+    "bottom": {
+     "strength": 22.2,
+     "worstSim": 15.8,
+     "hex": "#63d0cd",
+     "chroma": 0.1,
+     "bandPx": 3
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 15.7,
+    "worstSim": 10.9,
+    "hex": "#96ded8",
+    "chroma": 0.072,
+    "bandPx": 1.5
+   },
+   "strongest": 22.2
+  }
+ ],
+ "Dark": [
+  {
+   "name": "Card",
+   "on": "page",
+   "backdrop": "#211409",
+   "fill": "#342417",
+   "fillStep": 7.1,
+   "sides": {
+    "top": {
+     "strength": 15.2,
+     "worstSim": 15.2,
+     "hex": "#463a2e",
+     "chroma": 0.026,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 14.4,
+     "worstSim": 14.4,
+     "hex": "#43382f",
+     "chroma": 0.022,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 13.3,
+     "worstSim": 13.2,
+     "hex": "#3f352f",
+     "chroma": 0.018,
+     "bandPx": 8
+    }
+   },
+   "weakest": {
+    "side": "bottom",
+    "strength": 13.3,
+    "worstSim": 13.2,
+    "hex": "#3f352f",
+    "chroma": 0.018,
+    "bandPx": 8
+   },
+   "strongest": 15.2
+  },
+  {
+   "name": "Sunken panel",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#140903",
+   "fillStep": 12.2,
+   "sides": {
+    "top": {
+     "strength": 14.3,
+     "worstSim": 13.9,
+     "hex": "#0e0605",
+     "chroma": 0.016,
+     "bandPx": 0.5
+    },
+    "side": {
+     "strength": 14.2,
+     "worstSim": 13.8,
+     "hex": "#0f0602",
+     "chroma": 0.023,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 14.2,
+     "worstSim": 13.8,
+     "hex": "#0f0602",
+     "chroma": 0.023,
+     "bandPx": 0.5
+    }
+   },
+   "weakest": {
+    "side": "side",
+    "strength": 14.2,
+    "worstSim": 13.8,
+    "hex": "#0f0602",
+    "chroma": 0.023,
+    "bandPx": 1
+   },
+   "strongest": 14.3
+  },
+  {
+   "name": "Raised box",
+   "on": "well",
+   "backdrop": "#140903",
+   "fill": "#463425",
+   "fillStep": 18.8,
+   "sides": {
+    "top": {
+     "strength": 19.4,
+     "worstSim": 19.1,
+     "hex": "#120802",
+     "chroma": 0.025,
+     "bandPx": 0
+    },
+    "side": {
+     "strength": 20.1,
+     "worstSim": 19.7,
+     "hex": "#100703",
+     "chroma": 0.021,
+     "bandPx": 0
+    },
+    "bottom": {
+     "strength": 21.4,
+     "worstSim": 20.9,
+     "hex": "#0d0505",
+     "chroma": 0.017,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 19.4,
+    "worstSim": 19.1,
+    "hex": "#120802",
+    "chroma": 0.025,
+    "bandPx": 0
+   },
+   "strongest": 21.4
+  },
+  {
+   "name": "Floating menu",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#463425",
+   "fillStep": 6.5,
+   "sides": {
+    "top": {
+     "strength": 25.5,
+     "worstSim": 25.5,
+     "hex": "#796957",
+     "chroma": 0.034,
+     "bandPx": 1.5
+    },
+    "side": {
+     "strength": 18.9,
+     "worstSim": 18.8,
+     "hex": "#63574a",
+     "chroma": 0.026,
+     "bandPx": 7.5
+    },
+    "bottom": {
+     "strength": 17.3,
+     "worstSim": 17.2,
+     "hex": "#5d5348",
+     "chroma": 0.022,
+     "bandPx": 8
+    }
+   },
+   "weakest": {
+    "side": "bottom",
+    "strength": 17.3,
+    "worstSim": 17.2,
+    "hex": "#5d5348",
+    "chroma": 0.022,
+    "bandPx": 8
+   },
+   "strongest": 25.5
+  },
+  {
+   "name": "Lilac button",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#dac5fc",
+   "fillStep": 59.1,
+   "sides": {
+    "top": {
+     "strength": 59.1,
+     "worstSim": 58.1,
+     "hex": "#dac5fc",
+     "chroma": 0.078,
+     "bandPx": 5
+    },
+    "side": {
+     "strength": 59.1,
+     "worstSim": 58.1,
+     "hex": "#37261a",
+     "chroma": 0.033,
+     "bandPx": 4
+    },
+    "bottom": {
+     "strength": 59.1,
+     "worstSim": 58.1,
+     "hex": "#3b2a20",
+     "chroma": 0.031,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 59.1,
+    "worstSim": 58.1,
+    "hex": "#dac5fc",
+    "chroma": 0.078,
+    "bandPx": 5
+   },
+   "strongest": 59.1
+  },
+  {
+   "name": "Blush button",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#f9c3c6",
+   "fillStep": 59.2,
+   "sides": {
+    "top": {
+     "strength": 59.2,
+     "worstSim": 57.6,
+     "hex": "#f9c3c6",
+     "chroma": 0.062,
+     "bandPx": 6
+    },
+    "side": {
+     "strength": 59.2,
+     "worstSim": 57.6,
+     "hex": "#372619",
+     "chroma": 0.034,
+     "bandPx": 4.5
+    },
+    "bottom": {
+     "strength": 59.2,
+     "worstSim": 57.6,
+     "hex": "#3b2b1d",
+     "chroma": 0.033,
+     "bandPx": 6.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 59.2,
+    "worstSim": 57.6,
+    "hex": "#f9c3c6",
+    "chroma": 0.062,
+    "bandPx": 6
+   },
+   "strongest": 59.2
+  },
+  {
+   "name": "Butter button",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#f5e3a2",
+   "fillStep": 64.2,
+   "sides": {
+    "top": {
+     "strength": 64.2,
+     "worstSim": 63.9,
+     "hex": "#f5e3a2",
+     "chroma": 0.085,
+     "bandPx": 6.5
+    },
+    "side": {
+     "strength": 64.2,
+     "worstSim": 63.9,
+     "hex": "#372719",
+     "chroma": 0.034,
+     "bandPx": 5
+    },
+    "bottom": {
+     "strength": 64.2,
+     "worstSim": 63.9,
+     "hex": "#3b2c1d",
+     "chroma": 0.033,
+     "bandPx": 8
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 64.2,
+    "worstSim": 63.9,
+    "hex": "#f5e3a2",
+    "chroma": 0.085,
+    "bandPx": 6.5
+   },
+   "strongest": 64.2
+  },
+  {
+   "name": "Robin button",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#a6edee",
+   "fillStep": 63.1,
+   "sides": {
+    "top": {
+     "strength": 63.1,
+     "worstSim": 62,
+     "hex": "#a6edee",
+     "chroma": 0.07,
+     "bandPx": 6.5
+    },
+    "side": {
+     "strength": 63.1,
+     "worstSim": 62,
+     "hex": "#36271a",
+     "chroma": 0.032,
+     "bandPx": 4.5
+    },
+    "bottom": {
+     "strength": 63.1,
+     "worstSim": 62,
+     "hex": "#35281b",
+     "chroma": 0.029,
+     "bandPx": 5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 63.1,
+    "worstSim": 62,
+    "hex": "#a6edee",
+    "chroma": 0.07,
+    "bandPx": 6.5
+   },
+   "strongest": 63.1
+  },
+  {
+   "name": "Quiet button",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#463425",
+   "fillStep": 6.5,
+   "sides": {
+    "top": {
+     "strength": 17.2,
+     "worstSim": 17.2,
+     "hex": "#605241",
+     "chroma": 0.032,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 17.2,
+     "worstSim": 17.2,
+     "hex": "#605241",
+     "chroma": 0.032,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 17.2,
+     "worstSim": 17.2,
+     "hex": "#605241",
+     "chroma": 0.032,
+     "bandPx": 0.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 17.2,
+    "worstSim": 17.2,
+    "hex": "#605241",
+    "chroma": 0.032,
+    "bandPx": 1
+   },
+   "strongest": 17.2
+  },
+  {
+   "name": "Butter button",
+   "on": "page",
+   "backdrop": "#211409",
+   "fill": "#f5e3a2",
+   "fillStep": 71.3,
+   "sides": {
+    "top": {
+     "strength": 71.3,
+     "worstSim": 71,
+     "hex": "#f5e3a2",
+     "chroma": 0.085,
+     "bandPx": 6
+    },
+    "side": {
+     "strength": 71.3,
+     "worstSim": 71,
+     "hex": "#2a1b0e",
+     "chroma": 0.033,
+     "bandPx": 8
+    },
+    "bottom": {
+     "strength": 71.3,
+     "worstSim": 71,
+     "hex": "#25180b",
+     "chroma": 0.031,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 71.3,
+    "worstSim": 71,
+    "hex": "#f5e3a2",
+    "chroma": 0.085,
+    "bandPx": 6
+   },
+   "strongest": 71.3
+  },
+  {
+   "name": "Robin button",
+   "on": "page",
+   "backdrop": "#211409",
+   "fill": "#a6edee",
+   "fillStep": 70.1,
+   "sides": {
+    "top": {
+     "strength": 70.1,
+     "worstSim": 69,
+     "hex": "#a6edee",
+     "chroma": 0.07,
+     "bandPx": 6
+    },
+    "side": {
+     "strength": 70.1,
+     "worstSim": 69,
+     "hex": "#281c10",
+     "chroma": 0.028,
+     "bandPx": 8
+    },
+    "bottom": {
+     "strength": 70.1,
+     "worstSim": 69,
+     "hex": "#23180d",
+     "chroma": 0.026,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 70.1,
+    "worstSim": 69,
+    "hex": "#a6edee",
+    "chroma": 0.07,
+    "bandPx": 6
+   },
+   "strongest": 70.1
+  },
+  {
+   "name": "Quiet button",
+   "on": "page",
+   "backdrop": "#211409",
+   "fill": "#463425",
+   "fillStep": 13.6,
+   "sides": {
+    "top": {
+     "strength": 19.3,
+     "worstSim": 19.3,
+     "hex": "#514537",
+     "chroma": 0.028,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 19.3,
+     "worstSim": 19.3,
+     "hex": "#514537",
+     "chroma": 0.028,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 19.3,
+     "worstSim": 19.3,
+     "hex": "#514537",
+     "chroma": 0.028,
+     "bandPx": 0.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 19.3,
+    "worstSim": 19.3,
+    "hex": "#514537",
+    "chroma": 0.028,
+    "bandPx": 1
+   },
+   "strongest": 19.3
+  },
+  {
+   "name": "Text field",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#130802",
+   "fillStep": 12.7,
+   "sides": {
+    "top": {
+     "strength": 19,
+     "worstSim": 18.9,
+     "hex": "#3f3531",
+     "chroma": 0.016,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 24.6,
+     "worstSim": 24.5,
+     "hex": "#4e443c",
+     "chroma": 0.019,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 28.7,
+     "worstSim": 28.6,
+     "hex": "#5a4f44",
+     "chroma": 0.023,
+     "bandPx": 1.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 19,
+    "worstSim": 18.9,
+    "hex": "#3f3531",
+    "chroma": 0.016,
+    "bandPx": 1
+   },
+   "strongest": 28.7
+  },
+  {
+   "name": "Checkbox, off",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#140903",
+   "fillStep": 12.2,
+   "sides": {
+    "top": {
+     "strength": 57.7,
+     "worstSim": 56.3,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1.5
+    },
+    "side": {
+     "strength": 57.7,
+     "worstSim": 56.3,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 57.7,
+     "worstSim": 56.3,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 57.7,
+    "worstSim": 56.3,
+    "hex": "#b096d7",
+    "chroma": 0.097,
+    "bandPx": 1.5
+   },
+   "strongest": 57.7
+  },
+  {
+   "name": "Switch, off",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#140903",
+   "fillStep": 12.2,
+   "sides": {
+    "top": {
+     "strength": 57.7,
+     "worstSim": 56.3,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 2
+    },
+    "side": {
+     "strength": 82,
+     "worstSim": 81.8,
+     "hex": "#fbf5ef",
+     "chroma": 0.01,
+     "bandPx": 3.5
+    },
+    "bottom": {
+     "strength": 57.7,
+     "worstSim": 56.3,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 2
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 57.7,
+    "worstSim": 56.3,
+    "hex": "#b096d7",
+    "chroma": 0.097,
+    "bandPx": 2
+   },
+   "strongest": 82
+  },
+  {
+   "name": "Status box",
+   "on": "card",
+   "backdrop": "#342417",
+   "fill": "#4b4c42",
+   "fillStep": 13.9,
+   "sides": {
+    "top": {
+     "strength": 23.1,
+     "worstSim": 22.6,
+     "hex": "#5b6860",
+     "chroma": 0.02,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 23.1,
+     "worstSim": 22.6,
+     "hex": "#5b6860",
+     "chroma": 0.02,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 23.1,
+     "worstSim": 22.6,
+     "hex": "#5b6860",
+     "chroma": 0.02,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 23.1,
+    "worstSim": 22.6,
+    "hex": "#5b6860",
+    "chroma": 0.02,
+    "bandPx": 1
+   },
+   "strongest": 23.1
+  }
+ ],
+ "Dark, aubergine page": [
+  {
+   "name": "Card",
+   "on": "page",
+   "backdrop": "#1c1324",
+   "fill": "#2d2237",
+   "fillStep": 6.8,
+   "sides": {
+    "top": {
+     "strength": 14.3,
+     "worstSim": 14.3,
+     "hex": "#3f3649",
+     "chroma": 0.035,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 13.5,
+     "worstSim": 13.5,
+     "hex": "#3d3446",
+     "chroma": 0.033,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 12.4,
+     "worstSim": 12.4,
+     "hex": "#393242",
+     "chroma": 0.029,
+     "bandPx": 7.5
+    }
+   },
+   "weakest": {
+    "side": "bottom",
+    "strength": 12.4,
+    "worstSim": 12.4,
+    "hex": "#393242",
+    "chroma": 0.029,
+    "bandPx": 7.5
+   },
+   "strongest": 14.3
+  },
+  {
+   "name": "Sunken panel",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#100916",
+   "fillStep": 11.8,
+   "sides": {
+    "top": {
+     "strength": 13.6,
+     "worstSim": 13.4,
+     "hex": "#0c0612",
+     "chroma": 0.029,
+     "bandPx": 0.5
+    },
+    "side": {
+     "strength": 13.6,
+     "worstSim": 13.4,
+     "hex": "#0c0612",
+     "chroma": 0.029,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 13.6,
+     "worstSim": 13.4,
+     "hex": "#0c0612",
+     "chroma": 0.029,
+     "bandPx": 0.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 13.6,
+    "worstSim": 13.4,
+    "hex": "#0c0612",
+    "chroma": 0.029,
+    "bandPx": 0.5
+   },
+   "strongest": 13.6
+  },
+  {
+   "name": "Raised box",
+   "on": "well",
+   "backdrop": "#100916",
+   "fill": "#3e324a",
+   "fillStep": 18.4,
+   "sides": {
+    "top": {
+     "strength": 19.1,
+     "worstSim": 18.9,
+     "hex": "#0e0814",
+     "chroma": 0.027,
+     "bandPx": 0
+    },
+    "side": {
+     "strength": 19.7,
+     "worstSim": 19.6,
+     "hex": "#0d0712",
+     "chroma": 0.026,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 20.9,
+     "worstSim": 20.7,
+     "hex": "#0b0510",
+     "chroma": 0.028,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 19.1,
+    "worstSim": 18.9,
+    "hex": "#0e0814",
+    "chroma": 0.027,
+    "bandPx": 0
+   },
+   "strongest": 20.9
+  },
+  {
+   "name": "Floating menu",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#3e324a",
+   "fillStep": 6.6,
+   "sides": {
+    "top": {
+     "strength": 24.8,
+     "worstSim": 24.8,
+     "hex": "#6f647c",
+     "chroma": 0.039,
+     "bandPx": 1.5
+    },
+    "side": {
+     "strength": 18.1,
+     "worstSim": 18.1,
+     "hex": "#5c5266",
+     "chroma": 0.034,
+     "bandPx": 6.5
+    },
+    "bottom": {
+     "strength": 16.2,
+     "worstSim": 16.2,
+     "hex": "#564d5f",
+     "chroma": 0.031,
+     "bandPx": 8
+    }
+   },
+   "weakest": {
+    "side": "bottom",
+    "strength": 16.2,
+    "worstSim": 16.2,
+    "hex": "#564d5f",
+    "chroma": 0.031,
+    "bandPx": 8
+   },
+   "strongest": 24.8
+  },
+  {
+   "name": "Lilac button",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#dac5fc",
+   "fillStep": 58.6,
+   "sides": {
+    "top": {
+     "strength": 58.6,
+     "worstSim": 58.3,
+     "hex": "#dac5fc",
+     "chroma": 0.078,
+     "bandPx": 5
+    },
+    "side": {
+     "strength": 58.6,
+     "worstSim": 58.3,
+     "hex": "#30243a",
+     "chroma": 0.043,
+     "bandPx": 4
+    },
+    "bottom": {
+     "strength": 58.6,
+     "worstSim": 58.3,
+     "hex": "#35283e",
+     "chroma": 0.042,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 58.6,
+    "worstSim": 58.3,
+    "hex": "#dac5fc",
+    "chroma": 0.078,
+    "bandPx": 5
+   },
+   "strongest": 58.6
+  },
+  {
+   "name": "Blush button",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#f9c3c6",
+   "fillStep": 59.4,
+   "sides": {
+    "top": {
+     "strength": 59.4,
+     "worstSim": 57.2,
+     "hex": "#f9c3c6",
+     "chroma": 0.062,
+     "bandPx": 6
+    },
+    "side": {
+     "strength": 59.4,
+     "worstSim": 57.2,
+     "hex": "#302439",
+     "chroma": 0.041,
+     "bandPx": 4.5
+    },
+    "bottom": {
+     "strength": 59.4,
+     "worstSim": 57.2,
+     "hex": "#36283d",
+     "chroma": 0.042,
+     "bandPx": 6.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 59.4,
+    "worstSim": 57.2,
+    "hex": "#f9c3c6",
+    "chroma": 0.062,
+    "bandPx": 6
+   },
+   "strongest": 59.4
+  },
+  {
+   "name": "Butter button",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#f5e3a2",
+   "fillStep": 65.2,
+   "sides": {
+    "top": {
+     "strength": 65.2,
+     "worstSim": 64.3,
+     "hex": "#f5e3a2",
+     "chroma": 0.085,
+     "bandPx": 7
+    },
+    "side": {
+     "strength": 65.2,
+     "worstSim": 64.3,
+     "hex": "#302539",
+     "chroma": 0.039,
+     "bandPx": 5
+    },
+    "bottom": {
+     "strength": 65.2,
+     "worstSim": 64.3,
+     "hex": "#342a3c",
+     "chroma": 0.035,
+     "bandPx": 8
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 65.2,
+    "worstSim": 64.3,
+    "hex": "#f5e3a2",
+    "chroma": 0.085,
+    "bandPx": 7
+   },
+   "strongest": 65.2
+  },
+  {
+   "name": "Robin button",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#a6edee",
+   "fillStep": 63.2,
+   "sides": {
+    "top": {
+     "strength": 63.2,
+     "worstSim": 62.4,
+     "hex": "#a6edee",
+     "chroma": 0.07,
+     "bandPx": 7
+    },
+    "side": {
+     "strength": 63.2,
+     "worstSim": 62.4,
+     "hex": "#2f253a",
+     "chroma": 0.04,
+     "bandPx": 4.5
+    },
+    "bottom": {
+     "strength": 63.2,
+     "worstSim": 62.4,
+     "hex": "#2f263a",
+     "chroma": 0.038,
+     "bandPx": 5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 63.2,
+    "worstSim": 62.4,
+    "hex": "#a6edee",
+    "chroma": 0.07,
+    "bandPx": 7
+   },
+   "strongest": 63.2
+  },
+  {
+   "name": "Quiet button",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#3e324a",
+   "fillStep": 6.6,
+   "sides": {
+    "top": {
+     "strength": 16.4,
+     "worstSim": 16.4,
+     "hex": "#574d62",
+     "chroma": 0.036,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 16.4,
+     "worstSim": 16.4,
+     "hex": "#574d62",
+     "chroma": 0.036,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 16.4,
+     "worstSim": 16.4,
+     "hex": "#574d62",
+     "chroma": 0.036,
+     "bandPx": 0.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 16.4,
+    "worstSim": 16.4,
+    "hex": "#574d62",
+    "chroma": 0.036,
+    "bandPx": 1
+   },
+   "strongest": 16.4
+  },
+  {
+   "name": "Butter button",
+   "on": "page",
+   "backdrop": "#1c1324",
+   "fill": "#f5e3a2",
+   "fillStep": 71.8,
+   "sides": {
+    "top": {
+     "strength": 71.8,
+     "worstSim": 71.1,
+     "hex": "#f5e3a2",
+     "chroma": 0.085,
+     "bandPx": 6
+    },
+    "side": {
+     "strength": 71.8,
+     "worstSim": 71.1,
+     "hex": "#251a28",
+     "chroma": 0.031,
+     "bandPx": 8
+    },
+    "bottom": {
+     "strength": 71.8,
+     "worstSim": 71.1,
+     "hex": "#201726",
+     "chroma": 0.031,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 71.8,
+    "worstSim": 71.1,
+    "hex": "#f5e3a2",
+    "chroma": 0.085,
+    "bandPx": 6
+   },
+   "strongest": 71.8
+  },
+  {
+   "name": "Robin button",
+   "on": "page",
+   "backdrop": "#1c1324",
+   "fill": "#a6edee",
+   "fillStep": 69.9,
+   "sides": {
+    "top": {
+     "strength": 69.9,
+     "worstSim": 69.1,
+     "hex": "#a6edee",
+     "chroma": 0.07,
+     "bandPx": 6
+    },
+    "side": {
+     "strength": 69.9,
+     "worstSim": 69.1,
+     "hex": "#231b2b",
+     "chroma": 0.032,
+     "bandPx": 8
+    },
+    "bottom": {
+     "strength": 69.9,
+     "worstSim": 69.1,
+     "hex": "#1e1728",
+     "chroma": 0.034,
+     "bandPx": 5.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 69.9,
+    "worstSim": 69.1,
+    "hex": "#a6edee",
+    "chroma": 0.07,
+    "bandPx": 6
+   },
+   "strongest": 69.9
+  },
+  {
+   "name": "Quiet button",
+   "on": "page",
+   "backdrop": "#1c1324",
+   "fill": "#3e324a",
+   "fillStep": 13.4,
+   "sides": {
+    "top": {
+     "strength": 18.4,
+     "worstSim": 18.4,
+     "hex": "#494154",
+     "chroma": 0.033,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 18.4,
+     "worstSim": 18.4,
+     "hex": "#494154",
+     "chroma": 0.033,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 18.4,
+     "worstSim": 18.4,
+     "hex": "#494154",
+     "chroma": 0.033,
+     "bandPx": 0.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 18.4,
+    "worstSim": 18.4,
+    "hex": "#494154",
+    "chroma": 0.033,
+    "bandPx": 1
+   },
+   "strongest": 18.4
+  },
+  {
+   "name": "Text field",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#0f0815",
+   "fillStep": 12.3,
+   "sides": {
+    "top": {
+     "strength": 17.9,
+     "worstSim": 18,
+     "hex": "#3a3240",
+     "chroma": 0.027,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 23.4,
+     "worstSim": 23.4,
+     "hex": "#484050",
+     "chroma": 0.029,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 27.3,
+     "worstSim": 27.3,
+     "hex": "#534a5b",
+     "chroma": 0.03,
+     "bandPx": 1.5
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 17.9,
+    "worstSim": 18,
+    "hex": "#3a3240",
+    "chroma": 0.027,
+    "bandPx": 1
+   },
+   "strongest": 27.3
+  },
+  {
+   "name": "Checkbox, off",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#100916",
+   "fillStep": 11.8,
+   "sides": {
+    "top": {
+     "strength": 56.7,
+     "worstSim": 56.1,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1.5
+    },
+    "side": {
+     "strength": 56.7,
+     "worstSim": 56.1,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 56.7,
+     "worstSim": 56.1,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 56.7,
+    "worstSim": 56.1,
+    "hex": "#b096d7",
+    "chroma": 0.097,
+    "bandPx": 1.5
+   },
+   "strongest": 56.7
+  },
+  {
+   "name": "Switch, off",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#100916",
+   "fillStep": 11.8,
+   "sides": {
+    "top": {
+     "strength": 56.7,
+     "worstSim": 56.1,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 2
+    },
+    "side": {
+     "strength": 81.7,
+     "worstSim": 81.8,
+     "hex": "#fbf5ef",
+     "chroma": 0.01,
+     "bandPx": 3.5
+    },
+    "bottom": {
+     "strength": 56.7,
+     "worstSim": 56.1,
+     "hex": "#b096d7",
+     "chroma": 0.097,
+     "bandPx": 2
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 56.7,
+    "worstSim": 56.1,
+    "hex": "#b096d7",
+    "chroma": 0.097,
+    "bandPx": 2
+   },
+   "strongest": 81.7
+  },
+  {
+   "name": "Status box",
+   "on": "card",
+   "backdrop": "#2d2237",
+   "fill": "#454b5c",
+   "fillStep": 14.2,
+   "sides": {
+    "top": {
+     "strength": 23.4,
+     "worstSim": 23,
+     "hex": "#566775",
+     "chroma": 0.03,
+     "bandPx": 1
+    },
+    "side": {
+     "strength": 23.4,
+     "worstSim": 23,
+     "hex": "#566775",
+     "chroma": 0.03,
+     "bandPx": 1
+    },
+    "bottom": {
+     "strength": 23.4,
+     "worstSim": 23,
+     "hex": "#566775",
+     "chroma": 0.03,
+     "bandPx": 1
+    }
+   },
+   "weakest": {
+    "side": "top",
+    "strength": 23.4,
+    "worstSim": 23,
+    "hex": "#566775",
+    "chroma": 0.03,
+    "bandPx": 1
+   },
+   "strongest": 23.4
+  }
+ ]
+}

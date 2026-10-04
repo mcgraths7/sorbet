@@ -1,0 +1,104 @@
+SUMMARY: The spec's arithmetic is right; its account of what else has to change is not. Three criticals, all of which would stop the test author or the implementer.
+
+- **Chart gate breaks if `separation` is built as written.** M7 says a view "simulates first", and the only simulation defined returns an 8-bit hex. Today's gate keeps unrounded floats. Routed through the hex, 5 of 10 printed minima change and 4 floors fail (sorbet dark, ocean light, noir light, midnight light). Measured, not reasoned.
+- **Two callers are missing from M6.5.** `tools/check-cli.ts:49` and `apps/playground/src/contrast-checks.ts:12` call `measureColors` with two arguments. One throws in CI's `check:cli` step (not in `pnpm test`), the other fails `pnpm typecheck`.
+- **`tools/test-contrast.ts` must change and the spec never says so.** It reads `min` off RULES entries, makes about twenty two-argument calls, pins Token Studio's exact source line (line 554) that M6.5 rewrites, and forbids any unlisted file from importing RULES, which the new M9 script must do. Some of these are expected values the implementer may not touch.
+
+Majors:
+- A mistyped `tier` on a rule silently drops the rule: it reads the same as "the contract does not hold it".
+- M5's "returns (or throws with)" is two behaviours, and the three reports never go through `checkPreset`. A preset with no `contract` at all is unassigned.
+- No run-time check on a floor: `min: null`, 0 or a negative number passes every pair.
+- A known contract with an empty tier map returns an empty list and "no failures".
+- M9.6's OKLab check has nothing to call: no exported function takes Ottosson's XYZ vectors or returns Lab.
+- Unknown `kind`/`view` at run time is unassigned, and check-cvd's own names ("protanopia") are not CvdKind values.
+
+What checked out: the M4 table (86 = 54 + 16 + 16, 70 per mode, every tier's count, kind and floor), the 700, all eight APCA values, the tritan matrix, and keeping the instruments out of the barrel.
+
+Scratch scripts: /private/tmp/claude-501/-Users-homelab/06652a5c-23e2-4a00-8579-52c3b446d84b/scratchpad/adversary/{recount,apca,quant}.ts. Nothing in the worktree was touched.
+
+RECOUNT: From rules.ts at HEAD 2d3b765 (script adversary/recount.ts): RULES has 86 entries: 54 with no mode, 16 light-only, 16 dark-only; 0 duplicate keys. Per mode 70 apply. Tiers per mode, identical in light and dark: text 42 (all min 4.5), text-subtle 2 (3), scrim 2 (4.5), control-border 2 (3), shape 4 (3), focus 2 (3), chart 16 (light 3, dark 2.25). 42+2+2+2+4+2+16 = 70. Every rule falls in exactly one tier; every pair the table names exists in RULES. 5 presets x 2 modes x 70 = 700 measurements confirmed by running measureColors. Chart entries are ordered per slot: surface light, bg light, surface dark, bg dark. The M4 table is correct as written. APCA: all eight check values reproduced exactly from the stated constants. Tritan matrix rows each sum to 1.000000.
+
+[critical] (contradiction) AGAINST: M7: "With `view`, both colours are simulated first." together with "`tools/check-cvd.ts` stops carrying its own copy of the simulation and the OKLab conversion and uses the shared functions. Its behaviour does not change ... every number its report prints is i
+  DEFECT: The only simulation the spec defines is simulateCvd, which returns a 6-digit hex (8-bit rounded). Today's gate keeps the simulated colour as unrounded linear floats before OKLab. If separation(a,b,view) is built on simulateCvd as written, the chart gate's numbers change and the build fails. A test author assuming the spec is correct will compute separation-with-view expected values through the hex and pin values a gate-preserving implementer cannot meet without changing an expected value.
+  EVIDENCE: Scratch script adversary/quant.ts, comparing check-cvd.ts cvdDeltaE with the same maths routed through an 8-bit hex: sorbet light 14.6182 -> 14.6761 (prints 14.7), ocean light 11.6198 -> 11.5274 (prints 11.5, floor 11.6: FAIL), noir light same as ocean (FAIL), forest dark 3.9487 -> 3.9747 (prints 4.0), midnight light 3.9284 -> 3.7811 (prints 3.8, floor 3.9: FAIL), sorbet dark 14.9323 -> 14.8647 (floor 14.9: FAIL). 5 of 10 printed minima change, 4 floors break. Max per-pair difference 0.193.
+  CHANGE: State that separation with a view simulates in linear RGB and goes to OKLab WITHOUT rounding to 8 bits, that simulateCvd's hex is a display value separation does not pass through, and give two or three numeric check values for separation (with and without view) taken from today's cvdDeltaE.
+
+[critical] (predicate-matrix) AGAINST: M3: "The `contract` argument of `measureColors` and `checkColors` is REQUIRED. There is no default" and M6.5's list of who passes what
+  DEFECT: Two existing callers are not in M6.5's list and the spec never says what they pass: tools/check-cli.ts:49 and apps/playground/src/contrast-checks.ts:12. Both call measureColors(mode, colors). After the increment the first throws M6.2's TypeError at run time (tools run with type stripping) and the second fails `pnpm typecheck`. check-cli is not part of `pnpm test`, so an implementer sees green locally and CI's `check:cli` step goes red.
+  EVIDENCE: grep over the monorepo: tools/check-cli.ts:49 `measureColors(mode, preset.colors[mode]).length`; apps/playground/src/contrast-checks.ts:12 same shape; root package.json `test` script does not include check:cli; .github/workflows/build.yml line 170 runs it.
+  CHANGE: Add both files to M6.5 with what they pass (preset.contract[mode]), and add `pnpm check:cli` and `pnpm typecheck` to the gates the increment must leave green.
+
+[critical] (contradiction) AGAINST: M3: "export const RULES: Rule[]; // no `min` on any entry" and M6.5: "Token Studio passes `"wcag-aa"`"; the spec says nothing about tools/test-contrast.ts changing
+  DEFECT: tools/test-contrast.ts is part of `pnpm test` and pins things this increment must break, and the spec does not say it is edited, by whom, or to what. (a) It reads `min` off RULES entries: pairOf(applies(mode)) at 427 and 614, `rules[i]!.min` at 453 and 655 — these become `undefined` and the tests fail. (b) Roughly twenty two-argument measureColors/checkColors calls would throw M6.2's TypeError. (c) Line 554 requires the exact source text `setFailures(checkColors("studio", mode, colors));` in token-studio.tsx, which M6.5 changes. (d) MAY_MEASURE (lines 414-420) fails any file outside its list that imports RULES, and the M9 script must import RULES for M9.1 and M9.3. Several of these are expected values in an existing test, which the implementer is forbidden to change.
+  EVIDENCE: packages/design-system/tools/test-contrast.ts lines 101-102, 427, 453, 554, 609-614, 655, 411-420, 688-693.
+  CHANGE: Add a section listing every change to test-contrast.ts: where its own floor comes from once RULES has none (its own table, not floorFor, or it marks its own homework), the new pinned Token Studio line verbatim, the new M9 script's path added to MAY_MEASURE, and that these edits are a test-author act.
+
+[major] (trust-boundary) AGAINST: M6.1: "A rule whose tier the contract does not list produces no measurement (the contract does not hold it); that is not a failure." and M6.4: "for a tier the contract does not list it is `undefined`"
+  DEFECT: A mistyped tier on a rule (`tier: "txt"`, `tier: undefined`) is indistinguishable from a tier the contract deliberately leaves out, so the rule silently stops being measured. Types do not run when the tools run. This is the silent-skip failure rules.ts's own docblock says the file exists to prevent. Check 5 catches it for wcag-aa only, and only in the test, not in the gate.
+  EVIDENCE: rules.ts:146-163 (the docblock on never skipping a pair); `pnpm typecheck` covers apps/* only (root package.json); tools run as `node tools/x.ts`.
+  CHANGE: State: a rule whose tier is not one of the seven known tiers throws a TypeError naming the rule, in measureColors and floorFor; only a KNOWN tier absent from the contract is 'not held'.
+
+[major] (bound-symmetry) AGAINST: M5: "`checkPreset` returns (or throws with) a message that names the preset and the bad value."
+  DEFECT: Three gaps. (1) 'returns or throws' is two behaviours; a test author must accept either, and `Failure` (fg, bg, min, actual) has no shape for 'bad contract'. (2) 'wherever it is measured' is not met by the spec's own design: the three reports call measureColors directly, so they get M6.2's TypeError, which names the contract and not the preset, and test-contrast.ts:278 counts any `TypeError` in stderr as a crash. (3) Only 'names something not in contracts' and 'lacks a mode' are assigned. A preset with no `contract` at all, `contract: null`, or a non-object makes `preset.contract[mode]` throw a bare 'Cannot read properties of undefined' naming nothing.
+  EVIDENCE: rules.ts:233-238 (checkPreset), check-contrast.ts:25, cli/src/index.ts:227, test-contrast.ts:278 (`crashed`), build-tokens.ts:47 (`flatMap(checkPreset)` with no try).
+  CHANGE: Pick one: throws a TypeError whose message contains the preset name and the bad value. List the bad values (absent, null, non-object, missing mode, unknown name). Say what the gates and reports print and exit with in that case.
+
+[major] (trust-boundary) AGAINST: M3: "min: number | Record<Mode, number>" and M6.3: "`holds` is `actual !== null && actual >= min`"
+  DEFECT: No run-time statement about a bad floor. `min: null` makes `actual >= null` true for every pair (null coerces to 0): everything passes. 0 or a negative number likewise, and tally's `actual / min` becomes Infinity or negative. A string "4.5" works by coercion and prints oddly. NaN fails every pair (loud, but tightest becomes NaN). `metric` other than "ratio" is measured as a ratio without complaint. Only 'a per-mode floor that lacks the asked mode' is assigned.
+  EVIDENCE: rules.ts:172 (`actual >= min`), rules.ts:210 (`pair.actual / pair.min`).
+  CHANGE: State: floorFor throws unless the floor it resolves is a finite number greater than 1 (a ratio below 1 cannot exist) and the tier's metric is "ratio"; M9.3 checks it for every tier.
+
+[major] (bound-symmetry) AGAINST: M6.2: "It is never treated as `wcag-aa` and never produces an empty list." with M3: "A tier the contract does not list is a rule the contract does not hold."
+  DEFECT: The opposite end is open: a KNOWN contract whose tier map is empty (or lists no tier any rule uses) returns an empty list legitimately under M6.1, and checkPreset then returns no failures. That is 'a contract over nothing passes everything', which test-contrast.ts:431 already forbids for RULES. Also unstated: whether M6.2 applies to floorFor and checkColors, and whether the lookup is by own key — `contracts["toString"]` and `contracts["__proto__"]` are truthy on a plain object.
+  EVIDENCE: test-contrast.ts:430-432; plain-object lookup semantics.
+  CHANGE: State: a contract that yields zero measurements in a mode throws; unknown-name applies to floorFor, measureColors and checkColors alike; lookup is own-property only.
+
+[major] (predicate-matrix) AGAINST: M9.6: "OKLab against Ottosson's published example vectors"
+  DEFECT: Nothing the spec exports can be given those vectors. Ottosson's examples are XYZ triples mapped to Lab triples. M7 exports apcaLc, simulateCvd and separation only; separation returns one distance, never Lab coordinates, and takes colour strings, never XYZ. The test author would have to invent an exported name and signature.
+  EVIDENCE: M7's code block lists three exports; color.ts has no OKLab forward conversion today (only oklchToLinearSrgb, private, line 28); check-cvd.ts:61-71 holds the private `oklab`.
+  CHANGE: Either export a named conversion (say what it takes: linear sRGB, sRGB string, or XYZ) and give the vectors, or replace this check with numeric separation values derived independently.
+
+[major] (bound-symmetry) AGAINST: M7: apcaLc "Null when either colour cannot be read by parseColor or is not opaque"; simulateCvd "Throws on a value that is not an opaque colour parseColor can read"; separation "Null when either cannot be read or is not opaque"
+  DEFECT: Unassigned cases. (1) An unknown `kind`/`view` at run time: 'protanopia' and 'deuteranopia' are the names check-cvd.ts uses today, so this mistake is likely; simulateCvd would index an undefined matrix, separation is silent. (2) A non-string colour (undefined, a number): parseColor calls `value.trim()` and throws its own TypeError, so apcaLc/separation 'null' and simulateCvd 'throws' are both unstated for it. (3) separation with a view on an unreadable colour must return null although the simulation it uses throws: stated, but worth one line since the two differ on purpose. (4) apcaLc's zero cases (identical colours, |Lc| under loClip, deltaYmin) have no check value: my implementation gives 0 for `#888` on `#999` and -7.85 the other way round.
+  EVIDENCE: check-cvd.ts:28 (`type Deficiency = "protanopia" | "deuteranopia"`), color.ts:192 (`value.trim()`), rules.ts:129-134 (measure() guards typeof before calling); scratch apca.ts output.
+  CHANGE: State: unknown kind/view throws a TypeError naming it, in both functions; a non-string colour is 'cannot be read' (null / throws respectively); add two APCA zero-case check values.
+
+[minor] (contradiction) AGAINST: M7: "Nothing in this increment calls them except their tests and (for the simulation) the existing chart gate."
+  DEFECT: The same section moves the OKLab conversion out of check-cvd.ts as well, so the chart gate must call separation (or an OKLab export), not only the simulation. Also the report prints the words 'protanopia'/'deuteranopia' while CvdKind is 'protan'/'deutan'; the mapping that keeps the report byte-identical is unstated.
+  EVIDENCE: check-cvd.ts:103 (`worstPair = ... (${d})`), check-cvd.ts:73-80.
+  CHANGE: Say which shared function the gate calls and that its printed deficiency names stay as they are.
+
+[minor] (trust-boundary) AGAINST: M4: "every measurement of every shipped preset in both modes (700 of them) is identical before and after this increment, digit for digit" and M9.2
+  DEFECT: The fixture is recorded on this arm64 Mac and checked on CI's ubuntu runner. The ratios go through `** 2.4`; if the two platforms' pow differ in the last bit, an exact-equality fixture fails for a reason unrelated to the increment. The existing suite compares ratios to 1e-9 for this stated reason, and M9.6 uses 1e-9 for APCA. Not verified either way here.
+  EVIDENCE: test-contrast.ts:143 (`close`, 'floating point may order the same sums differently'); build.yml runs on ubuntu-latest.
+  CHANGE: Floors, order and verdicts exact; `actual` to 1e-9.
+
+[minor] (arm-enumeration) AGAINST: M4 table and M9.3: "Every tier in M4 has the kind ... the table states"
+  DEFECT: The table itself is correct (recounted). Two loose ends: a tier's kind is stored only on each rule, so nothing states that all rules of one tier must carry the same kind; and the `text` row is defined by 'has `min: 4.5` today', a field the increment removes, instead of listing the 42 pairs.
+  EVIDENCE: Scratch recount.ts: text 42, text-subtle 2, scrim 2, control-border 2, shape 4, focus 2, chart 16 per mode = 70; mins per tier 4.5 / 3 / 4.5 / 3 / 3 / 3 / light 3 dark 2.25; 86 = 54 + 16 + 16.
+  CHANGE: List the text tier's pairs (or the fixture path that holds them) and state rule.kind must equal the tier's kind in the table.
+
+[minor] (bound-symmetry) AGAINST: M6.4: "A per-mode floor that lacks the asked mode throws."
+  DEFECT: Opposite ends unstated: floorFor with an invalid mode on a single-number tier (returns the number, or throws like measureColors does?); a per-mode floor with an extra key; the error type; a preset whose two modes name different contracts (legal by type, untestable with one contract); extra keys on Preset.contract.
+  EVIDENCE: M3 types; rules.ts:166-168 throws TypeError on a bad mode.
+  CHANGE: floorFor throws a TypeError on a mode that is not light/dark, for every tier.
+
+LEFT FREE:
+ - Name and path of the M9 script, its package.json script name and its CI step name
+ - Format and location of the two pre-increment fixtures (check-5 triples; 700 measurements), and of the chart-gate recording (with or without colour codes)
+ - How the three 'must fail' mutations in M9.1 are made: in-process mutation of RULES/contracts, or a planted copy; and whether RULES and contracts are mutable or frozen
+ - How to exercise M6.1's 'tier not listed' arm when the only contract lists every tier
+ - M5: return versus throw, the error type, the message wording, and the Failure shape if it returns
+ - Error types and messages for: unknown contract (beyond 'TypeError that names it'), per-mode floor lacking a mode, unknown tier, bad CvdKind
+ - Order of the two throws when both the mode and the contract are bad
+ - The text of every rule's `why`, every floor's `why` and `retire`, and whether whitespace-only counts as empty
+ - The exact string of `calibratedFor` for wcag-aa ('anyone; it is a published standard' is a paraphrase)
+ - Order of CONTRACT_NAMES and whether it is derived from `contracts`
+ - Position of `contract` in each manifest entry
+ - Whether `Failure` gains kind/tier (assumed unchanged) and whether `Rule` is exported from the barrel
+ - The APCA formula itself (only constants and the library version are given) and its zero cases
+ - simulateCvd's rounding rule and encode threshold on conversion back to hex; any numeric check value for simulateCvd or separation
+ - Which OKLab function Ottosson's vectors are fed to, and which vectors
+ - What check-cli.ts and the playground's contrast-checks.ts pass as the contract
+ - What Token Studio's comment says and the exact new source line test-contrast.ts should pin
+ - Whether semantics.ts's own hard-coded pick() minimums (a second copy of the floors, used to choose colours) are in or out of scope; M8 does not mention them
