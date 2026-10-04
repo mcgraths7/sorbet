@@ -1,0 +1,12 @@
+adjacent-slot CVD separation (Machado 1.0, OKLab ΔE×100):
+  sorbet    light  min adjacent ΔE 14.6  (floor 14.6, worst slots 1–2 (protanopia))
+  sorbet    dark   min adjacent ΔE 14.9  (floor 14.9, worst slots 2–3 (deuteranopia))
+  ocean     light  min adjacent ΔE 11.6  (floor 11.6, worst slots 2–3 (protanopia))
+  ocean     dark   min adjacent ΔE 5.9  (floor 5.8, worst slots 3–4 (protanopia))
+  forest    light  min adjacent ΔE 10.0  (floor 10, worst slots 4–5 (deuteranopia))
+  forest    dark   min adjacent ΔE 3.9  (floor 3.9, worst slots 4–5 (protanopia))
+  noir      light  min adjacent ΔE 11.6  (floor 11.6, worst slots 2–3 (protanopia))
+  noir      dark   min adjacent ΔE 5.9  (floor 5.8, worst slots 3–4 (protanopia))
+  midnight  light  min adjacent ΔE 3.9  (floor 3.9, worst slots 3–4 (protanopia))
+  midnight  dark   min adjacent ΔE 5.9  (floor 5.8, worst slots 3–4 (protanopia))
+✓ every adjacent pair clears its preset's floor under both dichromacies

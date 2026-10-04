@@ -156,6 +156,14 @@ jobs:
       - name: Verify the contrast contract is measured once
         run: pnpm run test:contrast
 
+      # Which contract a preset is held to is data now, and every way of getting
+      # that wrong is silent: a rule in the wrong tier, a floor retyped, a
+      # mistyped name read as "not held". This holds the new code to what the
+      # old code answered (fixtures recorded from it), proves the comparison
+      # bites, and checks the colour instruments against published values.
+      - name: Verify every preset is held to the contract it was
+        run: pnpm run test:contracts
+
       # Everything in this repo consumes Sorbet by symlink, which hides what
       # breaks a real consumer. Pack the tarballs and install them into a
       # throwaway project outside the workspace. --no-build reuses the step above.

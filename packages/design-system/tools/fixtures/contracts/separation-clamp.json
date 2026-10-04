@@ -1,0 +1,14 @@
+{
+  "madeBy": "tools/fixtures/contracts/simulate_cvd.py - an independent Python implementation of specification sections M7 and M10.10; see its docstring",
+  "what": "separation(a, b, view): OKLab distance x100 of the two colours as simulated, each linear channel clamped to 0..1. `over` is the largest channel before the clamp; `unclamped` is the answer without the upper clamp",
+  "clamped": [
+    {"a": "#00ff00", "b": "#ffffff", "view": "protan", "over": 1.052583, "separation": 20.89530446232143, "unclamped": 20.672000621200997},
+    {"a": "#00ff00", "b": "#000000", "view": "protan", "over": 1.052583, "separation": 93.51946886530082, "unclamped": 94.02985638843772},
+    {"a": "#0000ff", "b": "#000000", "view": "protan", "over": 1.051998, "separation": 59.69941708248173, "unclamped": 60.480995692377434},
+    {"a": "#00ff00", "b": "#0000ff", "view": "protan", "over": 1.052583, "separation": 57.939275229646015, "unclamped": 58.5204907435108},
+    {"a": "#ffff00", "b": "#008289", "view": "deutan", "over": 1.227968, "separation": 47.39485954413757, "unclamped": 49.13016776450536},
+    {"a": "#ffff00", "b": "#000000", "view": "deutan", "over": 1.227968, "separation": 97.78007046111807, "unclamped": 99.74475829961797},
+    {"a": "#ff0000", "b": "#9e6400", "view": "tritan", "over": 1.255528, "separation": 15.933953196875835, "unclamped": 20.253473337359104},
+    {"a": "#ff0000", "b": "#000000", "view": "tritan", "over": 1.255528, "separation": 67.89200369312078, "unclamped": 73.23860471988444}
+  ]
+}

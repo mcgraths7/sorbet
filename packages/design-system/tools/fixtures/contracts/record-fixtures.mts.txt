@@ -1,0 +1,62 @@
+/**
+ * Records the contract-mechanism fixtures FROM THE CODE AS IT IS AT 2d3b765
+ * (measureColors(mode, colors), RULES with `min`). It cannot run against the
+ * tree once the mechanism lands: the signatures it calls no longer exist.
+ *
+ * It is committed as `record-fixtures.mts.txt` on purpose (specification
+ * M10.12): the `.txt` keeps it out of `pnpm lint`, out of the type check and
+ * out of every scan the tests make of the repository's sources, because it is
+ * written against a tree that no longer exists. To re-record (see README.md):
+ *
+ *   git archive 2d3b765 packages/design-system | tar -x -C /tmp/sorbet-2d3b765
+ *   cp record-fixtures.mts.txt /tmp/record-fixtures.mts
+ *   node /tmp/record-fixtures.mts /tmp/sorbet-2d3b765/packages/design-system <out dir>
+ *
+ * It writes wcag-aa.triples.json, wcag-aa.measurements.json, rules.order.json,
+ * check-cvd.report.txt and check-contrast.report.txt into <out dir>, and
+ * touches nothing else.
+ */
+import { spawnSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { stripVTControlCharacters } from "node:util";
+
+const [pkg, out] = process.argv.slice(2) as [string, string];
+const { measureColors, presets, RULES } = await import(join(pkg, "src/tokens/index.ts"));
+const MODES = ["light", "dark"];
+const from = "2d3b765";
+
+const triples: Record<string, unknown> = { recordedFrom: from, how: "measureColors(mode, presets.sorbet.colors[mode]) at that commit; each entry is [fg, bg, floor]" };
+for (const mode of MODES) {
+  const lists = Object.values(presets).map((p: any) => measureColors(mode, p.colors[mode]).map((m: any) => [m.fg, m.bg, m.min]));
+  for (const l of lists) {
+    if (JSON.stringify(l) !== JSON.stringify(lists[0])) throw new Error("the list depends on the preset");
+  }
+  triples[mode] = lists[0];
+}
+const compact = (rows: unknown[]) => `[\n${rows.map((r) => `    ${JSON.stringify(r)}`).join(",\n")}\n  ]`;
+writeFileSync(join(out, "wcag-aa.triples.json"),
+  `{\n  "recordedFrom": ${JSON.stringify(from)},\n  "how": ${JSON.stringify(triples.how)},\n  "light": ${compact(triples.light as unknown[])},\n  "dark": ${compact(triples.dark as unknown[])}\n}\n`);
+
+const rows: unknown[] = [];
+for (const p of Object.values(presets) as any[]) {
+  for (const mode of MODES) {
+    for (const m of measureColors(mode, p.colors[mode])) {
+      rows.push({ preset: p.name, mode, fg: m.fg, bg: m.bg, floor: m.min, actual: m.actual, holds: m.holds });
+    }
+  }
+}
+writeFileSync(join(out, "wcag-aa.measurements.json"),
+  `{\n  "recordedFrom": ${JSON.stringify(from)},\n  "how": "measureColors(mode, preset.colors[mode]) at that commit, presets in Object.values(presets) order, light then dark",\n  "measurements": ${compact(rows)}\n}\n`);
+
+writeFileSync(join(out, "rules.order.json"),
+  `{\n  "recordedFrom": ${JSON.stringify(from)},\n  "how": "RULES at that commit, in order; each entry is [fg, bg, mode or null]",\n  "rules": ${compact(RULES.map((r: any) => [r.fg, r.bg, r.mode ?? null]))}\n}\n`);
+
+const { FORCE_COLOR: _f, ...inherited } = process.env;
+for (const [tool, file] of [["tools/check-cvd.ts", "check-cvd.report.txt"], ["tools/check-contrast.ts", "check-contrast.report.txt"]] as const) {
+  const run = spawnSync(process.execPath, [tool], { cwd: pkg, encoding: "utf8", env: { ...inherited, NO_COLOR: "1" } });
+  if (run.status !== 0 || run.stderr !== "") throw new Error(`${tool}: ${run.status} ${run.stderr}`);
+  if (stripVTControlCharacters(run.stdout) !== run.stdout) throw new Error("colour codes in the output");
+  writeFileSync(join(out, file), run.stdout);
+}
+console.log(rows.length, "measurements;", (triples.light as unknown[]).length, (triples.dark as unknown[]).length, "triples;", RULES.length, "rules");

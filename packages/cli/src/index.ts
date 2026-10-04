@@ -17,7 +17,7 @@ import { createRequire } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
 
-import { DEFAULT_PRESET, hexToRgb, measureColors, PRESET_NAMES, presets, ratioText, tally, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
+import { contractOf, DEFAULT_PRESET, hexToRgb, measureColors, PRESET_NAMES, presets, ratioText, tally, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
 
 import { behaviorTs, componentScss, starterIndexHtml, starterPackageJson, starterReadme } from "./templates.ts";
 
@@ -218,13 +218,25 @@ async function cmdComponent(): Promise<void> {
 // Measures nothing of its own: `measureColors` is the list the build gate
 // fails on, and the counts printed are counted from it. This was a hand copy
 // of the report's loop — it skipped the scrim pairs and printed RULES.length.
+// It names no contract either: each preset and mode is measured against the
+// one the preset declares (`contractOf`), and a bad declaration ends the run
+// before anything is printed.
 async function cmdContrast(): Promise<void> {
+  const modes: Mode[] = ["light", "dark"];
+  // Every declaration is read before a line is printed: a preset that does not
+  // say which contract it is held to ends the run here, with no verdict above
+  // the error for a reader to stop at.
+  for (const preset of Object.values(presets)) {
+    for (const mode of modes) {
+      contractOf(preset, mode);
+    }
+  }
   let failures = 0;
   let measured = 0;
   for (const preset of Object.values(presets)) {
     console.log(styleText("bold", `\n${preset.label} — ${preset.tagline}`));
-    for (const mode of ["light", "dark"] as Mode[]) {
-      const result = tally(measureColors(mode, preset.colors[mode]));
+    for (const mode of modes) {
+      const result = tally(measureColors(mode, preset.colors[mode], contractOf(preset, mode)));
       failures += result.failures.length;
       measured += result.measured;
       const rows = result.failures.map((pair) => {

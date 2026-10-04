@@ -9,20 +9,34 @@
  * (build-tokens.ts) fails on, and every count printed here is counted from
  * that list — so the report and the gate cannot disagree about what was
  * measured, the pairs over the translucent scrim included.
+ *
+ * Each preset and mode is measured against the contract the preset declares
+ * for it (`contractOf`), as the gate does. A declaration that is missing or
+ * mistyped is a TypeError that ends the run before anything is printed, not a
+ * preset quietly judged by some other contract.
  */
 
 import { styleText } from "node:util";
 import { presets } from "../tokens/presets.ts";
-import { measureColors, ratioText, tally } from "../tokens/rules.ts";
+import { contractOf, measureColors, ratioText, tally } from "../tokens/rules.ts";
 import type { Mode } from "../tokens/semantics.ts";
+
+const MODES: Mode[] = ["light", "dark"];
+
+// Every declaration is read before a line is printed: a preset that does not
+// say which contract it is held to ends the run here, with no verdict above
+// the error for a reader to stop at.
+for (const preset of Object.values(presets)) {
+  for (const mode of MODES) contractOf(preset, mode);
+}
 
 let failures = 0;
 let measured = 0;
 
 for (const preset of Object.values(presets)) {
   console.log(styleText("bold", `\n${preset.label} — ${preset.tagline}`));
-  for (const mode of ["light", "dark"] as Mode[]) {
-    const result = tally(measureColors(mode, preset.colors[mode]));
+  for (const mode of MODES) {
+    const result = tally(measureColors(mode, preset.colors[mode], contractOf(preset, mode)));
     failures += result.failures.length;
     measured += result.measured;
     const rows = result.failures.map((pair) => {

@@ -8,21 +8,38 @@
  * skipped the two scrim pairs, and printed RULES.length all the same.) The
  * CLI's `sorbet contrast` and the scaffold's copy of this file are held to the
  * same list by test-contrast.ts.
+ *
+ * It decides nothing of its own either. Each preset and mode is measured
+ * against the contract the preset declares for it (`contractOf`), never one
+ * named here. A declaration that is missing or mistyped is a TypeError that
+ * ends the run before anything is printed, not a preset quietly judged by some
+ * other contract.
  */
 
 import { styleText } from "node:util";
 
-import { measureColors, presets, ratioText, tally } from "../src/tokens/index.ts";
+import { contractOf, measureColors, presets, ratioText, tally } from "../src/tokens/index.ts";
 
 import type { Mode } from "../src/tokens/index.ts";
+
+const MODES: Mode[] = ["light", "dark"];
+
+// Every declaration is read before a line is printed: a preset that does not
+// say which contract it is held to ends the run here, with no verdict above
+// the error for a reader to stop at.
+for (const preset of Object.values(presets)) {
+  for (const mode of MODES) {
+    contractOf(preset, mode);
+  }
+}
 
 let failures = 0;
 let measured = 0;
 
 for (const preset of Object.values(presets)) {
   console.log(styleText("bold", `\n${preset.label} — ${preset.tagline}`));
-  for (const mode of ["light", "dark"] as Mode[]) {
-    const result = tally(measureColors(mode, preset.colors[mode]));
+  for (const mode of MODES) {
+    const result = tally(measureColors(mode, preset.colors[mode], contractOf(preset, mode)));
     failures += result.failures.length;
     measured += result.measured;
     const rows = result.failures.map((pair) => {

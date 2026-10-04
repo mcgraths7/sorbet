@@ -371,8 +371,14 @@ export function TokenStudio({
     ) as SemanticColors;
     // Same reason: the colors come from getComputedStyle on the live document,
     // so this check can only run after commit.
+    // The contract is named here, and nowhere else outside a preset: Token
+    // Studio does not yet know which preset is loaded — it reads colours off
+    // the page, not a preset — so it cannot ask contractOf() which contract
+    // those colours are held to. Every preset declares "wcag-aa" today; the
+    // day one declares another, this line judges that preset by the wrong
+    // contract, and has to learn which preset it is looking at instead.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFailures(checkColors("studio", mode, colors));
+    setFailures(checkColors("studio", mode, colors, "wcag-aa"));
   }, [open, mode, buckets, baseline]);
 
   const bucketFor = (def: TokenDef) => (def.perMode ? mode : "static");

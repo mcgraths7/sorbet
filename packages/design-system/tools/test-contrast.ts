@@ -97,8 +97,29 @@ function test(name: string, fn: () => void) {
 
 // ── what this file works out for itself, so it is not marking its own homework ──
 
-/** The rules that apply in a mode — filtered here, not asked of rules.ts. */
-const applies = (mode: Mode) => RULES.filter((rule) => rule.mode === undefined || rule.mode === mode);
+/**
+ * Today's floor for each tier, typed in here. A rule no longer carries its
+ * number: its tier does, through a contract (contracts.ts). This file does not
+ * ask floorFor() for it — that is the code being checked, and it would be
+ * marking its own homework. A tier this table does not know is a failure, not
+ * a floor of undefined that nothing can fall under.
+ */
+const FLOORS: Record<string, number | Record<Mode, number>> = {
+  text: 4.5,
+  "text-subtle": 3,
+  scrim: 4.5,
+  "control-border": 3,
+  shape: 3,
+  focus: 3,
+  chart: { light: 3, dark: 2.25 },
+};
+function floorOf(tier: string, mode: Mode): number {
+  assert.ok(Object.hasOwn(FLOORS, tier), `this file states no floor for a tier called ${JSON.stringify(tier)}: add it to FLOORS, from the contract's own table`);
+  const floor = FLOORS[tier]!;
+  return typeof floor === "number" ? floor : floor[mode];
+}
+/** The rules that apply in a mode — filtered here, not asked of rules.ts — each with the floor this file says its tier owes. */
+const applies = (mode: Mode) => RULES.filter((rule) => rule.mode === undefined || rule.mode === mode).map((rule) => ({ ...rule, min: floorOf(rule.tier, mode) }));
 const pairOf = ({ fg, bg, min }: { fg: string; bg: string; min: number }) => `${fg} on ${bg} ≥ ${min}`;
 const touches = (token: SemanticColorName) => (pair: { fg: string; bg: string }) => pair.fg === token || pair.bg === token;
 
@@ -352,8 +373,8 @@ function reportAgrees(report: Report, run: Ran, all: Presets) {
   let measuredInAll = 0;
   for (const p of printed) {
     const colors = all[p.preset]!.colors[p.mode];
-    const pairs = measureColors(p.mode, colors);
-    const failing = checkColors(p.preset, p.mode, colors);
+    const pairs = measureColors(p.mode, colors, "wcag-aa");
+    const failing = checkColors(p.preset, p.mode, colors, "wcag-aa");
     const measured = pairs.filter((pair) => pair.actual !== null).length;
     measuredInAll += measured;
     const where = `${report.name}, ${p.preset}/${p.mode}, printed "${p.summary}"`;
@@ -416,6 +437,7 @@ const MAY_MEASURE = new Set([
   "packages/design-system/src/tokens/index.ts", // re-exports the list
   "packages/design-system/src/tokens/color.ts", // defines worstCaseContrast
   "packages/design-system/tools/test-contrast.ts", // this file: it re-derives the list to check the measurement
+  "packages/design-system/tools/test-contracts.ts", // holds the list and its tiers to what they were before a contract carried the floors
 ]);
 
 console.log(styleText("bold", "the contrast contract, measured once:"));
@@ -424,7 +446,7 @@ try {
   // ── the measurement ────────────────────────────────────────────────────
   test("every rule that applies in a mode is measured — in contract order, none skipped, none added", () => {
     for (const { preset, mode, colors } of each(shipped)) {
-      assert.deepEqual(measureColors(mode, colors).map(pairOf), applies(mode).map(pairOf), `${preset.name}/${mode}`);
+      assert.deepEqual(measureColors(mode, colors, "wcag-aa").map(pairOf), applies(mode).map(pairOf), `${preset.name}/${mode}`);
     }
     for (const mode of MODES) {
       assert.ok(applies(mode).length > 0, `no rule applies in ${mode}: a contract over nothing passes everything`);
@@ -432,11 +454,11 @@ try {
   });
 
   test("the scrim pairs are measured in every preset and mode, as the worst case over white and black", () => {
-    const scrimRules = RULES.filter((rule) => rule.bg === "scrim");
-    assert.ok(scrimRules.length >= 2, "RULES no longer holds the scrim pairs — the pairs this file exists to keep measured");
+    assert.ok(RULES.filter((rule) => rule.bg === "scrim").length >= 2, "RULES no longer holds the scrim pairs — the pairs this file exists to keep measured");
     for (const { preset, mode, colors } of each(shipped)) {
+      const scrimRules = applies(mode).filter((rule) => rule.bg === "scrim");
       assert.match(colors.scrim, /^rgb\(/, `${preset.name}/${mode}: the scrim is no longer translucent, so this proves nothing about translucent backgrounds`);
-      const measured = measureColors(mode, colors).filter((pair) => pair.bg === "scrim");
+      const measured = measureColors(mode, colors, "wcag-aa").filter((pair) => pair.bg === "scrim");
       assert.deepEqual(measured.map(pairOf), scrimRules.map(pairOf), `${preset.name}/${mode}`);
       for (const pair of measured) {
         assert.ok(close(pair.actual, ownRatio(colors[pair.fg], colors.scrim)), `${preset.name}/${mode}: ${pair.fg} on scrim measured ${pair.actual}`);
@@ -447,7 +469,7 @@ try {
   test("every ratio is the WCAG ratio and every verdict is ratio ≥ floor — by this file's own arithmetic", () => {
     for (const { preset, mode, colors } of each(shipped)) {
       const rules = applies(mode);
-      measureColors(mode, colors).forEach((pair, i) => {
+      measureColors(mode, colors, "wcag-aa").forEach((pair, i) => {
         const own = ownRatio(colors[pair.fg], colors[pair.bg]);
         assert.ok(close(pair.actual, own), `${preset.name}/${mode}: ${pairOf(pair)} measured ${pair.actual}, and it is ${own}`);
         assert.equal(pair.holds, own >= rules[i]!.min, `${preset.name}/${mode}: ${pairOf(pair)} at ${own}`);
@@ -458,7 +480,7 @@ try {
   test("a pair a thousandth under its floor fails, one a hair over it holds, and neither is printed as the other", () => {
     // No 8-bit pair lands exactly on 4.5; these two are the nearest either side on sorbet's page colour.
     const page = "#f8f7f5";
-    const on = (text: string) => measureColors("light", { ...presets.sorbet.colors.light, bg: page, "link-hover": text }).find((pair) => pair.fg === "link-hover" && pair.bg === "bg")!;
+    const on = (text: string) => measureColors("light", { ...presets.sorbet.colors.light, bg: page, "link-hover": text }, "wcag-aa").find((pair) => pair.fg === "link-hover" && pair.bg === "bg")!;
     const [under, over] = [on("#d92360"), on("#df1158")];
     assert.equal(under.min, 4.5, "link-hover on bg is no longer a 4.5 rule — pick another pair for this test");
     assert.ok(Math.abs(ownRatio("#d92360", page) - 4.498999) < 1e-6 && Math.abs(ownRatio("#df1158", page) - 4.500001) < 1e-6, "this file's own arithmetic moved");
@@ -475,7 +497,7 @@ try {
 
   test("a translucent background promises its worst backdrop: either end, or 1:1 when the text lies between them", () => {
     const light = presets.sorbet.colors.light;
-    const scrimPair = (scrim: string, text: string) => measureColors("light", { ...light, scrim, "on-scrim": text }).find((pair) => pair.fg === "on-scrim")!;
+    const scrimPair = (scrim: string, text: string) => measureColors("light", { ...light, scrim, "on-scrim": text }, "wcag-aa").find((pair) => pair.fg === "on-scrim")!;
     for (const alpha of [0, 0.05, 0.6, 1]) {
       for (const [veil, text] of [["0 0 0", "#ffffff"], ["255 255 255", "#000000"], ["0 0 0", "#767676"], ["120 40 200", "#101010"]] as const) {
         const scrim = `rgb(${veil} / ${alpha})`;
@@ -489,7 +511,7 @@ try {
     assert.ok(close(scrimPair("rgb(0 0 0 / 0.6)", "#ffffff").actual, wcag(1, lum([102, 102, 102]))));
     assert.ok(close(scrimPair("rgb(255 255 255 / 0.6)", "#000000").actual, wcag(0, lum([153, 153, 153]))));
     // Mid-grey text on a scrim that is not there: some photo is exactly that grey.
-    assert.deepEqual({ ...scrimPair("rgb(0 0 0 / 0)", "#767676"), fg: undefined, bg: undefined }, { fg: undefined, bg: undefined, min: 4.5, actual: 1, holds: false });
+    assert.deepEqual({ ...scrimPair("rgb(0 0 0 / 0)", "#767676"), fg: undefined, bg: undefined }, { fg: undefined, bg: undefined, tier: "scrim", kind: "text", min: 4.5, actual: 1, holds: false });
   });
 
   test("a colour measures the same however it is spelled", () => {
@@ -505,12 +527,12 @@ try {
     };
     let tried = 0;
     for (const { preset, mode, colors } of each(shipped)) {
-      const expected = measureColors(mode, colors);
+      const expected = measureColors(mode, colors, "wcag-aa");
       const variants = Object.fromEntries(Object.entries(colors).map(([name, value]) => [name, spellings(value)]));
       const most = Math.max(...Object.values(variants).map((list) => list.length));
       for (let i = 0; i < most; i++) {
         const respelled = Object.fromEntries(Object.entries(variants).map(([name, list]) => [name, list[i % list.length]!]));
-        assert.deepEqual(measureColors(mode, respelled), expected, `${preset.name}/${mode}, spelling ${i}: ${JSON.stringify(respelled.text)} … ${JSON.stringify(respelled.scrim)}`);
+        assert.deepEqual(measureColors(mode, respelled, "wcag-aa"), expected, `${preset.name}/${mode}, spelling ${i}: ${JSON.stringify(respelled.text)} … ${JSON.stringify(respelled.scrim)}`);
         tried++;
       }
     }
@@ -526,8 +548,8 @@ try {
       assert.deepEqual(Object.keys(page), Object.keys(colors), `${preset.name}/${mode}: the minified theme lost a colour`);
       respelled += Object.entries(colors).filter(([name, value]) => page[name] !== value).length;
       assert.doesNotMatch(page.scrim!, /^rgb\(/, `${preset.name}/${mode}: the minifier left the scrim alone, so this proves nothing about what it does to it`);
-      assert.deepEqual(checkColors("studio", mode, page), [], `${preset.name}/${mode}: the gate passes this preset, and Token Studio would list these as failures on a production build`);
-      assert.deepEqual(measureColors(mode, page), measureColors(mode, colors), `${preset.name}/${mode}`);
+      assert.deepEqual(checkColors("studio", mode, page, "wcag-aa"), [], `${preset.name}/${mode}: the gate passes this preset, and Token Studio would list these as failures on a production build`);
+      assert.deepEqual(measureColors(mode, page, "wcag-aa"), measureColors(mode, colors, "wcag-aa"), `${preset.name}/${mode}`);
     }
     assert.ok(respelled >= 20, `the minifier respelled only ${respelled} values: it no longer does what this test is here for`);
   });
@@ -539,7 +561,7 @@ try {
     assert.equal(minify("a{color:#ff0000}"), "a{color:red}", "the minifier no longer turns a hex into a name; this table was added because it does");
     for (const name of names) {
       assert.equal(minify(`a{color:${name}}`), minify(`a{color:${NAMED_COLORS[name]}}`), `${name} is not ${NAMED_COLORS[name]}`);
-      const pair = measureColors("light", { ...presets.sorbet.colors.light, bg: name, text: "#000000" }).find((p) => p.fg === "text" && p.bg === "bg")!;
+      const pair = measureColors("light", { ...presets.sorbet.colors.light, bg: name, text: "#000000" }, "wcag-aa").find((p) => p.fg === "text" && p.bg === "bg")!;
       assert.ok(close(pair.actual, ownRatio("#000000", NAMED_COLORS[name]!)), `black on ${name}`);
     }
   });
@@ -551,7 +573,7 @@ try {
       "it no longer reads every semantic colour off the page as text — the minified-theme test above models exactly that read; change the two together",
     );
     assert.ok(
-      studio.includes('setFailures(checkColors("studio", mode, colors));'),
+      studio.includes('setFailures(checkColors("studio", mode, colors, "wcag-aa"));'),
       "its failure list is no longer checkColors' answer, whole — a filter here is how a pair that cannot be measured turns back into a silent pass",
     );
     assert.equal(studio.match(/\bsetFailures\(/g)?.length, 1, "a second place sets the failure list");
@@ -559,7 +581,7 @@ try {
 
   test("no shipped preset has a pair that cannot be measured, and the gate passes all five", () => {
     for (const { preset, mode, colors } of each(shipped)) {
-      const pairs = measureColors(mode, colors);
+      const pairs = measureColors(mode, colors, "wcag-aa");
       assert.deepEqual(pairs.filter((pair) => pair.actual === null).map(pairOf), [], `${preset.name}/${mode}: unmeasurable`);
       assert.deepEqual(pairs.filter((pair) => !pair.holds).map(pairOf), [], `${preset.name}/${mode}: failing`);
     }
@@ -575,7 +597,7 @@ try {
   for (const [token, values] of seats) {
     test(`a ${token} that cannot be read is a failure naming its pair — never a skip, never a throw`, () => {
       const good = presets.ocean.colors.light;
-      const untouched = measureColors("light", good).filter((pair) => !touches(token)(pair));
+      const untouched = measureColors("light", good, "wcag-aa").filter((pair) => !touches(token)(pair));
       assert.ok(applies("light").some(touches(token)), `no rule names ${token} any more — pick another token for this test`);
       for (const value of values) {
         const colors = { ...good, [token]: value } as Partial<SemanticColors>;
@@ -585,7 +607,7 @@ try {
         const what = `${token} = ${JSON.stringify(value) ?? "(missing)"}`;
         let pairs: Measurement[] = [];
         assert.doesNotThrow(() => {
-          pairs = measureColors("light", colors);
+          pairs = measureColors("light", colors, "wcag-aa");
         }, what);
         const hit = pairs.filter(touches(token));
         assert.deepEqual(hit.map(pairOf), applies("light").filter(touches(token)).map(pairOf), `${what}: a pair went missing`);
@@ -594,7 +616,7 @@ try {
         }
         assert.deepEqual(pairs.filter((pair) => !touches(token)(pair)), untouched, `${what}: it changed a pair that does not name ${token}`);
         assert.deepEqual(
-          checkColors("probe", "light", colors).map(gateRow),
+          checkColors("probe", "light", colors, "wcag-aa").map(gateRow),
           hit.map((pair) => gateRow({ preset: "probe", mode: "light", ...pair })),
           `${what}: the gate did not report it`,
         );
@@ -606,12 +628,12 @@ try {
   test("a mode that does not exist is refused, and a record that is not there is every pair unmeasurable", () => {
     const light = presets.sorbet.colors.light;
     for (const mode of ["system", "Light", "auto", "", undefined, null]) {
-      assert.throws(() => measureColors(mode as Mode, light), /the mode must be "light" or "dark"/, `mode ${JSON.stringify(mode)}: it used to return the 54 pairs of neither mode, and say nothing of the 16 chart pairs`);
-      assert.throws(() => checkColors("probe", mode as Mode, light), TypeError);
+      assert.throws(() => measureColors(mode as Mode, light, "wcag-aa"), /the mode must be "light" or "dark"/, `mode ${JSON.stringify(mode)}: it used to return the 54 pairs of neither mode, and say nothing of the 16 chart pairs`);
+      assert.throws(() => checkColors("probe", mode as Mode, light, "wcag-aa"), TypeError);
     }
     for (const mode of MODES) {
       for (const record of [undefined, null, {}]) {
-        const pairs = measureColors(mode, record as Partial<SemanticColors> | undefined);
+        const pairs = measureColors(mode, record as Partial<SemanticColors> | undefined, "wcag-aa");
         assert.deepEqual(pairs.map(pairOf), applies(mode).map(pairOf));
         assert.ok(pairs.every((pair) => pair.actual === null && !pair.holds), `${mode}, record ${JSON.stringify(record)}`);
       }
@@ -635,15 +657,15 @@ try {
   test("checkColors and checkPreset are the measurement's failures — the same pairs, the same numbers", () => {
     for (const all of [shipped, broken]) {
       for (const { preset, mode, colors } of each(all)) {
-        const failing = measureColors(mode, colors).filter((pair) => !pair.holds);
+        const failing = measureColors(mode, colors, "wcag-aa").filter((pair) => !pair.holds);
         assert.deepEqual(
-          checkColors(preset.name, mode, colors),
+          checkColors(preset.name, mode, colors, "wcag-aa"),
           failing.map(({ fg, bg, min, actual }) => ({ preset: preset.name, mode, fg, bg, min, actual })),
           `${preset.name}/${mode}`,
         );
       }
       for (const preset of Object.values(all)) {
-        assert.deepEqual(checkPreset(preset), MODES.flatMap((mode) => checkColors(preset.name, mode, preset.colors[mode])), preset.name);
+        assert.deepEqual(checkPreset(preset), MODES.flatMap((mode) => checkColors(preset.name, mode, preset.colors[mode], "wcag-aa")), preset.name);
       }
     }
   });
@@ -651,7 +673,7 @@ try {
   test("a pair holds only if it was measured and met its floor", () => {
     for (const { preset, mode, colors } of each(broken)) {
       const rules = applies(mode);
-      measureColors(mode, colors).forEach((pair, i) => {
+      measureColors(mode, colors, "wcag-aa").forEach((pair, i) => {
         assert.equal(pair.holds, pair.actual !== null && pair.actual >= rules[i]!.min, `${preset.name}/${mode}: ${pairOf(pair)}`);
       });
     }
@@ -659,7 +681,7 @@ try {
 
   test("the tally counts what was measured, and only that", () => {
     for (const { preset, mode, colors } of [...each(shipped), ...each(broken)]) {
-      const pairs = measureColors(mode, colors);
+      const pairs = measureColors(mode, colors, "wcag-aa");
       const ratios = pairs.filter((pair) => pair.actual !== null).map((pair) => pair.actual! / pair.min);
       assert.deepEqual(
         tally(pairs),

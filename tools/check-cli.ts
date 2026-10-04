@@ -22,7 +22,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { stripVTControlCharacters, styleText } from "node:util";
 
-import { measureColors, presets } from "../packages/design-system/src/tokens/index.ts";
+import { contractOf, measureColors, presets } from "../packages/design-system/src/tokens/index.ts";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const keep = process.argv.includes("--keep");
@@ -45,8 +45,13 @@ const check = (label: string, cond: boolean) => {
  * measurement returns for it, and their sum on the last line. Looking for the
  * word "holds" was not enough — the report this replaced printed that too,
  * over "all 86 pairings pass" when 70 apply and it had measured 68.
+ *
+ * N is counted under the contract each preset declares for the mode
+ * (`contractOf`), the same one the installed report must have used: a contract
+ * named here instead would expect the wrong count the day a preset declares
+ * another.
  */
-const expectedCounts = Object.values(presets).flatMap((preset) => (["light", "dark"] as const).map((mode) => measureColors(mode, preset.colors[mode]).length));
+const expectedCounts = Object.values(presets).flatMap((preset) => (["light", "dark"] as const).map((mode) => measureColors(mode, preset.colors[mode], contractOf(preset, mode)).length));
 function reportsWhatWasMeasured(output: string): boolean {
   const text = stripVTControlCharacters(output);
   const printed = [...text.matchAll(/^ {2}(?:light|dark) +all (\d+) pairings pass/gm)].map((m) => Number(m[1]));

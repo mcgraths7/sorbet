@@ -261,3 +261,183 @@ export function worstCaseContrast(fg: string, bg: string): number | null {
   }
   return Math.min(ratio(own, overWhite), ratio(own, overBlack));
 }
+
+// THE INSTRUMENTS: four measurements that are not the WCAG ratio — where a
+// colour sits in OKLab, how far apart two colours look, how a colour looks to
+// one kind of colour blindness, and APCA's lightness contrast. A later
+// contract is calibrated with them; today the chart gate (tools/check-cvd.ts)
+// is the only caller, and they are deliberately not on the public barrel.
+//
+// They are here, beside the WCAG maths, so that there is ONE of each. The
+// chart gate carried its own simulation and its own OKLab conversion, and a
+// second copy of a measurement is how two gates come to disagree about the
+// same colour. All four read a colour through `parseColor`, like the contrast
+// contract, so a colour measures the same however it is spelled; and none of
+// them measures a translucent colour, which is not one colour until something
+// is behind it.
+
+/** The kinds of complete colour blindness the simulation models: no L cones, no M cones, no S cones. */
+export type CvdKind = "protan" | "deutan" | "tritan";
+
+type Triple = [number, number, number];
+
+// Machado, Oliveira & Fernandes (2009), severity 1.0. Rows; applied to LINEAR sRGB.
+const MACHADO: Readonly<Record<CvdKind, readonly Readonly<Triple>[]>> = {
+  protan: [
+    [0.152286, 1.052583, -0.204868],
+    [0.114503, 0.786281, 0.099216],
+    [-0.003882, -0.048116, 1.051998],
+  ],
+  deutan: [
+    [0.367322, 0.860646, -0.227968],
+    [0.280085, 0.672501, 0.047413],
+    [-0.01182, 0.04294, 0.968881],
+  ],
+  tritan: [
+    [1.255528, -0.076749, -0.178779],
+    [-0.078411, 0.930809, 0.147602],
+    [0.004733, 0.691367, 0.3039],
+  ],
+};
+
+/**
+ * Refuses a kind that is not one the simulation has a matrix for, by name.
+ * "protanopia" is not "protan": a kind that is merely close must not quietly
+ * be measured with no simulation at all — that is what full colour vision
+ * sees, the one answer nobody who names a kind is asking for.
+ */
+function requireKind(kind: unknown, caller: string): asserts kind is CvdKind {
+  if (typeof kind !== "string" || !Object.hasOwn(MACHADO, kind)) {
+    const kinds = Object.keys(MACHADO).map((name) => JSON.stringify(name)).join(", ");
+    throw new TypeError(`${caller}: the kind of colour blindness must be one of ${kinds}, got ${JSON.stringify(kind) ?? String(kind)}`);
+  }
+}
+
+/** An opaque colour's sRGB bytes. Null for a translucent one, one `parseColor` cannot read, and anything that is not a string. */
+function opaque(color: string): Rgb | null {
+  const parsed = typeof color === "string" ? parseColor(color) : null;
+  return parsed?.alpha === 1 ? parsed.rgb : null;
+}
+
+/**
+ * The sRGB standard's own decode (IEC 61966-2-1): the threshold is 0.04045.
+ * `luminanceOf` above is NOT this — WCAG 2 wrote 0.03928, its ratio is defined
+ * with that number, and the contrast contract keeps it. No 8-bit channel falls
+ * between the two, so they agree on every colour a theme can hold; they are
+ * kept apart so that each measurement is the one its standard describes.
+ */
+const srgbToLinear = (channel: number) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+
+function linearOf(color: string): Triple | null {
+  const rgb = opaque(color);
+  return rgb && [srgbToLinear(rgb.r / 255), srgbToLinear(rgb.g / 255), srgbToLinear(rgb.b / 255)];
+}
+
+/** Linear sRGB → OKLab (Ottosson). */
+function linearToOklab([r, g, b]: Readonly<Triple>): Triple {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+
+/** Linear sRGB as one kind of colour blindness is modelled to see it: still linear, each channel clamped to 0–1, never rounded. */
+function simulated(rgb: Readonly<Triple>, kind: CvdKind): Triple {
+  return MACHADO[kind].map((row) => Math.min(1, Math.max(0, row[0] * rgb[0] + row[1] * rgb[1] + row[2] * rgb[2]))) as Triple;
+}
+
+/**
+ * A colour in OKLab (Ottosson): [L, a, b]. Null when `parseColor` cannot read
+ * it or it is not opaque — a missing answer, never a guessed one.
+ */
+export function oklabOf(color: string): [number, number, number] | null {
+  const linear = linearOf(color);
+  return linear && linearToOklab(linear);
+}
+
+// APCA (apca-w3 0.1.9, constants "0.0.98G-4g"): screen luminance with a plain
+// 2.4 exponent, and a soft clamp near black, where a screen's flare leaves very
+// dark colours closer together than their numbers say.
+function apcaY({ r, g, b }: Rgb): number {
+  const y = 0.2126729 * (r / 255) ** 2.4 + 0.7151522 * (g / 255) ** 2.4 + 0.072175 * (b / 255) ** 2.4;
+  return y <= 0.022 ? y + (0.022 - y) ** 1.414 : y;
+}
+
+/**
+ * APCA lightness contrast (Lc) of text on a background. SIGNED: positive for
+ * dark text on a light background, negative for light text on dark — the two
+ * polarities are different measurements with different exponents, so the
+ * arguments are not interchangeable the way the WCAG ratio's are. 0 when the
+ * two are too close for the measure to mean anything.
+ *
+ * Null when either colour cannot be read by `parseColor` or is not opaque.
+ * Null is "not measured"; it is never 0, which is a measurement.
+ */
+export function apcaLc(text: string, background: string): number | null {
+  const [txt, bg] = [opaque(text), opaque(background)];
+  if (!txt || !bg) {
+    return null;
+  }
+  const [yTxt, yBg] = [apcaY(txt), apcaY(bg)];
+  if (Math.abs(yBg - yTxt) < 0.0005) {
+    return 0;
+  }
+  if (yBg > yTxt) {
+    const s = (yBg ** 0.56 - yTxt ** 0.57) * 1.14;
+    return s < 0.1 ? 0 : (s - 0.027) * 100;
+  }
+  const s = (yBg ** 0.65 - yTxt ** 0.62) * 1.14;
+  return s > -0.1 ? 0 : (s + 0.027) * 100;
+}
+
+/**
+ * A colour as one kind of complete colour blindness is modelled to see it, as
+ * a 6-digit lower-case hex — FOR DISPLAY (a swatch, a preview). It is rounded
+ * to 8 bits a channel, so it is not something to measure with: `separation`
+ * keeps the unrounded values and never passes through here.
+ *
+ * Throws a TypeError on a kind it has no matrix for, and on a value that is
+ * not an opaque colour `parseColor` can read. There is no colour to hand back
+ * for either, and a made-up one would be shown as if it were the answer.
+ */
+export function simulateCvd(color: string, kind: CvdKind): Hex {
+  requireKind(kind, "simulateCvd");
+  const linear = linearOf(color);
+  if (!linear) {
+    throw new TypeError(`simulateCvd: ${JSON.stringify(color) ?? String(color)} is not an opaque colour parseColor can read`);
+  }
+  const [r, g, b] = simulated(linear, kind).map((channel) => Math.round(linearToSrgbChannel(channel) * 255)) as Triple;
+  return rgbToHex({ r, g, b });
+}
+
+/**
+ * How far apart two colours look: Euclidean distance in OKLab, times 100.
+ * With `view`, both colours are first simulated as that kind of colour
+ * blindness sees them. Symmetric, and 0 for the same colour twice.
+ *
+ * The simulated colours go to OKLab as the clamped LINEAR floats the
+ * simulation produced. They are never rounded to 8 bits on the way — that is
+ * `simulateCvd`'s hex, a display value. Routing the chart gate through the hex
+ * would change 5 of its 10 printed minima and fail 4 of its floors: the floors
+ * were measured on the floats.
+ *
+ * Null when either colour cannot be read or is not opaque. A `view` that is
+ * not a kind is a TypeError whatever the colours are — a mistyped view must
+ * not come back as a number measured without one.
+ */
+export function separation(a: string, b: string, view?: CvdKind): number | null {
+  if (view !== undefined) {
+    requireKind(view, "separation");
+  }
+  const [first, second] = [linearOf(a), linearOf(b)];
+  if (!first || !second) {
+    return null;
+  }
+  const seen = (rgb: Triple) => linearToOklab(view === undefined ? rgb : simulated(rgb, view));
+  const [p, q] = [seen(first), seen(second)];
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) * 100;
+}
