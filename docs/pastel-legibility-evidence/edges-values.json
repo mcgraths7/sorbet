@@ -1,0 +1,66 @@
+{
+ "tokens": {
+  "light": {
+   "page": "#fef4dc",
+   "card": "#fffbf1",
+   "raised": "#fffbf1",
+   "well": "#f7ecd1",
+   "ink": "#693800",
+   "strong": "#472400",
+   "muted": "#844d16",
+   "subtle": "#975e2a"
+  },
+  "dark": {
+   "page": "#1c1324",
+   "card": "#2d2237",
+   "raised": "#3e324a",
+   "well": "#100916",
+   "ink": "#f3e7ce",
+   "strong": "#f3e7ce",
+   "muted": "#d7c9ae",
+   "subtle": "#b3a58d"
+  }
+ },
+ "onFill": "#472400",
+ "ring": "#b096d7",
+ "focus": "#8e6ac7",
+ "dangerRim": "#d77784",
+ "shade": {
+  "lilac": "#b096d7",
+  "blush": "#d29397",
+  "butter": "#ccb563",
+  "robin": "#66c2c4"
+ },
+ "deep": {
+  "lilac": "#7f5fab",
+  "blush": "#ac505b",
+  "butter": "#877000",
+  "robin": "#008284"
+ },
+ "softened": {
+  "lilac": "#cdb8ef",
+  "blush": "#ecb6b9",
+  "butter": "#e8d695",
+  "robin": "#99e0e1"
+ },
+ "lc": {
+  "light ink on card": "90",
+  "light muted on card": "81",
+  "light subtle on card": "74",
+  "light ink on well": "81",
+  "dark ink on page": "92",
+  "dark ink on card": "90",
+  "dark ink on raised": "86",
+  "dark muted on card": "71",
+  "dark muted on raised": "68",
+  "dark subtle on card": "51",
+  "label on lilac": "72",
+  "label on softened lilac": "65",
+  "label on blush": "73",
+  "label on softened blush": "66",
+  "label on butter": "84",
+  "label on softened butter": "76",
+  "label on robin": "82",
+  "label on softened robin": "75"
+ }
+}

@@ -8,6 +8,7 @@
  */
 
 import { withAlpha, type Hex } from "./color.ts";
+import { contractOf } from "./rules.ts";
 import {
   breakpoints,
   containers,
@@ -137,14 +138,22 @@ ${[
 `;
 }
 
+/**
+ * What a consumer can know about each preset without loading its theme. The
+ * LAST key of an entry is the contract the preset is held to in each mode —
+ * asked of `contractOf`, as everything else asks, so the manifest cannot
+ * publish a declaration the gate would refuse. It goes after the five keys a
+ * consumer already reads, so nothing that reads those sees a change.
+ */
 export function manifest(all: Record<string, Preset>): string {
   return JSON.stringify(
-    Object.values(all).map(({ name, label, tagline, defaultMode, radiusStyle }) => ({
-      name,
-      label,
-      tagline,
-      defaultMode,
-      radiusStyle,
+    Object.values(all).map((preset) => ({
+      name: preset.name,
+      label: preset.label,
+      tagline: preset.tagline,
+      defaultMode: preset.defaultMode,
+      radiusStyle: preset.radiusStyle,
+      contract: { light: contractOf(preset, "light"), dark: contractOf(preset, "dark") },
     })),
     null,
     2,

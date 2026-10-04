@@ -35,6 +35,12 @@
     "lint:styles:fix": "pnpm run lint:styles -- --fix",
     "watch:css": "sass --watch src/styles/index.scss:dist/css/sorbet.css",
     "check:contrast": "node tools/check-contrast.ts",
-    "check:cvd": "node tools/check-cvd.ts"
+    "check:cvd": "node tools/check-cvd.ts",
+    "check:golden": "node tools/check-golden.ts",
+    "check:golden:base": "node tools/check-golden-base.ts",
+    "test:golden": "node tools/test-golden.ts",
+    "test:contrast": "node tools/test-contrast.ts",
+    "test:contracts": "node tools/test-contracts.ts",
+    "update:golden": "node tools/update-golden.ts"
   }
 }

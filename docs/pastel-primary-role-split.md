@@ -1,6 +1,6 @@
 # Proposal: split `primary` so the flagship theme can be a true pastel
 
-**Status:** proposed, not implemented
+**Status:** implemented; shipped in #108, merged 2026-08-29
 **Affects:** `packages/design-system` (tokens + Sass), `packages/component-library` (none expected)
 
 ## The problem

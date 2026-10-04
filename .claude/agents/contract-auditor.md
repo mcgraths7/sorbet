@@ -56,9 +56,17 @@ can point at with a file and line.
 9. **Cross-layer imports** inside `component-library` are RELATIVE
    (`"../core/index.ts"`), not package-absolute.
 
-10. **Accessibility contract.** `src/tokens/rules.ts` is a legal requirement,
-    not a lint preference. A diff that LOWERS a `min` or deletes a rule is a
-    finding — the correct fixes are adjusting the ramp, widening the candidate
+10. **Accessibility contract.** A preset's declared contract is binding.
+    Never lower a floor, drop a rule, or change which contract a preset
+    declares to get a green build. Those are the owner's decisions and each
+    needs a PR that says so. The theme files of the WCAG presets are frozen:
+    any byte of change in them is a finding. So a finding is any of: a
+    `wcag-aa` floor lowered or a tier removed in `src/tokens/contracts.ts`; a
+    rule deleted or moved to a weaker tier in `src/tokens/rules.ts`; a
+    preset's `contract` in `presets.ts` switched without that being the PR's
+    stated purpose; a frozen golden (`tools/golden/` for ocean, forest, noir,
+    midnight) changed, or a name taken off `FROZEN_PRESETS` in
+    `tools/check-golden.ts`. The correct fixes are adjusting the ramp, widening the candidate
     walk, or splitting an overloaded role (see `primary-solid`).
 
 ## How to work

@@ -31,14 +31,18 @@ so it replaces a tree scan rather than adding to it.
     `ramps.ts`, `scales.ts` (dimensions, incl. the `misc` map), `semantics.ts`
     (the contrast-driven semantic colour builder), `presets.ts`
     (sorbet|ocean|forest|noir|midnight), `charts.ts` (8-slot CVD-validated
-    palettes), `rules.ts` (**the accessibility contract**).
+    palettes), `rules.ts` (which pairs are measured, each with a tier),
+    `contracts.ts` (**the floors each tier owes**; every preset declares a
+    contract per mode in `presets.ts`).
   - `src/styles/` — Sass, atomic layers loaded into CSS cascade layers via
     `meta.load-css` in `index.scss`. Shared mixins in `abstracts/_mixins.scss`;
     validated token accessors in `abstracts/_tokens.scss`.
   - `src/behaviors/` — vanilla TS; `init()` wires `[data-sb=…]`. Zero deps.
   - `tools/` — `build-tokens.ts` (emits `dist/themes/`, `manifest.json`,
-    `_generated.scss`; **fails the build on contrast violations**),
-    `check-contrast.ts`, `check-cvd.ts`.
+    `_generated.scss`; **checks first and writes nothing on a failure**:
+    contrast, token names, chart colour vision, golden files),
+    `check-contrast.ts`, `check-cvd.ts`, `check-golden.ts` (+ `golden/*.css`,
+    every theme's CSS pinned byte for byte).
   - Exports: `.` & `./tokens`, `./behaviors`, `./css`, `./themes/*`, `./scss/*`.
 - `packages/component-library` (`@sorbet/component-library`) — React 19, one
   subpath per atomic layer: `/core /layout /atoms /molecules /organisms
@@ -65,8 +69,14 @@ These hold on every task, which is why they are here and not in a skill:
 - **`_generated.scss` is build output.** Edit `scales.ts` and rebuild.
 - **Library Sass uses the accessors, never raw `var(--sb-…)`.** They validate at
   compile time. App code and the playground are the opposite: raw is correct there.
-- **`rules.ts` is a legal requirement, not a preference.** Never lower a `min`
-  to get a green build.
+- **A preset's declared contract is binding.** Never lower a floor, drop a rule,
+  or change which contract a preset declares to get a green build. Those are
+  the owner's decisions and each needs a PR that says so. The theme files of
+  the WCAG presets are frozen: any byte of change in them is a finding.
+  "The WCAG presets" are the ones on the `FROZEN_PRESETS` line of
+  `tools/check-golden.ts`: ocean, forest, noir, midnight. Floors live in
+  `src/tokens/contracts.ts`, rules in `rules.ts`, the declaration in
+  `presets.ts` (`contract`).
 - **Layout owns spacing between components.** Atoms and molecules have no outer
   margins.
 - **Never inline a new `<svg>`** — glyphs live in `atoms/icons.tsx`. Charts are exempt.
@@ -81,13 +91,14 @@ Package manager is **pnpm**, pinned by the root `packageManager` field
 `export PATH="/opt/homebrew/opt/node@24/bin:$PATH"`.
 
 ```
-pnpm build          # topological; includes the WCAG gate
-pnpm test           # check:contrast + check:client
+pnpm build          # topological; includes the contrast and golden-file gates
+pnpm test           # check:contrast + check:client + test:golden + test:contrast + test:contracts
 pnpm check:catalog  # README roster must list every export
 pnpm check:cli
 pnpm lint           # --max-warnings 0
 pnpm typecheck
 pnpm check:contrast # full per-preset/mode report
+pnpm check:golden   # every theme's CSS against its golden copy
 pnpm playground     # port 5183
 ```
 

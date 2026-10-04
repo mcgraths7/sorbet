@@ -1,0 +1,60 @@
+# Fixtures for `tools/test-contracts.ts`
+
+What the code answered BEFORE the contract mechanism existed. The test holds
+the new code to these, so none of them may be regenerated from the new code:
+that would compare it with itself.
+
+| File | What it is | Made by |
+| --- | --- | --- |
+| `wcag-aa.triples.json` | Per mode, the ordered `[fg, bg, floor]` list `measureColors(mode, colors)` produced | commit `2d3b765`, run |
+| `wcag-aa.measurements.json` | All 700 measurements of the five presets: preset, mode, fg, bg, floor, actual, holds | commit `2d3b765`, run |
+| `rules.order.json` | `RULES` in order: `[fg, bg, mode or null]`, 86 entries | commit `2d3b765`, run |
+| `check-cvd.report.txt` | stdout of `node tools/check-cvd.ts`, `NO_COLOR=1` | commit `2d3b765`, run |
+| `check-contrast.report.txt` | stdout of `node tools/check-contrast.ts`, `NO_COLOR=1` | commit `2d3b765`, run |
+| `simulate-cvd.json` | `simulateCvd` for 12 colours × 3 kinds | `simulate_cvd.py`, beside it |
+| `separation-clamp.json` | `separation` with a view, for 8 pairs whose simulated channel exceeds 1 before the clamp | `simulate_cvd.py`, beside it |
+| `record-fixtures.mts.txt` | The script that recorded the first five | the test author, 2026-10-04 |
+
+## Re-recording the first five
+
+The first five were recorded on 2026-10-04 by `record-fixtures.mts.txt`, which
+imports that commit's `src/tokens/index.ts` and runs its two tools. It cannot
+run on a later tree (it calls `measureColors` without a contract and reads
+`min` off the measurements), which is why it is committed as a `.txt`: `pnpm
+lint`, the type check and every scan the tests make of the repository's sources
+read `.ts` files and pass it by. Do not rename it in place.
+
+To re-record, give it a copy of the tree as it was at `2d3b765` and a
+directory to write into. Nothing needs installing: the commit's token sources
+have no dependencies.
+
+```sh
+# from the repository root
+mkdir -p /tmp/sorbet-2d3b765 /tmp/sorbet-recorded
+git archive 2d3b765 packages/design-system | tar -x -C /tmp/sorbet-2d3b765
+cp packages/design-system/tools/fixtures/contracts/record-fixtures.mts.txt /tmp/record-fixtures.mts
+node /tmp/record-fixtures.mts /tmp/sorbet-2d3b765/packages/design-system /tmp/sorbet-recorded
+diff -r /tmp/sorbet-recorded packages/design-system/tools/fixtures/contracts | grep -v '^Only in'
+```
+
+The last line prints nothing when the five files on disk are what `2d3b765`
+answers (checked this way on 2026-10-04). Copy a file across only when the
+intent is to change what the presets are held to: a change to one of these
+five in any other circumstance is exactly that, by accident.
+
+## The two Python fixtures
+
+`simulate-cvd.json` and `separation-clamp.json` are different: nothing computed
+them before. They come from `simulate_cvd.py`, an implementation written in
+Python from the specification's text alone (M7, M10.10), sharing no code with
+`src/tokens/color.ts`. Before it writes anything it reproduces the
+specification's own twelve `separation` check values to 1e-9, so its arithmetic
+is checked against the specification and not against the code under test.
+`python3 simulate_cvd.py` rewrites both files; `--check` compares both and
+exits 1 if either differs. The test runs `--check` where python3 exists.
+
+`separation-clamp.json` exists because none of the specification's twelve check
+values has a channel above 1 after the simulation matrix, so a simulation that
+lost its upper clamp reproduced all twelve. Each row carries the answer
+(`separation`) and what an unclamped simulation would say (`unclamped`); the
+script refuses a pair where the two are closer than 0.01.

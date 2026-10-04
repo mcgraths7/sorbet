@@ -12,6 +12,13 @@
  *   ADJACENT slot pair. The per-preset/mode minimum over both deficiencies is
  *   asserted against the floors below.
  *
+ * The measurement itself is `separation` in src/tokens/color.ts, asked for one
+ * view at a time. This file used to carry its own copy of the simulation and
+ * of the OKLab conversion; a second copy is how this gate and a contract that
+ * measures the same thing would come to disagree about one colour. What stays
+ * here is what is this gate's own: which views it checks, under which names it
+ * prints them, and the floors.
+ *
  * Floors are this tool's own first-run minima, rounded down to one decimal:
  * regression baselines, not aspirations. Raising a palette's separation may
  * raise its floor; lowering one below its floor is a build failure and a
@@ -21,23 +28,19 @@
 import { styleText } from "node:util";
 
 import { chartColors, chartThemes } from "../src/tokens/charts.ts";
-import { hexToRgb } from "../src/tokens/color.ts";
+import { separation, type CvdKind } from "../src/tokens/color.ts";
 
 type Mode = "light" | "dark";
 type Deficiency = "protanopia" | "deuteranopia";
 
-// Machado, Oliveira & Fernandes (2009), severity 1.0, applied in linear RGB.
-const MACHADO: Record<Deficiency, number[][]> = {
-  protanopia: [
-    [0.152286, 1.052583, -0.204868],
-    [0.114503, 0.786281, 0.099216],
-    [-0.003882, -0.048116, 1.051998],
-  ],
-  deuteranopia: [
-    [0.367322, 0.860646, -0.227968],
-    [0.280085, 0.672501, 0.047413],
-    [-0.01182, 0.04294, 0.968881],
-  ],
+/**
+ * The two views this gate checks, under the names it has always printed, each
+ * mapped to the shared instrument's name for it. Tritanopia is not here: the
+ * floors below were never measured under it.
+ */
+const VIEW: Record<Deficiency, CvdKind> = {
+  protanopia: "protan",
+  deuteranopia: "deutan",
 };
 
 /** Per-preset/mode floors: min adjacent ΔE over both deficiencies. */
@@ -49,35 +52,23 @@ const FLOORS: Record<string, Record<Mode, number>> = {
   midnight: { light: 3.9, dark: 5.8 },
 };
 
-const linearize = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-
-function simulate(rgb: [number, number, number], d: Deficiency): [number, number, number] {
-  const m = MACHADO[d];
-  return [0, 1, 2].map((i) =>
-    Math.min(1, Math.max(0, m[i]![0]! * rgb[0] + m[i]![1]! * rgb[1] + m[i]![2]! * rgb[2])),
-  ) as [number, number, number];
-}
-
-/** Linear sRGB → OKLab (Ottosson). */
-function oklab([r, g, b]: [number, number, number]): [number, number, number] {
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-  return [
-    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
-    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
-    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
-  ];
-}
-
+/**
+ * How far apart two colours look under one deficiency: `separation` with that
+ * view. Two things are errors here and not numbers. A deficiency this gate has
+ * no view for: `separation` with no view at all is the UNSIMULATED distance —
+ * what full colour vision sees, which is not what a floor here was measured
+ * against. And a colour that cannot be read: a chart slot that is not a colour
+ * has no distance to pass a floor with.
+ */
 export function cvdDeltaE(hexA: string, hexB: string, d: Deficiency): number {
-  const lin = (hex: string): [number, number, number] => {
-    const { r, g, b } = hexToRgb(hex);
-    return [linearize(r / 255), linearize(g / 255), linearize(b / 255)];
-  };
-  const a = oklab(simulate(lin(hexA), d));
-  const b = oklab(simulate(lin(hexB), d));
-  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) * 100;
+  if (!Object.hasOwn(VIEW, d)) {
+    throw new TypeError(`cvdDeltaE: this gate checks ${Object.keys(VIEW).join(" and ")}, not ${JSON.stringify(d) ?? String(d)}`);
+  }
+  const dE = separation(hexA, hexB, VIEW[d]);
+  if (dE === null) {
+    throw new Error(`Expected two opaque colours, got "${hexA}" and "${hexB}"`);
+  }
+  return dE;
 }
 
 export interface CvdFailure {
@@ -116,7 +107,9 @@ export function checkCvd(report = false): CvdFailure[] {
   return failures;
 }
 
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+// import.meta.main: comparing process.argv[1] with this file's URL is false for
+// a path with a space or a symlink in it, and the report then prints nothing.
+if (import.meta.main) {
   console.log(styleText("bold", "adjacent-slot CVD separation (Machado 1.0, OKLab ΔE×100):"));
   const failures = checkCvd(true);
   if (failures.length > 0) {

@@ -9,6 +9,7 @@ import { ramps } from "./ramps.ts";
 import { buildMode, type Mode, type SemanticColors, type SemanticRecipe } from "./semantics.ts";
 
 import type { Hex } from "./color.ts";
+import type { ContractName } from "./contracts.ts";
 import type { RadiusStyle } from "./scales.ts";
 
 export interface Preset {
@@ -20,6 +21,13 @@ export interface Preset {
   fonts: { sans: string; display: string; mono: string };
   shadowTint: Hex;
   colors: Record<Mode, SemanticColors>;
+  /**
+   * The contract this preset is held to, one per mode (contracts.ts). Required,
+   * and with no default anywhere: a preset that does not say is refused by
+   * `contractOf` in rules.ts, which is the only thing that reads this — the
+   * type alone stops nothing, because the tools run without type-checking.
+   */
+  contract: Record<Mode, ContractName>;
 }
 
 const SANS = "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif";
@@ -48,6 +56,7 @@ export const presets = {
     radiusStyle: "round",
     fonts: { sans: ROUNDED, display: ROUNDED, mono: MONO },
     shadowTint: ramps.sand[950],
+    contract: { light: "wcag-aa", dark: "wcag-aa" },
     colors: build({
       neutral: ramps.sand,
       charts: chartThemes.sorbet,
@@ -66,6 +75,7 @@ export const presets = {
     radiusStyle: "soft",
     fonts: { sans: SANS, display: SANS, mono: MONO },
     shadowTint: ramps.slate[950],
+    contract: { light: "wcag-aa", dark: "wcag-aa" },
     colors: build({
       neutral: ramps.slate,
       primary: ramps.blue,
@@ -84,6 +94,7 @@ export const presets = {
     radiusStyle: "soft",
     fonts: { sans: SANS, display: SERIF, mono: MONO },
     shadowTint: ramps.sand[950],
+    contract: { light: "wcag-aa", dark: "wcag-aa" },
     colors: build({
       neutral: ramps.sand,
       charts: chartThemes.forest,
@@ -101,6 +112,7 @@ export const presets = {
     radiusStyle: "sharp",
     fonts: { sans: GROTESK, display: GROTESK, mono: MONO },
     shadowTint: ramps.gray[950],
+    contract: { light: "wcag-aa", dark: "wcag-aa" },
     colors: build({
       neutral: ramps.gray,
       charts: chartThemes.noir,
@@ -141,6 +153,7 @@ export const presets = {
     radiusStyle: "soft",
     fonts: { sans: SANS, display: SANS, mono: MONO },
     shadowTint: ramps.violet[950],
+    contract: { light: "wcag-aa", dark: "wcag-aa" },
     colors: build({
       neutral: ramps.slate,
       primary: ramps.violet,

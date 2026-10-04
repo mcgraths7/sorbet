@@ -36,6 +36,7 @@ import oceanTheme from "@sorbet/design-system/themes/ocean.css?url";
 import sorbetTheme from "@sorbet/design-system/themes/sorbet.css?url";
 import { Fragment, useEffect, useState } from "react";
 
+import { CONTRAST_CHECKS } from "./contrast-checks.ts";
 import { demosFor, type DemoLayer } from "./demos/index.ts";
 
 const THEMES = [
@@ -148,8 +149,8 @@ export function App() {
                     <Stack gap={2}>
                       <CardTitle>Accessible by construction</CardTitle>
                       <p className="u-text-sm u-text-muted">
-                        Every semantic color pairing is contrast-verified on every build — 790 checks across 5
-                        presets × 2 modes. A theme that fails WCAG AA fails to compile.
+                        Every semantic color pairing is contrast-verified on every build — {CONTRAST_CHECKS}. A
+                        theme that fails WCAG AA fails to compile.
                       </p>
                     </Stack>
                   </CardBody>

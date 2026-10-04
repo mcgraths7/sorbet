@@ -1,0 +1,202 @@
+SUMMARY: Section 5 is not ready for a test author. Six defects would make tests either unsatisfiable or silently empty; all numbers are from colorkit.mjs against the groundwork worktree (scratch scripts in /private/tmp/claude-501/-Users-homelab/06652a5c-23e2-4a00-8579-52c3b446d84b/scratchpad/spec-adversary/).
+
+Critical
+- Checks 1 and 4 cannot both hold: `danger-active` is a named token, used by `_button.scss:109`, and produced by nothing in any of the five presets; the four WCAG theme files are frozen.
+- The 'one pair list, tiers map to numbers' model cannot reproduce today's 86 rules: the `subtle` tier mixes 3:1 and 4.5:1 pairs, chart and edge floors differ by mode, and the new pairs would join wcag-aa — where text-subtle on bg-subtle is 2.63 (ocean) and 2.65 (noir).
+- The decided dark muted and subtle text fail the legibility floors (70.3 and 50.6 on a card against 76 and 64); the contract has no per-mode floors.
+- The edge floor is two numbers ('14. Never under 5'), and the decided recipes fail 14 on four listed pairs (field 11.0 / 10.5; card on washes 12.8 to 13.9). Dark clears 16 by 0.06.
+- Most mark, tell-apart and edge inputs are not tokens (control ring, selected bar, wash, off-track, field edge, rose rim, status shades), while section 6 says no new role is needed. The Sass today paints pale fills as progress bars (3.5 to 9.3 against a floor of 10).
+- No rule says what an unmeasurable value does; today it is skipped, and the new look is mostly translucent values.
+
+Major (12): the doc's own wash fails the secondary floor (75.33); the tick has no rule though increment 4 requires it to fail; checks 2 and 3 fail every preset as written; the edge rule lets black and grey outlines pass (18.4 and 41.4 in light, 19.7 solid black in dark); label, palette, focus and edge arms name members that do not exist or omit ones that do; the selected bar fails on the page (19.70); ring hex disagrees with the decisions record (#b096d7 vs #b096d9); Lc sign in dark is unstated.
+
+Verified correct: the rule counts (86 / 70 / 46 / 2 / 4 / 2 / 16), every cited line number but one, and every light-mode 'weakest member' figure in the text tier table — though secondary and subtle clear by 0.30 and 0.17.
+
+Eighteen items are left free and cannot be tested first; the list is in left_free.
+
+MATRIX rows: 36 (covered no/unstated: 26)
+
+[critical] (contradiction) AGAINST: Checks with no number, 1: "Every semantic colour name is emitted, in both modes." and 4: "The four WCAG theme files equal their snapshots, byte for byte."
+  DEFECT: The two checks cannot both pass for the four frozen presets. `danger-active` is in SEMANTIC_COLOR_NAMES (semantics.ts:25) and read by `_button.scss:109`, but nothing produces it: `status()` (semantics.ts:160-177) writes only role, -hover, on-, -subtle, -text. Fixing it adds a line to every frozen theme file.
+  EVIDENCE: Enumerated preset.colors against the name list: `danger-active` is undefined in all 10 preset/mode records and absent from themeCss(sorbet). Not in the section 9 defect list.
+  CHANGE: Decide before the golden is pinned: either add danger-active as an increment-0 fix (golden taken after), or drop the name. State which presets check 1 applies to.
+
+[critical] (contradiction) AGAINST: "One pair list. Each contract only maps tiers to numbers, so a new pair joins both" / "A pinned-list test proves it resolves to exactly today's 86 entries"
+  DEFECT: The tier table cannot re-express today's RULES, and the shared list breaks frozen presets. (a) Tier `subtle` holds text-subtle (3:1 today) AND text-muted on bg-subtle/surface-sunken (4.5:1 today): one tier, two WCAG numbers. (b) Chart is 3 light / 2.25 dark but a tier has one `min`. (c) The new pairs (text-subtle on bg-subtle and surface-sunken; six `-text on surface`; status hovers; focus on fills) would join wcag-aa and make it more than 86.
+  EVIDENCE: Measured with the repo's own contrast(): text-subtle on bg-subtle = 2.63 ocean light, 2.65 noir light (under 3). focus-ring on primary = 1.00 in six preset/modes. So a new pair that 'joins both' fails presets that are frozen.
+  CHANGE: Give the tier enum explicitly, one tier per (pair group, WCAG number). State that new pairs go in tiers wcag-aa does not list. Allow `min` per mode.
+
+[critical] (contradiction) AGAINST: Text tiers table (secondary 76, subtle 64) vs section 7: "muted `#d7c9ae` 71 on a card; subtle `#b3a58d` 51 on a card" and "sorbet light, then sorbet dark" declaring `legibility`
+  DEFECT: The decided dark text shades fail the floors of the one `legibility` contract. Contract has a single tier map, so increment 9 cannot go green without either new dark shades or per-mode floors; neither is stated.
+  EVIDENCE: Kit, worst view, magnitude: dark muted 72.4 page / 70.3 card / 66.8 raised (floor 76); dark subtle 52.7 / 50.6 / 47.0 (floor 64). Dark body passes (85.2 on raised).
+  CHANGE: State dark floors separately (pinned to sheet 2's dark values) or state that dark shades are re-picked; add mode to the tier map.
+
+[critical] (bound-symmetry) AGAINST: Edge presence table: "light: **14**. Never under 5" / "dark: **16**. Never under 10" and Pairs: "a field on `surface` and on `bg`; `surface` on each brand `-subtle` wash"
+  DEFECT: Two numbers per mode with no statement of which one the build enforces, and the decided recipes fail the larger one on four of the listed light pairs. 14 was pinned to the card only.
+  EVIDENCE: Build method, worst view: card on cream 14.40 (pass by 0.40); field hairline .24 on card 11.03, on page 10.53; card on lilac/blush/butter wash 13.25 / 12.83 / 13.85. Dark card on page 16.06 — clears 16 by 0.06, so the integer rounding in compositeOver() decides it.
+  CHANGE: State one enforced floor per pair class (container, floating, field, on-wash) and what 'never under' means; re-pin dark to a value with real margin (for example 15).
+
+[critical] (predicate-matrix) AGAINST: "Rules name roles (`primary`, `surface`), never hues" and section 6: "No new role is needed, so nothing is added to `SEMANTIC_COLOR_NAMES`"
+  DEFECT: Most replacement rules read things that are not roles and not in the token pipeline: the control ring, the selected bar, its wash, the off-track, the track, the invalid edge, the resting field edge, 'a field', status bars. `Rule { fg; bg }` cannot carry an edge rule (fill, edge, alpha, behind). The checker would pass on tokens while Sass paints other tokens.
+  EVIDENCE: Sass today: progress tone bars paint the pale fills (`_progress.scss:25`), which measure 3.54 (butter), 4.96 (robin), 8.01 (blush), 9.27 (lilac) against the well — all under the mark floor 10 — while the spec's 15.6 uses a status shade that has no token. Rose `#d77784`, ring `#b096d7`, caramel and the washes have no role.
+  CHANGE: Add a table: every mark/tell-apart/edge input -> the exact token (new optional tokens named) or data field the checker reads, and the Sass site that must consume it. Withdraw 'no new role is needed' or name the existing role each value lands in.
+
+[critical] (trust-boundary) AGAINST: Section 5 as a whole (silent); today's rules.ts:120-126: "Null = unmeasurable ... no claim is made"
+  DEFECT: No rule in section 5 says whether an unmeasurable value is a failure. The new look uses translucent values heavily (washes at 50%/20%, rim at 18%, divider 'rim colour at 14%', disabled fill at 45%, `color-mix()` halos), so skip-on-null would silently drop exactly the new rules.
+  EVIDENCE: Today: translucent or missing fg -> null -> skipped; missing bg -> TypeError in parseAlphaColor (reproduced); `compositeOver` returns an unparseable string unchanged (color.ts:128-130) and only `rgb(r g b / a)` with integer channels parses. Identical sides: sep 0 / Lc 0 fail correctly, except Palette (see below).
+  CHANGE: One sentence per metric: unmeasurable = failure, naming the pair. State how a translucent bg is measured for lc/sep (over a named backdrop, not over white and black, which would fail every wash).
+
+[major] (contradiction) AGAINST: Secondary tier: "each `-text` role on `bg`, `surface` and its own `-subtle`" at floor 76, vs section 6: "A status box uses the fill at half strength over milk, where the ink reads 77 to 83"
+  DEFECT: The document's own wash fails the floor at worst view, and the `-text` / `-subtle` values are not decided at all.
+  EVIDENCE: Ink `#693800` on lilac wash `#ede0f7`: 76.48 typical, 75.33 deutan (floor 76). Blush wash 76.17 (clears by 0.17). Violet link `#654199` on lilac wash 69.8.
+  CHANGE: Decide the seven -text and -subtle values, or move '-text on own -subtle' to its own tier pinned to the wash measurement.
+
+[major] (contradiction) AGAINST: Section 8, increment 4: "sorbet as shipped must fail the legibility contract on the dark card edge (6.9), the switch (5.3) and the tick (Lc 26 at worst)"
+  DEFECT: No section 5 rule reads the tick pair (on-primary on primary-solid); the label tier checks on-primary on primary, which passes as shipped. The switch known-bad only fails in light.
+  EVIDENCE: Shipped: tick 26.35 worst; on-primary on primary 83.22 (passes 70). Switch on/off: 5.28 light, 11.39 dark (passes 10). Also the Tell-apart known-bad 'an input's focused border against its resting border 5.3' has no pair in that rule.
+  CHANGE: Add a tick/dot pair to the label tier (on-X on the checked fill token) and state the mode of each known-bad.
+
+[major] (contradiction) AGAINST: Check 3: "No edge colour equals the fill it outlines."
+  DEFECT: No map of which edge outlines which fill, no scope by contract. Read plainly it fails every preset today, including the frozen four; read for the new look it can never fire, because a translucent shadow string never equals a hex.
+  EVIDENCE: All five presets: light border-subtle == bg-subtle == surface-sunken; dark border == surface-raised and border-subtle == surface == bg-subtle.
+  CHANGE: List the (edge token, fill token) pairs, say it applies to legibility presets only, and say it compares after compositing.
+
+[major] (contradiction) AGAINST: Check 2: "label ink darker than body, body darker than muted, muted darker than subtle — reversed in dark" vs section 7: "The pastel fills and the label ink are the same hexes in both modes"
+  DEFECT: In dark the decided label ink (L 0.30) is far darker than body (L 0.93), so 'reversed' is false for the decided values. 'Label ink' is seven on-* tokens, not one; 'darker' has no stated measure; scope by contract is unstated.
+  EVIDENCE: WCAG presets in light have on-primary `#ffffff` (L 1.0) with text at L 0.33; sorbet light today has on-success white. Unscoped, the check fails ocean, forest, noir, midnight.
+  CHANGE: Drop label ink from the dark ordering, name the tokens, name the measure (OKLCH L), scope to legibility.
+
+[major] (bound-symmetry) AGAINST: "Separation has no direction, so a rim lighter than a dark page passes and a shadow darker than it cannot." and section 7: "Every edge colour is a darker version of what it edges, never grey or black."
+  DEFECT: The edge rule bounds only distance. Nothing stops a grey or black outline (ruled out by the owner), nothing enforces section 4 rule 1's direction, and there is no upper bound on harshness. The quoted sentence is also false at full strength.
+  EVIDENCE: Light, on cream: black at 25% = 18.4; solid `#777168` (today's border-strong) = 41.4; both pass 14. Dark: solid black line = 19.7 on the page, 26.6 on a card; both pass 16 (black at 70% fails: 7.3 / 11.5).
+  CHANGE: Add a chroma floor or hue-match rule for edge colours, and a direction rule per mode, or state explicitly that these are left to the eye.
+
+[major] (arm-enumeration) AGAINST: Label tier: "each `on-*` on its fill, its hover and its active (three brand, four status)" with the column header "the same pairs `RULES` holds today" and "All 46 text pairs stay"
+  DEFECT: The words enumerate 21 pairs; today holds 14. Three named members do not exist (success-active, warning-active, info-active), one exists by name only (danger-active), three exist but are unruled today (success/warning/info-hover). Elsewhere: `-text on surface` adds 6 pairs; the subtle tier adds 2 pairs but says 'the pair missing today' (singular).
+  EVIDENCE: rules.ts:74-86: on-success/success, on-warning/warning, on-danger/danger + danger-hover, on-info/info. semantics.ts:23-26 token list.
+  CHANGE: Replace the prose with the literal pair list per tier, marking each pair 'today' or 'new'.
+
+[major] (arm-enumeration) AGAINST: Palette: "every pair among the four fills"
+  DEFECT: 'The four fills' are hues. By role there are seven fills, and info = primary, danger = secondary, warning = accent share a hex, so the rule fails at 0 if run over fill roles; a second legibility preset has no way to know which four.
+  EVIDENCE: Six real pairs measured: worst 5.38 (blush/robin, deutan), 5.64 (lilac/robin, deutan) — passes 5.
+  CHANGE: Name the roles (primary, secondary, accent, success) and say identical status aliases are exempt.
+
+[major] (contradiction) AGAINST: Mark, line: "the selected bar against its wash" floor 20, sheets "selected bar 20.6 on its wash"; decisions table "firm lilac ring `#b096d7`"
+  DEFECT: The pass depends on what the wash sits on, which is unspecified, and the ring hex disagrees with the decisions record the table says it is copied from.
+  EVIDENCE: Bar `#b096d7` vs lilac 50% over milk: 20.63. Same wash over the cream page: 19.70 = fail. DECISIONS.md row 7 says `#b096d9` (20.56 / 19.64); the stated derivation (fill 0.14 darker, a quarter more chroma) yields `#b096d7`.
+  CHANGE: Fix one hex; state the wash's backdrop per pair (surface and bg), or lower the floor to a value with margin.
+
+[major] (arm-enumeration) AGAINST: Edge presence: "for every raised element, on everything it is allowed to sit on" vs the four pair groups
+  DEFECT: Buttons, chips, the quiet button, the status box, the sunken panel/track and the disabled fill are raised or bounded elements with no pair. The section 6 rules 'Robin's egg is never a lone button on the page' and 'butter ... used small, on cards' have no check.
+  EVIDENCE: Butter vs cream 5.63 (tritan), robin vs cream 5.72 (protan). Sunken panel on a card by the build method: fill 4.47, inset edge at 12% 4.72 — under even the 'never under 5' line.
+  CHANGE: Either add the pairs with their own floors or state that only containers, floating surfaces and fields are gated.
+
+[major] (arm-enumeration) AGAINST: Focus: "`focus-ring` against `bg`, `surface`, `surface-raised` and every brand fill, in both modes"
+  DEFECT: 'Brand fill' is three roles; the sheets measured four fills. The success fill, hover/active fills, the well and bg-subtle are unlisted. 'In both modes' is said only for Focus; mode is unstated for Mark, Tell-apart and Palette.
+  EVIDENCE: `#8e6ac7`: robin 32.01, well 35.21 light / 44.29 dark — all would pass, so listing them costs nothing.
+  CHANGE: List the backgrounds literally and add a mode column to the kinds table.
+
+[major] (predicate-matrix) AGAINST: "blend the edge's all-round layer over the backdrop" and `max( sep(fill, behind), sep(blend(edge, behind), behind) )`
+  DEFECT: Three undefined inputs: which layer of a multi-layer shadow is 'all-round'; which shadow datum belongs to which pair; and inset edges, which physically blend over the element's own fill, not over 'behind'. The check-6 fixture has no all-round layer at all (every shipped shadow is a downward drop), yet the table scores it 3.4.
+  EVIDENCE: Dark field ring at 34%: 19.5 if blended over the well (physical), 26.5 if blended over the card (formula as written). Whether edge floors are worst-view is not said in this subsection (the table's 14.4 is the tritan figure; typical is 14.76).
+  CHANGE: Define the shadow data shape (layers with inset flag, offset, blur, spread, colour, alpha), the layer-selection rule, and the inset formula; say 'worst view'.
+
+[major] (trust-boundary) AGAINST: Text tiers: "Lc, worst view" with floors as positive numbers
+  DEFECT: APCA Lc is signed and not symmetric. Light text on dark returns negative values, so `lc >= min` fails every dark pair; the spec never says to compare magnitude, nor that fg/bg order matters.
+  EVIDENCE: Kit: dark text on dark page -91.87; ink on cream 85.84 but cream 'on' ink -89.44.
+  CHANGE: State: floor compares |Lc| with fg = text, bg = background; worst view = lowest magnitude.
+
+[major] (predicate-matrix) AGAINST: Edge pairs: "`surface` on each brand `-subtle` wash (the auth template paints washes behind a card)"
+  DEFECT: The auth template does not paint `-subtle`; it paints radial gradients of `color-mix(in oklab, <subtle>, transparent 30-50%)` over the page. The rule measures a backdrop that is never on screen.
+  EVIDENCE: `templates/_auth.scss:19-21`.
+  CHANGE: State that the full-strength -subtle is used as the worst-case backdrop, or drop the pair.
+
+[minor] (bound-symmetry) AGAINST: Label tier "Moves when: a fill gets lighter or darker; the label type changes again" and section 6: "hover and pressed move the shadow and never darken the fill"
+  DEFECT: The floor of 70 is only valid at 16px semi-bold, a Sass value that lands in increment 7 while the floor applies from increment 5; the checker reads no font size. 'Never darken the fill', '12px text belongs on cream or milk' and 'paragraphs never sit on a full-strength fill' are rules with no check.
+  EVIDENCE: Ink on full lilac 62.47, on blush 63.92 worst; `_button.scss:25-26` is fs(sm) semibold.
+  CHANGE: State these as unchecked conventions, or record the label size as data on the contract.
+
+[minor] (contradiction) AGAINST: Status line: "Seven items about the contract and the work are open (§11)" and section 8: "Fourteen increments. Each is one PR"
+  DEFECT: The decisions record has moved past the document: rows 12-17 decide section 11 items 1, 2 and 6, set 'two pull requests', and say 'sorbet built from a recipe ... rather than hand-typed values'.
+  EVIDENCE: `~/homelab/drop/sorbet-pastel-2026-10-03/DECISIONS.md` rows 12-17.
+  CHANGE: Re-copy the record into section 1 and close the decided items.
+
+[minor] (trust-boundary) AGAINST: Scrim row: "the same rule, unchanged" with Contract.views = four views
+  DEFECT: Unstated whether a ratio tier under `legibility` is measured in typical vision only or worst of four. Also unstated: the simulation clamps out-of-range channels, which is part of every worst-view number.
+  EVIDENCE: Shipped on-scrim-muted: 4.968 typical, 4.949 protan (holds either way). Tritan clips cream, milk, blush, butter; protan clips both inks.
+  CHANGE: Say views apply to lc and sep only (or to all), and that channels are clamped to 0..1 in linear RGB.
+
+[minor] (contradiction) AGAINST: "The repo already does this in `tools/check-cvd.ts:44-50` (\"regression baselines, not aspirations\")"
+  DEFECT: The quoted phrase is at check-cvd.ts:15-18; 44-50 is the FLOORS table. Every other cited line in sections 3-5, 8 and appendix C that I checked is correct, as are the counts (86 / 70 / 46 / 2 / 4 / 2 / 16, and 68 measured by the reports).
+  EVIDENCE: Read of the file.
+  CHANGE: Cite 15-18 and 44-50.
+
+[minor] (contradiction) AGAINST: Section 7: "Round cards and fields it is a caramel, `#a16e32`" vs appendix E field recipe `rgb(129 91 31 / .24)`
+  DEFECT: The field edge uses a different colour (`#815b1f`) from the stated caramel, so 'the resting field edge' in Tell-apart has two candidate values.
+  EVIDENCE: Rose vs field edge 19.30; rose vs caramel `#a16e32` solid 11.27.
+  CHANGE: Name one colour for the field edge.
+
+LEFT FREE:
+ - The Tier enum and the Kind enum: no names are given beyond body, secondary, label, subtle, scrim and the five kind headings; whether a floor is keyed by tier or by kind
+ - How a per-mode number is expressed (chart 3 / 2.25; edge 14 / 16; any dark text floors)
+ - Null policy for lc, sep and edge rules: fail, skip or throw; and how a translucent background is measured for lc/sep
+ - Whether Lc floors compare magnitude, and the fg/bg argument order
+ - Light-mode values not decided: surface-raised, bg-subtle (well or deep cream), border, border-subtle, border-strong, text-inverse, all -hover and -active fills, all seven -text and -subtle roles, link, link-hover, primary/secondary/accent-solid, on-scrim, on-scrim-muted, chart-muted
+ - Which token (existing or new optional) carries: control ring, selected bar, selected wash, off-track, track, invalid rim #d77784, resting field edge, status shades, halo and deep tones
+ - Dark-mode values for muted/subtle that meet the floors, or dark floors
+ - Shadow-as-data shape: layers, which layer is 'all-round', inset handling, which shadow maps to which edge pair
+ - Which of the two edge numbers is enforced ('14' vs 'never under 5'; '16' vs 'never under 10')
+ - Scope of checks 1, 2 and 3: all presets or legibility presets only; the edge-to-fill map for check 3; the measure of 'darker' for check 2
+ - Whether mark, tell-apart and palette rules run in dark as well as light
+ - Which roles are 'the four fills' and 'every brand fill'
+ - Whether chart marks are checked against bg as well as surface, and whether chart-muted is in the rule
+ - Whether ratio tiers (scrim) use the contract's four views
+ - Rounding rule for a regression baseline ('rounded down' to an integer, or one decimal as check-cvd does)
+ - Check 6: must the failure list contain the card edge, or consist only of it; where the as-shipped fixture's shadow data comes from
+ - Shape of the `legibility` contract's record of 'who it was calibrated for'
+ - The ring hex: #b096d7 (document, derivation) or #b096d9 (decisions record)
+
+REMEASURED:
+ - body 84: ink #693800 on cream = 84.86 worst (tritan); on milk 88.78. Clears by 0.86
+ - secondary 76: muted #844d16 on cream = 76.30 worst (deutan). Clears by 0.30 — rounding-sensitive. Ink on lilac wash (50% over milk) = 75.33: FAILS
+ - label 70: #472400 on blush = 70.92 (protan), on lilac 71.32, butter 82.57, robin 79.10. Clears by 0.92
+ - subtle 64: #975e2a on the well = 64.17 worst (deutan). Clears by 0.17 — rounding-sensitive
+ - dark text vs the same floors: body 90.87 / 88.77 / 85.24 pass; muted #d7c9ae 72.42 / 70.32 / 66.79 FAIL 76; subtle #b3a58d 52.65 / 50.55 / 47.02 FAIL 64
+ - mark area 10: switch/progress shade vs well 23.04; checked lilac vs milk 13.10, vs cream 11.07; weakest status shade (robin #66c2c4) vs well 15.63; pale fills as bars 3.54 to 9.27 (fail, and are what Sass paints today)
+ - mark line 20: ring #b096d7 vs milk 27.03, vs cream 24.95; selected bar vs wash-on-card 20.63 (clears by 0.63), vs wash-on-page 19.70 FAILS
+ - tell-apart 10: rose vs field edge 19.30; rose vs focus 14.13; focus vs ring 12.18
+ - palette 5: worst 5.38 (blush/robin, deutan); next 5.64 (lilac/robin, deutan)
+ - focus 20: #8e6ac7 vs cream 37.13, milk 39.21, lilac 26.13, blush 27.58, butter 32.42; dark page 39.15, card 32.16, raised 25.74
+ - edge light 14: card on cream 14.40 (tritan; 14.76 typical) clears by 0.40; floating on card 17.77; field on card 11.03 and on page 10.53 FAIL; card on lilac/blush/butter wash 13.25 / 12.83 / 13.85 FAIL
+ - edge dark 16: card on page 16.06 — clears by 0.06, rounding decides; raised on card 21.58, on page 24.42
+ - fixture (sorbet dark as shipped): fill 6.90, shadow-sm 3.36, border 0 — fails as required. Shipped switch 5.28 light but 11.39 dark; shipped tick 26.35 with no rule reading it
+ - charts as shipped vs new surfaces: worst 31.66 light (chart-3 on milk, deutan), 44.20 dark — increment 10's claim holds
+ - WCAG count: 86 entries, 70 per mode (46 text, 2 border-strong, 4 -solid, 2 focus, 16 chart) — the document's count is correct
+
+UNCOVERED MATRIX ROWS:
+ - Text tier secondary (Lc 76) | reads link, link-hover (backgrounds not named in the tier table) | from today copied from primary-text at semantics.ts:239-240; values undecided (violet #654199 appears once in section 6) | unstated | Today: link on bg+surface, link-hover on bg only. #654199 on cream = 78.39 worst.
+ - Text tier secondary (Lc 76) | reads 7 '-text' roles on bg, surface, own -subtle | from undecided: 'status text is the ordinary ink'; -subtle = 'fill at half strength over milk' (a composite, or a translucent token?) | no | Ink on lilac wash #ede0f7 = 75.33 worst (deutan) FAILS 76; blush wash 76.17; violet link on lilac wash 69.8. '-text on surface' exists today only for primary-text: 6 new pairs.
+ - Text tier label (Lc 70) | reads on-success/warning/danger/info on fill, 'its hover and its active' | from status() semantics.ts:160-177 writes role, -hover, on-, -subtle, -text only | no | success-active, warning-active, info-active do not exist. danger-active is NAMED (semantics.ts:25) and USED (_button.scss:109) but never produced (undefined in all 10 preset/modes). success/warning/in
+ - Unruled text: checkbox tick / radio dot | reads on-primary on primary-solid (today) or on primary (new recipe) | from _choice.scss:27,48,53,70 | no | Section 8 inc 4 requires the fixture to fail 'the tick (Lc 26)'; no section 5 rule reads that pair. Measured 26.35 worst.
+ - Unruled text: text-inverse, tooltip | reads text-inverse on text | from buildMode; tooltip background is the text colour | no | No rule today or proposed; listed in appendix B as must-stay-visible.
+ - Mark, area (sep 10) | reads progress/slider fill vs track | from Sass: primary-solid on bg-subtle (_progress.scss:10,16); tone bars use clr($tone) = the pale fills (_progress.scss:25) | no | No role named. Shade vs well: 23.04 lilac, 15.63 robin. Pale fills the Sass actually paints: butter 3.54, robin 4.96, blush 8.01, lilac 9.27. Status shades have no token.
+ - Mark, area (sep 10) | reads switch on-track vs off-track | from Sass: primary-solid vs border-strong (_switch.scss:12,31); new look: shade vs well via a seam token not yet named | no | Shipped: 5.28 light (fails, as required) but 11.39 dark (passes).
+ - Mark, area (sep 10) | reads checked interior vs unchecked | from Sass: primary-solid vs surface (_choice.scss:14,27); new: primary vs surface | unstated | lilac vs milk 13.10, vs cream 11.07.
+ - Mark, line (sep 20) | reads 'control ring' vs surface, bg | from no token. Today border-strong (_choice.scss:13); new: #b096d7, role unnamed | no | 27.03 / 24.95. Record says #b096d9, document #b096d7; the stated derivation rule yields #b096d7.
+ - Mark, line (sep 20) | reads tab indicator vs bg | from Sass: primary-solid (_tabs.scss:52) | unstated | Tabs sit on surface too; only bg is listed.
+ - Mark, line (sep 20) | reads 'selected bar' vs 'its wash' | from neither is a token; wash = 'lilac at 50% over the card' (light), 20% (dark) | no | 20.63 on a card (clears by 0.63); 19.70 when the same wash sits on the cream page = FAIL. Backdrop of the wash unspecified.
+ - Tell-apart (sep 10) | reads invalid edge vs resting field edge; vs focus ring | from rose #d77784 has no role; resting field edge is a shadow layer rgb(129 91 31 / .24) composited over milk | no | 19.30 and 14.13 light; dark 16.25 vs dark field ring. Known-bad 'focused border vs resting border 5.3' has no pair in the rule.
+ - Tell-apart (sep 10) | reads focus-ring vs control ring | from focus-ring token; ring has no token | no | 12.18.
+ - Palette (sep 5) | reads 'the four fills' | from seven fill roles: primary, secondary, accent, success, warning, danger, info | unstated | Named by hue, not role. info=primary, danger=secondary, warning=accent are identical hexes (sep 0). Worst real pair 5.38 (blush/robin, deutan).
+ - Edge presence | reads 'a field' on surface, on bg | from field is not a token: fill = surface (light) / surface-sunken (dark); edge = INSET layer | no | Light hairline .24: 11.03 on card, 10.53 on page = FAILS 14. An inset edge blends over its own fill, not over 'behind' as the formula says; dark gives 19.5 or 26.5 depending on reading.
+ - Edge presence | reads surface on each brand -subtle wash | from -subtle token; auth template actually paints radial gradients of color-mix(in oklab, subtle, transparent 30-50%) over bg (_auth.scss:19-21) | no | With wash = fill 50% over milk: 13.25 lilac, 12.83 blush, 13.85 butter = all FAIL 14 (fill step 4.1-6.4).
+ - Edge presence | reads 'every raised element on everything it is allowed to sit on' | from buttons, chips, quiet button, status box, sunken panel, disabled fill: Sass only | no | Not in the pair list. Butter on cream 5.63, robin on cream 5.72 (protan); sunken panel on card: fill 4.47, edge 4.72.
+ - Edge presence: colour of the edge | reads hue/lightness direction of the edge layer | from per-preset shadow data | no | No direction, hue or upper bound. Light: black at .25 = 18.4, solid #777168 = 41.4 pass. Dark: solid black = 19.7 on page, 26.6 on card pass.
+ - Check 1: every semantic name emitted, both modes | reads SEMANTIC_COLOR_NAMES (69) vs preset.colors | from buildMode / hand-built record; emit.ts:30-32 iterates the record, not the name list | no | danger-active is missing from all five presets in both modes today. The four WCAG theme files are frozen byte-for-byte (check 4).
+ - Check 2: hierarchy ordered, reversed in dark | reads 'label ink', text, text-muted, text-subtle | from label ink = on-* (7 tokens), hand-picked or solid() | no | Decided label ink is #472400 in BOTH modes (L 0.30 vs dark text 0.93). WCAG presets have white on-primary in light. Measure of 'darker' unstated.
+ - Check 3: no edge colour equals the fill it outlines | reads border, border-subtle, border-strong, shadow layers vs surfaces | from semantics.ts:200-202, 216-218; shadows | no | No edge-to-fill map given. Today in ALL five presets: light border-subtle == bg-subtle == surface-sunken; dark border == surface-raised, border-subtle == surface == bg-subtle.
+ - Check 5: wcag-aa resolves to exactly 86 entries | reads RULES re-expressed as rule list + tier map | from rules.ts:25-101 | no | Counted: 86 total, 70 per mode (46 text, 2 border-strong, 4 -solid, 2 focus, 16 chart) = correct. But the tier model cannot reproduce it (see findings).
+ - Check 6: legibility on sorbet dark as shipped fails on the card edge | reads shipped dark colours + shipped shadow strings | from buildMode; emit.ts:35 (no all-round layer exists) | unstated | Reproduced: fill 6.90, shadow-sm 3.36, border 0. The method says 'blend the all-round layer'; the fixture has none.
+ - Contract.views (four views) | reads simulation of both colours | from Machado matrices, clamped to 0..1 | unstated | Tritan clips cream, milk, blush, butter; protan clips both inks. Clamping is in the kit but not in the spec.
+ - Contract.tiers[tier].min | reads one number per tier | from contracts.ts (new) | no | Chart 3 light / 2.25 dark and edge 14 light / 16 dark both need a per-mode number the interface does not have.
+ - All lc / sep / edge rules: unmeasurable value | reads translucent, non-6-digit, missing, color-mix() strings | from any preset string | no | Spec silent everywhere. Today: null = skipped (rules.ts:123-126); missing fg = skipped, missing bg = TypeError; compositeOver returns unparseable input unchanged.

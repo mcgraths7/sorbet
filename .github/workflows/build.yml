@@ -131,6 +131,39 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # The build compares every theme file with its golden copy. That cannot
+      # see a golden that was rewritten in the same pull request — both sides
+      # match — so the frozen ones are also held to the base branch's copy,
+      # the one thing a pull request cannot edit. (On a push to main there is
+      # no base; the pull request that got it there already ran this.)
+      - name: Verify the frozen golden files are the base branch's
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          pnpm run check:golden:base "origin/${BASE_REF}"
+
+      # A gate that has stopped working looks like a gate that passes. This
+      # breaks the golden comparison on purpose and fails if it stays green.
+      - name: Verify the golden gate still bites
+        run: pnpm run test:golden
+
+      # The contrast contract was once measured in five places that disagreed,
+      # each of them green. This runs every report against the one measurement
+      # on good presets and on ones broken on purpose, both gates on the broken
+      # ones, and the measurement itself on colours as a minifier respells them.
+      - name: Verify the contrast contract is measured once
+        run: pnpm run test:contrast
+
+      # Which contract a preset is held to is data now, and every way of getting
+      # that wrong is silent: a rule in the wrong tier, a floor retyped, a
+      # mistyped name read as "not held". This holds the new code to what the
+      # old code answered (fixtures recorded from it), proves the comparison
+      # bites, and checks the colour instruments against published values.
+      - name: Verify every preset is held to the contract it was
+        run: pnpm run test:contracts
+
       # Everything in this repo consumes Sorbet by symlink, which hides what
       # breaks a real consumer. Pack the tarballs and install them into a
       # throwaway project outside the workspace. --no-build reuses the step above.
