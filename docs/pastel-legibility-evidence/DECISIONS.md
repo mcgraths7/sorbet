@@ -26,9 +26,11 @@ The record the two sample sheets are built from, and the evidence behind
 | 17 | Decided by Claude, not objected to | contract chosen per theme; sorbet built from a recipe (page, four pastels, one anchor ink) rather than hand-typed values; dark-mode edges fixed for sorbet only this round; chart colours unchanged for now | about 19:02 | the owner objecting |
 | 18 | Decided by Claude after two agents attacked the proposal (19:29) | (a) the legibility contract's rules and floors move to the second pull request; the first one carries only the mechanism (contracts as data, one member `wcag-aa` pinned to today's 86 rules, declared per theme and mode) because the contract section could not be tested as written; (b) the chart gate keeps its two simulations and its floors; (c) one more existing defect is deferred with the other 11: the token `danger-active` is named and read by the button stylesheet but no theme produces it; (d) apps that draw marks in status colours (linecook's timer alarm, imagefeed's armed and done borders) get an optional mark-grade token in the second pull request | 19:29 | the owner objecting |
 | 19 | Decided by Claude while building the golden gate (20:08) | the list of frozen themes stays a typed list in the gate and is NOT derived from the contract a theme declares: frozen is a promise about this piece of work, and a theme must not be able to unfreeze itself by editing its own description. Changing a frozen theme on purpose later (for example fixing the four themes' dark-mode edges) means taking its name off that one line in a pull request that says so | 20:08 | the owner objecting; or the sorbet rework landing, after which the four need no stronger pin than sorbet has |
+| 20 | How each legibility floor gets its number | pinned a little under what the owner approved on the sheets, separately for light and dark | owner, 2026-10-04: "Pinned to your sheets, per mode" | text the owner finds hard to read while the gate is green |
+| 21 | Dark-mode secondary and placeholder text | keep `#d7c9ae` (Lc 70) and `#b3a58d` (Lc 51); dark gets its own floors, pinned to them | owner, 2026-10-04 | small dark text proving hard to read in use |
+| 22 | The text field's edge | a floor per kind of element; the field's is pinned to the field as approved (11.0 on a card) | owner, 2026-10-04 | fields getting lost on a card |
+| 23 | Status icons | four outlined shapes, as on sheet 2: tick in a circle, exclamation mark in a triangle, cross in an octagon, i in a square | owner, 2026-10-04 | |
+| 24 | Which apps move | imagefeed and linecook change on their next sync; pantry, wallpaper-admin and musicdisco move to the new sorbet theme later ("we'll move them later"); buylist stays on ocean | owner, 2026-10-04 | |
 
-Not yet decided, and the owner's to decide before the second pull request (the
-proposal document's section 11): how each floor of the new contract gets its
-number, dark mode's secondary and placeholder text, the text-field edge floor,
-the status icon set, and which apps move to the new look. Chart colours and the
-order of the work are decided: row 17 here, and two pull requests (row 12).
+The five decisions the proposal's section 11 left open were made on 2026-10-04
+(rows 20 to 24). Nothing in the proposal is waiting on the owner.

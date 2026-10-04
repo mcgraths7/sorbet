@@ -1654,8 +1654,12 @@ published minimums are a draft method's.
 
 ## 11. Open decisions for the owner
 
+**Decided 2026-10-04** (decisions record, rows 20 to 24): 1(a), 2(a), 3(a),
+4(a), and for 5 the owner chose (b): "we'll move them later". The options are
+kept below as the record of what was offered.
+
 The look, the landing and the instruction change are decided (§1). Five things
-are open. The recommendation is first in each and labelled; the others are real
+were open. The recommendation is first in each and labelled; the others are real
 alternatives. Items 1 to 3 hold up step 2.0; item 4 holds up step 2.5; nothing
 holds up PR 1.
 
