@@ -14,8 +14,8 @@ semantic roles components actually use.
 
 You do not pick "primary = 600". You supply a ramp and a candidate walk, and
 `pick()` returns the first step that measures well enough against the things it
-must contrast with. That is what lets every preset guarantee WCAG AA in both
-modes instead of hoping.
+must contrast with. That is what lets every preset meet the contract it
+declares in both modes instead of hoping.
 
 Consequence: **changing a ramp changes which step gets chosen.** A ramp edit is
 never cosmetic — re-run the contrast report and read it.
@@ -56,19 +56,25 @@ and dark text, so the two requirements already agree.
 
 ## Authoring checklist
 
+0. Decide which contract the preset declares, per mode (`contract: { light,
+   dark }`, required; the contracts are in `src/tokens/contracts.ts`, today
+   only `wcag-aa`). The build throws on a preset with no valid declaration.
 1. Add the recipe to `presets.ts`.
 2. Ramps: 50→950, perceptually even. OKLCH helpers live in `color.ts`.
 3. Charts: an 8-slot CVD-validated palette in `charts.ts`. **Slot ORDER is
    CVD-load-bearing and must stay identical across modes** — re-validate with
    `check-cvd.ts` if you touch it.
-4. `pnpm build` — the WCAG gate runs inside the build. An inaccessible palette
-   fails it; see the **debug-contrast** skill for reading the failure.
+4. `pnpm build` — the contrast gate runs inside the build, against the
+   contract the preset declares. An inaccessible palette fails it; see the **debug-contrast** skill for reading the failure.
 5. `pnpm check:contrast` for the full per-preset, per-mode report.
 
 ## Don't
 
-- Don't relax a rule in `rules.ts` to make a palette pass. The rule encodes a
-  legal requirement; the palette is the thing that is wrong. If a role genuinely
+- A preset's declared contract is binding. Never lower a floor, drop a rule,
+  or change which contract a preset declares to get a green build. Those are
+  the owner's decisions and each needs a PR that says so. The theme files of
+  the WCAG presets (ocean, forest, noir, midnight) are frozen: any byte of
+  change in them is a finding. The palette is the thing that is wrong. If a role genuinely
   has two conflicting jobs, split the role — that is what `-solid` is.
 - Don't set `-solid` in overrides unless the theme truly needs a different
   shape-maker from its fill. The default is almost always right.

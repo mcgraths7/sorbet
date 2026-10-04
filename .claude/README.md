@@ -55,7 +55,7 @@ use.
 
 ```yaml
 # Good — routes on intent and symptoms
-description: Diagnose a failing WCAG contrast gate — reading the build failure,
+description: Diagnose a failing contrast gate — reading the build failure,
   finding which ramp step was chosen and why, and fixing it without weakening
   the accessibility contract. Use when pnpm build fails on contrast.
 
@@ -67,9 +67,9 @@ description: Information about colours and accessibility.
 touches, the verification command. Say what the gates are so the agent can
 confirm its own work instead of declaring success.
 
-**Include the reasoning behind constraints.** "Never lower a `min` in
-`rules.ts`" is a rule an agent will route around under pressure. "…because the
-rule encodes a legal requirement; lowering it doesn't make the checkbox
+**Include the reasoning behind constraints.** "Never lower a floor in
+`contracts.ts`" is a rule an agent will route around under pressure. "…because
+the floor is the owner's decision; lowering it doesn't make the checkbox
 visible, it makes the build stop mentioning that it isn't" is one it will hold.
 
 **Push bulk into tier 4.** Big tables, exhaustive maps and generated data go in
