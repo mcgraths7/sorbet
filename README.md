@@ -395,7 +395,7 @@ Five presets ship out of the box:
 
 | Preset | Personality | Radius | Default mode |
 | --- | --- | --- | --- |
-| **sorbet** *(default)* | Light & fun — raspberry, mint, grape on a warm page | round | light |
+| **sorbet** *(default)* | Light & fun — robin's-egg blue, blossom pink, butter yellow on warm cream | round | light |
 | **ocean** | Clean corporate SaaS — confident blues on white | soft | system |
 | **forest** | Organic — deep greens, terracotta, serif display | soft | light |
 | **noir** | Minimal editorial monochrome + one lemon accent | sharp | system |
@@ -413,8 +413,10 @@ ships the equivalent `getTheme()` manager.
 
 ## The accessibility contract
 
-`@sorbet/design-system/tokens` declares the contract as one list of contrast
-pairings, `RULES` — text on every surface, `on-*` on every solid (including
+`@sorbet/design-system/tokens` declares what is measured as one list of contrast
+pairings, `RULES`, each naming the tier it belongs to. The floor a tier owes
+comes from a contract (`contracts`, today one: `wcag-aa`), and every preset
+declares its contract per mode. The pairings — text on every surface, `on-*` on every solid (including
 hover/active), `-text` on page + subtle fills, links, strong borders, focus
 rings, text over the translucent scrim, and the eight chart marks. The list has
 86 entries, and 70 apply in each mode: 54 hold in both modes, and the 32
@@ -583,7 +585,8 @@ Charts are part of the system, not a bolt-on. `@sorbet/design-system/tokens` shi
 **8-slot categorical palette per preset** (`--sb-chart-1…8` + `--sb-chart-muted`),
 drawn from the same OKLCH ramps and **validated, not eyeballed**: fixed slot
 order optimized for color-vision-deficiency separation (worst adjacent
-Machado-2009 ΔE ≥ 14.7 across every preset × mode), per-mode lightness bands,
+Machado-2009 ΔE held to a floor per preset and mode, from 14.9 for sorbet dark
+down to 3.9 for forest dark and midnight light), per-mode lightness bands,
 chroma floors, and contrast gates enforced by the build. Dark mode gets its own
 steps from the same hues — never an automatic flip.
 
