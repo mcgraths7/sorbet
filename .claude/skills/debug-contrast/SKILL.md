@@ -1,20 +1,33 @@
 ---
 name: debug-contrast
-description: Diagnose a failing WCAG contrast gate — reading the build failure, finding which ramp step was chosen and why, and fixing it without weakening the accessibility contract. Use when pnpm build fails on contrast or check:contrast reports a violation.
+description: Diagnose a failing contrast gate — reading the build failure, finding which ramp step was chosen and why, and fixing it without weakening the accessibility contract. Use when pnpm build fails on contrast or check:contrast reports a violation.
 ---
 
 # Debugging a contrast failure
 
 The build fails on inaccessible colour by design. `tools/build-tokens.ts` runs
-`checkPreset()` over every preset in both modes before emitting anything.
+`checkPreset()` over every preset in both modes, and writes nothing if any
+check fails.
+
+## First: which contract does the failing preset declare?
+
+Each preset declares a contract per mode (`contract` in `presets.ts`). The
+contract (`src/tokens/contracts.ts`) gives each tier its floor; a rule in
+`rules.ts` names a pair and its tier, and carries no number. Today every
+preset declares `wcag-aa`. Read the declaration before reading the failure: the
+floor a pair owes comes from there. A `TypeError` naming a preset or a contract
+is a bad declaration, not a contrast failure; fix the declaration.
 
 ## Read the failure
 
 Each `Failure` names: `preset`, `mode`, `fg`, `bg`, `min`, `actual`. That is
 "in THIS preset and mode, role `fg` measured `actual` against role `bg`, and
-owed `min`." Get the full picture with `pnpm check:contrast`.
+owed `min`" (the floor of the rule's tier under the declared contract).
+`actual` is `null` for a pair that could not be measured (a missing or
+unreadable colour), which is a failure too. Get the full picture with
+`pnpm check:contrast`.
 
-## The three minimums, and what they mean
+## The `wcag-aa` floors, and what they mean
 
 | Min | Applies to | Why |
 | --- | --- | --- |
@@ -59,8 +72,12 @@ Signs you are in this case:
 
 ## Never
 
-**Do not lower a `min` or delete a rule to get green.** `rules.ts` is the
-accessibility contract, not a lint preference. Lowering 3 to 2.5 does not make
+**A preset's declared contract is binding. Never lower a floor, drop a rule,
+or change which contract a preset declares to get a green build. Those are the
+owner's decisions and each needs a PR that says so. The theme files of the WCAG
+presets are frozen: any byte of change in them is a finding.** ("The WCAG
+presets": ocean, forest, noir, midnight, the `FROZEN_PRESETS` line of
+`tools/check-golden.ts`.) Lowering 3 to 2.5 does not make
 the checkbox visible; it makes the build stop mentioning that it isn't.
 
 Legitimate fixes: adjust the ramp, widen the candidate walk, add a per-mode
@@ -68,7 +85,9 @@ Legitimate fixes: adjust the ramp, widen the candidate walk, add a per-mode
 
 ## Verify
 
-`pnpm build && pnpm check:contrast`. When a fix touches `semantics.ts`, check
+`pnpm build && pnpm check:contrast && pnpm check:golden`. A fix that changes a
+frozen theme's CSS by one byte fails the golden gate; that is the gate working,
+not an obstacle to update around. When a fix touches `semantics.ts`, check
 **all five** presets (sorbet, ocean, forest, noir, midnight) in both modes — a
 change to the shared builder reaches every theme, and noir applies overrides
 after the builder runs, which is exactly where regressions hide.

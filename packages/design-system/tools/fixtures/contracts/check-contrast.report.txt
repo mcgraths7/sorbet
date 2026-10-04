@@ -1,0 +1,22 @@
+
+Sorbet — Light and fun: robin's-egg blue, blossom pink, and butter yellow on warm cream.
+  light all 70 pairings pass (tightest margin ×1.00)
+  dark  all 70 pairings pass (tightest margin ×1.10)
+
+Ocean — Clean corporate SaaS: confident blues on crisp white.
+  light all 70 pairings pass (tightest margin ×1.00)
+  dark  all 70 pairings pass (tightest margin ×1.01)
+
+Forest — Organic and grounded: deep greens and terracotta on warm sand.
+  light all 70 pairings pass (tightest margin ×1.00)
+  dark  all 70 pairings pass (tightest margin ×1.03)
+
+Noir — Minimal editorial monochrome with a single shot of lemon.
+  light all 70 pairings pass (tightest margin ×1.00)
+  dark  all 70 pairings pass (tightest margin ×1.01)
+
+Midnight — Sleek and electric: violet and cyan built dark-first.
+  light all 70 pairings pass (tightest margin ×1.00)
+  dark  all 70 pairings pass (tightest margin ×1.01)
+
+✓ WCAG AA contract holds for every preset in both modes (700 pairings measured)

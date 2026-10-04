@@ -2,6 +2,8 @@ import { Badge, Text } from "@sorbet/component-library/atoms";
 import { Cluster } from "@sorbet/component-library/layout";
 import { Marquee } from "@sorbet/component-library/molecules";
 
+import { CONTRAST_CHECKS } from "../contrast-checks.ts";
+
 import type { DemoMeta } from "./types.ts";
 
 const LOGOS = [
@@ -15,7 +17,7 @@ const LOGOS = [
 
 const TICKER = [
   "Contrast verified on every build",
-  "790 checks across 5 presets × 2 modes",
+  CONTRAST_CHECKS,
   "Native dialogs, zero runtime deps",
   "Dark mode included, not bolted on",
   "A failing palette fails the build",

@@ -1,0 +1,130 @@
+## Audit: contract mechanism increment — lens: invariants and hostile data
+
+**Verdict:** the "identical to HEAD" invariant holds everywhere I could execute it. One critical hole (the one the implementer flagged) is confirmed and is wider than described: the build gate prints its green line over 28 of 70 pairs. Bad preset declarations are refused everywhere I ran them.
+
+All probes live in `/private/tmp/claude-501/-Users-homelab/06652a5c-23e2-4a00-8579-52c3b446d84b/scratchpad/audit-hostile/` (called `$S` below).
+- `$S/head` is `git archive HEAD`, installed and built.
+- `$S/new` is an rsync of the worktree, installed and built.
+- `$S/plant` is a throwaway copy that each plant resets from `$S/new`.
+- Probe scripts `p1`–`p5` import the worktree's sources by absolute path. I wrote nothing to the worktree.
+
+---
+
+### Findings, most severe first
+
+**1. CRITICAL (code + spec): a tier key in a contract's tier map that is not a real tier silently drops that tier, and every gate reports success.**
+- Reproduction: `$S/plant.sh "A" packages/design-system/src/tokens/contracts.ts 's/\n      text: \{/\n      txt: {/'`. The in-process version is the "MISTYPED KEY" lines of `node $S/p2-hostile.ts`.
+- Observed:
+  - `measureColors` returns 28 measurements per mode with 0 failures; the 42 `text`-tier rules produce nothing.
+  - `node tools/build-tokens.ts` exits 0, prints `✓ contrast contract holds for 5 presets × 2 modes`, and goes on to write the themes.
+  - `node tools/check-contrast.ts` exits 0 with `all 28 pairings pass` and `✓ WCAG AA contract holds for every preset in both modes (280 pairings measured)`.
+  - `chart` → `charts` gives 54 per mode and 540 total, also exit 0.
+  - An extra junk key beside the seven real ones (`bogus: { min: 0, why: "" }`) is ignored: 70 measured, exit 0.
+  - A second contract built by spread with a `"text "` key and declared by sorbet: build-tokens exits 0, the report says `all 28 pairings pass` for sorbet and `616 pairings measured`.
+- Expected: a key that is not one of `TIERS` is refused, as a mistyped tier on a rule is (M6.2). The docblock above `floorFor` says a mistyped name in a contract's own map "is still not a tier", but nothing ever looks at the map's keys.
+- What does catch it today:
+  - `tsc -p tsconfig.tokens.json` rejects an object-literal typo (TS2561). In `pnpm build` it runs after build-tokens has printed ✓ and written the themes, and it does not see keys added by spread, cast or assignment.
+  - `test-contracts.ts` and `test-contrast.ts` exit 1 (17 of 72 and 14 of 44 checks), but only because `wcag-aa` is pinned to fixtures. A second contract has no fixture.
+- In a scaffold made by `sorbet create`, nothing catches it:
+  - Same typo in the scaffold's `src/tokens/contracts.ts`: `node src/tools/build-tokens.ts` exits 0 with ✓, and check-contrast prints `280 pairings measured` with ✓.
+  - The scaffold's `npm run build` type-checks only `src/scripts` (`tsconfig.browser.json`), and the scaffold has no test scripts.
+- Spec defect behind it: M3/M6.1 make "a known tier the contract does not list" a legitimate silent non-measurement. A forgotten tier and a deliberately unheld tier are therefore the same data, and no report says how many rules a contract left unheld.
+
+**2. MINOR (code, pre-existing at HEAD): a rule whose `mode` is mistyped is silently never measured.**
+- Reproduction: `node $S/p2-hostile.ts`, lines "rule mode 'Dark'" and "rule mode 'both'".
+- Observed: `mode: "Dark"` on a dark chart rule gives 70 in light and 69 in dark, 0 failures. `mode: "both"` on rule 0 gives 69 in both modes.
+- Expected: refused, like a mistyped tier.
+- HEAD's filter (`!rule.mode || rule.mode === mode`) behaves the same, so this is not a regression. But the new `measureColors` docblock claims everything that could be mistaken for "not held" is refused, and this is not.
+
+**3. MINOR (spec): a floor of exactly 1 is accepted and passes every measurable pair.**
+- Reproduction: `p2-hostile.ts`, "text.min = 1".
+- Observed: 70 measured, 0 failures.
+- M6.7 rejects 0 because it "would pass every pair"; the same is true of 1, since no ratio is below 1. The code follows the spec; the spec's own reasoning indicts the boundary.
+
+**4. MINOR (code + spec): a per-mode floor is validated only for the mode asked.**
+- Reproduction: `p2-hostile.ts`, "text.min = {light:4.5}", `{light:4.5,dark:"3"}`, `{light:4.5,dark:0}`.
+- Observed: light returns 70 with 0 failures; dark throws.
+- A caller that measures one mode never sees the bad half. Token Studio is such a caller. `checkPreset` and the reports ask both modes, so the shipped gates do throw.
+
+**5. MINOR (code vs spec M3): `CONTRACT_NAMES` is a snapshot taken at load, not derived.**
+- Reproduction: tail of the "second contract" section of `p2-hostile.ts`.
+- Observed: after adding `contracts.extra` at run time, `CONTRACT_NAMES` is `['wcag-aa']` while `Object.keys(contracts)` is `['wcag-aa','extra']`.
+- The spec calls `contracts` plain and mutable and `CONTRACT_NAMES` "Derived: Object.keys(contracts)".
+- Nothing that decides reads it: `floorFor` and `contractOf` ask `contracts` directly, and the error messages list the live keys.
+
+**6. MINOR (code, latent for the next PR): the success lines name a contract the code no longer knows it used.**
+- Reproduction: the "second contract" plant in my third plant run (sorbet declaring `legible`).
+- Observed: check-contrast still prints `✓ WCAG AA contract holds for every preset in both modes`.
+- M6.8 requires today's text, so this is correct for this increment. The sentence becomes false the day a preset declares another contract, and no per-mode line names the contract.
+
+**7. MINOR (spec M7): `separation(a, b, undefined)` is the unsimulated distance.**
+- Reproduction: `node $S/p3-instruments.ts`, line "separation view undefined" returns 16.89.
+- `null`, `""`, `0`, `"protanopia"` and `"constructor"` all throw. An explicit `undefined`, which is what a failed lookup like `VIEW[d]` yields, is indistinguishable from "no view".
+- `cvdDeltaE` guards its own lookup with `Object.hasOwn`, so the chart gate is safe. The instrument itself leaves this to every future caller, and the spec is silent on it.
+
+**8. MINOR (code vs spec M7 "behaviour does not change"): the chart gate's `cvdDeltaE` now accepts spellings HEAD threw on.**
+- Reproduction: `p3-instruments.ts`, the NEW/HEAD pairs.
+- Observed: `"#FFF"` and `"red"` return numbers where HEAD threw `Expected a 6-digit hex`. The numbers are correct.
+- Translucent, garbage and wrong-deficiency inputs still throw; the wrong-deficiency error is now a `TypeError` that names the deficiency.
+- No false pass, and no effect on the five presets.
+
+**9. MINOR (code): two malformed-contract shapes throw a generic engine `TypeError` that does not name the contract.**
+- Reproduction: `p2-hostile.ts`, "tiers = undefined/null" gives `Cannot convert undefined or null to object`; "contract = null" gives `Cannot destructure property 'tiers'`.
+- Both stop the run and neither can read as a pass. M6.3/M6.4 ask for the name only for unknown and empty contracts, so this is diagnostics only.
+
+**10. NOTE (not a defect in the increment): the worktree changed under the audit.**
+- `README.md` and `docs/pastel-primary-role-split.md` were unmodified at my first `git status` and modified at my last.
+- The audited source files are byte-identical to my snapshot. I did not write to the worktree, so another session is editing it.
+
+---
+
+### Areas where I found nothing (all executed)
+
+- **Identical to HEAD (`p1-equiv.ts`, `p4-fuzz.ts`, `p5-fixture.ts`):**
+  - 700 measurements compared against HEAD's own sources: 0 differences, `actual` bit-identical.
+  - `RULES` is 86 entries in the same order; no floor mismatches between HEAD's per-rule `min` and `floorFor`.
+  - 6,000 fuzzed hostile colour records (garbage, translucent, missing, null, numbers): 0 differences in `measureColors`, `checkColors` or `tally`; 230,109 failures compared.
+  - `themeCss` for all five presets, `generatedScss`, built `dist/themes/*.css` and `dist/css/sorbet.css`: byte-identical.
+  - check-contrast, check-cvd and `sorbet contrast` reports: byte-identical with colour off.
+  - All three fixture files equal HEAD recomputed independently: 70 triples per mode, 700 measurements bit-identical.
+- **Manifest:** built `dist/themes/manifest.json` differs from HEAD's only by the `contract` block as the last key of each entry. With the block removed, the text is identical.
+- **Bad declarations (`contractOf`):** every one throws a `TypeError` naming the preset.
+  - Tried: absent, null, string, number, array, function, `{}`, one mode missing, unknown name, `constructor`, `toString`, `__proto__`, `hasOwnProperty`, upper case, trailing space, `String` object, array as name, inherited modes, null value, object with `toString`.
+  - Bad modes throw as well, including `"length"` on an array declaration.
+- **Bad declarations through the real tools:** five planted declarations, on the first, middle and last presets.
+  - Design-system build-tokens and check-contrast: exit 1, zero lines of stdout, `dist` and `_generated.scss` unchanged.
+  - Built CLI `sorbet contrast`: exit 1, zero stdout.
+  - Scaffold check-contrast and build-tokens: exit 1, zero stdout, nothing written.
+  - No success line anywhere.
+- **Unknown contract name** in `measureColors`, `checkColors` and `floorFor`: all throw, including for `undefined`, `""`, the prototype names, arrays and a `String` object. A `__proto__` key assigned onto `contracts` is still refused. A bad mode wins over a bad contract.
+- **Hostile floors:** NaN, ±Infinity, 0, −1, 0.99, `"4.5"`, null, undefined, true, `[4.5]`, `{}`, `new Number(4.5)`, a per-mode floor lacking the asked mode, a wrong or missing metric, and a tier value of undefined or null all throw. 22 and 1e308 fail 42 pairs loudly.
+- **Empty contracts:** an empty tier map, an array, an inherited-only map and a map with only unknown keys all throw "holds no rule". Empty `RULES` throws.
+- **Mistyped tiers on rules:** throw, naming fg, bg and the tier, including when the bad rule belongs to the other mode. An unknown or undefined `fg` is `actual: null` and a loud failure.
+- **Instruments (`p3-instruments.ts`):**
+  - `apcaLc` against `apca-w3@0.1.9` (installed into `$S/apca`; not present in the repo): 265,536 pairs (200,000 random plus all 65,536 grey pairs), max difference 0. Spec check values reproduce.
+  - `simulateCvd` and `separation` against an independent calculation written in the probe: 300,000 cases, 0 hex differences, 0 separation differences above 1e-9. Symmetric, and 0 for identical colours.
+  - Hostile colours (named, upper case, 3/4/8-digit hex, alpha, whitespace, non-strings, symbol): null or `TypeError` as specified; nothing translucent is measured.
+  - Bad `kind`/`view` values throw even when the colours are unreadable.
+- **Chart gate to full precision:** `cvdDeltaE` new against HEAD, 1,280 slot pairs plus 40,000 random: bit-identical, not via hex. `checkCvd()` equal.
+- **Fixtures cannot pass vacuously:** emptying both fixture arrays makes `test-contracts.ts` exit 1 (13 of 72).
+
+---
+
+coverage:
+- **Executed:**
+  - every malformed declaration listed in the brief
+  - contract with an empty tier map; mistyped tier key inside a contract's map
+  - floors NaN / Infinity / 0 / negative / string; per-mode floor lacking a mode
+  - rules with mistyped tiers
+  - fewer-measurements-silently paths (findings 1, 2 and 4)
+  - failure paths printing success or exiting 0 (finding 1; none for declarations)
+  - `measureColors` against HEAD sources, independently of the fixtures
+  - all four instruments with hostile colours; `apcaLc` against apca-w3; simulation against an independent calculation
+  - chart gate against HEAD at full precision
+  - manifest from a real `pnpm build` in scratch
+  - the implementer's flagged hole (confirmed, finding 1)
+- **Not executed:**
+  - Token Studio's live check: it needs a browser. I only read its diff; it passes the literal `"wcag-aa"` as M6.8 specifies.
+  - The playground's `contrast-checks.ts` under a bad declaration: it is a Vite module importing the built package. I read its diff; it calls `contractOf` unguarded.
+  - `<root>/tools/check-cli.ts` end to end. I exercised its parts by hand instead: `sorbet create`, then the scaffold's two tools.
+  - The independent simulation was in TypeScript, not another language. It shares no code with `color.ts`, but its matrices were typed from the same spec text, so a transcription error in the spec's matrices against the Machado paper would not be caught.

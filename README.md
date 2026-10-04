@@ -395,7 +395,7 @@ Five presets ship out of the box:
 
 | Preset | Personality | Radius | Default mode |
 | --- | --- | --- | --- |
-| **sorbet** *(default)* | Light & fun — raspberry, mint, grape on a warm page | round | light |
+| **sorbet** *(default)* | Light & fun — robin's-egg blue, blossom pink, butter yellow on warm cream | round | light |
 | **ocean** | Clean corporate SaaS — confident blues on white | soft | system |
 | **forest** | Organic — deep greens, terracotta, serif display | soft | light |
 | **noir** | Minimal editorial monochrome + one lemon accent | sharp | system |
@@ -413,14 +413,32 @@ ships the equivalent `getTheme()` manager.
 
 ## The accessibility contract
 
-`@sorbet/design-system/tokens` declares 47 contrast pairings — text on every surface, `on-*`
-on every solid (including hover/active), `-text` on page + subtle fills, links,
-strong borders, focus rings. Every build measures all of them for **every
-preset in both modes** and fails on any regression:
+`@sorbet/design-system/tokens` declares what is measured as one list of contrast
+pairings, `RULES`, each naming the tier it belongs to. The floor a tier owes
+comes from a contract (`contracts`, today one: `wcag-aa`), and every preset
+declares its contract per mode. The pairings — text on every surface, `on-*` on every solid (including
+hover/active), `-text` on page + subtle fills, links, strong borders, focus
+rings, text over the translucent scrim, and the eight chart marks. The list has
+86 entries, and 70 apply in each mode: 54 hold in both modes, and the 32
+chart-mark entries are split by mode — 16 in light and 16 in dark, because dark
+mode owes chart marks a lower floor. Every build measures all 70 for **every
+preset in both modes** and fails on any regression — and on any pair it could
+not measure, which is a failure rather than a skip:
 
 ```sh
 pnpm check:contrast       # per-preset, per-mode report with tightest margins
 ```
+
+The gate, that report, `sorbet contrast`, a scaffolded project's own report and
+Token Studio's live check all read one measurement (`measureColors` in
+`src/tokens/rules.ts`), so the count a report prints is the count it measured.
+The colours are read in one place as well (`parseColor` in `src/tokens/color.ts`):
+Token Studio measures what is on the page, where a production build's minifier
+has respelled the theme (`#ffffff` as `#fff`, the scrim as `#0009`, `#808080` as
+`gray`), and a colour has to measure the same however it is spelled. What it
+cannot read — `oklch()`, `hsl()`, `color-mix()` — is a failure that says so.
+The figures above are typed by hand, which is how the old ones went stale:
+`pnpm test` recounts them against `RULES` and fails if this paragraph is wrong.
 
 Beyond color: visible `:focus-visible` rings everywhere, `prefers-reduced-motion`
 collapses all animation, form errors use `:user-invalid` (only after
@@ -567,7 +585,8 @@ Charts are part of the system, not a bolt-on. `@sorbet/design-system/tokens` shi
 **8-slot categorical palette per preset** (`--sb-chart-1…8` + `--sb-chart-muted`),
 drawn from the same OKLCH ramps and **validated, not eyeballed**: fixed slot
 order optimized for color-vision-deficiency separation (worst adjacent
-Machado-2009 ΔE ≥ 14.7 across every preset × mode), per-mode lightness bands,
+Machado-2009 ΔE held to a floor per preset and mode, from 14.9 for sorbet dark
+down to 3.9 for forest dark and midnight light), per-mode lightness bands,
 chroma floors, and contrast gates enforced by the build. Dark mode gets its own
 steps from the same hues — never an automatic flip.
 

@@ -1,0 +1,534 @@
+{
+ "palette": {
+  "cream": "#fef4dc",
+  "surface": "#fffbf1",
+  "lilac": "#dac5fc",
+  "blush": "#f9c3c6",
+  "butter": "#f5e3a2",
+  "robin": "#a6edee"
+ },
+ "today": {
+  "text": "#38342f",
+  "page": "#f8f7f5",
+  "primary": "#adedf3",
+  "onPrimary": "#26231f"
+ },
+ "link": "#654199",
+ "focus": "#8e6ac7",
+ "edgeColour": "#a16e32",
+ "shade": {
+  "lilac": "#b096d7",
+  "blush": "#d29397",
+  "butter": "#ccb563",
+  "robin": "#66c2c4"
+ },
+ "deep": {
+  "lilac": "#7f5fab",
+  "blush": "#ac505b",
+  "butter": "#877000",
+  "robin": "#008284"
+ },
+ "pick": {
+  "family": "C",
+  "L": 0.395,
+  "chroma": 0.1,
+  "hue": 60,
+  "hex": "#693800",
+  "labelInk": "#472400",
+  "muted": "#844d16",
+  "subtle": "#975e2a",
+  "lcOnCream": 85.8,
+  "lcOnCard": 89.8,
+  "wcagOnCream": 8.86,
+  "labelLcOnFills": {
+   "lilac": {
+    "typical": 71.8,
+    "worstSimulation": 71.3
+   },
+   "blush": {
+    "typical": 73,
+    "worstSimulation": 70.9
+   },
+   "butter": {
+    "typical": 83.8,
+    "worstSimulation": 82.6
+   },
+   "robin": {
+    "typical": 82.2,
+    "worstSimulation": 79.1
+   }
+  }
+ },
+ "swatches": {
+  "cream": {
+   "hex": "#fef4dc",
+   "L": 0.969,
+   "C": 0.033,
+   "hue": 88.1,
+   "keptUnder": {
+    "protan": 0.032,
+    "deutan": 0.034,
+    "tritan": 0.017
+   }
+  },
+  "surface": {
+   "hex": "#fffbf1",
+   "L": 0.988,
+   "C": 0.014,
+   "hue": 88.7,
+   "keptUnder": {
+    "protan": 0.014,
+    "deutan": 0.015,
+    "tritan": 0.007
+   }
+  },
+  "lilac": {
+   "hex": "#dac5fc",
+   "L": 0.859,
+   "C": 0.078,
+   "hue": 302.2,
+   "keptUnder": {
+    "protan": 0.07,
+    "deutan": 0.064,
+    "tritan": 0.017
+   }
+  },
+  "blush": {
+   "hex": "#f9c3c6",
+   "L": 0.866,
+   "C": 0.062,
+   "hue": 14.7,
+   "keptUnder": {
+    "protan": 0.006,
+    "deutan": 0.021,
+    "tritan": 0.075
+   }
+  },
+  "butter": {
+   "hex": "#f5e3a2",
+   "L": 0.915,
+   "C": 0.085,
+   "hue": 94.5,
+   "keptUnder": {
+    "protan": 0.086,
+    "deutan": 0.085,
+    "tritan": 0.044
+   }
+  },
+  "robin": {
+   "hex": "#a6edee",
+   "L": 0.9,
+   "C": 0.07,
+   "hue": 197.1,
+   "keptUnder": {
+    "protan": 0.011,
+    "deutan": 0.027,
+    "tritan": 0.096
+   }
+  }
+ },
+ "distances": {
+  "columns": [
+   "typical",
+   "protan",
+   "deutan",
+   "tritan"
+  ],
+  "rows": {
+   "Milk on cream": [
+    2.8,
+    3,
+    2.7,
+    2.4
+   ],
+   "Lilac on cream": [
+    15.4,
+    15.1,
+    15.2,
+    11.1
+   ],
+   "Blush on cream": [
+    12,
+    12.6,
+    10.3,
+    11.9
+   ],
+   "Butter on cream": [
+    7.5,
+    8,
+    7.2,
+    5.6
+   ],
+   "Robin on cream": [
+    11.1,
+    5.7,
+    9.6,
+    13.2
+   ],
+   "Lilac / Blush": [
+    8.4,
+    7.9,
+    8.6,
+    6.7
+   ],
+   "Lilac / Butter": [
+    16.8,
+    16.5,
+    16.3,
+    7.2
+   ],
+   "Lilac / Robin": [
+    12.5,
+    9.5,
+    5.6,
+    11.4
+   ],
+   "Blush / Butter": [
+    10.8,
+    10.2,
+    8.3,
+    6.4
+   ],
+   "Blush / Robin": [
+    13.7,
+    8.8,
+    5.4,
+    17.4
+   ],
+   "Butter / Robin": [
+    12.3,
+    10,
+    11.4,
+    13.9
+   ]
+  }
+ },
+ "strip": [
+  {
+   "label": "A",
+   "name": "Aubergine",
+   "hex": "#57356e",
+   "fromGray": [
+    10,
+    8.7,
+    7.3,
+    3.7
+   ],
+   "keptUnder": [
+    0.086,
+    0.075,
+    0.038
+   ]
+  },
+  {
+   "label": "C",
+   "name": "Cocoa",
+   "hex": "#693800",
+   "fromGray": [
+    9.2,
+    8.2,
+    8.4,
+    10.1
+   ],
+   "keptUnder": [
+    0.074,
+    0.084,
+    0.1
+   ]
+  },
+  {
+   "label": "B",
+   "name": "Ink blue",
+   "hex": "#314571",
+   "fromGray": [
+    7.9,
+    7.7,
+    8.2,
+    6.2
+   ],
+   "keptUnder": [
+    0.076,
+    0.082,
+    0.062
+   ]
+  },
+  {
+   "label": "P",
+   "name": "Plum",
+   "hex": "#5f3656",
+   "fromGray": [
+    7.5,
+    4.7,
+    2.6,
+    6.3
+   ],
+   "keptUnder": [
+    0.042,
+    0.026,
+    0.062
+   ]
+  },
+  {
+   "label": "G",
+   "name": "Plain gray",
+   "hex": "#464646",
+   "fromGray": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "keptUnder": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "label": "T",
+   "name": "Sorbet's text today",
+   "hex": "#38342f",
+   "fromGray": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "keptUnder": [
+    0.009,
+    0.011,
+    0.01
+   ]
+  }
+ ],
+ "inkPairs": {
+  "A-B": [
+   7.2,
+   2.8,
+   0.9,
+   9.2
+  ],
+  "A-P": [
+   4.5,
+   4.5,
+   4.8,
+   3.3
+  ],
+  "A-C": [
+   15.7,
+   16,
+   15.6,
+   7.7
+  ],
+  "B-C": [
+   16.7,
+   15.6,
+   16.4,
+   16.2
+  ]
+ },
+ "bands": [
+  [
+   90,
+   "paragraphs, 14px and up"
+  ],
+  [
+   75,
+   "paragraphs at 18px, or 16px medium"
+  ],
+  [
+   60,
+   "headings and bold labels, 16px and up"
+  ],
+  [
+   45,
+   "big headings only"
+  ],
+  [
+   30,
+   "placeholder or disabled text only"
+  ],
+  [
+   -1,
+   "too faint"
+  ]
+ ],
+ "blackOnFills": {
+  "lilac": 77.8,
+  "blush": 78.9,
+  "butter": 89.7,
+  "robin": 88.1
+ },
+ "ladders": [
+  {
+   "id": "C",
+   "name": "Cocoa",
+   "hue": 60,
+   "chroma": 0.1,
+   "steps": [
+    {
+     "id": "C1",
+     "L": 0.3,
+     "hex": "#472400",
+     "chromaShown": 0.07,
+     "lcOnCream": 93.9,
+     "lcOnCreamWorstSimulation": 92.9,
+     "lcOnCard": 97.8,
+     "wcagOnCream": 12.62,
+     "band": "paragraphs, 14px and up"
+    },
+    {
+     "id": "C2",
+     "L": 0.35,
+     "hex": "#592e00",
+     "chromaShown": 0.083,
+     "lcOnCream": 90,
+     "lcOnCreamWorstSimulation": 89.1,
+     "lcOnCard": 93.9,
+     "wcagOnCream": 10.57,
+     "band": "paragraphs, 14px and up"
+    },
+    {
+     "id": "C3",
+     "L": 0.4,
+     "hex": "#6b3900",
+     "chromaShown": 0.094,
+     "lcOnCream": 85.3,
+     "lcOnCreamWorstSimulation": 84.5,
+     "lcOnCard": 89.3,
+     "wcagOnCream": 8.68,
+     "band": "paragraphs at 18px, or 16px medium"
+    },
+    {
+     "id": "C4",
+     "L": 0.45,
+     "hex": "#7d460b",
+     "chromaShown": 0.1,
+     "lcOnCream": 79.9,
+     "lcOnCreamWorstSimulation": 78.9,
+     "lcOnCard": 83.8,
+     "wcagOnCream": 6.97,
+     "band": "paragraphs at 18px, or 16px medium"
+    },
+    {
+     "id": "C5",
+     "L": 0.5,
+     "hex": "#8c541f",
+     "chromaShown": 0.1,
+     "lcOnCream": 74.3,
+     "lcOnCreamWorstSimulation": 73.3,
+     "lcOnCard": 78.2,
+     "wcagOnCream": 5.64,
+     "band": "headings and bold labels, 16px and up"
+    },
+    {
+     "id": "C6",
+     "L": 0.55,
+     "hex": "#9c622f",
+     "chromaShown": 0.1,
+     "lcOnCream": 68.1,
+     "lcOnCreamWorstSimulation": 66.7,
+     "lcOnCard": 72,
+     "wcagOnCream": 4.57,
+     "band": "headings and bold labels, 16px and up"
+    },
+    {
+     "id": "C7",
+     "L": 0.6,
+     "hex": "#ac713e",
+     "chromaShown": 0.1,
+     "lcOnCream": 61.3,
+     "lcOnCreamWorstSimulation": 59.7,
+     "lcOnCard": 65.2,
+     "wcagOnCream": 3.7,
+     "band": "headings and bold labels, 16px and up"
+    }
+   ]
+  },
+  {
+   "id": "A",
+   "name": "Aubergine",
+   "hue": 310,
+   "chroma": 0.1,
+   "steps": [
+    {
+     "id": "A1",
+     "L": 0.3,
+     "hex": "#3d1b52",
+     "chromaShown": 0.1,
+     "lcOnCream": 94.4,
+     "lcOnCreamWorstSimulation": 93.4,
+     "lcOnCard": 98.3,
+     "wcagOnCream": 12.99,
+     "band": "paragraphs, 14px and up"
+    },
+    {
+     "id": "A2",
+     "L": 0.35,
+     "hex": "#4a2961",
+     "chromaShown": 0.099,
+     "lcOnCream": 90.6,
+     "lcOnCreamWorstSimulation": 89.5,
+     "lcOnCard": 94.5,
+     "wcagOnCream": 10.77,
+     "band": "paragraphs, 14px and up"
+    },
+    {
+     "id": "A3",
+     "L": 0.4,
+     "hex": "#58366f",
+     "chromaShown": 0.1,
+     "lcOnCream": 86,
+     "lcOnCreamWorstSimulation": 84.9,
+     "lcOnCard": 89.9,
+     "wcagOnCream": 8.83,
+     "band": "paragraphs at 18px, or 16px medium"
+    },
+    {
+     "id": "A4",
+     "L": 0.45,
+     "hex": "#66447e",
+     "chromaShown": 0.099,
+     "lcOnCream": 80.7,
+     "lcOnCreamWorstSimulation": 79.5,
+     "lcOnCard": 84.6,
+     "wcagOnCream": 7.12,
+     "band": "paragraphs at 18px, or 16px medium"
+    },
+    {
+     "id": "A5",
+     "L": 0.5,
+     "hex": "#75528e",
+     "chromaShown": 0.1,
+     "lcOnCream": 74.8,
+     "lcOnCreamWorstSimulation": 73.6,
+     "lcOnCard": 78.8,
+     "wcagOnCream": 5.72,
+     "band": "headings and bold labels, 16px and up"
+    },
+    {
+     "id": "A6",
+     "L": 0.55,
+     "hex": "#83609d",
+     "chromaShown": 0.1,
+     "lcOnCream": 68.8,
+     "lcOnCreamWorstSimulation": 67.4,
+     "lcOnCard": 72.7,
+     "wcagOnCream": 4.65,
+     "band": "headings and bold labels, 16px and up"
+    },
+    {
+     "id": "A7",
+     "L": 0.6,
+     "hex": "#936fad",
+     "chromaShown": 0.1,
+     "lcOnCream": 61.9,
+     "lcOnCreamWorstSimulation": 60.4,
+     "lcOnCard": 65.8,
+     "wcagOnCream": 3.75,
+     "band": "headings and bold labels, 16px and up"
+    }
+   ]
+  }
+ ]
+}

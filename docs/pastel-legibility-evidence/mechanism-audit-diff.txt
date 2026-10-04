@@ -1,0 +1,177 @@
+# Audit: contract-mechanism increment (lens: diff, tests, consumers)
+
+**Verdict:** no critical defect found in the shipped state. All five presets are still judged exactly as at `2d3b765`; I re-recorded the fixtures myself from that commit and they match byte for byte. The findings are one mechanism hole that the next pull request (a second contract) walks straight into, and ten test gaps where a planted defect survived both suites.
+
+All experiments ran in `/private/tmp/claude-501/-Users-homelab/06652a5c-23e2-4a00-8579-52c3b446d84b/scratchpad/audit-diff/` (`base/` is the copy, `old/` is a `git archive` of `2d3b765`). I did not touch the worktree.
+
+**The worktree changed under me.** `README.md` and `docs/pastel-primary-role-split.md` became modified during the audit (unrelated doc edits: the sorbet tagline, the ΔE sentence, a status line). Another process is editing the tree. My scratch copy predates those edits.
+
+## Findings, most severe first
+
+### Major
+
+**F1. A mistyped tier KEY inside a contract silently un-holds every rule of that tier, and the gate passes.** (spec and code)
+- The spec refuses a mistyped tier on a rule (M6.2) and a contract over nothing (M6.4). It never asks that a contract's own `tiers` keys be tiers.
+- `floorFor` (`contracts.ts:173-179`) only looks up known tier names, so a contract with `txet` instead of `text` reads as "does not list text".
+- Probe (`probe.ts`, case a): a copy of `wcag-aa` with `text` renamed to `txet`, declared by a preset.
+  - `measureColors("light", …)` returned 28 pairs, not 70.
+  - `checkPreset` returned 0 failures.
+  - White body text gave 0 failures under it, against 5 under `wcag-aa`.
+- The comment at `contracts.ts:157-159` reads as if this were covered. It only covers asking `floorFor` for the mistyped name.
+- Not reachable today: `wcag-aa` is pinned by the fixtures and by the "lists exactly the seven tiers" test.
+- A second contract gets no such pin. M9.3's test checks only `why` and `retire` on a contract's tiers.
+- TypeScript's excess-property check would catch a literal typo, but only in `build:ts`, which runs after `build:tokens` has already passed the gate and written the themes. M5 itself says types stop nothing at run time.
+- This is critical by your definition the day a second contract exists.
+
+**F2. "No verdict before the error" is unpinned for all three reports.** (tests)
+- The implementer added a pre-validation loop to each report: `tools/check-contrast.ts:28-32`, `packages/cli/src/index.ts` in `cmdContrast`, `packages/cli/scaffold/tools/check-contrast.ts:29-31`.
+- Removing any one of them survives both suites (mutants 11, 12, 13).
+- Observed with the loop removed and forest given a bad dark contract: stdout prints "all 70 pairings pass" for Sorbet (both modes), Ocean (both modes) and Forest light, then the TypeError, exit 1.
+- The M5 surface tests (`test-contracts.ts:613`) only assert that stdout lacks the word `holds`, which appears on the final summary line alone.
+
+**F3. "A preset's declaration is the one place that decides" is unpinned against a constant passed by variable.** (tests)
+- `test-contracts.ts:950-972` asks two things: that `contractOf(` appears somewhere in the file, and that no call has the literal `"wcag-aa"` inside it.
+- Mutant 17: `check-contrast.ts` measures with `const HELD_TO = "wcag-aa"`, and its pre-validation loop still calls `contractOf`. Survived.
+- Mutant 19: the playground passes `(contractOf(preset, mode), FIRST)`. Survived.
+- When a preset declares another contract, such a report would judge it by `wcag-aa` and print a pass. The only other pin, the `check-contrast.report.txt` fixture, compares shipped output where every preset is `wcag-aa`.
+
+**F4. The chart gate's two new refusal paths are untested.** (tests)
+- Mutant 26: `cvdDeltaE` returns `Infinity` for an unreadable colour instead of throwing (`check-cvd.ts`, the `dE === null` branch). Survived. An unreadable chart slot would then clear every floor.
+- Mutant 25: the unknown-deficiency guard removed, so `VIEW[d]` is undefined and `separation` runs unsimulated. Survived.
+- The doc comment above `cvdDeltaE` names both as "errors and not numbers". Nothing holds it to that.
+
+### Minor
+
+**F5. The simulation's upper clamp is unpinned in `separation`.** (spec and tests)
+- Mutant 27 removed `Math.min(1, …)` in `simulated()` (`color.ts`). Survived.
+- It is observable: `separation("#00ff00", "#ffffff", "protan")` is 20.895 clamped and 20.672 unclamped.
+- None of the spec's twelve check values has a channel over 1 after the matrix. `simulateCvd` hides it because `linearToSrgbChannel` clamps again (`color.ts:50`).
+- The chart gate still reports 0 failures unclamped. The instrument a later contract is calibrated with could lose the clamp unnoticed.
+
+**F6. `cvdDeltaE` accepts input it used to refuse.** (code, against M7 "its behaviour does not change")
+- At `2d3b765` it went through `hexToRgb`: 6-digit hex only, otherwise `Error("Expected a 6-digit hex color…")`.
+- Now `cvdDeltaE("red", "blue", "protanopia")`, `"#f00"` and `"rgb(255 0 0)"` all return 35.72.
+- The error text for an unreadable colour also changed.
+- Shipped palettes are 6-digit hex, so the report is identical.
+
+**F7. `measureColors` validates every rule's tier, including rules of the other mode, as its comment says. Nothing tests it.** (tests; spec silent)
+- Mutant 23 moved the tier check after the mode filter. Survived.
+- M6.2's tests plant only mode-less rules, or mistype `RULES[10]`, which has no mode.
+
+**F8. A bad `view` combined with an unreadable colour is unspecified and unpinned.** (spec and tests)
+- Mutant 24 validates the view only after the null return. Survived.
+- The code and its doc say "a TypeError whatever the colours are". M7 states the two rules separately and never the combination.
+
+**F9. `CONTRACT_NAMES` is a load-time snapshot, not live.** (spec and code)
+- Probe: after adding a contract in process, `CONTRACT_NAMES.length` is 1 and `Object.keys(contracts).length` is 2.
+- M3 calls it "Derived: Object.keys(contracts)" and also calls `contracts` plain and mutable. The test compares them only at rest.
+- The code's comment says the list is "for showing and for typing", so nothing decides by it today.
+
+**F10. A contract's own shape is not validated at run time.** (spec gap)
+- A contract registered under a key different from its `name` is accepted: `contractOf` returned `"alias"`.
+- `tiers: null` gives a native `TypeError: Cannot convert undefined or null to object` that does not name the contract (M6.3/M6.4 style).
+- `calibratedFor`, `why` and `retire` being non-empty is test-only, and only for contracts that exist when the test runs.
+
+**F11. Three surfaces M5 names are never run against a bad declaration.** (tests)
+- `tools/check-cli.ts`, `apps/playground/src/contrast-checks.ts` and `manifest()` are only regex-checked or not checked.
+- Mutant 29 (`contract: preset.contract`, raw, in `emit.ts`) survived. M6.9 does not require `contractOf` there, so this is the implementer's addition with no pin. The doc comment at `emit.ts` claims "the manifest cannot publish a declaration the gate would refuse".
+
+**F12. `contractOf` treats inherited properties one way and nothing pins it.** (tests; spec ambiguous)
+- Mutant 04 (`mode in declared` instead of `Object.hasOwn`) survived.
+- The code refuses `Object.create({ light, dark })`. M5 says "own property" only of contract names.
+
+**F13. Message nits.** (code)
+- `contractOf(sorbet, "system")` blames the preset: `declares no contract for "system"`.
+- `contractOf(undefined)` is a native "Cannot read properties of undefined".
+- `shown` is defined twice, identically (`contracts.ts:144`, `rules.ts:190`).
+
+**F14. Test ownership cannot be audited.** (process)
+- M9 says the `test-contrast.ts` edits are the test author's and the implementer may not alter them.
+- The whole increment is one uncommitted diff, so there is no way to attribute any line of `test-contrast.ts`, `test-contracts.ts` or the fixtures. The `git diff --name-only <base> -- tools/` gate has nothing to run on.
+
+**F15. Fixtures README: the recording script is not committed.** (docs)
+- The README describes the recorder in prose ("a script that imported that commit's index.ts…"). Re-recording means rewriting it.
+- I did (`verify-fixtures.ts`): triples for all 5 presets × 2 modes, all 700 measurements (exact), rule order, and both reports are identical to `2d3b765`'s output.
+- `check-contrast.report.txt` and `rules.order.json` are extras beyond M9's list. Both are documented and used.
+- `python3 simulate_cvd.py` with no flag rewrites a fixture inside the repo. Documented; the test only runs `--check`.
+
+### Prose and agent instructions that describe the old shape
+These are deferred by M8 to a later step of the same pull request, so they are not defects of this increment. Listed so the later step has them.
+- `CLAUDE.md:34`: calls `rules.ts` "the accessibility contract" and does not mention `contracts.ts`.
+- `CLAUDE.md:68`: "Never lower a `min`" in `rules.ts`. The floors are now in `contracts.ts`.
+- `CLAUDE.md`, Commands block: `pnpm test # check:contrast + check:client`. Already stale before this change, more so now.
+- `.claude/README.md:70-71`: the same `min` in `rules.ts` example.
+- `.claude/agents/contract-auditor.md:59-60`: "A diff that LOWERS a `min` or deletes a rule". This is the one with teeth. Until rewritten, that agent looks in the wrong file for a lowered floor, and does not know that changing a preset's `contract` field is a new way to lower one.
+- `.claude/skills/debug-contrast/SKILL.md:9-15, 28, 62`: "Do not lower a `min` or delete a rule"; "owed `min`". `Failure.min` itself is still accurate.
+- `.claude/skills/author-theme/SKILL.md:70`: says nothing of `contract`. A new preset without one now throws; loud, but the skill will lead an agent into it.
+- `README.md:414-439`: "declares the contract as one list … `RULES`"; "dark mode owes chart marks a lower floor". No tiers, no contracts.
+- `docs/pastel-primary-role-split.md:20, 116`: `{ fg: "primary", bg: "bg", min: 3 }`. A historical design doc.
+
+### Checked and found sound (by reading and running, not by the suite being green)
+- **Spec M3 to M9 against the diff:** every required export, type, signature and behaviour is present. Nothing forbidden is present: no default parameter, no second contract, `semantics.ts` and `check-golden.ts` untouched. Both `build-tokens.ts` files have no diff at all.
+- **Scope beyond the spec:** the three pre-validation loops (F2), `manifest` via `contractOf` (F11), `cvdDeltaE`'s unknown-deficiency TypeError, and the two extra fixtures. All defensible.
+- **Comments against code:** no comment describes behaviour the code lacks. The WCAG 0.03928 versus sRGB 0.04045 note is accurate (`color.ts:97`).
+- **Dead code:** none found.
+- **Code consumers:** none missed. Every caller of `measureColors`, `checkColors` and `checkPreset` in `apps/`, `packages/` and `tools/` is in the diff or unchanged-and-correct. `demo/index.html:511` reads `manifest.json` and tolerates the new key.
+- **Scaffold:** `sorbet create` copies `src/tokens` wholesale (`packages/cli/src/index.ts:125`), so `contracts.ts` goes with it. Fixtures live under `tools/`, outside the package's `files: ["dist", "src"]`, and no scaffold file references them. `dist/tokens/contracts.js` and `.d.ts` are emitted.
+- **Barrel:** exactly M3's list. The four instruments are not on it.
+- **Wiring:** root `test:contracts` script, the `pnpm test` chain, the package script and the CI step (after Build, beside `test:contrast`) are all present and consistent. Nothing tests the wiring itself.
+- **Scratch runs:** `check:cli`, `check:consumable --no-build`, `lint`, `typecheck` and `check:catalog` ran and exited 0. The scaffold rebuilt and its report ran.
+- **Leftovers:** after `test:contracts`, `git status` in the scratch copy was clean and no `sorbet contracts *` temp directory remained.
+
+## Mutation table
+40 mutants, one at a time, against `test:contracts` and `test:contrast`. Harness and definitions: `mut.py`, `m1.json`, `m2.json` in the scratch directory.
+
+| # | Mutant | Result |
+|---|---|---|
+| 01 | default `contract = "wcag-aa"` on `measureColors` | caught: contracts (M3 required, M6.3, M6.8) |
+| 02 | `floorFor`: `in` instead of own-property for the contract name | caught: contracts (M6.3) |
+| 03 | `contractOf`: `in` instead of own-property for the contract name | caught: contracts (M5) |
+| 04 | `contractOf`: `mode in declared` (inherited declaration accepted) | **SURVIVED** |
+| 05 | scrim pairs moved to `text` tier (same floor) | caught: contracts (M4 tier table), contrast |
+| 06 | `text-subtle` pairs moved to `control-border` (same floor) | caught: contracts (M4 tier table) |
+| 07 | `shape` floor 3 to 2.9 | caught: contracts (check 5), contrast |
+| 08 | chart dark floor 2.25 to 2 | caught: contracts (check 5), contrast |
+| 09 | `holds`: `>=` to `>` | caught: contracts (M6.6) |
+| 10 | `check-contrast.ts` catches the TypeError and continues | caught: contracts (M5 surface) |
+| 11 | `check-contrast.ts` pre-validation loop removed | **SURVIVED** |
+| 12 | `sorbet contrast` pre-validation loop removed | **SURVIVED** |
+| 13 | scaffold report pre-validation loop removed | **SURVIVED** |
+| 14 | manifest: `contract` not the last key | caught: contracts (M6.9) |
+| 15 | `contractOf` falls back to the other mode when one is missing | caught: contracts (M5) |
+| 16 | `separation` routed through the 8-bit hex | caught: contracts (M7 twelve values, chart report) |
+| 17 | `check-contrast.ts` measures with a constant held in a variable | **SURVIVED** |
+| 18 | `check-cli.ts` passes the literal `"wcag-aa"` | caught: contracts (M6.8) |
+| 19 | playground passes a constant, stray `contractOf` call kept | **SURVIVED** |
+| 20 | `check-cvd` floor lowered (sorbet light 14.6 to 10) | caught: contracts (chart report fixture) |
+| 21 | `checkPreset` reads `preset.contract[mode]` raw | caught: contracts (M5) |
+| 22 | `checkPreset` uses light's contract for both modes | caught: contracts (M3 per-mode) |
+| 23 | rule tier validated only for rules of the asked mode | **SURVIVED** |
+| 24 | `separation`: bad view refused only when both colours are readable | **SURVIVED** |
+| 25 | `cvdDeltaE`: unknown deficiency falls through to unsimulated | **SURVIVED** |
+| 26 | `cvdDeltaE`: unreadable colour returns `Infinity` | **SURVIVED** |
+| 27 | simulation not clamped at 1 | **SURVIVED** |
+| 28 | simulation not clamped at 0 | caught: contracts (M7 values, chart report) |
+| 29 | manifest publishes the raw `preset.contract` | **SURVIVED** (the spec permits it) |
+| 30 | scaffold `build-tokens` swallows a thrown check and writes | caught: contracts (M5 surface) |
+| 31 | `floorFor` refuses a floor of exactly 1 | caught: contracts (M6.6, M6.7) |
+| 32 | tritan matrix typo | caught: contracts (M7 separation, Python fixture) |
+| 33 | APCA exponent 0.62 to 0.63 | caught: contracts (M7 APCA) |
+| 34 | APCA dark-on-light zero threshold dropped | caught: contracts (M7 zero cases) |
+| 35 | instruments accept translucent colours | caught: contracts (M7 bad input) |
+| 36 | Token Studio filters `checkColors`' answer | caught: contracts, contrast |
+| 37 | midnight loses `dark` from its declaration | caught: contracts, contrast |
+| 38 | zero-measurement guard removed | caught: contracts (M6.4) |
+| 39 | `TIER_KIND`: `control-border` is text | caught: contracts (M4 kinds) |
+| 40 | `sorbet contrast` catches the TypeError and exits 0 | caught: contracts (M5 surface) |
+
+Eleven survivors: 04, 11, 12, 13, 17, 19, 23, 24, 25, 26, 27, plus 29 which the spec allows. `test:contrast` alone caught none that `test:contracts` missed.
+
+## coverage:
+- **Step 1 (diff against spec M3 to M9):** complete. Read the whole diff, `contracts.ts`, `rules.ts`, `test-contracts.ts` (all 1,229 lines), the `test-contrast.ts` diff, and the fixtures' README and script. Could not verify M9's "these edits are the test author's" (F14).
+- **Step 2 (mutation):** complete, 40 mutants. Not mutated: the root `pnpm test` chain and the CI step, since no test could observe them; verified by reading.
+- **Step 3 (consumers):** complete for code. Prose and agent files listed above. `README.md` and the pastel doc were being edited by another process mid-audit; I read them as of about 17:58 on 2026-10-04.
+- **Step 4 (scaffold, files, barrel):** complete. Ran `check:cli` and `check:consumable --no-build` in the scratch copy against the `dist/` rsynced from the worktree. I did not re-run `pnpm build` there, so that `dist` is whatever the implementer last built; it does contain `contracts.js` and `contractOf`.
+- **Step 5 (CI and script wiring):** complete, by reading. Did not run the workflow or actionlint.
+- **Step 6 (fixtures and leftovers):** complete. Fixtures independently re-recorded from `2d3b765` and identical; no leftovers after a run.
+- **Not done:** no browser run of Token Studio or the playground. No check of the Python fixture against a third implementation; it agrees with `color.ts` on all 36 values, and mutant 32 shows it bites.

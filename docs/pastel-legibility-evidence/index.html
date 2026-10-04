@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sorbet pastel — text colour (2026-10-03)</title>
+<style>
+:root{--cream:#fef4dc;--surface:#fffbf1;--robin:#a6edee;--blush:#f9c3c6;--lilac:#dac5fc;--butter:#f5e3a2;--well:#f7ecd1;
+--s-lilac:#b096d7;--d-lilac:#7f5fab;--h-lilac:#af88e6;--s-blush:#d29397;--d-blush:#ac505b;--h-blush:#e87783;--s-butter:#ccb563;--d-butter:#877000;--h-butter:#bb9c12;--s-robin:#66c2c4;--d-robin:#008284;--h-robin:#00b5b8;
+--edge:161 110 50;--link:#654199;
+--ink:#693800;--ink-strong:#472400;--ink-muted:#844d16;--ink-subtle:#975e2a;
+--body-size:1rem;--body-weight:400;--btn-size:1rem;--btn-weight:600;
+--font:ui-rounded,"SF Pro Rounded","Nunito","Comfortaa",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+button,input,label,a{touch-action:manipulation}
+html{background:var(--cream);-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-bottom:260px}
+/* The page's own notes are set in the ink being tried (its darker label shade), so the sheet never favours one family. */
+body{margin:0 auto;max-width:60rem;padding:16px max(16px,env(safe-area-inset-right)) 300px max(16px,env(safe-area-inset-left));background:var(--cream);color:var(--ink-strong);font:16px/1.5 var(--font)}
+h1{font-size:1.6rem;line-height:1.2;margin:.4rem 0 .2rem}
+h2{font-size:1.25rem;margin:2.4rem 0 .4rem;padding-top:.8rem;border-top:2px dotted rgb(var(--edge) / .45)}
+h3{font-size:1.05rem;margin:1.4rem 0 .2rem}
+p,li{max-width:44rem} ul,ol{padding-left:1.3rem;margin:.3rem 0} li{margin:.25rem 0}
+code,.cap,.ro,td,th{font-family:var(--mono);font-size:.78rem}
+a{color:inherit}
+.sw{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:.6rem 0}
+@media (min-width:40em){.sw{grid-template-columns:repeat(3,1fr)}}
+.sw>div{border-radius:18px;padding:14px;min-height:118px;box-shadow:0 0 5px 1px rgb(var(--edge) / .26),0 2px 4px rgb(var(--edge) / .18);color:var(--ink-strong)}
+.sw b{display:block;font-size:1rem}.sw span{display:block;font-family:var(--mono);font-size:.74rem}
+.spec{-webkit-appearance:none;appearance:none;background:none;border:0;margin:0;text-align:left;color:inherit;display:block;width:100%;cursor:pointer;padding:12px 0 14px;border-bottom:1px solid rgb(var(--edge) / .22);font:inherit;border-radius:0}
+.spec[aria-pressed="true"]{box-shadow:inset 4px 0 0 var(--s-lilac);padding-left:12px}
+.spec:focus-visible{outline:3px solid #8e6ac7;outline-offset:2px;border-radius:8px}
+.cap{display:block;margin-bottom:4px;color:var(--ink-strong)}
+.cap i{font-style:normal;margin-left:.3rem;padding:1px 7px;border-radius:99px;box-shadow:0 0 0 1px currentColor;display:inline-block}
+.spec .h,.spec .p,.spec .s{display:block;color:var(--c)}
+.spec .h{font-size:1.25rem;font-weight:600;line-height:1.25}
+.spec .p{font-size:var(--body-size);font-weight:var(--body-weight);max-width:40rem}
+.spec .s{font-size:.75rem}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:.6rem 0}
+.strip>div{background:var(--surface);border-radius:16px;padding:12px;box-shadow:0 0 5px 1px rgb(var(--edge) / .26),0 2px 4px rgb(var(--edge) / .18)}
+.strip i{display:block;height:44px;border-radius:10px;background:var(--c);margin-bottom:8px}
+.strip b{display:block;font-size:1.05rem;color:var(--c)}.strip span{display:block;color:var(--c);font-size:1rem}.strip code{display:block;margin-top:6px}
+.tw{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;margin:.5rem 0}
+td,th{text-align:right;padding:4px 0 4px 9px;white-space:nowrap;border-bottom:1px solid rgb(var(--edge) / .22);font-size:.72rem}
+td:first-child,th:first-child{text-align:left;padding-left:0}
+.fillgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.fillgrid>div{border-radius:16px;padding:12px;box-shadow:0 0 4px 1px color-mix(in srgb,var(--hl) 70%,transparent),0 1px 2px color-mix(in srgb,var(--hl) 60%,transparent)}
+.fillgrid b{display:block;font-size:var(--btn-size);font-weight:var(--btn-weight);color:var(--ink-strong)}.fillgrid span{display:block;font-size:var(--body-size);font-weight:var(--body-weight);color:var(--ink)}.fillgrid code{display:block;margin-top:6px;white-space:normal;color:var(--ink-strong)}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:.5rem 0 1rem;align-items:center}
+.opts span{font-weight:600;font-size:.85rem;flex:0 0 100%}
+.opts button,#pick button{-webkit-appearance:none;appearance:none;font:600 .82rem var(--font);min-height:40px;padding:0 14px;border:0;border-radius:99px;background:var(--surface);color:var(--ink-strong);box-shadow:inset 0 0 0 1px rgb(var(--edge) / .35);cursor:pointer}
+.opts button[aria-pressed="true"],#pick button[aria-pressed="true"]{box-shadow:inset 0 0 0 2px currentColor}
+.opts button[aria-pressed="true"]::before,#pick button[aria-pressed="true"]::before{content:"✓ "}
+.read{color:var(--ink);font-size:var(--body-size);font-weight:var(--body-weight);max-width:40rem}
+.read.card{background:var(--surface);border-radius:22px;padding:18px;box-shadow:0 0 6px 1px rgb(161 110 50 / .38),0 2px 4px rgb(161 110 50 / .18),0 10px 28px -8px rgb(161 110 50 / .26)}
+/* ---- the sample card: a slice of interface at sorbet's real type sizes, drawn in the picked ink ---- */
+.mock{color:var(--ink);margin:.8rem 0}
+.m-card{background:var(--surface);border-radius:22px;padding:18px}
+.m-h{font-size:1.25rem;font-weight:700;line-height:1.2;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.m-p{margin:.4rem 0;font-size:var(--body-size);font-weight:var(--body-weight)}.m-meta{color:var(--ink-muted);font-size:.875rem;margin:.2rem 0}
+.m-hint{color:var(--ink-muted);font-size:.75rem;margin:.3rem 0 0}
+.m-a{color:var(--link);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.m-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:.9rem 0}
+.m-btn,.m-chip,.m-badge{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:999px;font-size:var(--btn-size);font-weight:var(--btn-weight);background:var(--f);color:var(--ink-strong)}
+.m-chip{min-height:32px;padding:0 12px;font-size:.875rem;font-weight:500}
+.m-badge{min-height:22px;padding:0 9px;font-size:.75rem;font-weight:600}
+.m-btn.m-off{background:color-mix(in srgb,var(--f) 45%,var(--surface));color:var(--ink-subtle);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--dp) 22%,transparent) !important}
+.f-lilac{--f:var(--lilac);--tn:var(--s-lilac);--dp:var(--d-lilac);--hl:var(--h-lilac)}.f-blush{--f:var(--blush);--tn:var(--s-blush);--dp:var(--d-blush);--hl:var(--h-blush)}.f-butter{--f:var(--butter);--tn:var(--s-butter);--dp:var(--d-butter);--hl:var(--h-butter)}.f-robin{--f:var(--robin);--tn:var(--s-robin);--dp:var(--d-robin);--hl:var(--h-robin)}
+.m-lab{display:block;font-weight:500;font-size:.875rem;margin:.6rem 0 .3rem;color:var(--ink-strong)}
+.m-in{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:26rem;min-height:44px;border:0;border-radius:14px;padding:0 14px;font:inherit;font-size:1rem;color:var(--ink);background:var(--surface)}
+.m-in::placeholder{color:var(--ink-subtle);opacity:1}
+.m-in:focus-visible{outline:3px solid #8e6ac7;outline-offset:2px}
+.m-ctl{gap:12px 20px}.m-pr{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.m-check{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--s-lilac);font-weight:800;font-size:.95rem;line-height:1;color:var(--ink-strong)}
+.m-check.on{background:var(--lilac)}
+.m-switch{display:inline-block;width:46px;height:26px;border-radius:99px;background:var(--well);box-shadow:inset 0 0 0 1.5px var(--s-lilac);position:relative}
+.m-switch i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);box-shadow:0 0 0 1px var(--s-lilac),0 1px 3px var(--d-lilac)}
+.m-switch.on{background:var(--s-lilac)}.m-switch.on i{left:23px}
+.m-alert{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;margin:.9rem 0;background:color-mix(in srgb,var(--f) 50%,var(--surface))}
+.m-alert b{color:var(--ink-strong)}.m-ic{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font:800 .8rem/1 var(--font);background:var(--ink-strong);color:var(--surface);margin-top:1px}
+.m-list{margin-top:.8rem}.m-list>div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #e3d2b0}
+.e1 .m-card{box-shadow:0 0 0 1px rgb(161 110 50 / .26),0 1px 2px rgb(161 110 50 / .18)}
+.e1 .m-btn,.e1 .m-chip,.e1 .m-badge{box-shadow:0 0 0 1px color-mix(in srgb,var(--hl) 55%,transparent),0 1px 2px color-mix(in srgb,var(--hl) 45%,transparent)}
+.e1 .m-in{box-shadow:inset 0 0 0 1px rgb(129 91 31 / .24),inset 0 2px 3px rgb(129 91 31 / .14)}
+.e1 .m-alert{box-shadow:0 0 0 1px color-mix(in srgb,var(--hl) 55%,transparent),0 1px 2px color-mix(in srgb,var(--hl) 45%,transparent)}
+.e2 .m-card{box-shadow:0 0 6px 1px rgb(161 110 50 / .38),0 2px 4px rgb(161 110 50 / .18),0 10px 28px -8px rgb(161 110 50 / .26)}
+.e2 .m-btn,.e2 .m-chip,.e2 .m-badge{box-shadow:0 0 4px 1px color-mix(in srgb,var(--hl) 70%,transparent),0 1px 2px color-mix(in srgb,var(--hl) 60%,transparent),0 4px 10px -2px color-mix(in srgb,var(--dp) 26%,transparent)}
+.e2 .m-in{box-shadow:inset 0 0 0 1px rgb(129 91 31 / .24),inset 0 2px 3px rgb(129 91 31 / .14),0 1px 0 rgb(255 255 255 / .9)}
+.e2 .m-alert{box-shadow:0 0 4px 1px color-mix(in srgb,var(--hl) 70%,transparent),0 1px 2px color-mix(in srgb,var(--hl) 60%,transparent),0 4px 10px -2px color-mix(in srgb,var(--dp) 26%,transparent)}
+.e3 .m-card{box-shadow:0 0 0 1px rgb(161 110 50 / .45),0 2px 6px -2px rgb(161 110 50 / .26)}
+.e3 .m-btn,.e3 .m-chip,.e3 .m-badge{box-shadow:0 0 0 1px color-mix(in srgb,var(--tn) 85%,transparent)}
+.e3 .m-in{box-shadow:inset 0 0 0 1px rgb(129 91 31 / .45)}
+.e3 .m-alert{box-shadow:0 0 0 1px color-mix(in srgb,var(--tn) 85%,transparent)}
+.edgehead{margin:1.4rem 0 0}.edgehead b{font-size:1rem}
+/* ---- picker, pinned to the bottom of the screen ---- */
+#pick{position:fixed;left:0;right:0;bottom:0;background:var(--surface);color:var(--ink-strong);box-shadow:0 -1px 0 rgb(var(--edge) / .3),0 -6px 18px -6px rgb(var(--edge) / .4);padding:8px max(14px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));z-index:5}
+#pick .in{max-width:60rem;margin:0 auto;display:grid;gap:4px}
+#pick .fb{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#pick button{min-height:36px;padding:0 11px;background:var(--cream);color:var(--ink-strong)}
+#pick .fb a{margin-left:auto;font-size:.8rem;font-weight:600;padding:8px 4px}
+#pick .rowl{display:grid;grid-template-columns:5.8rem 36px 1fr 36px 2.9rem;gap:6px;align-items:center;font-size:.8rem}
+#pick .rowl button{min-height:36px;padding:0;font-size:1.1rem}
+#pick input[type=range]{width:100%;accent-color:var(--ink-strong);min-height:36px;margin:0}
+#pick #mini{position:absolute;right:max(14px,env(safe-area-inset-right));top:-34px;min-height:34px;border-radius:12px 12px 0 0;background:var(--surface);box-shadow:0 -1px 0 rgb(var(--edge) / .3)}
+#pick.min .fb,#pick.min .rowl,#pick.min #ro{display:none}
+#pick .ro{line-height:1.35}
+#pick .code{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--mono);font-size:.84rem;font-weight:700}
+</style></head>
+<body>
+<h1>Sorbet pastel: where can the text colour land?</h1>
+<p>2026-10-03 · sample sheet 1, revised 18:58 after an independent review. Nothing in sorbet has changed yet. Sheet 2, edges and dark mode, is <a href="edges.html">here</a>.</p>
+
+<h2>Where this stands</h2>
+<ul>
+<li><b>Your ink: cocoa</b> <code>#693800</code>, which you found with the slider: lightness 0.394, hue 60, colourfulness 0.092, which is as colourful as a screen can show at that lightness. It scores Lc 86 on the cream page and 90 on a card (Lc is explained below; 90 is the mark for paragraphs at sorbet's normal size), and sits 9.2 from a gray of the same lightness, where today's text sits 1.0. You first leaned to aubergine <code>#58366f</code>, then switched. The slider opens on your cocoa.</li>
+<li><b>Why cocoa suits your eyes.</b> You said A and B look similar, and that P is close to plain gray as text. That is the pattern the deutan simulation predicts (deutan is one of the two red-green kinds of colour blindness): there A and B sit only 0.9 apart and P sits 2.6 from gray, where under 5 is hard to tell apart. You can still tell the swatches apart, so yours is probably a partial form. Cocoa sits 8.4 from gray in that simulation and never drops below 8.2 in any of them, so it should stay visibly brown rather than gray for you.</li>
+<li><b>How light paragraphs can go, by the measurements:</b> about lightness 0.40 to 0.42 at today's 16px regular type on a card; about 0.50 only if paragraphs move to 18px or to a medium weight; lighter than that is for headings.</li>
+<li><b>The old rule never required dark gray text.</b> Sorbet's text today measures 11.5:1 against a rule that asks for 4.5:1, and your cocoa measures 8.9:1. Sorbet simply picks the darkest neutral. What the old rule did force is the deep button, outline and checkbox colours, which is the pastel half of this work.</li>
+</ul>
+
+<h2>What I still need</h2>
+<p>Nothing more from this sheet. If you change your mind about the ink, drag the sliders in the bar pinned to the bottom of the screen and send me the bold line in that bar (the copy button beside it copies it; − and + move one notch). If 16px regular paragraphs are not comfortable in this ink, try 16px medium and 18px regular with the buttons above the sample card and tell me which.</p>
+
+<h3>The numbers on every sample</h3>
+<ul>
+<li><b>Ink</b> is the text colour. A <b>family</b> is one hue of ink at several lightnesses.</li>
+<li><b>Lc</b> is "lightness contrast", the score from APCA (the Accessible Perceptual Contrast Algorithm, the contrast measure drafted for the next version of the web accessibility guidelines). It says how strongly text stands off its background by brightness alone, and brightness is the part of contrast that colour blindness leaves largely alone: under the simulations these scores move by 1 to 5 points. Black on white is about 106; under about 15 is effectively invisible.</li>
+<li>What the measure's authors publish as minimums: <b>90</b> for paragraphs from 14px regular up (they call 90 "preferred"); <b>75</b> for paragraphs only if the type is at least 18px regular or 16px medium (medium is one step heavier than regular); <b>60</b> for text that is not a paragraph, such as headings and labels, and only when it is at least 16px bold, 18px semi-bold or 24px regular; <b>45</b> for big headings, meaning 24px bold or 36px regular; <b>30</b> is their floor for placeholder and disabled text. These are their minimums for a general audience and the method is still a draft. None of it is a measurement of your eyes or your screens, so your eye wins.</li>
+<li><b>Old rule</b> is the contrast ratio from WCAG (the current web accessibility guidelines) that sorbet enforces today: at least 4.5:1 for text, on a scale from 1:1 (no contrast) to 21:1 (black on white).</li>
+<li><b>Lightness, colourfulness, hue</b> are the three dials of OKLCH, the colour model the palette is built in. Lightness runs from 0, black, to 1, white. Colourfulness is how far from gray: 0 is gray, these pastels are 0.06 to 0.09, and a vivid colour is 0.15 or more. Hue is an angle round the colour wheel: about 30 is red, 90 yellow, 150 green, 200 a green-blue, 260 blue, 310 purple.</li>
+<li><b>Distance</b> between two colours (the tables below) is measured in a colour space called OKLab, times 100: under 5 is hard to tell apart, 10 or more is clearly different.</li>
+<li>A <b>simulation</b> is a calculation of how a colour looks with one kind of colour blindness: protan and deutan are the two red-green kinds, tritan is the rare blue-yellow kind. These use the complete form of each kind, which is the worst case. Most colourblind people have a partial form, so what you see is probably better than these columns say.</li>
+<li><b>For comparison, sorbet's text today</b> is <code>#38342f</code>: lightness 0.33 · colourfulness 0.010 · hue 74°, a dark gray, Lc 93 on today's page. Sorbet's "muted" text today is Lc 79 and its "subtle" text Lc 69, which you already read every day as secondary text in the lab apps.</li>
+</ul>
+
+<h2>1 · The palette</h2>
+<p>Three independent proposals and three judges landed on the same jobs for the colours. Today's page, <code>#f8f7f5</code>, measures colourfulness 0.003: a neutral off-white, not cream. This cream is 0.033.</p>
+<div class="sw">
+<div style="background:#fef4dc"><b>Cream</b><span>#fef4dc</span><span>lightness 0.97</span><span>colourfulness 0.033</span><span>hue 88°</span><span>the page</span></div>
+<div style="background:#fffbf1"><b>Milk</b><span>#fffbf1</span><span>lightness 0.99</span><span>colourfulness 0.014</span><span>hue 89°</span><span>cards and fields</span></div>
+<div style="background:#dac5fc"><b>Lilac</b><span>#dac5fc</span><span>lightness 0.86</span><span>colourfulness 0.078</span><span>hue 302°</span><span>primary: the main button</span></div>
+<div style="background:#f9c3c6"><b>Blush</b><span>#f9c3c6</span><span>lightness 0.87</span><span>colourfulness 0.062</span><span>hue 15°</span><span>secondary</span></div>
+<div style="background:#f5e3a2"><b>Butter</b><span>#f5e3a2</span><span>lightness 0.92</span><span>colourfulness 0.085</span><span>hue 94°</span><span>accent</span></div>
+<div style="background:#a6edee"><b>Robin's egg</b><span>#a6edee</span><span>lightness 0.90</span><span>colourfulness 0.070</span><span>hue 197°</span><span>success, plus decoration</span></div>
+</div>
+<h3>Decided so far. Say if you disagree.</h3>
+<ul>
+<li><b>Lilac leads (you confirmed this on 2026-10-03).</b> It replaces robin's egg as sorbet's lead colour: today robin's egg (<code>#adedf3</code>) is the primary and lilac is not in the theme at all. The review moved lilac to the front because it stands furthest off the cream page for typical vision and in both red-green simulations (15, against 12 or less for the others), and because robin's egg nearly disappears against cream under the protan simulation (6) and is hard to tell from blush under deutan (5). Under the rare tritan simulation it is the other way round: robin's egg (13) and blush (12) stand off the page slightly more than lilac (11). Robin's egg stays in the palette as the success colour and as decoration.</li>
+<li><b>No colour means something by itself.</b> Blush and robin's egg lose most of their colour in the red-green simulations: colourfulness drops from 0.062 and 0.070 to 0.006 and 0.011 under protan (gray), and to 0.021 and 0.027 under deutan (a faint tint). Lilac and butter keep theirs (0.070 and 0.086 under protan). So a status or a selected state always carries an icon, a word or a position as well.</li>
+<li><b>Danger will look gentle.</b> With only pastels, a delete button is blush with an icon and the word, not today's solid red. Sheet 2 shows it.</li>
+<li><b>Button labels are 16px semi-bold</b> (you chose this; sorbet's are 14px today). A pastel button caps how much contrast its label can have, so the bigger type is the lever.</li>
+<li><b>Edges are the halo with no line</b> (E2), and <b>dark mode uses the rim edge with full-strength pastels</b>. Both are on <a href="edges.html">sheet 2</a>.</li>
+<li><b>One ink is the anchor.</b> The darker label shade, the lighter secondary shade and the placeholder shade are all worked out from the ink you pick, so changing your mind later is one value.</li>
+</ul>
+<h3>How far apart the colours sit</h3>
+<p>Two things to notice. A milk card is only about 3 from the cream page, so a card needs an edge to be seen at all, which is what sheet 2 is about. And butter is only 6 to 8 from the page for everyone, so it is used small.</p>
+<div class="tw"><table><tr><th>pair</th><th>typical</th><th>protan</th><th>deutan</th><th>tritan</th></tr><tr><td>Milk on cream</td><td>2.8</td><td>3.0</td><td>2.7</td><td>2.4</td></tr><tr><td>Lilac on cream</td><td>15.4</td><td>15.1</td><td>15.2</td><td>11.1</td></tr><tr><td>Blush on cream</td><td>12.0</td><td>12.6</td><td>10.3</td><td>11.9</td></tr><tr><td>Butter on cream</td><td>7.5</td><td>8.0</td><td>7.2</td><td>5.6</td></tr><tr><td>Robin on cream</td><td>11.1</td><td>5.7</td><td>9.6</td><td>13.2</td></tr><tr><td>Lilac / Blush</td><td>8.4</td><td>7.9</td><td>8.6</td><td>6.7</td></tr><tr><td>Lilac / Butter</td><td>16.8</td><td>16.5</td><td>16.3</td><td>7.2</td></tr><tr><td>Lilac / Robin</td><td>12.5</td><td>9.5</td><td>5.6</td><td>11.4</td></tr><tr><td>Blush / Butter</td><td>10.8</td><td>10.2</td><td>8.3</td><td>6.4</td></tr><tr><td>Blush / Robin</td><td>13.7</td><td>8.8</td><td>5.4</td><td>17.4</td></tr><tr><td>Butter / Robin</td><td>12.3</td><td>10.0</td><td>11.4</td><td>13.9</td></tr></table></div>
+<p>None of this affects reading: text contrast comes from brightness. It means a button's colour will not tell you which button it is, so the label, an icon and the position carry that.</p>
+
+<h2 id="try">2 · Try an ink on a sample card</h2>
+<p>This card is drawn in the ink the slider is set to, plus three shades worked out from it: a darker one for headings and button labels (fixed at lightness 0.30, because a pastel button is darker than the page and its label needs the help), a lighter one for the "updated" and hint lines, and a lighter one still for the placeholder in the search box. The type sizes are sorbet's real ones. The card is a shade lighter than the page, so text on it measures about 4 Lc higher than the same ink on the bare page; the bar at the bottom prints both.</p>
+<div class="opts" role="group" aria-label="Paragraph type"><span>Paragraph type. A lighter ink stays readable for longer if the type is a little bigger or heavier.</span>
+<button type="button" data-ty="1rem,400" aria-pressed="true">16px regular (sorbet today)</button>
+<button type="button" data-ty="1rem,500" aria-pressed="false">16px medium</button>
+<button type="button" data-ty="1.125rem,400" aria-pressed="false">18px regular</button></div>
+<div class="opts" role="group" aria-label="Button label type"><span>Button labels. A pastel button caps how much contrast its label can have: even pure black only reaches Lc 78 on this lilac and 79 on this blush. By the guidance a 14px semi-bold label wants about 75 and a 16px bold one 60, so a bigger or bolder label is the lever.</span>
+<button type="button" data-bt="1rem,600" aria-pressed="true">16px semi-bold (your choice)</button>
+<button type="button" data-bt=".875rem,600" aria-pressed="false">14px semi-bold (sorbet today)</button>
+<button type="button" data-bt=".875rem,700" aria-pressed="false">14px bold</button></div>
+
+<div class="mock e2">
+  <div class="m-card">
+    <div class="m-h">Weeknight plan <span class="m-badge f-butter">NEW</span></div>
+    <p class="m-p">Three dinners are planned and the pantry covers two of them. The shop on Thursday picks up the rest: <a class="m-a" href="#try">see the list</a>.</p>
+    <p class="m-meta">Updated 5 minutes ago · 14 items · 2 running low</p>
+    <div class="m-row">
+      <span class="m-btn f-lilac">Start cooking</span>
+      <span class="m-btn f-blush">Swap a dish</span>
+      <span class="m-btn f-butter">Add to list</span>
+      <span class="m-btn f-lilac m-off">Disabled</span>
+      <span class="m-chip f-robin">✓ In stock</span>
+    </div>
+    <label class="m-lab" for="live-in">Search recipes</label>
+    <input class="m-in" id="live-in" placeholder="chicken, rice, lemon…" autocomplete="off">
+    <p class="m-hint">Searches titles and ingredients. This line is the smallest text sorbet uses, 12px.</p>
+    <div class="m-row m-ctl">
+      <span class="m-pr"><span class="m-check on" aria-hidden="true">✓</span>Done</span>
+      <span class="m-pr"><span class="m-check" aria-hidden="true"></span>Not yet</span>
+      <span class="m-pr"><span class="m-switch on" aria-hidden="true"><i></i></span>On</span>
+      <span class="m-pr"><span class="m-switch" aria-hidden="true"><i></i></span>Off</span>
+    </div>
+    <div class="m-alert f-robin"><span class="m-ic" aria-hidden="true">✓</span><div><b>Saved.</b> The plan is stored and the shopping list is updated. A paragraph inside a status box sits on a pale wash of the pastel, not the full pastel.</div></div>
+    <div class="m-list"><div><span>Jasmine rice</span><span class="m-meta">2 cups</span></div><div><span>Chicken thighs</span><span class="m-meta">900 g</span></div><div><span>Lemons</span><span class="m-meta">3</span></div></div>
+  </div>
+</div>
+
+<h3>A longer passage, on the bare page</h3>
+<p class="read">Rinse the rice until the water runs nearly clear, then leave it to drain while the oven heats. Pat the chicken dry and season it well on both sides. Sear the thighs skin-side down in a wide, heavy pan until the skin is deep golden and comes away without sticking, about 8 minutes, then turn them for a minute and lift them out. Soften the onion in the same pan, stir in the garlic and the rice, and let the grains toast until they smell nutty. Pour in the stock, add the lemon zest, and bring it to a simmer. Nestle the chicken back in, skin up, and bake uncovered for 25 minutes, until the stock is absorbed and the rice is tender. Rest it for five minutes, squeeze over the lemon, and scatter with parsley.</p>
+<h3>The same passage on a card</h3>
+<p class="read card">Rinse the rice until the water runs nearly clear, then leave it to drain while the oven heats. Pat the chicken dry and season it well on both sides. Sear the thighs skin-side down in a wide, heavy pan until the skin is deep golden and comes away without sticking, about 8 minutes, then turn them for a minute and lift them out. Soften the onion in the same pan, stir in the garlic and the rice, and let the grains toast until they smell nutty. Pour in the stock, add the lemon zest, and bring it to a simmer. Nestle the chicken back in, skin up, and bake uncovered for 25 minutes, until the stock is absorbed and the rice is tender. Rest it for five minutes, squeeze over the lemon, and scatter with parsley.</p>
+
+<h2>3 · Do these look different to you?</h2>
+<p>Six inks at the same lightness (0.395): the four candidates, a plain gray, and sorbet's text today. To typical vision A is a purple, B a blue, P a pinker purple and C a warm brown. The simulations predict that with red-green colour blindness A, B and P look like nearly the same dark blue and only C stands apart; with the blue-yellow kind A, C and P merge instead and B stands apart. <b>Your answer (2026-10-03):</b> A and B look similar but you can tell them apart; P and G are very close; as swatches all six differ, as text those two pairs could be swapped without you noticing. That matches the deutan column of the table below.</p>
+<div class="strip">
+<div style="--c:#57356e"><i></i><b>A · Aubergine</b><span>Sear the thighs until deep golden.</span><code>#57356e</code></div>
+<div style="--c:#693800"><i></i><b>C · Cocoa</b><span>Sear the thighs until deep golden.</span><code>#693800</code></div>
+<div style="--c:#314571"><i></i><b>B · Ink blue</b><span>Sear the thighs until deep golden.</span><code>#314571</code></div>
+<div style="--c:#5f3656"><i></i><b>P · Plum</b><span>Sear the thighs until deep golden.</span><code>#5f3656</code></div>
+<div style="--c:#464646"><i></i><b>G · Plain gray</b><span>Sear the thighs until deep golden.</span><code>#464646</code></div>
+<div style="--c:#38342f"><i></i><b>T · Sorbet's text today</b><span>Sear the thighs until deep golden.</span><code>#38342f</code></div>
+</div>
+<div class="tw"><table><tr><th>distance between</th><th>typical</th><th>protan</th><th>deutan</th><th>tritan</th></tr>
+<tr><td>A and B</td><td>7.2</td><td>2.8</td><td>0.9</td><td>9.2</td></tr><tr><td>A and P</td><td>4.5</td><td>4.5</td><td>4.8</td><td>3.3</td></tr><tr><td>A and C</td><td>15.7</td><td>16.0</td><td>15.6</td><td>7.7</td></tr><tr><td>B and C</td><td>16.7</td><td>15.6</td><td>16.4</td><td>16.2</td></tr>
+<tr><td>A and gray</td><td>10.0</td><td>8.7</td><td>7.3</td><td>3.7</td></tr><tr><td>C and gray</td><td>9.2</td><td>8.2</td><td>8.4</td><td>10.1</td></tr><tr><td>B and gray</td><td>7.9</td><td>7.7</td><td>8.2</td><td>6.2</td></tr><tr><td>P and gray</td><td>7.5</td><td>4.7</td><td>2.6</td><td>6.3</td></tr>
+<tr><td>T and gray</td><td>1.0</td><td>1.0</td><td>1.0</td><td>1.0</td></tr></table></div>
+<p>"Gray" in the last five rows is a gray of the same lightness, so read them as "how far from gray": cocoa, your ink, is 9.2 from gray for typical vision and 8.2, 8.4 and 10.1 under the three simulations, the only one of the four that stays above 5 in every column. Aubergine drops to 3.7 under tritan and plum to 2.6 under deutan. Today's text is 1.0: a gray.</p>
+
+<h3>The ladders</h3>
+<p>Aubergine and cocoa, each from dark to light on the cream page. Tap a sample to load it into the slider. The first row is sorbet's text today, for scale. The tag at the end of each caption says what that step is strong enough for by the guidance above, on the cream page. A difference of 1 or 2 in Lc between the two families means nothing; compare steps.</p>
+<div class="spec" style="--c:#38342f;cursor:default"><span class="cap"><b>Today</b> · #38342f · lightness 0.33 · colourfulness 0.010 (a dark gray) · Lc&nbsp;91.9 on this cream · old&nbsp;rule&nbsp;11.28:1 (passes) <i>paragraphs, 14px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></div>
+<div class="fam"><h3>C · Cocoa <code>hue 60° · colourfulness 0.10</code></h3><p>The one ink on the orange-brown side of the wheel (hue 60, against the cream's 88). It keeps most of its colourfulness in all three simulations: 0.092 becomes 0.074 / 0.084 / 0.100. A violet link stands 21 away from cocoa text but only 8 from aubergine, where the underline would have to do the work. Every step passes the old 4.5:1 rule down to C6.</p><button type="button" class="spec" style="--c:#472400" data-fam="C" data-l="0.3"><span class="cap"><b>C1</b> · #472400 · lightness 0.30 · colourfulness 0.070 (the most a screen can show this dark) · Lc&nbsp;93.9 on cream, 97.8 on a card · old&nbsp;rule&nbsp;12.62:1 (passes) <i>paragraphs, 14px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#592e00" data-fam="C" data-l="0.35"><span class="cap"><b>C2</b> · #592e00 · lightness 0.35 · colourfulness 0.083 (the most a screen can show this dark) · Lc&nbsp;90.0 on cream, 93.9 on a card · old&nbsp;rule&nbsp;10.57:1 (passes) <i>paragraphs, 14px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#6b3900" data-fam="C" data-l="0.4"><span class="cap"><b>C3</b> · #6b3900 · lightness 0.40 · colourfulness 0.094 (the most a screen can show this dark) · Lc&nbsp;85.3 on cream, 89.3 on a card · old&nbsp;rule&nbsp;8.68:1 (passes) <i>paragraphs at 18px, or 16px medium</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#7d460b" data-fam="C" data-l="0.45"><span class="cap"><b>C4</b> · #7d460b · lightness 0.45 · Lc&nbsp;79.9 on cream, 83.8 on a card · old&nbsp;rule&nbsp;6.97:1 (passes) <i>paragraphs at 18px, or 16px medium</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#8c541f" data-fam="C" data-l="0.5"><span class="cap"><b>C5</b> · #8c541f · lightness 0.50 · Lc&nbsp;74.3 on cream, 78.2 on a card · old&nbsp;rule&nbsp;5.64:1 (passes) <i>headings and bold labels, 16px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#9c622f" data-fam="C" data-l="0.55"><span class="cap"><b>C6</b> · #9c622f · lightness 0.55 · Lc&nbsp;68.1 on cream, 72.0 on a card · old&nbsp;rule&nbsp;4.57:1 (passes) <i>headings and bold labels, 16px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#ac713e" data-fam="C" data-l="0.6"><span class="cap"><b>C7</b> · #ac713e · lightness 0.60 · Lc&nbsp;61.3 on cream, 65.2 on a card · old&nbsp;rule&nbsp;3.70:1 (fails) <i>headings and bold labels, 16px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button></div>
+<div class="fam"><h3>A · Aubergine <code>hue 310° · colourfulness 0.10</code></h3><p>Close to the lilac's own hue (310 against 302) taken dark, so a label on the lilac button is a dark shade of the button's own colour. Under the red-green simulations it reads as a dark blue (#274270 and #30446d, colourfulness 0.086 and 0.075). Under the rare tritan kind it goes nearly gray (0.038). Every step passes the old 4.5:1 rule down to A6.</p><button type="button" class="spec" style="--c:#3d1b52" data-fam="A" data-l="0.3"><span class="cap"><b>A1</b> · #3d1b52 · lightness 0.30 · Lc&nbsp;94.4 on cream, 98.3 on a card · old&nbsp;rule&nbsp;12.99:1 (passes) <i>paragraphs, 14px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#4a2961" data-fam="A" data-l="0.35"><span class="cap"><b>A2</b> · #4a2961 · lightness 0.35 · Lc&nbsp;90.6 on cream, 94.5 on a card · old&nbsp;rule&nbsp;10.77:1 (passes) <i>paragraphs, 14px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#58366f" data-fam="A" data-l="0.4"><span class="cap"><b>A3</b> · #58366f · lightness 0.40 · Lc&nbsp;86.0 on cream, 89.9 on a card · old&nbsp;rule&nbsp;8.83:1 (passes) <i>paragraphs at 18px, or 16px medium</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#66447e" data-fam="A" data-l="0.45"><span class="cap"><b>A4</b> · #66447e · lightness 0.45 · Lc&nbsp;80.7 on cream, 84.6 on a card · old&nbsp;rule&nbsp;7.12:1 (passes) <i>paragraphs at 18px, or 16px medium</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#75528e" data-fam="A" data-l="0.5"><span class="cap"><b>A5</b> · #75528e · lightness 0.50 · Lc&nbsp;74.8 on cream, 78.8 on a card · old&nbsp;rule&nbsp;5.72:1 (passes) <i>headings and bold labels, 16px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#83609d" data-fam="A" data-l="0.55"><span class="cap"><b>A6</b> · #83609d · lightness 0.55 · Lc&nbsp;68.8 on cream, 72.7 on a card · old&nbsp;rule&nbsp;4.65:1 (passes) <i>headings and bold labels, 16px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button><button type="button" class="spec" style="--c:#936fad" data-fam="A" data-l="0.6"><span class="cap"><b>A7</b> · #936fad · lightness 0.60 · Lc&nbsp;61.9 on cream, 65.8 on a card · old&nbsp;rule&nbsp;3.75:1 (fails) <i>headings and bold labels, 16px and up</i></span><span class="h">Lemon chicken with rice</span><span class="p">Sear the thighs skin-side down until deep golden, about 8 minutes, then nestle them into the rice and bake until the stock is absorbed.</span><span class="s">Serves 4 · 45 min · updated 2 days ago</span></button></div>
+
+<h2>4 · The same ink on each pastel</h2>
+<p>A pastel is darker than the cream page, so text on it has less contrast. The first line of each tile is the button-label shade at the label size you chose above; the second is the paragraph ink, which is not meant to sit on a full-strength pastel (paragraphs inside a status box sit on a pale wash instead, as in the card above).</p>
+<div class="fillgrid">
+<div class="f-lilac" style="background:#dac5fc"><b>Lilac button label</b><span>Paragraph ink on the same fill</span><code data-lc="lilac"></code></div>
+<div class="f-blush" style="background:#f9c3c6"><b>Blush button label</b><span>Paragraph ink on the same fill</span><code data-lc="blush"></code></div>
+<div class="f-butter" style="background:#f5e3a2"><b>Butter button label</b><span>Paragraph ink on the same fill</span><code data-lc="butter"></code></div>
+<div class="f-robin" style="background:#a6edee"><b>Robin's egg button label</b><span>Paragraph ink on the same fill</span><code data-lc="robin"></code></div>
+</div>
+
+<h2>5 · Edges, the three treatments</h2>
+<p>You chose E2. <a href="edges.html">Sheet 2</a> shows it across real states and in dark mode, so this section is only the record of the three. None uses a gray or black line. The edge colour round cards and fields is a caramel, <code>#a16e32</code>: the cream taken darker and a little toward orange (hue 68 against the cream's 88). The edge of a button is its own colour taken darker, for example <code>#7f5fab</code> under the lilac button. Checkboxes and switches keep a firm ring in a darker lilac, <code>#b096d7</code>, in all three, because a box or a switch has no text inside it and its outline is the only thing showing where it is. Only the card and the buttons change between the three treatments; the field changes only in E3; checkboxes, switches and the divider lines are the same in all three.</p>
+<p class="edgehead"><b>E1 · Hairline</b><br>A faint 1px line in the element's own deeper colour, plus a tight shadow. The quietest of the three.</p>
+<div class="mock e1">
+  <div class="m-card">
+    <div class="m-h">Weeknight plan <span class="m-badge f-butter">NEW</span></div>
+    <p class="m-p">Three dinners are planned and the pantry covers two of them. The shop on Thursday picks up the rest: <span class="m-a">see the list</span>.</p>
+    <p class="m-meta">Updated 5 minutes ago · 14 items · 2 running low</p>
+    <div class="m-row">
+      <span class="m-btn f-lilac">Start cooking</span>
+      <span class="m-btn f-blush">Swap a dish</span>
+      <span class="m-btn f-butter">Add to list</span>
+      <span class="m-btn f-lilac m-off">Disabled</span>
+      <span class="m-chip f-robin">✓ In stock</span>
+    </div>
+    <label class="m-lab" for="e1-in">Search recipes</label>
+    <input class="m-in" id="e1-in" placeholder="chicken, rice, lemon…" autocomplete="off">
+    <p class="m-hint">Searches titles and ingredients. This line is the smallest text sorbet uses, 12px.</p>
+    <div class="m-row m-ctl">
+      <span class="m-pr"><span class="m-check on" aria-hidden="true">✓</span>Done</span>
+      <span class="m-pr"><span class="m-check" aria-hidden="true"></span>Not yet</span>
+      <span class="m-pr"><span class="m-switch on" aria-hidden="true"><i></i></span>On</span>
+      <span class="m-pr"><span class="m-switch" aria-hidden="true"><i></i></span>Off</span>
+    </div>
+    
+    <div class="m-list"><div><span>Jasmine rice</span><span class="m-meta">2 cups</span></div><div><span>Chicken thighs</span><span class="m-meta">900 g</span></div><div><span>Lemons</span><span class="m-meta">3</span></div></div>
+  </div>
+</div>
+<p class="edgehead"><b>E2 · Halo, no line (your pick)</b><br>No line on the card or the buttons: a soft glow in the element's own deeper colour. The text field keeps a faint 1px inner line, because its fill is the same as the card's and it would otherwise vanish. Used on the card in section 2.</p>
+<div class="mock e2">
+  <div class="m-card">
+    <div class="m-h">Weeknight plan <span class="m-badge f-butter">NEW</span></div>
+    <p class="m-p">Three dinners are planned and the pantry covers two of them. The shop on Thursday picks up the rest: <span class="m-a">see the list</span>.</p>
+    <p class="m-meta">Updated 5 minutes ago · 14 items · 2 running low</p>
+    <div class="m-row">
+      <span class="m-btn f-lilac">Start cooking</span>
+      <span class="m-btn f-blush">Swap a dish</span>
+      <span class="m-btn f-butter">Add to list</span>
+      <span class="m-btn f-lilac m-off">Disabled</span>
+      <span class="m-chip f-robin">✓ In stock</span>
+    </div>
+    <label class="m-lab" for="e2-in">Search recipes</label>
+    <input class="m-in" id="e2-in" placeholder="chicken, rice, lemon…" autocomplete="off">
+    <p class="m-hint">Searches titles and ingredients. This line is the smallest text sorbet uses, 12px.</p>
+    <div class="m-row m-ctl">
+      <span class="m-pr"><span class="m-check on" aria-hidden="true">✓</span>Done</span>
+      <span class="m-pr"><span class="m-check" aria-hidden="true"></span>Not yet</span>
+      <span class="m-pr"><span class="m-switch on" aria-hidden="true"><i></i></span>On</span>
+      <span class="m-pr"><span class="m-switch" aria-hidden="true"><i></i></span>Off</span>
+    </div>
+    
+    <div class="m-list"><div><span>Jasmine rice</span><span class="m-meta">2 cups</span></div><div><span>Chicken thighs</span><span class="m-meta">900 g</span></div><div><span>Lemons</span><span class="m-meta">3</span></div></div>
+  </div>
+</div>
+<p class="edgehead"><b>E3 · Shade ring</b><br>A crisp 1px ring in a darker shade of the element's own colour. The firmest of the three, but it reads as an outline.</p>
+<div class="mock e3">
+  <div class="m-card">
+    <div class="m-h">Weeknight plan <span class="m-badge f-butter">NEW</span></div>
+    <p class="m-p">Three dinners are planned and the pantry covers two of them. The shop on Thursday picks up the rest: <span class="m-a">see the list</span>.</p>
+    <p class="m-meta">Updated 5 minutes ago · 14 items · 2 running low</p>
+    <div class="m-row">
+      <span class="m-btn f-lilac">Start cooking</span>
+      <span class="m-btn f-blush">Swap a dish</span>
+      <span class="m-btn f-butter">Add to list</span>
+      <span class="m-btn f-lilac m-off">Disabled</span>
+      <span class="m-chip f-robin">✓ In stock</span>
+    </div>
+    <label class="m-lab" for="e3-in">Search recipes</label>
+    <input class="m-in" id="e3-in" placeholder="chicken, rice, lemon…" autocomplete="off">
+    <p class="m-hint">Searches titles and ingredients. This line is the smallest text sorbet uses, 12px.</p>
+    <div class="m-row m-ctl">
+      <span class="m-pr"><span class="m-check on" aria-hidden="true">✓</span>Done</span>
+      <span class="m-pr"><span class="m-check" aria-hidden="true"></span>Not yet</span>
+      <span class="m-pr"><span class="m-switch on" aria-hidden="true"><i></i></span>On</span>
+      <span class="m-pr"><span class="m-switch" aria-hidden="true"><i></i></span>Off</span>
+    </div>
+    
+    <div class="m-list"><div><span>Jasmine rice</span><span class="m-meta">2 cups</span></div><div><span>Chicken thighs</span><span class="m-meta">900 g</span></div><div><span>Lemons</span><span class="m-meta">3</span></div></div>
+  </div>
+</div>
+
+<h2>What happens next</h2>
+<ul>
+<li>The anchor ink is fixed: <code>#693800</code>.</li>
+<li>Sheet 2 (<a href="edges.html">edges and dark mode</a>) settles the edge recipe in both modes. The dark page takes the ink's own hue.</li>
+<li>Then the refactor itself, on a branch. The sorbet theme moves to a legibility rule: text must reach the Lc you settle on here instead of the 4.5:1 ratio, and the rules that forced deep buttons and outlines go. The other four themes stay exactly as they are (buylist, which your friend reads, runs on the ocean theme).</li>
+<li>Behind this page, in the same folder: <a href="values.json">values.json</a> has every number printed here; <a href="workflow-result.json">workflow-result.json</a> has the full findings of the first twelve agents.</li>
+</ul>
+
+<div id="pick" role="group" aria-label="Ink picker"><button type="button" id="mini" aria-expanded="true">hide</button><div class="in">
+  <div class="fb"><button type="button" data-f="A" aria-pressed="false">A aubergine</button><button type="button" data-f="C" aria-pressed="true">C cocoa</button><button type="button" data-f="B" aria-pressed="false">B ink blue</button><a href="#try">↑ card</a></div>
+  <div class="rowl"><label for="sl">Lightness</label><button type="button" data-nudge="sl,-0.005" aria-label="Lightness down one notch">−</button><input type="range" id="sl" min="0.28" max="0.66" step="0.005" value="0.395"><button type="button" data-nudge="sl,0.005" aria-label="Lightness up one notch">+</button><span id="vl"></span></div>
+  <div class="rowl"><label for="sc">Colourfulness</label><button type="button" data-nudge="sc,-0.005" aria-label="Colourfulness down one notch">−</button><input type="range" id="sc" min="0" max="0.14" step="0.005" value="0.1"><button type="button" data-nudge="sc,0.005" aria-label="Colourfulness up one notch">+</button><span id="vc"></span></div>
+  <div class="ro"><div class="code"><span id="code"></span><button type="button" id="copy">copy</button></div><div id="ro"></div></div>
+</div></div>
+<script>
+// Colour maths for the sample sheet's live picker. Inlined into the page AND
+// loaded by the build's self-check, which compares it against colorkit.mjs —
+// so the numbers the page shows while you drag are the kit's numbers.
+var SheetColour = (function () {
+  function lin(l, c, h) {
+    var r = (h * Math.PI) / 180, A = c * Math.cos(r), B = c * Math.sin(r);
+    var l_ = Math.pow(l + 0.3963377774 * A + 0.2158037573 * B, 3);
+    var m_ = Math.pow(l - 0.1055613458 * A - 0.0638541728 * B, 3);
+    var s_ = Math.pow(l - 0.0894841775 * A - 1.291485548 * B, 3);
+    return [4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_, -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_, -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_];
+  }
+  function inGamut(v) { var e = 1e-5; return v.every(function (x) { return x >= -e && x <= 1 + e; }); }
+  function ch(x) { var v = Math.min(1, Math.max(0, x)); return v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055; }
+  function oklchToHex(l, c, h) {
+    var chroma = c;
+    if (!inGamut(lin(l, chroma, h))) {
+      var lo = 0, hi = c;
+      for (var i = 0; i < 24; i++) { chroma = (lo + hi) / 2; if (inGamut(lin(l, chroma, h))) lo = chroma; else hi = chroma; }
+      chroma = lo;
+    }
+    return "#" + lin(l, chroma, h).map(function (x) { return Math.round(ch(x) * 255).toString(16).padStart(2, "0"); }).join("");
+  }
+  function rgb(hex) { var n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function apca(text, bg) {
+    function Y(hex) { var c = rgb(hex); var y = 0.2126729 * Math.pow(c[0] / 255, 2.4) + 0.7151522 * Math.pow(c[1] / 255, 2.4) + 0.072175 * Math.pow(c[2] / 255, 2.4); return y > 0.022 ? y : y + Math.pow(0.022 - y, 1.414); }
+    var yt = Y(text), yb = Y(bg), s;
+    if (Math.abs(yb - yt) < 0.0005) return 0;
+    if (yb > yt) { s = (Math.pow(yb, 0.56) - Math.pow(yt, 0.57)) * 1.14; return s < 0.1 ? 0 : (s - 0.027) * 100; }
+    s = (Math.pow(yb, 0.65) - Math.pow(yt, 0.62)) * 1.14; return s > -0.1 ? 0 : (s + 0.027) * 100;
+  }
+  function lum(hex) { var c = rgb(hex).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+  function wcag(a, b) { var la = lum(a), lb = lum(b); return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05); }
+  // Machado, Oliveira & Fernandes 2009, severity 1.0, applied in linear RGB (same matrices as colorkit.mjs).
+  var M = { protan: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],
+    deutan: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.01182, 0.04294, 0.968881]],
+    tritan: [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602], [0.004733, 0.691367, 0.3039]] };
+  function toLin(hex) { return rgb(hex).map(function (v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); }
+  function simulate(hex, kind) {
+    var c = toLin(hex), m = M[kind];
+    return "#" + m.map(function (r) { var x = Math.min(1, Math.max(0, r[0] * c[0] + r[1] * c[1] + r[2] * c[2])); return Math.round(ch(x) * 255).toString(16).padStart(2, "0"); }).join("");
+  }
+  // How colourful a hex really is (OKLab chroma): what the screen shows, which can be less than what was asked for.
+  function chroma(hex) {
+    var c = toLin(hex), l = Math.cbrt(0.4122214708 * c[0] + 0.5363325363 * c[1] + 0.0514459929 * c[2]), m = Math.cbrt(0.2119034982 * c[0] + 0.6806995451 * c[1] + 0.1073969566 * c[2]), s = Math.cbrt(0.0883024619 * c[0] + 0.2817188376 * c[1] + 0.6299787005 * c[2]);
+    return Math.hypot(1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s);
+  }
+  return { oklchToHex: oklchToHex, apca: apca, wcag: wcag, simulate: simulate, chroma: chroma, KINDS: ["protan", "deutan", "tritan"] };
+})();
+if (typeof module !== "undefined") module.exports = SheetColour;
+
+(function(){
+  var FAM={"A":{"hue":310,"chroma":0.1},"C":{"hue":60,"chroma":0.1},"B":{"hue":265,"chroma":0.08},"P":{"hue":335,"chroma":0.075}};
+  var BG={"cream":"#fef4dc","card":"#fffbf1","lilac":"#dac5fc","blush":"#f9c3c6","butter":"#f5e3a2","robin":"#a6edee"};
+  var FILLS=["lilac","blush","butter","robin"],NAMES={"lilac":"Lilac","blush":"Blush","butter":"Butter","robin":"Robin"},BANDS=[[90,"paragraphs, 14px and up"],[75,"paragraphs at 18px, or 16px medium"],[60,"headings and bold labels, 16px and up"],[45,"big headings only"],[30,"placeholder or disabled text only"],[-1,"too faint"]],LABEL_L=0.3,MUTED=0.08,SUBTLE=0.14;
+  var st={f:"C",L:0.395,C:0.1};
+  var root=document.documentElement,sl=document.getElementById('sl'),sc=document.getElementById('sc'),ro=document.getElementById('ro'),codeEl=document.getElementById('code'),code='';
+  function bandOf(lc){for(var i=0;i<BANDS.length;i++){if(lc>=BANDS[i][0])return BANDS[i][1];}}
+  function hexAt(L){return SheetColour.oklchToHex(L,st.C,FAM[st.f].hue);}
+  function worst(t,b){var w=SheetColour.apca(t,b);SheetColour.KINDS.forEach(function(k){w=Math.min(w,SheetColour.apca(SheetColour.simulate(t,k),SheetColour.simulate(b,k)));});return w;}
+  function apply(){
+    var hex=hexAt(st.L),strong=hexAt(Math.min(st.L,LABEL_L)),shown=SheetColour.chroma(hex),clipped=st.C-shown>0.006;
+    root.style.setProperty('--ink',hex);root.style.setProperty('--ink-strong',strong);
+    root.style.setProperty('--ink-muted',hexAt(st.L+MUTED));root.style.setProperty('--ink-subtle',hexAt(st.L+SUBTLE));
+    var lc=SheetColour.apca(hex,BG.cream),lcCard=SheetColour.apca(hex,BG.card),low=1e9,lowK='',lowW=1e9,lowWK='';
+    FILLS.forEach(function(k){var lab=SheetColour.apca(strong,BG[k]),w=worst(strong,BG[k]),body=SheetColour.apca(hex,BG[k]);var el=document.querySelector('[data-lc="'+k+'"]');if(el)el.textContent='label Lc '+lab.toFixed(0)+' (worst simulation '+w.toFixed(0)+') · paragraph ink Lc '+body.toFixed(0);if(lab<low){low=lab;lowK=k;}if(w<lowW){lowW=w;lowWK=k;}});
+    document.getElementById('vl').textContent=st.L.toFixed(3);document.getElementById('vc').textContent=shown.toFixed(3);
+    code=hex+' '+st.f+' L'+st.L.toFixed(3)+' C'+shown.toFixed(3)+' hue'+FAM[st.f].hue;codeEl.textContent=code;
+    ro.innerHTML='cream page Lc '+lc.toFixed(0)+' · card Lc '+lcCard.toFixed(0)+' · old rule '+(Math.floor(SheetColour.wcag(hex,BG.cream)*10)/10).toFixed(1)+':1<br>'+bandOf(lc)+(clipped?' · colour at the screen limit':'')+'<br>weakest label Lc '+low.toFixed(0)+' ('+NAMES[lowK]+'), '+lowW.toFixed(0)+' in the worst simulation ('+NAMES[lowWK]+')';
+    document.querySelectorAll('#pick [data-f]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.f===st.f));});
+  }
+  sl.addEventListener('input',function(){st.L=+sl.value;mark(null);apply();});
+  sc.addEventListener('input',function(){st.C=+sc.value;apply();});
+  document.querySelectorAll('#pick [data-f]').forEach(function(b){b.addEventListener('click',function(){st.f=b.dataset.f;mark(null);apply();});});
+  function mark(el){document.querySelectorAll('button.spec').forEach(function(o){o.setAttribute('aria-pressed',String(o===el));});}
+  document.querySelectorAll('button.spec').forEach(function(b){b.addEventListener('click',function(){st.f=b.dataset.fam;st.L=+b.dataset.l;st.C=FAM[st.f].chroma;sl.value=st.L;sc.value=st.C;mark(b);apply();});});
+  document.querySelectorAll('[data-nudge]').forEach(function(b){b.addEventListener('click',function(){var t=b.dataset.nudge.split(','),el=document.getElementById(t[0]);el.value=(+el.value+ +t[1]).toFixed(3);el.dispatchEvent(new Event('input'));});});
+  document.getElementById('mini').addEventListener('click',function(){var p=document.getElementById('pick'),m=p.classList.toggle('min');this.textContent=m?'show sliders':'hide';this.setAttribute('aria-expanded',String(!m));});
+  (function(){function w(wt){var s=document.createElement('span');s.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;font:'+wt+' 16px var(--font)';s.textContent='Sear the thighs skin-side down until deep golden';document.body.appendChild(s);var x=s.getBoundingClientRect().width;s.remove();return x;}
+    if(Math.abs(w(500)-w(400))<0.5){var b=document.querySelector('[data-ty="1rem,500"]');if(b)b.textContent='16px medium (this device has no medium weight, so it looks the same)';}})();
+  function group(attr,vars){document.querySelectorAll('['+attr+']').forEach(function(b){b.addEventListener('click',function(){var t=b.getAttribute(attr).split(',');root.style.setProperty(vars[0],t[0]);root.style.setProperty(vars[1],t[1]);document.querySelectorAll('['+attr+']').forEach(function(o){o.setAttribute('aria-pressed',String(o===b));});});});}
+  group('data-ty',['--body-size','--body-weight']);group('data-bt',['--btn-size','--btn-weight']);
+  document.getElementById('copy').addEventListener('click',function(){var btn=this;function done(){btn.textContent='copied';setTimeout(function(){btn.textContent='copy';},1200);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(done,function(){window.prompt('Copy this:',code);});}else{window.prompt('Copy this:',code);}});
+  apply();
+})();
+</script>
+</body></html>
