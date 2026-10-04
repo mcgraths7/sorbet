@@ -413,14 +413,30 @@ ships the equivalent `getTheme()` manager.
 
 ## The accessibility contract
 
-`@sorbet/design-system/tokens` declares 47 contrast pairings — text on every surface, `on-*`
-on every solid (including hover/active), `-text` on page + subtle fills, links,
-strong borders, focus rings. Every build measures all of them for **every
-preset in both modes** and fails on any regression:
+`@sorbet/design-system/tokens` declares the contract as one list of contrast
+pairings, `RULES` — text on every surface, `on-*` on every solid (including
+hover/active), `-text` on page + subtle fills, links, strong borders, focus
+rings, text over the translucent scrim, and the eight chart marks. The list has
+86 entries, and 70 apply in each mode: 54 hold in both modes, and the 32
+chart-mark entries are split by mode — 16 in light and 16 in dark, because dark
+mode owes chart marks a lower floor. Every build measures all 70 for **every
+preset in both modes** and fails on any regression — and on any pair it could
+not measure, which is a failure rather than a skip:
 
 ```sh
 pnpm check:contrast       # per-preset, per-mode report with tightest margins
 ```
+
+The gate, that report, `sorbet contrast`, a scaffolded project's own report and
+Token Studio's live check all read one measurement (`measureColors` in
+`src/tokens/rules.ts`), so the count a report prints is the count it measured.
+The colours are read in one place as well (`parseColor` in `src/tokens/color.ts`):
+Token Studio measures what is on the page, where a production build's minifier
+has respelled the theme (`#ffffff` as `#fff`, the scrim as `#0009`, `#808080` as
+`gray`), and a colour has to measure the same however it is spelled. What it
+cannot read — `oklch()`, `hsl()`, `color-mix()` — is a failure that says so.
+The figures above are typed by hand, which is how the old ones went stale:
+`pnpm test` recounts them against `RULES` and fails if this paragraph is wrong.
 
 Beyond color: visible `:focus-visible` rings everywhere, `prefers-reduced-motion`
 collapses all animation, form errors use `:user-invalid` (only after

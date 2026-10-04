@@ -17,7 +17,7 @@ import { createRequire } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
 
-import { contrast, DEFAULT_PRESET, hexToRgb, PRESET_NAMES, presets, RULES, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
+import { DEFAULT_PRESET, hexToRgb, measureColors, PRESET_NAMES, presets, ratioText, tally, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
 
 import { behaviorTs, componentScss, starterIndexHtml, starterPackageJson, starterReadme } from "./templates.ts";
 
@@ -215,31 +215,25 @@ async function cmdComponent(): Promise<void> {
   }
 }
 
+// Measures nothing of its own: `measureColors` is the list the build gate
+// fails on, and the counts printed are counted from it. This was a hand copy
+// of the report's loop — it skipped the scrim pairs and printed RULES.length.
 async function cmdContrast(): Promise<void> {
   let failures = 0;
-  const opaque = (v: string) => /^#[0-9a-f]{6}$/i.test(v);
+  let measured = 0;
   for (const preset of Object.values(presets)) {
     console.log(styleText("bold", `\n${preset.label} — ${preset.tagline}`));
     for (const mode of ["light", "dark"] as Mode[]) {
-      const colors = preset.colors[mode];
-      const rows: string[] = [];
-      for (const rule of RULES) {
-        if (rule.mode && rule.mode !== mode) {
-          continue;
-        }
-        const fg = colors[rule.fg];
-        const bg = colors[rule.bg];
-        if (!opaque(fg) || !opaque(bg)) {
-          continue;
-        }
-        const ratio = contrast(fg, bg);
-        if (ratio < rule.min) {
-          failures++;
-          rows.push(styleText("red", `    ✗ ${rule.fg} on ${rule.bg}: ${ratio.toFixed(2)} < ${rule.min}`));
-        }
-      }
+      const result = tally(measureColors(mode, preset.colors[mode]));
+      failures += result.failures.length;
+      measured += result.measured;
+      const rows = result.failures.map((pair) => {
+        const found = pair.actual === null ? `could not be measured (needs ${pair.min})` : `${ratioText(pair.actual, pair.min)} < ${pair.min}`;
+        return styleText("red", `    ✗ ${pair.fg} on ${pair.bg}: ${found}`);
+      });
+      const unmeasurable = result.unmeasurable > 0 ? `, ${result.unmeasurable} could not be measured` : "";
       console.log(
-        `  ${mode.padEnd(5)} ${rows.length === 0 ? styleText("green", `all ${RULES.length} pairings pass`) : styleText("red", `${rows.length} failing`)}`,
+        `  ${mode.padEnd(5)} ${rows.length === 0 ? styleText("green", `all ${result.measured} pairings pass`) : styleText("red", `${rows.length} failing (${result.measured} measured${unmeasurable})`)}`,
       );
       for (const row of rows) {
         console.log(row);
@@ -250,7 +244,12 @@ async function cmdContrast(): Promise<void> {
     console.error(styleText("red", `\n✗ ${failures} contrast failure(s)`));
     process.exit(1);
   }
-  console.log(styleText("green", "\n✓ WCAG AA contract holds for every preset in both modes"));
+  // No presets, so no pairs: "holds for every preset" would be true of nothing.
+  if (measured === 0) {
+    console.error(styleText("red", "\n✗ nothing was measured: there are no presets"));
+    process.exit(1);
+  }
+  console.log(styleText("green", `\n✓ WCAG AA contract holds for every preset in both modes (${measured} pairings measured)`));
 }
 
 if (values.help || !command) {

@@ -7,8 +7,8 @@ export type { Mode, SemanticColorName, SemanticColors, SemanticRecipe } from "./
 export { presets, PRESET_NAMES, DEFAULT_PRESET } from "./presets.ts";
 export type { Preset, PresetName } from "./presets.ts";
 export * as scales from "./scales.ts";
-export { RULES, checkPreset, checkColors } from "./rules.ts";
-export type { Failure } from "./rules.ts";
+export { RULES, checkPreset, checkColors, measureColors, ratioText, tally } from "./rules.ts";
+export type { Failure, Measurement, Tally } from "./rules.ts";
 export { chartThemes, chartColors, chartMuted } from "./charts.ts";
 export type { ChartSlot, ChartTheme } from "./charts.ts";
 export { themeCss, generatedScss, manifest } from "./emit.ts";

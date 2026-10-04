@@ -149,6 +149,13 @@ jobs:
       - name: Verify the golden gate still bites
         run: pnpm run test:golden
 
+      # The contrast contract was once measured in five places that disagreed,
+      # each of them green. This runs every report against the one measurement
+      # on good presets and on ones broken on purpose, both gates on the broken
+      # ones, and the measurement itself on colours as a minifier respells them.
+      - name: Verify the contrast contract is measured once
+        run: pnpm run test:contrast
+
       # Everything in this repo consumes Sorbet by symlink, which hides what
       # breaks a real consumer. Pack the tarballs and install them into a
       # throwaway project outside the workspace. --no-build reuses the step above.

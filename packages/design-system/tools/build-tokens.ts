@@ -21,7 +21,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { styleText } from "node:util";
 
-import { checkPreset, generatedScss, manifest, presets } from "../src/tokens/index.ts";
+import { checkPreset, generatedScss, manifest, presets, ratioText } from "../src/tokens/index.ts";
 
 import { checkCvd } from "./check-cvd.ts";
 import { checkGolden, goldenFailureText, goldenSuccessText, producedThemes } from "./check-golden.ts";
@@ -48,8 +48,13 @@ const failures = Object.values(presets).flatMap(checkPreset);
 if (failures.length > 0) {
   console.error(styleText("red", `\n✗ ${failures.length} contrast failure(s):`));
   for (const f of failures) {
-    console.error(`  ${f.preset}/${f.mode}: ${f.fg} on ${f.bg} = ${f.actual.toFixed(2)} (needs ${f.min})`);
+    const found = f.actual === null ? "could not be measured" : `= ${ratioText(f.actual, f.min)}`;
+    console.error(`  ${f.preset}/${f.mode}: ${f.fg} on ${f.bg} ${found} (needs ${f.min})`);
   }
+  failed = true;
+} else if (Object.keys(presets).length === 0) {
+  // No presets, so no pairs: "holds for 0 presets" would be true of nothing.
+  console.error(styleText("red", "\n✗ the contrast contract measured nothing: there are no presets"));
   failed = true;
 } else {
   console.log(styleText("green", `✓ contrast contract holds for ${Object.keys(presets).length} presets × 2 modes`));

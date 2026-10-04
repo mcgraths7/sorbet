@@ -13,7 +13,7 @@ import { join } from "node:path";
 import { styleText } from "node:util";
 import { generatedScss, manifest, themeCss } from "../tokens/emit.ts";
 import { presets } from "../tokens/presets.ts";
-import { checkPreset } from "../tokens/rules.ts";
+import { checkPreset, ratioText } from "../tokens/rules.ts";
 
 const root = join(import.meta.dirname, "..", "..");
 // Theme output dir is overridable: `node src/tools/build-tokens.ts public/themes`
@@ -24,9 +24,15 @@ const failures = Object.values(presets).flatMap(checkPreset);
 if (failures.length > 0) {
   console.error(styleText("red", `\n✗ ${failures.length} contrast failure(s):`));
   for (const f of failures) {
-    console.error(`  ${f.preset}/${f.mode}: ${f.fg} on ${f.bg} = ${f.actual.toFixed(2)} (needs ${f.min})`);
+    const found = f.actual === null ? "could not be measured" : `= ${ratioText(f.actual, f.min)}`;
+    console.error(`  ${f.preset}/${f.mode}: ${f.fg} on ${f.bg} ${found} (needs ${f.min})`);
   }
   console.error(styleText("red", "\n✗ nothing was written"));
+  process.exit(1);
+}
+// No presets, so no pairs: "holds for 0 presets" would be true of nothing.
+if (Object.keys(presets).length === 0) {
+  console.error(styleText("red", "\n✗ the contrast contract measured nothing: there are no presets\n✗ nothing was written"));
   process.exit(1);
 }
 console.log(styleText("green", `✓ contrast contract holds for ${Object.keys(presets).length} presets × 2 modes`));

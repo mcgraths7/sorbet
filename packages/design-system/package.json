@@ -39,6 +39,7 @@
     "check:golden": "node tools/check-golden.ts",
     "check:golden:base": "node tools/check-golden-base.ts",
     "test:golden": "node tools/test-golden.ts",
+    "test:contrast": "node tools/test-contrast.ts",
     "update:golden": "node tools/update-golden.ts"
   }
 }

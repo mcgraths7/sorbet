@@ -3,6 +3,7 @@
 import {
   checkColors,
   presets as builtinPresets,
+  ratioText,
   SEMANTIC_COLOR_NAMES,
   scales,
   type Failure,
@@ -355,6 +356,11 @@ export function TokenStudio({
   }, [open, captureBaseline]);
 
   // The build gate, live: re-check the WCAG contract for the active mode.
+  // The values are text read back off the page, so they are not always spelled
+  // the way the presets spell them — a production build's minifier turns
+  // `#ffffff` into `#fff` and the scrim into `#0009`. checkColors reads every
+  // such spelling (parseColor, in the design system), so pass them as they are
+  // and show its answer whole: no filtering here, no second reading.
   useEffect(() => {
     if (!open) {
       return;
@@ -509,9 +515,13 @@ export function TokenStudio({
                 </Badge>
               </summary>
               <ul className="sb-token-studio__failures">
+                {/* A null ratio is a pair the contract could not measure (a
+                    translucent foreground, a value in a notation it does not
+                    read such as oklch(), or one that is not there at all): it
+                    is a failure, and it says so rather than printing a number. */}
                 {failures.map((f) => (
                   <li key={`${f.fg}-${f.bg}`}>
-                    {f.fg} on {f.bg} — {f.actual.toFixed(2)} (needs {f.min})
+                    {f.fg} on {f.bg} — {f.actual === null ? "could not be measured" : ratioText(f.actual, f.min)} (needs {f.min})
                   </li>
                 ))}
               </ul>
