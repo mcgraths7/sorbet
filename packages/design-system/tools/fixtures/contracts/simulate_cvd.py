@@ -195,7 +195,10 @@ def build_clamp():
         unclamped = separation(a, b, view, upper_clamp=False)
         if abs(clamped - unclamped) < 0.01:
             raise SystemExit("%s and %s under %s: the clamp moves the answer by under 0.01; the pair pins nothing" % (a, b, view))
-        rows.append({"a": a, "b": b, "view": view, "over": over, "separation": clamped, "unclamped": unclamped})
+        # Rounded to 10 places: pow() differs in the last bit between C libraries
+        # (macOS and Linux), and --check compares this file as text. Found on the
+        # first CI run, 2026-10-04. The test compares to 1e-9.
+        rows.append({"a": a, "b": b, "view": view, "over": round(over, 10), "separation": round(clamped, 10), "unclamped": round(unclamped, 10)})
     return {
         "madeBy": "tools/fixtures/contracts/simulate_cvd.py - an independent Python implementation of specification sections M7 and M10.10; see its docstring",
         "what": "separation(a, b, view): OKLab distance x100 of the two colours as simulated, each linear channel clamped to 0..1. `over` is the largest channel before the clamp; `unclamped` is the answer without the upper clamp",
