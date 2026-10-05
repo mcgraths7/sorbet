@@ -90,6 +90,15 @@
  * different playground. The success line names the baseline's commit, so a
  * quoted summary shows what the frozen presets were compared with.
  *
+ * The status icons are masked (L167). From step 2.5 a status component leads
+ * with its icon in every preset, the frozen four included, and both sides of a
+ * compare render this tree's markup, so the icons are on both sides. Every
+ * shot, baseline and compare, is taken with `MASK` written after `FREEZE`, which
+ * removes each `.sb-status` slot (the glyph, the hidden word and the room they
+ * take), and with it the frozen presets must be pixel-identical. `baseline.json`
+ * records the mask, a compare refuses a baseline whose mask is missing or not
+ * its own, and the success line says the icons were masked.
+ *
  * Options: `--no-build`, `--only <preset>`, `--variant ltr|rtl|coarse`,
  * `--workers <n>` (default 8), `--with-sorbet`. `--no-build` uses this
  * tree's packages and playground as they are built; `--at` still builds its
@@ -194,6 +203,14 @@ ${["success", "warning", "danger", "secondary", "accent"].map((t) => `<div class
 </div>`;
 const FORCED: string[][] = [[], ["hover"], ["active"], ["hover", "active"], ["focus", "focus-visible", "focus-within"]];
 const FREEZE = "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important}";
+/**
+ * The status icons, masked on both sides of every compare (legibility-spec.md L167). From step 2.5 a status component
+ * leads with its icon and a hidden word in every preset, the frozen four included: content both sides render, since
+ * both render this tree's markup. Every icon and word sits in one `.sb-status` slot, so this removes the glyph, the
+ * word and the slot's room together, and with it the frozen presets must be pixel-identical. The icons themselves are
+ * looked at, unmasked, on a sheet; the markup is held by packages/component-library/tools/test-status.ts.
+ */
+const MASK = ".sb-status{display:none!important}";
 
 interface Shot {
   name: string;
@@ -232,7 +249,7 @@ class Session {
       const link = document.getElementById("preset-css") as HTMLLinkElement | null;
       return Boolean(link?.sheet) && link!.href.includes(preset) && document.documentElement.dataset.theme === mode;
     }, { preset: job.preset, mode: job.mode });
-    await page.evaluate(({ rtl, fixtures, html, freeze }) => {
+    await page.evaluate(({ rtl, fixtures, html, freeze, mask }) => {
       if (fixtures) {
         document.body.insertAdjacentHTML("afterbegin", html);
       }
@@ -240,10 +257,10 @@ class Session {
         document.documentElement.dir = "rtl";
       }
       const style = document.createElement("style");
-      style.textContent = freeze;
+      style.textContent = freeze + mask;
       document.head.append(style);
       window.scrollTo(0, 0);
-    }, { rtl: job.variant === "rtl", fixtures, html: FIXTURES, freeze: FREEZE });
+    }, { rtl: job.variant === "rtl", fixtures, html: FIXTURES, freeze: FREEZE, mask: MASK });
   }
 
   async settle() {
@@ -708,6 +725,22 @@ function compareJob(job: Job, base: string, latest: string, control: string, dif
 // ---------------------------------------------------------------------------------------------------------------
 
 const BASELINE = join(STORE, "baseline");
+
+/** `baseline.json`, with the mask its shots were taken under (L167); absent from a baseline taken before the mask. */
+type MaskedManifest = Manifest & { mask?: string };
+
+/**
+ * Why a compare must not use this baseline's shots under this run's mask, or null when it may (L167, L192 (a)): a
+ * baseline with no mask, or another, was shot with the status icons showing, or hiding something else, so it would
+ * differ from this run wherever a status component is. Asked after `baselineRefusal` has accepted the baseline.
+ */
+function maskRefusal(manifest: MaskedManifest): string | null {
+  if (manifest.mask === MASK) {
+    return null;
+  }
+  const had = manifest.mask === undefined ? "records no mask (it was shot with the status icons showing)" : `was shot under the mask ${JSON.stringify(manifest.mask)}`;
+  return `The baseline ${had}; this run masks ${JSON.stringify(MASK)}. Retake it: \`pnpm shots baseline --at ${manifest.libraryCss ?? "e24df74"}\`.`;
+}
 const browser = await launch();
 try {
   const chromium = browser.version();
@@ -732,7 +765,7 @@ try {
       mkdirSync(BASELINE, { recursive: true });
       console.log(`Baseline: ${describeTree(ROOT)}'s playground with ${libraryCss}'s library stylesheet, into ${BASELINE}`);
       const total = await shootAll(browser, site, BASELINE);
-      const manifest: Manifest = {
+      const manifest: MaskedManifest = {
         libraryCss,
         playground: digestPlayground(join(site, "apps", "playground", "dist")),
         mechanism: ref === undefined ? "this-tree" : "library-css-swap",
@@ -740,6 +773,7 @@ try {
         chromium,
         takenAt: new Date().toISOString(),
         shots: total,
+        mask: MASK,
       };
       writeFileSync(join(BASELINE, "baseline.json"), `${JSON.stringify(manifest, null, 2)}\n`);
       console.log(styleText("green", `✓ ${total} shots in ${jobs.length} runs, of ${libraryCss}'s library stylesheet in ${manifest.tree}'s playground, by Chromium ${chromium}`));
@@ -752,11 +786,12 @@ try {
       console.error(`No baseline at ${BASELINE}: run \`pnpm shots baseline --at <ref>\` first.`);
       process.exit(1);
     }
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Manifest;
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as MaskedManifest;
     // Where the baseline came from (F14): refused before the build where that can be told, and again after it, when
-    // this tree's playground can be compared with the one the baseline was shot on (F6).
+    // this tree's playground can be compared with the one the baseline was shot on (F6). Then the mask (L167, L192
+    // (a)): a baseline shot without this run's mask differs from it wherever a status icon is, so it is refused too.
     const refuse = (playground?: string) => {
-      const why = baselineRefusal(manifest, { resolve: resolveCommit, chromium, playground });
+      const why = baselineRefusal(manifest, { resolve: resolveCommit, chromium, playground }) ?? maskRefusal(manifest);
       if (why !== null) {
         console.error(styleText("red", `✗ ${why}`));
         process.exit(1);
@@ -811,7 +846,7 @@ try {
       console.log(styleText("yellow", "\n✗ not every frozen preset compared in both modes and all three runs: no verdict on the frozen presets."));
       process.exit(1);
     }
-    console.log(styleText("green", `\n✓ The frozen presets are pixel-identical to ${manifest.libraryCss}'s library stylesheet in both modes, in ${VARIANTS.join(", ")} (${frozenJobs.reduce((n, r) => n + r.compared, 0)} shots, control stable).`));
+    console.log(styleText("green", `\n✓ The frozen presets are pixel-identical to ${manifest.libraryCss}'s library stylesheet in both modes, in ${VARIANTS.join(", ")}, with the status icons masked (${frozenJobs.reduce((n, r) => n + r.compared, 0)} shots, control stable).`));
   }
 } finally {
   await browser.close();

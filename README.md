@@ -701,8 +701,8 @@ in the matching layer package. `sorbet component` stubs the Sass side.
 - Divider
 - Kbd
 - Icon (sizes to the type scale, semantic tones, decorative-vs-labelled a11y — wraps any provider's SVG)
-- House glyphs: CheckIcon/ChevronIcon/CloseIcon/SearchIcon/CalendarIcon/UploadIcon/EyedropperIcon/PlusIcon/MinusIcon (the nine icons Sorbet's own components use, exported for reuse; still not an icon *set*, bring your own via Icon)
-- Icon glyphs (Check, Chevron, Close, Search, Calendar, Upload, Eyedropper, Plus, Minus — what the components themselves use)
+- House glyphs: CheckIcon/ChevronIcon/CloseIcon/SearchIcon/CalendarIcon/UploadIcon/EyedropperIcon/PlusIcon/MinusIcon/SuccessIcon/WarningIcon/DangerIcon/InfoIcon (the thirteen icons Sorbet's own components use, exported for reuse; still not an icon *set*, bring your own via Icon)
+- Icon glyphs (Check, Chevron, Close, Search, Calendar, Upload, Eyedropper, Plus, Minus, Success, Warning, Danger, Info — what the components themselves use)
 - Tooltip
 - Popover (anchored panel of any content)
 

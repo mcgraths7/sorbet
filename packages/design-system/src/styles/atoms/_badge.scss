@@ -27,7 +27,15 @@
     }
   }
 
-  // Leading status dot: <span class="sb-badge sb-badge--success"><i class="sb-badge__dot"></i> Active</span>
+  // A status tone leads with the status slot (atoms/_icon.scss), spaced by
+  // the gap; on a solid fill its icon takes the label's ink (L170, L174):
+  // <span class="sb-badge sb-badge--danger"><span class="sb-status"><svg class="sb-status-icon sb-status-icon--danger" …></svg><span class="u-visually-hidden">Error: </span></span>Overdue</span>
+  &--solid > .sb-status {
+    color: inherit;
+  }
+
+  // Leading dot, for a brand tone or none; a status tone shows its icon in the
+  // dot's place: <span class="sb-badge sb-badge--primary"><i class="sb-badge__dot"></i> New</span>
   &__dot {
     inline-size: 0.45em;
     block-size: 0.45em;

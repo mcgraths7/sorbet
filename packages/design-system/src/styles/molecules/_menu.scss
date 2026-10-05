@@ -31,6 +31,13 @@
       color: clr(text-muted);
     }
 
+    // A danger item's octagon, in its status slot (atoms/_icon.scss), at the
+    // menu's glyph size. The `> svg` rules here do not reach it.
+    .sb-status-icon {
+      inline-size: 1em;
+      block-size: 1em;
+    }
+
     @include color-transition;
 
     &:hover,
@@ -44,6 +51,14 @@
 
       > svg {
         color: currentColor;
+      }
+
+      // The octagon replaces a leading glyph of the consumer's rather than
+      // standing beside it: a menu lines its glyphs up in one column (L176).
+      // The octagon is inside its slot, out of reach of these.
+      > svg,
+      > .sb-icon {
+        display: none;
       }
 
       &:hover,

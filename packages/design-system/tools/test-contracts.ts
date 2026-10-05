@@ -4715,9 +4715,13 @@ try {
     assert.deepEqual(wrong, [], "fills the recipe names and the stylesheet does not paint (L106, C11)");
   });
 
-  test("2.4 C11 L70 after step 2.4 each selector reads its element's edge property, --sb-edge-<element> — all but the status boxes, whose edge is step 2.5's", () => {
+  // legibility-spec.md L183 #50 (C11, L178; verifier N10): the five status selectors were exempt, as step 2.5's; the
+  // exemption is lifted, so all 27 read their element's edge, .sb-alert and .sb-alert--info --sb-edge-status-info.
+  test("2.4 C11 L70 L178 L183 #50 each of the 27 selectors reads its element's edge property, --sb-edge-<element> — the 22 since step 2.4, the five status boxes since step 2.5 (.sb-alert and .sb-alert--info read --sb-edge-status-info)", () => {
+    assert.equal(C11_SELECTORS.flatMap(([, selectors]) => selectors).length, 27);
+    assert.deepEqual(C11_SELECTORS.find(([element]) => element === "status-info")?.[1], [".sb-alert", ".sb-alert--info"]);
     const missing: string[] = [];
-    for (const [element, selectors] of C11_SELECTORS.filter(([element]) => !element.startsWith("status-"))) {
+    for (const [element, selectors] of C11_SELECTORS) {
       const property = new RegExp(`--sb-edge-${element}(?![\\w-])`);
       for (const selector of selectors) {
         if (!rulesOf(selector).some((rule) => rule.decls.some(([, value]) => property.test(value)))) {
@@ -4820,9 +4824,15 @@ try {
     assert.deepEqual(wrong, []);
   });
 
-  test("2.4 #3 step 2.4 is Sass only: no file under packages/component-library/src or packages/design-system/src/behaviors differs from e6fd3d5 (step 2.3), none added, none removed", () => {
+  // legibility-spec.md L183 #49 (S47): "2.4 #3" was "no file differs from e6fd3d5"; it is narrowed, not retired: the
+  // eight files step 2.5 names under packages/component-library/src may change, and no file may be added or removed,
+  // those eight included. The fixture is not re-recorded. (Step 2.7 removes organisms/token-studio.tsx the same way.)
+  const MAY_CHANGE = ["atoms/badge.tsx", "atoms/button.tsx", "atoms/icons.tsx", "atoms/index.ts", "molecules/alert.tsx", "molecules/field.tsx", "molecules/menu.tsx", "molecules/toast.tsx"].map((file) => `packages/component-library/src/${file}`);
+
+  test("2.4 #3 L183 #49 no file under packages/component-library/src or packages/design-system/src/behaviors differs from e6fd3d5 (step 2.3) but the eight step 2.5 names, which may change; none added, none removed", () => {
     const base = json("step-2.4-untouched.json") as { recordedFrom: string; files: Record<string, string> };
     assert.equal(base.recordedFrom, "e6fd3d5");
+    assert.deepEqual(MAY_CHANGE.filter((path) => base.files[path] === undefined), [], "each of the eight is a file of the fixture: a misspelt name would exempt nothing");
     const now: Record<string, string> = {};
     for (const dir of ["packages/component-library/src", "packages/design-system/src/behaviors"]) {
       const walk = (path: string): string[] => readdirSync(path, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(join(path, entry.name)) : [join(path, entry.name)]));
@@ -4831,7 +4841,7 @@ try {
       }
     }
     const changed = [...new Set([...Object.keys(base.files), ...Object.keys(now)])].sort().filter((path) => base.files[path] !== now[path]).map((path) => `${path}: ${base.files[path] === undefined ? "added" : now[path] === undefined ? "removed" : "changed"}`);
-    assert.deepEqual(changed, []);
+    assert.deepEqual(changed.filter((entry) => !MAY_CHANGE.some((path) => entry === `${path}: changed`)), []);
   });
 
   // ══ revision 3.5 (§12.4, L148 to L161): after the audit of steps 2.3 and 2.4 ══════════════════════════════
@@ -5449,12 +5459,19 @@ try {
     assert.deepEqual(wrong, []);
   });
 
-  test("2.4 L148 each where-defined read falls back to the element's old value exactly: at a selector that declared the property, that value, in the same rule's place; at one that declared none, revert-layer from the where-defined sublayer (never a literal none, frozen lens F1 (a)) — conditional rules included (guards F1)", () => {
+  // legibility-spec.md L183 #51 (L178, S44): a read in the sublayer fell back to exactly revert-layer; it falls back to
+  // revert-layer, or to an edge read whose own fallback is revert-layer (var(--sb-edge-<element>, revert-layer), the
+  // element one of the thirteen), which a frozen preset also computes as revert-layer. The one such read is
+  // .sb-alert--danger's (its rim and edge in one local, falling back to the edge alone).
+  const EDGE_THEN_REVERT = new RegExp(`^var\\(\\s*--sb-edge-(?:${ELEMENTS.join("|")})\\s*,\\s*revert-layer\\s*\\)$`);
+
+  test("2.4 L148 L183 #51 each where-defined read falls back to the element's old value exactly: at a selector that declared the property, that value, in the same rule's place; at one that declared none, revert-layer from the where-defined sublayer (never a literal none, frozen lens F1 (a)), or there an edge read falling back to revert-layer, at .sb-alert--danger only (L178) — conditional rules included (guards F1)", () => {
     const sheet = stylesheet();
     const locals = whereDefinedLocals(sheet);
     const old = lastDeclarations(oldStylesheet(), [...SHADOW_PROPERTIES, "border-color"], false);
     const [definedNow, definedWas] = [definedIn(sheet), definedIn(oldStylesheet())];
     const wrong: string[] = [];
+    const edgeFallbacks: string[] = [];
     let reads = 0;
     for (const rule of sheet.rules) {
       for (const [property, value] of rule.decls.filter(([name]) => SHADOW_PROPERTIES.includes(name) || name === "border-color")) {
@@ -5468,8 +5485,12 @@ try {
           const key = `${cascadeKey(rule, selector)} | ${property}`;
           const before = old.get(key);
           if (inSublayer(rule)) {
-            if (fallback !== "revert-layer" || before !== undefined) {
-              wrong.push(`${selector} { ${property}: ${value} } is in the where-defined sublayer: its fallback must be revert-layer, at a selector that declared no ${property} (it ${before === undefined ? "declared none" : `declared ${before.value}`})`);
+            const edgeRead = EDGE_THEN_REVERT.test(fallback);
+            if (edgeRead) {
+              edgeFallbacks.push(normalSelector(selector));
+            }
+            if ((fallback !== "revert-layer" && !edgeRead) || before !== undefined) {
+              wrong.push(`${selector} { ${property}: ${value} } is in the where-defined sublayer: its fallback must be revert-layer, or an edge read whose own fallback is revert-layer (L183 #51), at a selector that declared no ${property} (it ${before === undefined ? "declared none" : `declared ${before.value}`})`);
             }
           } else if (before === undefined) {
             wrong.push(`${selector} { ${property}: ${value} } falls back to ${fallback} where e24df74 declared no ${property}: that outranks whatever reached the element before; write it through where-defined with revert-layer`);
@@ -5481,6 +5502,7 @@ try {
     }
     assert.ok(reads >= 9, `${reads} where-defined reads: the switch, thumb, two slider tracks, four bars and the card hover's line (L148, L152)`);
     assert.deepEqual(wrong, []);
+    assert.deepEqual([...new Set(edgeFallbacks)].filter((selector) => selector !== ".sb-alert--danger"), [], "an edge read as a where-defined fallback anywhere but .sb-alert--danger (L183 #51: the one such read is its)");
   });
 
   /** L154 (1), as L162 (b) rules: e24df74's sites are the state selectors the COMPILED check finds there, allowing nothing. */
@@ -5761,6 +5783,234 @@ try {
     const wrapped = [...source.matchAll(/untilStable\(\(\) => \(?(?:box === null \? )?(?:page|this\.page)\.screenshot\(/g)].length;
     assert.ok(screenshots > 0 && wrapped >= 2, `shots.ts takes ${screenshots} screenshot call(s), ${wrapped} of the kept ones through untilStable`);
     assert.equal(source.split("\n").filter((line) => /(?:page|this\.page)\.screenshot\(/.test(line) && !/untilStable/.test(line)).length, 0, "a screenshot taken outside untilStable");
+  });
+
+  // ══ PR 2, step 2.5 (revision 3.6, §12.5, L166 to L191): statuses carry an icon and a word ══════════════════════
+  // Tests first for C10 (L182), C11's status half (L183 #50, above) and the compiled forms of L190, read off the
+  // stylesheet compiled now, as C11 reads it. That each status component renders its icon and its word, and that its
+  // markup is otherwise 9b83e50's, is packages/component-library/tools/test-status.ts (L181, L187 to L189), which
+  // reads the built components; nothing here imports React.
+
+  /** L182: whether the custom property --sb-<name> is read whole (the next character not a letter, a digit or `-`) in a var(--sb-<name> inside some declaration's value. */
+  const readWhole = (sheet: ReturnType<typeof readCss>, name: string) => {
+    const pattern = new RegExp(`var\\(\\s*--sb-${name}(?![A-Za-z0-9-])`);
+    return [...sheet.rules.flatMap((rule) => rule.decls.map(([, value]) => value)), ...sheet.otherDecls.map(([, , value]) => value)].some((value) => pattern.test(value));
+  };
+
+  test("2.5 C10 L182 (checker) a read counts only as a whole name inside a declaration's value: not a longer name it begins, not a comment, not a custom property's own name; a seam-only read in a local and a keyframe's declaration count", () => {
+    const sheet = readCss("/* var(--sb-a) */ .x { --sb-b: red; color: var(--sb-c-hover); --l: var(--sb-d); border: 1px solid var(--sb-e, red); } @keyframes k { from { color: var(--sb-f); } }");
+    assert.deepEqual(["a", "b", "c", "c-hover", "d", "e", "f"].filter((name) => readWhole(sheet, name)), ["c-hover", "d", "e", "f"]);
+  });
+
+  test("2.5 C10 L182 every name in SEAMS, every edge property sorbet emits (each --sb-edge-X and each -hover and -press, L53), --sb-halo-room (L151) and the two label sizes (L19) is read whole in a var(--sb-<name> inside some declaration's value of the compiled stylesheet: a token no site reads is a rule passing on a value nobody paints", () => {
+    assert.ok(seamsModule !== undefined, `src/tokens/seams.ts does not load: ${seamsMissing}`);
+    const seams = Object.keys(seamsModule.SEAMS as Record<string, unknown>);
+    assert.equal(seams.length, 20, "the 20 names of SEAMS (L15)");
+    const edges = [...new Set([...themeCss(shipped.sorbet!).matchAll(/--sb-(edge-[\w-]+)\s*:/g)].map((m) => m[1]!))];
+    assert.equal(edges.length, 21, `sorbet emits ${edges.length} edge properties, not L53's 21`);
+    const names = [...seams, ...edges, "halo-room", "button-font-size", "button-font-size-sm"];
+    assert.deepEqual(names.filter((name) => !readWhole(stylesheet(), name)).map((name) => `--sb-${name}`), [], "read by no declaration of the compiled stylesheet");
+  });
+
+  // L190: the last declaration among the rules whose selector list holds the selector as a whole item, outside
+  // conditional at-rules; values compared with whitespace runs collapsed to one space, the placeholder in either
+  // spelling PLACEHOLDER accepts (Sass writes `0 0 #0000` as written, and inside #{} evaluates it to
+  // `0 0 rgba(0, 0, 0, 0)`). `where` narrows the rules to one cascade layer, or to those outside the sublayer.
+  const PLACEHOLDER_ANYWHERE = new RegExp(`(?<![\\w.#-])${stateDefinition.PLACEHOLDER.source.replace(/^\^/, "").replace(/\$$/, "")}(?![\\w-])`, "gi");
+  const asCompared = (value: string) => value.replace(/\s+/g, " ").trim().replace(PLACEHOLDER_ANYWHERE, "0 0 #0000");
+  type Where = "any" | "outside the sublayer" | `sb.${string}`;
+  const lastAt = (sheet: ReturnType<typeof readCss>, selector: string, property: string, where: Where) => sheet.rules
+    .filter((rule) => !rule.conditional && rule.selectors.some((item) => normalSelector(item) === selector) && (where === "any" || (where === "outside the sublayer" ? !inSublayer(rule) : rule.layer === where)))
+    .flatMap((rule) => rule.decls).filter(([name]) => name === property).at(-1)?.[1];
+  interface FormRow {
+    row: string;
+    selector: string;
+    where: Where;
+    decls: [property: string, value: string][];
+  }
+  const STATUS_TONES = ["success", "warning", "danger", "info"];
+  /** L175's falloff in each state, textually .sb-button--secondary's ($shadow-rest, -hover, -press). */
+  const FALLOFF: Record<string, string> = {
+    rest: "0 1px 2px color-mix(in oklab, var(--edge) 22%, transparent), 0 2px 6px color-mix(in oklab, var(--edge) 12%, transparent)",
+    hover: "0 2px 4px color-mix(in oklab, var(--edge) 26%, transparent), 0 6px 14px color-mix(in oklab, var(--edge) 14%, transparent)",
+    press: "0 1px 1px color-mix(in oklab, var(--edge) 26%, transparent), 0 1px 2px color-mix(in oklab, var(--edge) 14%, transparent)",
+  };
+  const edgeOfState = (element: string, state: string) => `--sb-edge-${element}${state === "rest" ? "" : `-${state}`}`;
+  /** L190's table, row by row, typed in from the spec. */
+  const FORMS: FormRow[] = [
+    { row: "(a)", selector: ".sb-status", where: "outside the sublayer", decls: [["position", "relative"], ["display", "inline-flex"], ["flex-shrink", "0"], ["vertical-align", "-0.125em"]] },
+    { row: "(b)", selector: ".sb-status", where: "sb.atoms.where-defined", decls: [["--status-ink", "var(--sb-text-strong)"], ["color", "var(--status-ink, revert-layer)"]] },
+    // L170: "in the atoms layer itself, which outranks its sublayer".
+    { row: "(c)", selector: ".sb-badge--solid > .sb-status", where: "sb.atoms", decls: [["color", "inherit"]] },
+    { row: "(c)", selector: ".sb-button > .sb-status", where: "sb.atoms", decls: [["color", "inherit"]] },
+    { row: "(e)", selector: ".sb-status-icon", where: "any", decls: [["inline-size", "1.1em"], ["block-size", "1.1em"]] },
+    { row: "(e)", selector: ".sb-menu__item .sb-status-icon", where: "any", decls: [["inline-size", "1em"], ["block-size", "1em"]] },
+    { row: "(e)", selector: ".sb-alert__icon > .sb-status-icon", where: "any", decls: [["inline-size", "100%"], ["block-size", "100%"]] },
+    { row: "(e)", selector: ".sb-toast__icon > .sb-status-icon", where: "any", decls: [["inline-size", "100%"], ["block-size", "100%"]] },
+    { row: "(e)", selector: ".sb-toast__icon", where: "any", decls: [["flex-shrink", "0"], ["inline-size", "1.25rem"], ["block-size", "1.25rem"], ["margin-block-start", "0.05em"]] },
+    // L175's four lines, exactly.
+    { row: "(f)", selector: ".sb-button--danger", where: "any", decls: [
+      ["--danger-rim", "inset 0 0 0 2px var(--sb-danger-mark)"],
+      ...["rest", "hover", "press"].map((state): [string, string] => [`--shadow-${state}`, `var(--danger-rim, 0 0 #0000), var(${edgeOfState("filled-danger", state)}, ${FALLOFF[state]})`]),
+    ] },
+    ...[".sb-alert", ".sb-alert--info", ".sb-alert--success", ".sb-alert--warning"].map((selector): FormRow => ({ row: "(g)", selector, where: "sb.molecules.where-defined", decls: [["box-shadow", `var(--sb-edge-status-${selector === ".sb-alert" ? "info" : selector.slice(".sb-alert--".length)}, revert-layer)`]] })),
+    { row: "(h)", selector: ".sb-alert--danger", where: "sb.molecules.where-defined", decls: [["--danger-box", "inset 0 0 0 2px var(--sb-danger-mark), var(--sb-edge-status-danger, 0 0 #0000)"], ["box-shadow", "var(--danger-box, var(--sb-edge-status-danger, revert-layer))"]] },
+    ...STATUS_TONES.map((tone): FormRow => ({ row: "(i)", selector: `.sb-toast--${tone}`, where: "any", decls: [["border-inline-start", `3px solid var(--sb-${tone}-mark, var(--sb-${tone}))`]] })),
+    ...STATUS_TONES.map((tone): FormRow => ({ row: "(i)", selector: `.sb-icon--${tone}`, where: "any", decls: [["color", `var(--sb-${tone}-mark, var(--sb-${tone}))`]] })),
+    { row: "(j)", selector: ".sb-menu__item[data-danger] > svg", where: "any", decls: [["display", "none"]] },
+    { row: "(j)", selector: ".sb-menu__item[data-danger] > .sb-icon", where: "any", decls: [["display", "none"]] },
+    { row: "(k)", selector: ".sb-field__error > .sb-status", where: "any", decls: [["margin-inline-end", "var(--sb-space-1)"]] },
+  ];
+  /** Each declaration of the rows that is not L190's form, read as L190 reads it. */
+  const formFindings = (sheet: ReturnType<typeof readCss>, rows: FormRow[]) => rows.flatMap(({ row, selector, where, decls }) => decls.flatMap(([property, want]) => {
+    const got = lastAt(sheet, selector, property, where);
+    return got !== undefined && asCompared(got) === asCompared(want) ? [] : [`${row} ${selector}${where === "any" ? "" : ` (${where === "outside the sublayer" ? where : `in ${where}`})`} { ${property}: ${got ?? "nothing"} }, not ${want}`];
+  }));
+  const formsOf = (...rows: string[]) => FORMS.filter((form) => rows.includes(form.row));
+  /** A selector item that names the status slot or its glyph, as a whole class. */
+  const NAMES_STATUS = /\.sb-status(?:-icon)?(?![\w-])/;
+  /** L170, L190 (b) and (c): the only colour declarations that may reach the slot or its glyph, by layer and selector. */
+  const COLOUR_RULES = new Set(["sb.atoms.where-defined | .sb-status", "sb.atoms | .sb-badge--solid > .sb-status", "sb.atoms | .sb-button > .sb-status"]);
+  /** L190 (d): a color or a fill declared by any other rule whose selector list names .sb-status or .sb-status-icon, in any layer or conditional at-rule. */
+  const strayColours = (sheet: ReturnType<typeof readCss>) => sheet.rules.flatMap((rule) => rule.selectors.filter((item) => NAMES_STATUS.test(item)).flatMap((item) => rule.decls
+    .filter(([property]) => property === "fill" || (property === "color" && (rule.conditional || !COLOUR_RULES.has(`${rule.layer ?? ""} | ${normalSelector(item)}`))))
+    .map(([property, value]) => `${rule.layer ?? "(no layer)"}${rule.context === "" ? "" : ` ${rule.context}`} ${item} { ${property}: ${value} }`)));
+  /** L169, L190: sizes are inline-size and block-size, never width or height, on the slot, its glyph and the toast's slot box. */
+  const physicalSizes = (sheet: ReturnType<typeof readCss>) => sheet.rules.flatMap((rule) => rule.selectors.filter((item) => NAMES_STATUS.test(item) || /\.sb-toast__icon(?![\w-])/.test(item)).flatMap((item) => rule.decls
+    .filter(([property]) => /^(?:min-|max-)?(?:width|height)$/.test(property)).map(([property, value]) => `${item} { ${property}: ${value} }`)));
+  /** L190 (f): every selector but .sb-button--danger that declares --danger-rim. */
+  const otherRims = (sheet: ReturnType<typeof readCss>) => sheet.rules.filter((rule) => rule.decls.some(([property]) => property === "--danger-rim")).flatMap((rule) => rule.selectors.map(normalSelector)).filter((selector) => selector !== ".sb-button--danger");
+  /** L175: the danger button's three shadows, each the rim and then .sb-button--secondary's falloff for the same state; the other three filled variants as today, no rim. */
+  const filledShadowFindings = (sheet: ReturnType<typeof readCss>) => ["rest", "hover", "press"].flatMap((state) => {
+    const property = `--shadow-${state}`;
+    const secondary = lastAt(sheet, ".sb-button--secondary", property, "any") ?? "";
+    const falloff = varCalls(secondary)[0]?.fallback;
+    const findings: string[] = [];
+    if (falloff === undefined || asCompared(secondary) !== asCompared(`var(${edgeOfState("filled-secondary", state)}, ${falloff})`)) {
+      findings.push(`.sb-button--secondary { ${property}: ${secondary} } is not an edge read with its falloff`);
+    } else {
+      const danger = lastAt(sheet, ".sb-button--danger", property, "any");
+      if (danger === undefined || asCompared(danger) !== asCompared(`var(--danger-rim, 0 0 #0000), var(${edgeOfState("filled-danger", state)}, ${falloff})`)) {
+        findings.push(`.sb-button--danger { ${property}: ${danger ?? "nothing"} }: not the rim and then .sb-button--secondary's falloff`);
+      }
+    }
+    for (const [selector, element] of [[".sb-button", "filled-primary"], [".sb-button--secondary", "filled-secondary"], [".sb-button--accent", "filled-accent"]]) {
+      const got = lastAt(sheet, selector!, property, "any");
+      if (got === undefined || asCompared(got) !== asCompared(`var(${edgeOfState(element!, state)}, ${FALLOFF[state]})`)) {
+        findings.push(`${selector} { ${property}: ${got ?? "nothing"} }: a filled variant other than danger passes no rim and compiles as today (L175)`);
+      }
+    }
+    return findings;
+  });
+
+  test("2.5 L190 (checker) the readings of L190 pass the compiled forms the spec gives, in either spelling of the placeholder, and each fails when one of its declarations is removed, moved to another layer, or added elsewhere", () => {
+    const good = `@layer sb.atoms {
+  .sb-button { --shadow-rest: var(--sb-edge-filled-primary, ${FALLOFF.rest}); --shadow-hover: var(--sb-edge-filled-primary-hover, ${FALLOFF.hover}); --shadow-press: var(--sb-edge-filled-primary-press, ${FALLOFF.press}); }
+  .sb-button--secondary { --shadow-rest: var(--sb-edge-filled-secondary, ${FALLOFF.rest}); --shadow-hover: var(--sb-edge-filled-secondary-hover, ${FALLOFF.hover}); --shadow-press: var(--sb-edge-filled-secondary-press, ${FALLOFF.press}); }
+  .sb-button--accent { --shadow-rest: var(--sb-edge-filled-accent, ${FALLOFF.rest}); --shadow-hover: var(--sb-edge-filled-accent-hover, ${FALLOFF.hover}); --shadow-press: var(--sb-edge-filled-accent-press, ${FALLOFF.press}); }
+  .sb-button--danger { --edge: var(--sb-danger); --danger-rim: inset 0 0 0 2px var(--sb-danger-mark); --shadow-rest: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger, ${FALLOFF.rest}); --shadow-hover: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger-hover, ${FALLOFF.hover}); --shadow-press: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger-press, ${FALLOFF.press}); }
+  .sb-button > .sb-status { color: inherit; }
+  .sb-badge--solid > .sb-status { color: inherit; }
+  .sb-status { position: relative; display: inline-flex; flex-shrink: 0; vertical-align: -0.125em; }
+  .sb-status-icon { inline-size: 1.1em; block-size: 1.1em; }
+  ${STATUS_TONES.map((tone) => `.sb-icon--${tone} { color: var(--sb-${tone}-mark, var(--sb-${tone})); }`).join("\n  ")}
+  @layer where-defined {
+    .sb-status { --status-ink: var(--sb-text-strong); color: var(--status-ink, revert-layer); }
+  }
+}
+@layer sb.molecules {
+  .sb-alert__icon > .sb-status-icon { inline-size: 100%; block-size: 100%; }
+  .sb-toast__icon { flex-shrink: 0; inline-size: 1.25rem; block-size: 1.25rem; margin-block-start: 0.05em; }
+  .sb-toast__icon > .sb-status-icon { inline-size: 100%; block-size: 100%; }
+  .sb-menu__item .sb-status-icon { inline-size: 1em; block-size: 1em; }
+  .sb-menu__item[data-danger] > svg, .sb-menu__item[data-danger] > .sb-icon { display: none; }
+  .sb-field__error > .sb-status { margin-inline-end: var(--sb-space-1); }
+  ${STATUS_TONES.map((tone) => `.sb-toast--${tone} { border-inline-start: 3px solid var(--sb-${tone}-mark, var(--sb-${tone})); }`).join("\n  ")}
+  @layer where-defined {
+    .sb-alert { box-shadow: var(--sb-edge-status-info, revert-layer); }
+    .sb-alert--success { box-shadow: var(--sb-edge-status-success, revert-layer); }
+    .sb-alert--warning { box-shadow: var(--sb-edge-status-warning, revert-layer); }
+    .sb-alert--danger { --danger-box: inset 0 0 0 2px var(--sb-danger-mark), var(--sb-edge-status-danger, 0 0 rgba(0, 0, 0, 0)); box-shadow: var(--danger-box, var(--sb-edge-status-danger, revert-layer)); }
+    .sb-alert--info { box-shadow: var(--sb-edge-status-info, revert-layer); }
+  }
+}`;
+    const all = (css: string) => [...formFindings(readCss(css), FORMS), ...strayColours(readCss(css)), ...physicalSizes(readCss(css)), ...otherRims(readCss(css)), ...filledShadowFindings(readCss(css))];
+    assert.deepEqual(all(good), [], "the spec's forms");
+    const swap = (from: string, to: string) => {
+      assert.ok(good.includes(from), from);
+      return all(good.replace(from, to));
+    };
+    assert.deepEqual(swap("0 0 rgba(0, 0, 0, 0))", "0 0 #0000)"), [], "the placeholder in the other spelling");
+    assert.equal(swap("position: relative; ", "").length, 1, "L186: (a) without position: relative");
+    assert.equal(swap("@layer where-defined {\n    .sb-status { --status-ink", "@layer other {\n    .sb-status { --status-ink").length, 3, "(b) outside the sublayer: two declarations not found there, and its color a stray (d)");
+    assert.equal(swap(".sb-button > .sb-status { color: inherit; }", "@layer where-defined { .sb-button > .sb-status { color: inherit; } }").length, 2, "(c) in the sublayer it would not outrank: not found in sb.atoms, and a stray (d)");
+    assert.equal(swap(".sb-status-icon { inline-size", ".sb-status-icon { color: red; fill: red; inline-size").length, 2, "(d) a color and a fill on the glyph");
+    assert.equal(all(`${good} @media (min-width: 1px) { .sb-alert .sb-status { color: red; } }`).length, 1, "(d) inside a conditional rule");
+    assert.equal(swap(".sb-status-icon { inline-size: 1.1em; block-size: 1.1em; }", ".sb-status-icon { width: 1.1em; height: 1.1em; }").length, 4, "(e) width and height instead of inline-size and block-size");
+    assert.equal(swap(".sb-toast__icon { flex-shrink: 0; ", ".sb-toast__icon { ").length, 1, "(e) the toast's slot box");
+    assert.equal(swap(".sb-button--accent { --shadow-rest", ".sb-button--accent { --danger-rim: inset 0 0 0 2px red; --shadow-rest").length, 1, "(f) --danger-rim declared on another selector");
+    assert.ok(swap("--shadow-hover: var(--danger-rim, 0 0 #0000), ", "--shadow-hover: ").length >= 2, "(f) the rim missing from the hover shadow (L152: it never vanishes on hover)");
+    assert.ok(swap(`.sb-button--secondary { --shadow-rest: var(--sb-edge-filled-secondary, ${FALLOFF.rest})`, ".sb-button--secondary { --shadow-rest: var(--sb-edge-filled-secondary, 0 1px 3px red)").length >= 2, "(f) the falloff is .sb-button--secondary's: secondary changed alone, so danger's no longer matches it");
+    assert.equal(swap(".sb-button--accent { --shadow-rest: var(--sb-edge-filled-accent, ", ".sb-button--accent { --shadow-rest: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-accent, ").length, 1, "L175: another filled variant gained the rim");
+    assert.equal(swap("    .sb-alert { box-shadow: var(--sb-edge-status-info, revert-layer); }\n", "").length + all(good.replace("    .sb-alert { box-shadow: var(--sb-edge-status-info, revert-layer); }\n", "").replace("@layer sb.molecules {", "@layer sb.molecules {\n  .sb-alert { box-shadow: var(--sb-edge-status-info, revert-layer); }")).length, 2, "(g) .sb-alert's edge missing, or outside the sublayer");
+    assert.equal(swap("var(--sb-edge-status-danger, 0 0 rgba(0, 0, 0, 0))", "var(--sb-edge-status-danger, 0 0 1px red)").length, 1, "(h) a fallback that is not the placeholder");
+    assert.equal(swap("var(--danger-box, var(--sb-edge-status-danger, revert-layer))", "var(--danger-box, revert-layer)").length, 1, "(h) the danger box without the edge alone as its fallback (S44)");
+    assert.equal(swap(".sb-toast--success { border-inline-start: 3px solid var(--sb-success-mark, var(--sb-success)); }", ".sb-toast--success { border-inline-start: 3px solid var(--sb-success); }").length, 1, "(i) the stripe not re-pointed (L179)");
+    assert.equal(swap(".sb-icon--info { color: var(--sb-info-mark, var(--sb-info)); }", ".sb-icon--info { color: var(--sb-info); }").length, 1, "(i) the Icon atom's info tone not re-pointed (L179)");
+    assert.equal(swap(", .sb-menu__item[data-danger] > .sb-icon { display", " { display").length, 1, "(j) a consumer's .sb-icon left beside the octagon (L176)");
+    assert.equal(swap("margin-inline-end: var(--sb-space-1)", "margin-inline-end: 4px").length, 1, "(k)");
+  });
+
+  test("2.5 L186 L190 (a) the status slot is its word's containing block: among the rules whose selector list holds .sb-status, outside conditional at-rules and the where-defined sublayer, the last position is relative and the last display inline-flex; flex-shrink 0 and vertical-align -0.125em", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(a)")), []);
+  });
+
+  test("2.5 L170 L190 (b) the slot's ink: in sb.atoms.where-defined, .sb-status sets --status-ink from text-strong with no fallback and reads color: var(--status-ink, revert-layer), so a theme without text-strong computes the colour the slot inherits", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(b)")), []);
+  });
+
+  test("2.5 L170 L190 (c) on a full-strength fill the slot takes the label's ink: .sb-badge--solid > .sb-status and .sb-button > .sb-status set color: inherit, in the atoms layer itself, which outranks its sublayer", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(c)")), []);
+  });
+
+  test("2.5 L170 L190 (d) those are the only colour declarations that reach a status slot or its glyph: no other rule whose selector list names .sb-status or .sb-status-icon declares color, and none declares fill", () => {
+    assert.deepEqual(strayColours(stylesheet()), []);
+  });
+
+  test("2.5 L169 L172 L173 L190 (e) the glyph's sizes: 1.1em, 1em in a menu item, 100% of the 1.25rem slot leading an alert or a toast, the toast's slot box copying the alert's; always inline-size and block-size, never width or height", () => {
+    assert.deepEqual([...formFindings(stylesheet(), formsOf("(e)")), ...physicalSizes(stylesheet())], []);
+  });
+
+  test("2.5 L175 L190 (f) the danger button's rim: .sb-button--danger reads L175's four lines, the falloff in each textually .sb-button--secondary's for the same state; no other selector declares --danger-rim; the other filled variants pass no rim and compile as today", () => {
+    assert.deepEqual([...formFindings(stylesheet(), formsOf("(f)")), ...filledShadowFindings(stylesheet()), ...otherRims(stylesheet()).map((selector) => `${selector} declares --danger-rim`)], []);
+  });
+
+  test("2.5 L178 L190 (g) the status boxes' edges: in sb.molecules.where-defined, .sb-alert and .sb-alert--info read box-shadow: var(--sb-edge-status-info, revert-layer), .sb-alert--success and --warning their own tone's", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(g)")), []);
+  });
+
+  test("2.5 L178 L190 (h) the danger box's rim and edge: in sb.molecules.where-defined, --danger-box is the rim over the edge read with the placeholder, and box-shadow reads it falling back to the edge alone, then to revert-layer", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(h)")), []);
+  });
+
+  test("2.5 L179 L190 (i) the two colours re-pointed to the marks: each status toast's stripe is 3px solid var(--sb-X-mark, var(--sb-X)), and the Icon atom's four status tones are color: var(--sb-X-mark, var(--sb-X))", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(i)")), []);
+  });
+
+  test("2.5 L176 L190 (j) in a danger menu item a consumer's leading glyph is hidden, so the octagon takes its place: .sb-menu__item[data-danger] > svg and > .sb-icon are display: none", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(j)")), []);
+  });
+
+  test("2.5 L177 L190 (k) the field's error message spaces its slot from the message: .sb-field__error > .sb-status has margin-inline-end: var(--sb-space-1)", () => {
+    assert.deepEqual(formFindings(stylesheet(), formsOf("(k)")), []);
+  });
+
+  test("2.5 L167 (shots) shots.ts declares the constant MASK, exactly .sb-status{display:none!important}, and its success line says the status icons were masked, after the variants and before the parenthesis", () => {
+    const source = readFileSync(join(repoRoot, "tools", "shots.ts"), "utf8");
+    assert.match(source, /\bconst MASK\s*=\s*"\.sb-status\{display:none!important\}";/, "no `const MASK = \".sb-status{display:none!important}\";` in tools/shots.ts");
+    const line = source.split("\n").find((text) => text.includes("The frozen presets are pixel-identical to"));
+    assert.ok(line !== undefined, "no success line in tools/shots.ts");
+    assert.match(line, /in both modes, in \$\{[^}]*\}, with the status icons masked \(.* shots, control stable\)\./, line.trim());
   });
 
   legibilityCount = ran - legibilityFrom;

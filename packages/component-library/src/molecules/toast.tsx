@@ -12,11 +12,15 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { StatusMark } from "../atoms/icons.tsx";
 import { cx, type Tone } from "../core/index.ts";
 
 export interface ToastOptions {
   title?: ReactNode;
+  /** A toast with a tone leads with that status's icon and a hidden word for screen readers ("Error: "). */
   tone?: Tone;
+  /** With a tone: replaces the hidden word, e.g. for another language. */
+  statusLabel?: string;
   /** ms before auto-dismiss; 0 keeps the toast until dismissed. */
   duration?: number;
 }
@@ -47,6 +51,34 @@ export function useToast(): ToastContextValue["toast"] {
 
 const LEAVE_MS = 250;
 
+export interface ToastItemProps {
+  title?: ReactNode;
+  message: ReactNode;
+  tone?: Tone;
+  statusLabel?: string;
+  leaving?: boolean;
+  onDismiss: () => void;
+}
+
+/**
+ * One toast's markup, which the provider renders once per toast. A component
+ * of its own so the markup can be rendered on the server and tested (the
+ * provider renders toasts only after mount); not exported by the barrel, so
+ * not public API: raise a toast with useToast().
+ */
+export function ToastItem({ title, message, tone, statusLabel, leaving, onDismiss }: ToastItemProps) {
+  return (
+    <div className={cx("sb-toast", tone && `sb-toast--${tone}`)} data-leaving={leaving || undefined}>
+      {tone && <StatusMark tone={tone} statusLabel={statusLabel} className="sb-toast__icon" />}
+      <div>
+        {title && <p className="sb-toast__title">{title}</p>}
+        <p className="sb-toast__body">{message}</p>
+      </div>
+      <button type="button" className="sb-toast__dismiss sb-close" aria-label="Dismiss notification" onClick={onDismiss} />
+    </div>
+  );
+}
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
   const nextId = useRef(1);
@@ -57,9 +89,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toast = useCallback(
-    (message: ReactNode, { title, tone, duration = 5000 }: ToastOptions = {}) => {
+    (message: ReactNode, { title, tone, statusLabel, duration = 5000 }: ToastOptions = {}) => {
       const id = nextId.current++;
-      setToasts((all) => [...all, { id, message, title, tone, duration }]);
+      setToasts((all) => [...all, { id, message, title, tone, statusLabel, duration }]);
       if (duration > 0) {
         setTimeout(() => dismiss(id), duration);
       }
@@ -90,22 +122,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         createPortal(
           <div className="sb-toast-region" role="region" aria-live="polite" aria-label="Notifications">
             {toasts.map((t) => (
-              <div
+              <ToastItem
                 key={t.id}
-                className={cx("sb-toast", t.tone && `sb-toast--${t.tone}`)}
-                data-leaving={t.leaving || undefined}
-              >
-                <div>
-                  {t.title && <p className="sb-toast__title">{t.title}</p>}
-                  <p className="sb-toast__body">{t.message}</p>
-                </div>
-                <button
-                  type="button"
-                  className="sb-toast__dismiss sb-close"
-                  aria-label="Dismiss notification"
-                  onClick={() => dismiss(t.id)}
-                />
-              </div>
+                title={t.title}
+                message={t.message}
+                tone={t.tone}
+                statusLabel={t.statusLabel}
+                leaving={t.leaving}
+                onDismiss={() => dismiss(t.id)}
+              />
             ))}
           </div>,
           document.body,

@@ -33,6 +33,20 @@
     translate: space(4) 0;
   }
 
+  // A toast with a tone leads with the status slot (atoms/_icon.scss), in a
+  // box that copies the alert's: <span class="sb-status sb-toast__icon">…</span>
+  &__icon {
+    flex-shrink: 0;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    margin-block-start: 0.05em;
+
+    > .sb-status-icon {
+      inline-size: 100%;
+      block-size: 100%;
+    }
+  }
+
   &__title {
     font-weight: fw(semibold);
   }
@@ -62,9 +76,11 @@
     }
   }
 
+  // The stripe is a mark with no label: the tone's mark-strength colour,
+  // whose fallback is the tone itself (L179).
   @each $tone in (success, warning, danger, info) {
     &--#{$tone} {
-      border-inline-start: 3px solid clr($tone);
+      border-inline-start: 3px solid seam(#{$tone}-mark);
     }
   }
 }

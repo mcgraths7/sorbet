@@ -1,3 +1,4 @@
+@use "sass:string";
 @use "../abstracts" as *;
 
 // The filled buttons' falloff in each state, as every theme without edge data
@@ -21,10 +22,27 @@ $shadow-press: (
 /// falloff above. Declared on the element, never at :root, so `--edge` in the
 /// fallback is the element's own (a custom property resolves var() where it is
 /// declared).
-@mixin filled-edge($element) {
-  --shadow-rest: #{edge($element, $shadow-rest)};
-  --shadow-hover: #{edge($element, $shadow-hover, hover)};
-  --shadow-press: #{edge($element, $shadow-press, press)};
+///
+/// `$rim` is an inset ring drawn above the edge in all three states (the
+/// danger button's, L175): it goes into a local, `--<x>-rim`, read ahead of the
+/// edge in each shadow with the placeholder as its fallback. Its colour comes
+/// through seam-only(), so in a theme without that token the local is invalid,
+/// each shadow computes the placeholder and then exactly its old falloff, and
+/// no layer is added (L148, L149). Each state's shadow carries the rim, so it
+/// never vanishes on hover or press, and no state rule gains a declaration.
+@mixin filled-edge($element, $rim: null) {
+  @if $rim {
+    $local: "#{string.slice("#{$element}", 8)}-rim";
+
+    --#{$local}: #{$rim};
+    --shadow-rest: var(--#{$local}, 0 0 #0000), #{edge($element, $shadow-rest)};
+    --shadow-hover: var(--#{$local}, 0 0 #0000), #{edge($element, $shadow-hover, hover)};
+    --shadow-press: var(--#{$local}, 0 0 #0000), #{edge($element, $shadow-press, press)};
+  } @else {
+    --shadow-rest: #{edge($element, $shadow-rest)};
+    --shadow-hover: #{edge($element, $shadow-hover, hover)};
+    --shadow-press: #{edge($element, $shadow-press, press)};
+  }
 }
 
 /// Variants that sit flat on the page: no falloff in any state, and nothing to
@@ -118,11 +136,16 @@ $shadow-press: (
     &--#{$variant} {
       @if $variant == danger {
         --edge: #{clr(danger)};
+
+        // The danger button's rose rim, 2px inside its edge (decision 13): with
+        // its octagon, what tells it from the secondary button, whose pastel
+        // fill it shares in a pastel theme.
+        @include filled-edge(filled-danger, inset 0 0 0 2px seam-only(danger-mark));
       } @else {
         --edge: #{clr(#{$variant}-solid)};
-      }
 
-      @include filled-edge(filled-#{$variant});
+        @include filled-edge(filled-#{$variant});
+      }
 
       background-color: clr($variant);
       color: clr(on-#{$variant});
@@ -277,5 +300,12 @@ $shadow-press: (
     inline-size: 1.1em;
     block-size: 1.1em;
     flex-shrink: 0;
+  }
+
+  // The danger button's status slot (atoms/_icon.scss): its octagon is on the
+  // fill, so it takes the label's ink, and turns transparent with the label
+  // under [data-loading] (L170, L175).
+  > .sb-status {
+    color: inherit;
   }
 }

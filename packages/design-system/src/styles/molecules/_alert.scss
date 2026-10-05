@@ -1,11 +1,19 @@
 @use "../abstracts" as *;
 
+// A status never rests on colour alone: it leads with its tone's icon and the
+// word a screen reader says first, in the status slot (atoms/_icon.scss),
+// which also carries the alert's icon box. The React Alert always writes it:
+//
 // <div class="sb-alert sb-alert--success" role="status">
-//   <svg class="sb-alert__icon">…</svg>
+//   <span class="sb-status sb-alert__icon">
+//     <svg class="sb-status-icon sb-status-icon--success" viewBox="0 0 24 24" aria-hidden="true" focusable="false">…</svg>
+//     <span class="u-visually-hidden">Success: </span>
+//   </span>
 //   <div><p class="sb-alert__title">Saved</p><p>Your changes are live.</p></div>
 //   <button class="sb-alert__dismiss sb-close" aria-label="Dismiss"></button>
 // </div>
-// Use role="alert" only for urgent interruptions (danger).
+// role="status" for every tone; use role="alert" only for urgent
+// interruptions, which a danger tone is not by itself.
 .sb-alert {
   display: flex;
   align-items: flex-start;
@@ -17,10 +25,34 @@
   font-size: fs(sm);
   line-height: lh(normal);
 
+  // A status box takes its tone's edge where a theme has one. None of these
+  // selectors declared a box-shadow before, so a theme without the edge keeps
+  // whatever reached the box, from any rule (where-absent, L148, L178).
+  @include where-absent {
+    box-shadow: edge(status-info, revert-layer);
+  }
+
   @each $tone in (success, warning, danger, info) {
     &--#{$tone} {
       background-color: clr(#{$tone}-subtle);
       color: clr(#{$tone}-text);
+
+      @if $tone == danger {
+        // The danger box adds a rose rim, 2px inside, above its edge. A rim and
+        // an edge are two layers and revert-layer is only ever a whole value, so
+        // the pair is one local: a theme with both draws both; with the edge
+        // and no danger-mark, the edge alone (the local is invalid); with
+        // danger-mark and no edge, the rim alone; with neither, revert-layer.
+        @include where-absent {
+          --danger-box: inset 0 0 0 2px #{seam-only(danger-mark)}, #{edge(status-danger, 0 0 #0000)};
+
+          box-shadow: var(--danger-box, #{edge(status-danger, revert-layer)});
+        }
+      } @else {
+        @include where-absent {
+          box-shadow: edge(status-#{$tone}, revert-layer);
+        }
+      }
     }
   }
 
@@ -29,6 +61,11 @@
     inline-size: 1.25rem;
     block-size: 1.25rem;
     margin-block-start: 0.05em;
+
+    > .sb-status-icon {
+      inline-size: 100%;
+      block-size: 100%;
+    }
   }
 
   &__title {

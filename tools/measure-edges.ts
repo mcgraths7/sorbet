@@ -36,7 +36,9 @@
  * centre), not from a token; and where the playground has no instance of an
  * element in sheet 2's placement (the filled buttons and the status box on a
  * card, the checkbox and the switch off), a clone of the real component is
- * placed in a real card for the measurement, and the row says "staged". Sheet
+ * placed in a real card for the measurement, and the row says "staged"; the
+ * warning, info and danger status boxes, which the playground does not have,
+ * are the success box cloned with its tone class swapped (L191). Sheet
  * 2's raised box on the well and its robin's-egg button have no component in
  * the library, and are listed as such.
  */
@@ -128,7 +130,13 @@ const TARGETS: Target[] = [
   { label: "Text field on a card", sheet2: { name: "Text field", on: "card" }, find: "document.querySelector('.sb-card .sb-input')" },
   { label: "Checkbox, off, on a card", sheet2: { name: "Checkbox, off", on: "card" }, find: "staged('.sb-checkbox', null, (e) => { e.checked = false; e.indeterminate = false; })", staged: true },
   { label: "Switch, off, on a card", sheet2: { name: "Switch, off", on: "card" }, find: "staged('.sb-switch', null, (e) => { e.checked = false; })", staged: true },
-  { label: "Status box on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; })", staged: true },
+  { label: "Status box (success) on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; })", staged: true },
+  // The playground has no warning or info alert, and none on a card (L191): each is the success box cloned with its
+  // tone class swapped, filed under sheet 2's one status box. The clone keeps the success glyph, which is not on the
+  // boundary the measurer samples; the danger clone gets its rim from its class, so it is measured as painted.
+  { label: "Status box (warning) on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; e.classList.replace('sb-alert--success', 'sb-alert--warning'); })", staged: true },
+  { label: "Status box (info) on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; e.classList.replace('sb-alert--success', 'sb-alert--info'); })", staged: true },
+  { label: "Status box (danger) on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; e.classList.replace('sb-alert--success', 'sb-alert--danger'); })", staged: true },
   { label: "Status box on the page", sheet2: null, find: "document.querySelector('.sb-alert--success')" },
 ];
 

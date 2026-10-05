@@ -92,7 +92,7 @@ Package manager is **pnpm**, pinned by the root `packageManager` field
 
 ```
 pnpm build          # topological; includes the contrast and golden-file gates
-pnpm test           # check:contrast + check:client + test:golden + test:contrast + test:contracts
+pnpm test           # check:contrast + check:client + test:golden + test:contrast + test:contracts + test:status
 pnpm check:catalog  # README roster must list every export
 pnpm check:cli
 pnpm lint           # --max-warnings 0
