@@ -40,6 +40,9 @@ The record the two sample sheets are built from, and the evidence behind
 | 30 | The focus ring touching a lilac fill | `#8e6ac7` on `#dac5fc` at 26.13 (selected calendar day, current page) is visible enough; the light focus floor 24.8 stands | owner, 2026-10-04 | losing track of focus on those controls |
 | 31 | Small button label | 14px semi-bold for sorbet's small buttons (16px is the default size's), a sorbet-only setting with today's 12px as the other themes' fallback. The question that was answered stated the colour figure: "Labels on lilac and blush read Lc 70.9" (that figure does not depend on size; measured at 14px: lilac 71.32, blush 70.92). No sheet drew a 14px label | owner, 2026-10-04 | small buttons feeling crowded |
 | 32 | The selected pill in the pills tabs | keep the milk segment `#fffbf1` as built, label in `text` at medium. Cream `#fef4dc` with a semi-bold strong-ink label was chosen first, then declined once it was drawn beside milk: "oh this is different than what i was picturing. lets go with milk". The cream version is parked on the local branch `parked/cream-segment`. Spec L164 | owner, 2026-10-05 | a selected pill that is hard to find on a real screen |
+| 33 | A state recolouring its own fill | the outline button's hover and the checked checkbox stay as built; L152 compares a state with rest against what the element sits on, so a fill change is not a weaker edge (outline button 11.47 against 11.47 on the page; checkbox ring 24.95 against 24.95). Chosen over a bigger hover glow, a milk hover, and a darker checked ring, from a rendered sheet. Spec L165 (a) | owner, 2026-10-05 | a hover or a checked box that is hard to see on a real screen |
+| 34 | The checked checkbox's ring | stays `#b096d7` in every state: the lilac fill and the tick carry "checked" (a darker ring would come within 4.3 to 6.1 of the focus ring `#8e6ac7`). Spec L165 (a) | owner, 2026-10-05 | a checked box mistaken for an unchecked one |
+| 35 | The raised card in sorbet light | the container edge, `edge(container, shadow(md))`: 11.81 on the page, 10.26 in a card (was 2.64 and 0.28). It looks like a plain card; the floating edge was declined. Spec L165 (b) | owner, 2026-10-05 | wanting raised cards to look distinct again |
 
 The five decisions the proposal's section 11 left open were made on 2026-10-04
 (rows 20 to 24). Nothing in the proposal is waiting on the owner.
@@ -48,3 +51,4 @@ Sheet 3's two decisions and its fourteen items were answered on 2026-10-04 (rows
 The revision-2 questions were answered the same day (rows 28 to 31).
 
 The selected pill (spec §15 item 18) was answered on 2026-10-05 (row 32).
+The repair of 7a683fd's look questions were answered on 2026-10-05 (rows 33 to 35).
