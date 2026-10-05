@@ -4,6 +4,7 @@
 
 @use "sass:list";
 @use "sass:map";
+@use "sass:string";
 @use "generated" as gen;
 
 @function -check($group, $key) {
@@ -81,4 +82,47 @@
 /// token(control-height-md), token(avatar-size-lg)
 @function token($name) {
   @return var(--sb-#{-check("misc", $name)});
+}
+
+/// Optional colour token, e.g. seam(field-fill) → var(--sb-field-fill, var(--sb-surface)).
+/// A theme that does not define the token paints the fallback, which is what
+/// the site painted before the token existed: a role's custom property, or CSS
+/// as written (`inherit`, `transparent`, a `color-mix()`). The fallback comes
+/// from `$seams`, which the build writes from SEAMS in src/tokens/seams.ts, so
+/// the stylesheet and the checker read one definition of it. An unknown name is
+/// a compile error, as it is for clr(); a quoted name is the same name.
+@function seam($name) {
+  $entry: map.get(gen.$seams, "#{$name}");
+  @if not $entry {
+    @error "Unknown optional colour token `#{$name}` for seam(). Valid: #{map.keys(gen.$seams)}";
+  }
+  @if map.has-key($entry, "fallback") {
+    @return var(--sb-#{$name}, var(--sb-#{map.get($entry, "fallback")}));
+  }
+  @return var(--sb-#{$name}, #{map.get($entry, "css")});
+}
+
+/// An element's edge, as a theme with edge data emits it, e.g.
+/// edge(filled-primary, (0 1px 2px …, 0 2px 6px …), hover)
+/// → var(--sb-edge-filled-primary-hover, 0 1px 2px …, 0 2px 6px …).
+/// `$fallback` is the site's own declaration as it stood before the seam (a
+/// comma list goes in parentheses), so a theme with no edge data paints exactly
+/// what it painted before. `$state` is rest, hover or press; only the filled-*
+/// elements have the last two. The element is checked against
+/// `$edge-elements` (src/tokens/edges.ts), and a state is never part of its
+/// name.
+@function edge($element, $fallback, $state: rest) {
+  @if not list.index(gen.$edge-elements, "#{$element}") {
+    @error "Unknown edge element `#{$element}` for edge(). Valid: #{gen.$edge-elements}";
+  }
+  @if not list.index(("rest", "hover", "press"), "#{$state}") {
+    @error "Unknown state `#{$state}` for edge(#{$element}, …). Valid: rest, hover, press";
+  }
+  @if "#{$state}" != "rest" and string.index("#{$element}", "filled-") != 1 {
+    @error "edge(#{$element}, …, #{$state}): only the filled-* elements have a `#{$state}` edge; `#{$element}` has rest only";
+  }
+  @if "#{$state}" == "rest" {
+    @return var(--sb-edge-#{$element}, $fallback);
+  }
+  @return var(--sb-edge-#{$element}-#{$state}, $fallback);
 }

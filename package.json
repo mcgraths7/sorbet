@@ -30,7 +30,10 @@
     "test": "pnpm run check:contrast && pnpm run check:client && pnpm run test:golden && pnpm run test:contrast && pnpm run test:contracts",
     "typecheck": "pnpm --filter \"./apps/*\" typecheck",
     "check:cli": "node tools/check-cli.ts",
-    "check:catalog": "node tools/check-catalog.ts"
+    "check:catalog": "node tools/check-catalog.ts",
+    "shots": "node tools/shots.ts",
+    "measure:edges": "node tools/measure-edges.ts",
+    "browsers:install": "playwright install --only-shell chromium"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -43,6 +46,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
+    "playwright": "1.63.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "sass": "^1.104.0",

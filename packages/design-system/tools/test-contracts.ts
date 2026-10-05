@@ -71,6 +71,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 import { stripVTControlCharacters, styleText } from "node:util";
@@ -4373,6 +4374,126 @@ try {
       assert.equal(createHash("sha256").update(readFileSync(join(pkgRoot, "tools", "golden", `${name}.css`), "utf8")).digest("hex"), sha256, name);
     }
     assert.deepEqual(Object.keys(GOLDENS.frozenSha256), ["ocean", "forest", "noir", "midnight"]);
+  });
+
+  // ══ PR 2, step 2.3: the Sass accessors (L71) — tests first for the one silent part ═══════════════════════
+  // `seam($name)` returns var(--sb-<name>, <fallback>) with the fallback from $seams; `edge($element, $fallback)`
+  // validates the element against the generated list and returns its custom property with the site's fallback. An
+  // unknown name is a compile error, as it is for clr(). A function Sass does not know is passed through to the CSS
+  // as text, so a missing or misspelt accessor is silent: these probes compile against src/styles with the repo's sass.
+  const sass = createRequire(join(repoRoot, "package.json"))("sass") as { compile: (path: string, options: { loadPaths: string[]; style: "expanded" }) => { css: string } };
+  const probeDir = join(tmp, "sass-probes");
+  mkdirSync(probeDir, { recursive: true });
+  let probes = 0;
+  /** Compile one probe partial that uses the abstracts, as every library partial does; the declarations of `.p`, or the error. */
+  function compileProbe(body: string): { decls: Record<string, string> } | { error: string } {
+    const file = join(probeDir, `probe-${probes++}.scss`);
+    writeFileSync(file, `@use "abstracts" as *;\n.p {\n${body}\n}\n`);
+    try {
+      const { css } = sass.compile(file, { loadPaths: [join(pkgRoot, "src", "styles")], style: "expanded" });
+      const decls = Object.fromEntries([...css.matchAll(/^\s+([\w-]+):\s*(.*);$/gm)].map((m) => [m[1]!, m[2]!.replace(/\s+/g, " ").trim()]));
+      return { decls };
+    } catch(error) {
+      return { error: String((error as Error).message) };
+    }
+  }
+  const compiled = (body: string, what: string) => {
+    const out = compileProbe(body);
+    assert.ok("decls" in out, `${what}: the probe did not compile: ${"error" in out ? out.error.split("\n")[0] : ""}`);
+    return out.decls;
+  };
+  /** It fails the compile, and the error names the bad name — not some other mistake in the probe. */
+  const refusedByCompile = (body: string, name: string, what: string) => {
+    const out = compileProbe(body);
+    assert.ok("error" in out, `${what}: it compiled, to ${"decls" in out ? shown(out.decls) : ""} — an unknown name must fail the Sass compile (L71)`);
+    assert.ok(out.error.includes(name), `${what}: the compile failed, but not by naming ${name}: ${out.error.split("\n")[0]}`);
+  };
+
+  test("2.3 (probe) the probe harness compiles a partial against src/styles with the repo's sass, and an unknown clr() name fails it by name — the behaviour L71 says seam() shares", () => {
+    assert.deepEqual(compiled("  color: clr(surface);", "clr(surface)"), { color: "var(--sb-surface)" });
+    refusedByCompile("  color: clr(surfce);", "surfce", "clr(surfce)");
+  });
+
+  test("2.3 L71 L37 seam(<name>) compiles, for each of L15's 20 optional tokens, to var(--sb-<name>, <fallback>): a role's fallback as var(--sb-<role>), a css fallback as written", () => {
+    for (const seam of VALUES.seams) {
+      const fallback = "fallback" in seam.fallback ? `var(--sb-${seam.fallback.fallback})` : seam.fallback.css;
+      assert.deepEqual(compiled(`  color: seam(${seam.name});`, `seam(${seam.name})`), { color: `var(--sb-${seam.name}, ${fallback})`.replace(/\s+/g, " ") }, `seam(${seam.name})`);
+    }
+  });
+
+  test("2.3 L71 seam() with a name that is not in $seams fails the Sass compile, naming it — a role and a misspelling included", () => {
+    assert.deepEqual(compiled("  color: seam(field-fill);", "seam(field-fill)"), { color: "var(--sb-field-fill, var(--sb-surface))" }, "the probe is sound: a known name compiles");
+    for (const name of ["nope", "feild-fill", "field-fil", "Field-fill", "surface", "text", "edge-container", "filled-success-mark"]) {
+      refusedByCompile(`  color: seam(${name});`, name, `seam(${name})`);
+    }
+  });
+
+  test("2.3 L71 edge(<element>, <fallback>) compiles, for each of the 13 elements, to var(--sb-edge-<element>, <fallback>), the fallback being the site's own declaration", () => {
+    for (const element of ELEMENTS) {
+      for (const fallback of ["none", "0 1px 3px rgb(38 35 31 / 0.09), 0 1px 2px rgb(38 35 31 / 0.05)"]) {
+        // A comma list is one argument only in parentheses, as a call site passing shadow(sm) passes one value.
+        const decls = compiled(`  box-shadow: (${fallback});\n  outline: edge(${element}, (${fallback}));`, `edge(${element}, ${fallback})`);
+        // The site's declaration as Sass writes it (it may respell a colour), then the same text inside the var().
+        assert.equal(decls.outline, `var(--sb-edge-${element}, ${decls["box-shadow"]})`, `edge(${element}, ${fallback})`);
+      }
+    }
+  });
+
+  test("2.3 L71 L123 edge() with a name that is not one of the 13 elements in $edge-elements fails the Sass compile, naming it — the three withdrawn filled-X included", () => {
+    assert.ok(compiled("  outline: edge(container, none);", "edge(container, none)").outline === "var(--sb-edge-container, none)", "the probe is sound: a known element compiles");
+    for (const name of ["filled-success", "filled-warning", "filled-info", "card", "Container", "containers", "field-fill", "nope"]) {
+      refusedByCompile(`  outline: edge(${name}, none);`, name, `edge(${name}, none)`);
+    }
+  });
+
+  const FILLED = ELEMENTS.filter((element) => element.startsWith("filled-"));
+
+  test("2.3 L143 edge($element, $fallback, $state): rest is the default and allowed on all 13; hover and press on the four filled-* elements compile to var(--sb-edge-<element>-<state>, <fallback>) — positional or by keyword", () => {
+    assert.equal(FILLED.length, 4);
+    for (const element of ELEMENTS) {
+      const decls = compiled(`  outline: edge(${element}, none, rest);\n  box-shadow: edge(${element}, none, $state: rest);`, `edge(${element}, none, rest)`);
+      assert.deepEqual([decls.outline, decls["box-shadow"]], [`var(--sb-edge-${element}, none)`, `var(--sb-edge-${element}, none)`], `edge(${element}, none, rest)`);
+    }
+    for (const element of FILLED) {
+      for (const state of ["hover", "press"]) {
+        const decls = compiled(`  box-shadow: (0 1px 3px rgb(38 35 31 / 0.09), 0 1px 2px rgb(38 35 31 / 0.05));\n  outline: edge(${element}, (0 1px 3px rgb(38 35 31 / 0.09), 0 1px 2px rgb(38 35 31 / 0.05)), ${state});\n  text-shadow: edge(${element}, none, $state: ${state});`, `edge(${element}, …, ${state})`);
+        assert.equal(decls.outline, `var(--sb-edge-${element}-${state}, ${decls["box-shadow"]})`, `edge(${element}, …, ${state})`);
+        assert.equal(decls["text-shadow"], `var(--sb-edge-${element}-${state}, none)`, `edge(${element}, none, $state: ${state})`);
+      }
+    }
+  });
+
+  test("2.3 L143 edge() refuses a state other than rest, hover and press, or hover and press on an element that is not filled-*, naming both; and a state written into the element's name", () => {
+    assert.equal(compiled("  outline: edge(filled-primary, none, hover);", "edge(filled-primary, none, hover)").outline, "var(--sb-edge-filled-primary-hover, none)", "the probe is sound: a filled element's hover compiles");
+    for (const state of ["hovered", "pressed", "active", "focus", "Hover", "disabled"]) {
+      for (const element of ["filled-primary", "filled-danger"]) {
+        refusedByCompile(`  outline: edge(${element}, none, ${state});`, state, `edge(${element}, none, ${state})`);
+        refusedByCompile(`  outline: edge(${element}, none, ${state});`, element, `edge(${element}, none, ${state}): the error names the element too`);
+      }
+    }
+    for (const element of ELEMENTS.filter((name) => !name.startsWith("filled-"))) {
+      for (const state of ["hover", "press"]) {
+        refusedByCompile(`  outline: edge(${element}, none, ${state});`, element, `edge(${element}, none, ${state})`);
+        refusedByCompile(`  outline: edge(${element}, none, ${state});`, state, `edge(${element}, none, ${state}): the error names the state too`);
+      }
+    }
+    for (const name of ["filled-primary-hover", "filled-danger-press", "filled-accent-rest", "container-hover"]) {
+      refusedByCompile(`  outline: edge(${name}, none);`, name, `edge(${name}, none): a state is never part of the element's name`);
+    }
+  });
+
+  test("2.3 L145 a quoted name is the same name: seam(\"…\") and edge(\"…\", …, \"…\") compile exactly as unquoted, and a quoted unknown name still fails", () => {
+    for (const seam of VALUES.seams) {
+      assert.deepEqual(compiled(`  color: seam("${seam.name}");`, `seam("${seam.name}")`), compiled(`  color: seam(${seam.name});`, `seam(${seam.name})`), `seam("${seam.name}")`);
+    }
+    for (const element of ELEMENTS) {
+      assert.deepEqual(compiled(`  outline: edge("${element}", none);`, `edge("${element}", none)`), compiled(`  outline: edge(${element}, none);`, `edge(${element}, none)`), `edge("${element}", none)`);
+    }
+    for (const element of FILLED) {
+      assert.deepEqual(compiled(`  outline: edge("${element}", none, "press");`, `edge("${element}", none, "press")`), { outline: `var(--sb-edge-${element}-press, none)` }, `edge("${element}", none, "press")`);
+    }
+    refusedByCompile("  color: seam(\"feild-fill\");", "feild-fill", "seam(\"feild-fill\")");
+    refusedByCompile("  outline: edge(\"filled-success\", none);", "filled-success", "edge(\"filled-success\", none)");
   });
 
   legibilityCount = ran - legibilityFrom;

@@ -92,19 +92,67 @@
   box-shadow: shadow($level);
 }
 
+/// An element's shadow is two layers: a STATE layer on top of an EDGE layer.
+///
+///   box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer, …)
+///
+/// `box-shadow` is one property, so a focus or invalid glow written to it
+/// directly deletes the element's edge, and an edge written to it deletes the
+/// glow. Composed from two custom properties instead, each falls back to a
+/// shadow of no size and no colour, which draws nothing, so a state fills its
+/// layer without touching the edge (the pattern Tailwind's ring utilities use).
+/// Both are registered as not inherited (base/_root.scss), so a wrapper's state
+/// never reaches an element inside it. A state selector outside abstracts/
+/// sets a layer's property and never writes box-shadow itself: the stylelint
+/// rule `sorbet/no-state-box-shadow` holds partials to that.
+///
+/// One limit: a layer whose value is `none` makes the whole list invalid, which
+/// computes to no shadow at all. That is what `none` meant anyway for an edge
+/// alone, but it also hides the state layer, so an edge that wants to draw
+/// nothing beneath a state should be `0 0 #0000`, not `none`.
+
+/// The soft edge: the element's edge layer at rest, and optionally on hover
+/// and while pressed (a disabled control has neither), beneath whatever state
+/// layer the element carries. Read each edge through edge() in
+/// abstracts/_tokens.scss, with the site's own shadow as its fallback.
+@mixin soft-edge($rest, $hover: null, $press: null) {
+  --edge-layer: #{$rest};
+
+  box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer);
+
+  @if $hover {
+    &:hover:not(:disabled, [aria-disabled="true"]) {
+      --edge-layer: #{$hover};
+    }
+  }
+
+  @if $press {
+    &:active:not(:disabled, [aria-disabled="true"]) {
+      --edge-layer: #{$press};
+    }
+  }
+}
+
 /// The text-control focus glow: ring-colored border plus a soft halo one
 /// ring-width wide. Every input-shaped control shares this exact chrome; the
 /// selector that triggers it stays with the component (native controls use
 /// :focus-visible, composite wrappers :focus-within), the glow itself lives
 /// once. Pass `danger` for the invalid flavor.
+///
+/// The halo is the STATE layer: it is drawn over the element's edge layer,
+/// when it has one, instead of replacing it.
 @mixin control-glow($color: focus-ring) {
+  --state-layer: #{0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr($color), transparent 70%)};
+
   border-color: clr($color);
-  box-shadow: 0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr($color), transparent 70%);
+  box-shadow: var(--state-layer), var(--edge-layer, 0 0 #0000);
 }
 
-/// The standard tint change: text, fill and edge eased together. Any control
-/// whose hover or focus state swaps a colour token should use this rather than
-/// snapping — and rather than re-declaring the same triple per partial.
+/// The standard tint change: text, fill, border and shadow eased together. Any
+/// control whose hover or focus state swaps a colour token or an edge should
+/// use this rather than snapping — and rather than re-declaring the same list
+/// per partial. The shadow is in the list because an edge is a shadow: without
+/// it an edge that changes with the state snaps while its colours ease.
 ///
 /// No reduced-motion guard needed: base/_reset.scss already collapses every
 /// transition-duration to 0.01ms under `prefers-reduced-motion: reduce`.
@@ -112,7 +160,8 @@
   transition:
     color dur($speed) ease(out),
     background-color dur($speed) ease(out),
-    border-color dur($speed) ease(out);
+    border-color dur($speed) ease(out),
+    box-shadow dur($speed) ease(out);
 }
 
 /// Playful press feedback that respects prefers-reduced-motion.
