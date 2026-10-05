@@ -1,7 +1,7 @@
 # Spec: the `legibility` contract and sorbet's new values (PR 2, step 2.0)
 
-Revision 3.1, 2026-10-04. Written against `main` at `e24df74` (the groundwork is
-merged). No product code exists for anything below. Paths are relative to
+Revision 3.3, 2026-10-05. Written against `main` at `e24df74` (the groundwork is
+merged). Step 2.1 is built and audited (§12.2); nothing after it exists yet. Paths are relative to
 `packages/design-system/` unless they start with `packages/`, `apps/`, `docs/`
 or `<root>/`. So `tools/test-contracts.ts` is
 `packages/design-system/tools/test-contracts.ts`, and the repo root's own
@@ -251,8 +251,8 @@ does not edit it: that is a defect of this spec, reported with the four-field
 contradiction report of the lab's write-tests-first lane, and L105 is amended
 first.
 
-**L105.** The complete list: 46 numbered entries, #1 to #38 and #40 to #47
-(#39 is unused), plus "#11 again", the same line's step-2.2 expectation.
+**L105.** The complete list: 47 numbered entries, #1 to #38 and #40 to #48
+(#39 is unused; #48 added in revision 3.3), plus "#11 again", the same line's step-2.2 expectation.
 Revision 2 listed 41; verification finding N1 found five more, #43 to #47. Line numbers are at `e24df74`. `colorsOf` is the helper
 `colorsOf(mode, preset = "sorbet")` at `tools/test-contracts.ts:168`.
 Every test file under `tools/` and
@@ -294,6 +294,7 @@ implementer's edit).
 | 21 | `tools/test-contrast.ts:778-801` | README.md says `86 entries`, `70 apply in each mode`, `54 hold in both modes`, `32 chart-mark entries`, `16 in light and 16 in dark`, `measures all 70`, and no other count | README says `277 entries`, `261 apply in each mode`, `245 apply in both modes` (the word "hold" is reserved for what a contract holds, L58, L91), `32 mode-restricted chart entries`, `16 in light and 16 in dark` (these are `wcag-aa`'s `chart` tier rules, the only rules with a mode; the new `chart-mark` tier's 16 rules apply in both modes and are inside the 245), and, in place of `measures all 70`, that `wcag-aa` measures 70 and `legibility` 193 in each mode (both counted by the test, never typed). The stray-number set gains 70, 193, 68 and 191. README.md's paragraph is therefore edited in step 2.1, not 2.8 | L58, L67 |
 | 22 | `tools/test-contrast.ts:810` | `contrast-checks.ts` calls `measureColors(` | it calls `measurePreset(` | L25 |
 | 23 | `tools/test-golden.ts:252` | the failing build's stdout says `contrast contract holds` | it says `every preset holds the contract it declares` | L87 |
+| 48 | `tools/test-contracts.ts:468` (at `e24df74`; `:791-796` as edited) | each M4 tier has M4's count, over all of `RULES` | counted over `RULES.slice(0, 86)`, as #4 to #6 are. Added in revision 3.3: the test author made this narrowing and L105 #5 had said `:468` stays true. No coverage is lost: a later rule carrying one of the seven M4 tiers would be caught by the appendix-A deep-equal on `RULES.slice(86)` (#4), which pins every later rule's tier | L2, L10 |
 
 *Step 2.2* (sorbet light declares `legibility`; its light record is rebuilt
 whole). Measured with `rev2/rev2.ts`: the new sorbet light record fails seven
@@ -507,8 +508,8 @@ token, and it is always today's value at that site.
 **L16.** An optional token's value lives in `preset.colors[mode]` beside the roles:
 `Preset.colors` becomes
 `Record<Mode, SemanticColors & Partial<Record<SeamName, string>>>`. So
-`colorDecls` (`emit.ts:30-32`) emits it as `--sb-<name>` with no change to the
-emitter, and everything that hands a colour record to the measurement hands the
+`colorDecls` (`emit.ts:30-32`) emits it as `--sb-<name>` (since revision 3.3
+only when present and readable, L130, L136), and everything that hands a colour record to the measurement hands the
 optional tokens with it.
 
 **L17.** No WCAG preset defines an optional token. That is what keeps their theme
@@ -619,7 +620,7 @@ of PR 1 first, in their order, then the 20 in the order written above:
 message); `chart-mark` is `chart`; the seven `edge-*` tiers are `edge` (where
 an element ends).
 
-**L24.** `src/tokens/rules.ts`:
+**L24.** `src/tokens/rules.ts` (`EdgeElement` is defined in `src/tokens/edges.ts` and imported here, L142):
 
 ```ts
 export type EdgeElement = "container" | "floating" | "field" | "sunken" | "quiet"
@@ -771,7 +772,7 @@ So each see-through input has one stated thing under it:
 | A shadow layer drawn inside its element (`inset`) | the element's own fill (§5.3) |
 | A wash (`X-subtle`, `selected-wash`) | nothing at check time: it is stored already blended over `surface` (D7) |
 | `scrim` | white and black, the worst of the range (PR 1's rule, unchanged) |
-| `container-line`, `field-line`, `filled-line` (`transparent`) | no rule reads them |
+| `container-line`, `field-line`, `filled-line` (`transparent`) | no measurement reads them; L130 and C3 (c) hold them (L133) |
 
 **L39.** **A rule that cannot be measured is a named failure, never a
 skip and never a throw.** It comes back with `actual: null`, `view: null`,
@@ -1478,7 +1479,7 @@ a contrast failure does.
 |---|---|---|---|
 | C1 | `roles-complete` | a legibility mode | every one of the 69 names in `SEMANTIC_COLOR_NAMES` has an own, non-empty string value in the mode's record that `parseColor` reads. (This is what makes `danger-active` exist for sorbet. The four WCAG presets keep 68: that defect stays deferred, proposal §9 item 16, so check 4 below is not contradicted) |
 | C2 | `hierarchy` | a legibility mode | by the size of Lc on `bg`, in typical vision: `heading-ink` ≥ `text` > `text-muted` > `text-subtle`. Light: 93.88 ≥ 85.84 > 77.23 > 69.98. Dark: 91.87 ≥ 91.87 > 73.65 > 53.35. "Darker" is not the measure, so nothing reverses in dark; the `on-X` label inks are not in the ordering (they sit on fills, not on the page) |
-| C3 | `edge-not-fill` | a legibility mode | (a) for each of these pairs the first, blended over the second when see-through, is not the same hex as the second: `border`, `border-subtle` each against `surface`, `surface-raised`, `bg`; `border-strong` against `field-fill`, `surface`, `bg`; `switch-ring` against `switch-off`; and (b) every element in the mode's `edges` has at least one all-round layer in `rest`, and on every backdrop its rules name, no edge pixel is the same hex as the fill. This is the fault of proposal §4 stated exactly: the line round a card was the card's own colour |
+| C3 | `edge-not-fill` | a legibility mode | (a) for each of these pairs the first, blended over the second when see-through, is not the same hex as the second: `border`, `border-subtle` each against `surface`, `surface-raised`, `bg`; `border-strong` against `field-fill`, `surface`, `bg`; `switch-ring` against `switch-off`; and (b) every element in the mode's `edges` has at least one all-round layer in `rest`, and on every backdrop its rules name, no edge pixel is the same hex as the fill. This is the fault of proposal §4 stated exactly: the line round a card was the card's own colour (c), since revision 3.3: for each of `container-line` (serving `container`, `floating`), `field-line` (`field`) and `filled-line` (every `filled-X`) whose elements the mode's `edges` define, the record defines the token and its value parses with alpha 0 (L133) |
 | C4 | — (the golden gate, PR 1) | all five presets | unchanged. Sorbet's golden is regenerated on purpose in steps 2.2 and 2.6 (§11.4) |
 | C5 | — (`tools/test-contracts.ts`, PR 1) | `wcag-aa` | unchanged: §2 |
 | C6 | — (a test, §10) | the known-bad fixture | the fixture fails `legibility` on the three named rules |
@@ -1813,6 +1814,7 @@ on screen) is written by the implementer and looked at.
      `✗ 24 contrast failure(s)` and no structure failure (C3 (b) and C8 read
      the elements `edges` defines, and it defines none).
   9. The report and gate lines of §11.1 and §11.2, checked as text.
+  10. Only structure checks failing fails every surface (L140).
 - *Planted-defect list for the audit* (each must turn a test red): the sign
   of Lc not dropped; text and background swapped; the simulated hex not used
   for Lc; an inset layer blended over the backdrop; the edge-pixel-to-fill
@@ -1944,7 +1946,7 @@ measured". Nothing after that is pinned.
 **L120.** The order of several failing tiers' why/retire lines (L89) is not
 pinned. They are compared as a set per preset and mode.
 
-**L121.** Structure rows (L90) sit after the mode lines of the preset they
+**L121.** *Replaced by L139 in revision 3.3.* Structure rows (L90) sit after the mode lines of the preset they
 belong to. "✗ <n> structure failure(s)" may be on either stream. The
 contrast count stays on stderr, as today.
 
@@ -1979,6 +1981,182 @@ modes. The text names the dark break only as an example.
 **L129.** A planted defect that moves a figure by less than appendix A's 0.01
 is caught by the tests' own arithmetic, to 1e-9, and not by the table.
 
+### 12.2 Revision 3.3: after step 2.1's audits (2026-10-05)
+
+Two agents audited step 2.1 as built (`audit21-hostile.txt`, invariants and
+hostile data; `audit21-diff.txt`, the diff, the tests and 85 planted
+defects). The code matched the spec everywhere. These statements close the
+holes the spec left. Where they and earlier text disagree, these win.
+
+| Id | Closed where, and how |
+|---|---|
+| hostile CRITICAL 1 | L130: a present optional-token value must be a string `parseColor` reads, or it is refused when emitted and when measured; `undefined` is absent (not emitted, still reset in dark). L131 reconciles this with Token Studio's blank = unset |
+| hostile CRITICAL 2 | L132: edge data, recipes and layers are read through own keys of plain objects and dense arrays only; anything else is refused at emission and at measurement |
+| hostile MAJOR 1 | L133: `container-line`, `field-line` and `filled-line` are held by L130 (parseable) and by a new part (c) of C3: in a legibility mode whose `edges` define an element they serve, the token is defined and fully transparent |
+| hostile minor 1, diff MINOR 3 | L134: `views` and `checks` must be dense arrays; a hole is refused |
+| hostile minor 2 | L135: a recipe holds only `fill`, `rest`, `hover`, `press`; a layer holds exactly its seven keys; any other key is refused (L123's principle, one level down) |
+| hostile minor 3 | L136: a colour-record key of a preset that is neither a role nor an optional token is refused when emitted and when measured |
+| hostile minor 4 | L137: a contract whose tier carries `requires` must list `label-type` in `checks`; otherwise it is refused |
+| hostile minor 5 | L138: recorded under §13, left to sorbet's golden and the eye, with the probe's example; no minimum is set |
+| hostile minor 6 | L139: L121 now says what was built: each mode's structure rows follow that mode's failure rows and why/retire lines |
+| hostile minor 7 | Not a defect (the audit says so): `_generated.scss`'s header comment and `measurePreset`'s refusal naming `measureColors:` are both within L122 |
+| diff MAJOR 1 | L140: every surface exits non-zero and writes nothing when only structure checks fail; step 2.1 acceptance #10 plants that case through all five surfaces (a test gap, the spec's statement made explicit) |
+| diff MINOR 2 | L105 #48 records the `:468` narrowing to `RULES.slice(0, 86)` and why no coverage is lost |
+| diff MINOR 4 | Header line 3 now says "Revision 3.3", so the transcriber stamps the fixtures 3.3; L141 names the two comments to fix (`rules.ts:14-16`, `edges.ts:98`) |
+| diff MINOR 5 | L142: `EdgeElement` lives in `edges.ts` (L101 wins); L24 amended to say so |
+
+**L130.** **What an optional token's value may be, in a preset's own
+record.** The convention is L125's: an own key of `preset.colors[mode]` whose
+value is not `undefined` is **present**. A present value of an optional token
+(a name in `SEAMS`) must be a string that `parseColor` reads. That covers
+every value §3.2 gives, `transparent` included (`parseColor` reads it as alpha
+0, `color.ts:189`), so §3.2 needs no exception. Anything else is refused with
+a `TypeError` that names the preset (or the caller, as L122 allows), the mode
+and the token: `null`, `""`, a string that is blank after trimming, a
+non-string (`0`, `true`, an object), and text `parseColor` cannot read
+(`"not-a-colour"`, `"red; } body { …"`). It is refused **both when emitted**
+(`themeCss`, before a line is written) **and when measured** (`measurePreset`,
+`checkPreset`, `checkStructure`, before any rule is measured). An own key
+holding `undefined` is **absent**: it is not emitted, it is measured as its
+fallback (L37 step 3), and when the light record defines that token the dark
+block still writes its `initial` reset (L55 counts only present keys). This
+replaces L16's "with no change to the emitter": `colorDecls` emits only
+present keys of a preset's record, and refuses as above. The four WCAG
+presets define no optional token, so their files are unchanged. Why: the gate
+measured a blank or `null` `field-fill` as its fallback `surface` and passed,
+while the theme file wrote `--sb-field-fill: undefined;`, which CSS
+substitutes, so the field's fill was dropped on screen (hostile CRITICAL 1).
+
+**L131.** **Token Studio's blank = unset is not a preset's.** L37 step 2's
+reading, where an empty string is unset, is about a record **read off a
+page**: there an empty string is what the browser returns for a custom
+property nobody set, and Token Studio hands that record to `measureColors`
+(L93). It stays. L130 is about a record **a preset defines**, where a blank
+would be emitted and painted. So `measureColors` itself keeps L37 for any
+record handed to it; the preset-level entry points of L130 refuse first. The
+two cannot meet: a preset that passes L130 has no blank value to emit, and a
+page built from it has none to read back except for tokens it does not set.
+
+**L132.** **Edge data is read through own keys only.** `preset.edges`,
+`edges[mode]`, each recipe and each layer must be a **plain object**: one
+whose prototype is `Object.prototype` or `null`. `rest`, `hover` and `press`
+must be arrays (`Array.isArray`) whose every index from 0 to `length − 1` is
+an own property. Every read, in validation, emission and measurement alike,
+is of an own property; an element, recipe field or layer field present only
+through the prototype chain is refused, not read. Anything else is refused
+with L43's `TypeError` (L122's naming), at emission and at measurement. Why:
+validation looked at own keys while emission and measurement read through the
+prototype, so an inherited recipe with `blur: -6` measured 16.70 and passed
+while the theme file wrote invalid CSS that drops the card's whole shadow
+(hostile CRITICAL 2).
+
+**L133.** **The three line tokens are held.** `container-line`, `field-line`
+and `filled-line` paint the 1px borders of the card and the floating
+surfaces (L113), the field, and the filled buttons from step 2.4 on. They
+are held twice:
+
+1. as every optional token, by L130: a present value parses;
+2. by a new part of C3, **(c)**: in a legibility mode, for each line token
+   whose elements the mode's `edges` define, the record defines the token
+   (an own, present key) and its value parses with alpha 0. The elements:
+   `container-line` serves `container` and `floating`; `field-line` serves
+   `field`; `filled-line` serves every `filled-X`. The detail names the token
+   and its value.
+
+Why transparent, not "a line that differs from the fill": in this look the
+element's edge is its recipe (§5), sheet 2 draws no line, and a visible line
+would be a second edge no rule or floor speaks for. `container-line:
+"#000000"`, a hard black border round every card, passed every check before
+this (hostile MAJOR 1). A mode with no `edges` for those elements is not held
+by (c): its edge rules already fail by name (L39). The new sorbet passes:
+all three are `transparent` in both modes. L38's last table row ("no rule
+reads them") now reads: no measurement reads them; C3 (c) and L130 hold them.
+
+**L134.** **`views` and `checks` are dense.** Present (L125), each must be an
+array whose every index from 0 to `length − 1` is an own property; a hole is
+refused as malformed, with the contract's key named, by the same validation
+L35 describes. `[ , "tritan"]` was accepted and then threw from inside the
+simulation, or would have been measured as typical vision; `[ , "hierarchy"]`
+was accepted and the hole skipped.
+
+**L135.** **No unknown key in a recipe or a layer.** L123's principle (a key
+nothing reads may never pass quietly) applies one level down. A recipe's own
+keys are a subset of `fill`, `rest`, `hover`, `press`, with `fill` and `rest`
+required. A layer's own keys are exactly `inset`, `x`, `y`, `blur`,
+`spread`, `color`, `alpha`. Any other key (`hovr`, `Rest`, a layer's
+`colour`) is refused with L43's `TypeError`, at emission and at measurement.
+A misspelt `hovr` used to drop `--sb-edge-filled-primary-hover` from the
+theme with no error.
+
+**L136.** **No stray key in a preset's colour record.** An own key of
+`preset.colors[mode]` that is neither one of the 69 roles nor one of the 20
+optional tokens is refused with a `TypeError` naming the preset, the mode
+and the key, at emission and at measurement (L130's entry points). A
+misspelt `feild-fill` was emitted as a stray `--sb-feild-fill`, the real
+token silently took its fallback, and the stray name joined L100's
+legal-name union. The four WCAG presets hold exactly their 68 roles, so they
+are unaffected.
+
+**L137.** **`requires` needs `label-type`.** A contract any of whose tiers
+carries `requires` must list `label-type` in `checks`; otherwise
+`contractNamed` refuses the whole contract, naming its key and the tier. The
+§9 preamble stands (a check runs only when the contract lists it); C9's row
+is read under it, and this rule makes the two agree. Why refuse rather than
+run C9 regardless: a contract that states a size condition and does not hold
+it is a contradiction in the contract's own data, and the mechanism refuses
+those (M10.1), as it refuses a key that is not a tier. `legibility` lists
+both, so nothing changes for it.
+
+**L138.** **Presence can be inflated by a layer that barely renders, and that
+is left to the golden and the eye.** L47 counts any layer with no offset and
+a positive spread, and L48 ignores blur, so a layer that hardly shows can
+carry the number. The audit's example: the light card's all-round layer
+replaced by `0 0 200px 0.01px #000000 @ 1` measures 98.63 on the page and in
+a well (protan), far over the 15.8 floor, and passes C8 in light; in dark the
+same layer measures 26.59 and fails C8, black being darker than the dark page
+(`rev2/inflate.ts`). No minimum blur, spread or alpha is set: any number would
+be one nobody approved, and the approved recipes span blur 0 to 10px and
+alpha 0.12 to 0.8. What holds it instead is sorbet's pinned golden (any
+change to a recipe is a diff in review) and the rendered measurement of steps
+2.4 and 2.6. A §13 row says so.
+
+**L139.** **Where structure rows go (replaces L121).** In the three reports,
+a mode's structure rows (`    ✗ <check>: <detail>`, L90) follow that mode's
+failure rows and its why/retire lines (L89), before the next mode's line; a
+mode whose rules all pass has its structure rows directly under its mode line.
+This is what was built. `✗ <n> structure failure(s)` may be on either stream;
+the contrast count stays on stderr. L121's "after the mode lines of the
+preset" read as after both; that reading is withdrawn.
+
+**L140.** **Structure failures alone fail every surface.** When the contrast
+measurements all hold and only `checkStructure` fails, each of the five
+surfaces (the three reports, `tools/build-tokens.ts` and the scaffold's
+`build-tokens.ts`) exits non-zero, prints no success line, and the two gates
+write nothing. This is L79 and L90 said for the one case the tests never
+planted. Step 2.1 acceptance gains: **10.** A planted tree in which the only
+failure is structural (the step-2.6 shape with `buttonLabel.px` set to 14, so
+C9 fails and every rule holds) is run through all five surfaces: each exits
+non-zero, prints `✗ 1 structure failure(s)`, prints no "✓ every declared…"
+or "✓ every preset holds…" line, and neither gate writes. Four planted
+defects survived the suite for want of this case (the audit's M32, M33, M59,
+M60).
+
+**L141.** **Two comments the implementer corrects** (comments only; no
+behaviour):
+
+- `src/tokens/rules.ts:14-16` says the 191 after the first 86 "are the pairs
+  the `legibility` contract holds". It holds 193: those 191 and the two scrim
+  rules among the first 86 (L58).
+- `src/tokens/edges.ts:98` says `edgeDataOf` names "the preset, when there is
+  one". On the measuring path it names its caller (`measureColors`), which
+  L122 allows; the comment says so.
+
+**L142.** **Where `EdgeElement` lives.** It is defined and exported in
+`src/tokens/edges.ts`, with the other edge types (L101); `rules.ts` imports
+it; the barrel exports it. L24's code block, which shows it among
+`rules.ts`'s declarations, shows the shape, not the file. No consumer is
+affected.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
@@ -1998,6 +2176,7 @@ the gate's silence as a pass.
 | The slider thumb: the library paints it `primary-solid` `#b096d7` with `shadow(sm)`; sheet 2 drew a milk thumb with a lilac ring | the library's thumb is the stronger of the two (R180: 23.04 on its light track) and no rule needs changing for it | looked at in step 2.4 |
 | A focus ring 2px from a fill against one that touches it: the button (offset 2px) against the selected calendar day and the current page (offset 0) | one pair of colours, two placements; R210 measures the pair (L68) | looked at in step 2.4 |
 | The danger button's rose rim against its own blush fill: `#d77784` on `#f9c3c6`, 18.36 (deutan) | the rim is painted from `danger-mark`, and the button's edge rule measures its halo alone (L116), which understates what is painted | decision 13 and sheet 2; looked at in step 2.5 |
+| An edge whose all-round layer barely renders: the light card with `0 0 200px 0.01px #000000 @ 1` measures 98.63 (L138) | presence ignores blur and the size of a spread, and a minimum would be a number nobody approved | sorbet's golden shows any recipe change; rendered measurement in steps 2.4 and 2.6 |
 | An icon, a bold weight, a thumb's position | a token gate sees colours | status components derive icon and word from `tone` (step 2.5) |
 | Font size, apart from the button label at its two sizes (C9, L115) | the checker reads no Sass | the 47-row table of L72; L111 for 12px text on fills and washes |
 | "Paragraphs never sit on a full-strength fill" (the ink reads 62.47 on lilac) | a usage convention | none; stated in the docs of step 2.8 |
@@ -2820,6 +2999,7 @@ imports `packages/design-system/src/tokens/color.ts` from the
 | `rev2/rev2.ts` | Revision 2's measurements: the rule list with the six withdrawn and R280 to R283 appended, `quiet-fill`, every tier's weakest pair and floor (only `edge-filled` light moves: 15.7 → 17.7), the quiet button with the page showing through (the option DECISIONS row 28 closed), the counts (191, 277, 261, 193, 68, 823, 946), sorbet's new records under `wcag-aa` (seven light failures, none dark), the scrim values to 1e-4, the scrim gradient (L110), the known-bad fixture's counts (L84) |
 | `rev2/onestep.ts` | L59: the largest move one 8-bit step makes on any text or separation rule, both modes (0.593 Lc, 0.409 separation) |
 | `rev2/scope.ts` | L80: what C1, C2 and C3 would say of the five shipped presets unscoped |
+| `rev2/inflate.ts` | Revision 3.3, L138: the card's presence with its all-round layer replaced by one that barely renders |
 | `rev2/c11.mjs` | Revision 3.1: C11's reading run against the compiled `dist/css/sorbet.css` (postcss from the workspace's store); the layer-order check, the derived floating and field selector lists, and each selector's rule blocks and last background |
 | `rev2/rev3.ts` | Revision 3's measurements: each sorbet mode's tightest margin (×1.02, L105 #11), the 14px small button's label pairs and the other small variants (L115), the danger button with and without its rose rim and the rim against its fill (L116), the neutral badge (L111) |
 | `rev2/states.ts` | §13: the hover and pressed edges of the four filled buttons, against rest |
