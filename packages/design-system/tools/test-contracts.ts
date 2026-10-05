@@ -3964,6 +3964,23 @@ try {
     });
   });
 
+  test("L194 (f) the five report surfaces end with process.exitCode, never process.exit(): exit() drops what is still queued for a pipe, so a failing report read through one (as every test above reads it) lost its tail at random", () => {
+    const surfaces: [string, string][] = [
+      [join(pkgRoot, "tools", "check-contrast.ts"), "check-contrast.ts"],
+      [join(pkgRoot, "tools", "build-tokens.ts"), "build-tokens.ts"],
+      [join(cliRoot, "scaffold", "tools", "check-contrast.ts"), "the scaffold's check-contrast.ts"],
+      [join(cliRoot, "scaffold", "tools", "build-tokens.ts"), "the scaffold's build-tokens.ts"],
+    ];
+    for (const [file, name] of surfaces) {
+      assert.doesNotMatch(code(file), /process\.exit\(/, `${name} calls process.exit()`);
+    }
+    // The CLI's other commands fail with one short line through fail(); `sorbet contrast` prints the whole report.
+    const cli = code(join(cliRoot, "src", "index.ts"));
+    const contrast = /\nasync function cmdContrast\(\)[^\n]*\n([\s\S]*?)\n\}\n/.exec(cli);
+    assert.ok(contrast, "sorbet contrast's command function, cmdContrast, is found");
+    assert.doesNotMatch(contrast[1]!, /process\.exit\(|\bfail\(/, "sorbet contrast calls process.exit() or fail()");
+  });
+
   test("L100 §11.6 the build checks a partial's --sb- assignments against the names EVERY theme emits, not the first theme's: field-fill defined by ocean alone (the second theme) is legal; defined by none, it is flagged", () => {
     const tree = (name: string, append: string) => {
       const root = join(tmp, name);

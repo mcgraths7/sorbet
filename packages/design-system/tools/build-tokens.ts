@@ -166,18 +166,20 @@ let failed = false;
   }
 }
 
+// process.exitCode, never process.exit(): exit() drops what is still queued for
+// a pipe, so a long failure report read through one lost its tail at random.
 if (failed) {
   console.error(styleText("red", "\n✗ build-tokens wrote nothing: dist/themes/ and _generated.scss are as they were before it ran"));
-  process.exit(1);
-}
+  process.exitCode = 1;
+} else {
+  await mkdir(themesDir, { recursive: true });
 
-await mkdir(themesDir, { recursive: true });
-
-for (const [name, css] of Object.entries(themes)) {
-  await writeFile(join(themesDir, `${name}.css`), css);
-  console.log(`${styleText("green", "✓")} dist/themes/${name}.css`);
+  for (const [name, css] of Object.entries(themes)) {
+    await writeFile(join(themesDir, `${name}.css`), css);
+    console.log(`${styleText("green", "✓")} dist/themes/${name}.css`);
+  }
+  await writeFile(join(themesDir, "manifest.json"), manifestJson);
+  await writeFile(join(pkgRoot, "src", "styles", "abstracts", "_generated.scss"), scss);
+  console.log(`${styleText("green", "✓")} dist/themes/manifest.json`);
+  console.log(`${styleText("green", "✓")} src/styles/abstracts/_generated.scss`);
 }
-await writeFile(join(themesDir, "manifest.json"), manifestJson);
-await writeFile(join(pkgRoot, "src", "styles", "abstracts", "_generated.scss"), scss);
-console.log(`${styleText("green", "✓")} dist/themes/manifest.json`);
-console.log(`${styleText("green", "✓")} src/styles/abstracts/_generated.scss`);

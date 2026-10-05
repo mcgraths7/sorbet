@@ -54,23 +54,25 @@ if (structure.length > 0) {
   console.error(styleText("red", `\n✗ ${structure.length} structure failure(s):`));
   for (const failure of structure) console.error(`  ${failure.preset}/${failure.mode}: ${failure.check}: ${failure.detail}`);
 }
+// process.exitCode, never process.exit(): exit() drops what is still queued for
+// a pipe, so a long failure report read through one lost its tail at random.
 if (failures.length > 0 || structure.length > 0) {
   console.error(styleText("red", "\n✗ nothing was written"));
-  process.exit(1);
-}
-// No presets, so no pairs: "holds for 0 presets" would be true of nothing.
-if (all.length === 0) {
+  process.exitCode = 1;
+} else if (all.length === 0) {
+  // No presets, so no pairs: "holds for 0 presets" would be true of nothing.
   console.error(styleText("red", "\n✗ the contrast contract measured nothing: there are no presets\n✗ nothing was written"));
-  process.exit(1);
-}
-console.log(styleText("green", `✓ every preset holds the contract it declares: ${declaredContracts(all)}`));
+  process.exitCode = 1;
+} else {
+  console.log(styleText("green", `✓ every preset holds the contract it declares: ${declaredContracts(all)}`));
 
-await mkdir(themesDir, { recursive: true });
+  await mkdir(themesDir, { recursive: true });
 
-for (const preset of Object.values(presets)) {
-  await writeFile(join(themesDir, `${preset.name}.css`), themeCss(preset));
-  console.log(`${styleText("green", "✓")} ${outArg}/${preset.name}.css`);
+  for (const preset of Object.values(presets)) {
+    await writeFile(join(themesDir, `${preset.name}.css`), themeCss(preset));
+    console.log(`${styleText("green", "✓")} ${outArg}/${preset.name}.css`);
+  }
+  await writeFile(join(themesDir, "manifest.json"), manifest(presets));
+  await writeFile(join(root, "src", "styles", "abstracts", "_generated.scss"), generatedScss());
+  console.log(`${styleText("green", "✓")} src/styles/abstracts/_generated.scss`);
 }
-await writeFile(join(themesDir, "manifest.json"), manifest(presets));
-await writeFile(join(root, "src", "styles", "abstracts", "_generated.scss"), generatedScss());
-console.log(`${styleText("green", "✓")} src/styles/abstracts/_generated.scss`);

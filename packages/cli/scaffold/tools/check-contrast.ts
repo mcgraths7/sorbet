@@ -90,12 +90,14 @@ if (failures > 0) {
 if (structural > 0) {
   console.error(styleText("red", `${failures > 0 ? "" : "\n"}✗ ${structural} structure failure(s)`));
 }
+// process.exitCode, never process.exit(): exit() drops what is still queued for
+// a pipe, so a long report read through one lost its tail at random.
 if (failures > 0 || structural > 0) {
-  process.exit(1);
-}
-// No presets, so no pairs: "holds for every preset" would be true of nothing.
-if (measured === 0) {
+  process.exitCode = 1;
+} else if (measured === 0) {
+  // No presets, so no pairs: "holds for every preset" would be true of nothing.
   console.error(styleText("red", "\n✗ nothing was measured: there are no presets"));
-  process.exit(1);
+  process.exitCode = 1;
+} else {
+  console.log(styleText("green", `\n✓ every declared contract holds for every preset in both modes (${measured} pairings measured): ${declaredContracts(Object.values(presets))}`));
 }
-console.log(styleText("green", `\n✓ every declared contract holds for every preset in both modes (${measured} pairings measured): ${declaredContracts(Object.values(presets))}`));
