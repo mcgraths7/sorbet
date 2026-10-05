@@ -77,13 +77,18 @@
 // The word is position: absolute (u-visually-hidden), so the slot is
 // positioned to be its containing block: without that, a word in a badge in a
 // scrolling table hangs off the nearest positioned ancestor outside the
-// scroller and makes the whole page scroll sideways. `vertical-align` is the
-// icon box's optical alignment; in a flex row it is ignored.
+// scroller and makes the whole page scroll sideways.
+//
+// The slot is an inline-block holding the glyph inline, so it has a text
+// baseline where the label has its own: a badge or a button, both flex rows,
+// takes its baseline from its first item, and a slot with no text baseline
+// (inline-flex round a block svg) lifted them 3.4px off the text beside them
+// in every theme (L194 (a)).
 .sb-status {
   position: relative;
-  display: inline-flex;
+  display: inline-block;
   flex-shrink: 0;
-  vertical-align: -0.125em;
+  vertical-align: baseline;
 
   // The glyph is currentColor with its symbol knocked out, so its ink is the
   // slot's colour: the strong ink where the theme has one, else the colour
@@ -93,8 +98,11 @@
 }
 
 // No intrinsic size, like the house glyphs: 1.1em beside text, the size the
-// button gives a glyph. The menu, the alert and the toast restate it.
+// button gives a glyph. The menu, the alert and the toast restate it. Centred
+// on the text, so it stays inside the line and adds no height to it.
 .sb-status-icon {
+  display: inline-block;
+  vertical-align: middle;
   inline-size: 1.1em;
   block-size: 1.1em;
 }

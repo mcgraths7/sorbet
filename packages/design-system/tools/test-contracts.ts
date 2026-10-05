@@ -5857,15 +5857,16 @@ try {
   const edgeOfState = (element: string, state: string) => `--sb-edge-${element}${state === "rest" ? "" : `-${state}`}`;
   /** L190's table, row by row, typed in from the spec. */
   const FORMS: FormRow[] = [
-    { row: "(a)", selector: ".sb-status", where: "outside the sublayer", decls: [["position", "relative"], ["display", "inline-flex"], ["flex-shrink", "0"], ["vertical-align", "-0.125em"]] },
+    // L194 (a): inline-block round an inline glyph, so the slot has the text's baseline (it was inline-flex, -0.125em).
+    { row: "(a)", selector: ".sb-status", where: "outside the sublayer", decls: [["position", "relative"], ["display", "inline-block"], ["flex-shrink", "0"], ["vertical-align", "baseline"]] },
     { row: "(b)", selector: ".sb-status", where: "sb.atoms.where-defined", decls: [["--status-ink", "var(--sb-text-strong)"], ["color", "var(--status-ink, revert-layer)"]] },
     // L170: "in the atoms layer itself, which outranks its sublayer".
     { row: "(c)", selector: ".sb-badge--solid > .sb-status", where: "sb.atoms", decls: [["color", "inherit"]] },
     { row: "(c)", selector: ".sb-button > .sb-status", where: "sb.atoms", decls: [["color", "inherit"]] },
-    { row: "(e)", selector: ".sb-status-icon", where: "any", decls: [["inline-size", "1.1em"], ["block-size", "1.1em"]] },
+    { row: "(e)", selector: ".sb-status-icon", where: "any", decls: [["display", "inline-block"], ["vertical-align", "middle"], ["inline-size", "1.1em"], ["block-size", "1.1em"]] },
     { row: "(e)", selector: ".sb-menu__item .sb-status-icon", where: "any", decls: [["inline-size", "1em"], ["block-size", "1em"]] },
-    { row: "(e)", selector: ".sb-alert__icon > .sb-status-icon", where: "any", decls: [["inline-size", "100%"], ["block-size", "100%"]] },
-    { row: "(e)", selector: ".sb-toast__icon > .sb-status-icon", where: "any", decls: [["inline-size", "100%"], ["block-size", "100%"]] },
+    { row: "(e)", selector: ".sb-alert__icon > .sb-status-icon", where: "any", decls: [["display", "block"], ["inline-size", "100%"], ["block-size", "100%"]] },
+    { row: "(e)", selector: ".sb-toast__icon > .sb-status-icon", where: "any", decls: [["display", "block"], ["inline-size", "100%"], ["block-size", "100%"]] },
     { row: "(e)", selector: ".sb-toast__icon", where: "any", decls: [["flex-shrink", "0"], ["inline-size", "1.25rem"], ["block-size", "1.25rem"], ["margin-block-start", "0.05em"]] },
     // L175's four lines, exactly.
     { row: "(f)", selector: ".sb-button--danger", where: "any", decls: [
@@ -5876,8 +5877,9 @@ try {
     { row: "(h)", selector: ".sb-alert--danger", where: "sb.molecules.where-defined", decls: [["--danger-box", "inset 0 0 0 2px var(--sb-danger-mark), var(--sb-edge-status-danger, 0 0 #0000)"], ["box-shadow", "var(--danger-box, var(--sb-edge-status-danger, revert-layer))"]] },
     ...STATUS_TONES.map((tone): FormRow => ({ row: "(i)", selector: `.sb-toast--${tone}`, where: "any", decls: [["border-inline-start", `3px solid var(--sb-${tone}-mark, var(--sb-${tone}))`]] })),
     ...STATUS_TONES.map((tone): FormRow => ({ row: "(i)", selector: `.sb-icon--${tone}`, where: "any", decls: [["color", `var(--sb-${tone}-mark, var(--sb-${tone}))`]] })),
-    { row: "(j)", selector: ".sb-menu__item[data-danger] > svg", where: "any", decls: [["display", "none"]] },
-    { row: "(j)", selector: ".sb-menu__item[data-danger] > .sb-icon", where: "any", decls: [["display", "none"]] },
+    // L194 (e): only beside the octagon, so a danger item written by hand, with no slot, keeps its glyph.
+    { row: "(j)", selector: ".sb-menu__item[data-danger]:has(> .sb-status) > svg", where: "any", decls: [["display", "none"]] },
+    { row: "(j)", selector: ".sb-menu__item[data-danger]:has(> .sb-status) > .sb-icon", where: "any", decls: [["display", "none"]] },
     { row: "(k)", selector: ".sb-field__error > .sb-status", where: "any", decls: [["margin-inline-end", "var(--sb-space-1)"]] },
   ];
   /** Each declaration of the rows that is not L190's form, read as L190 reads it. */
@@ -5888,10 +5890,18 @@ try {
   const formsOf = (...rows: string[]) => FORMS.filter((form) => rows.includes(form.row));
   /** A selector item that names the status slot or its glyph, as a whole class. */
   const NAMES_STATUS = /\.sb-status(?:-icon)?(?![\w-])/;
+  /** L194 (k): a selector item that names the slot, its glyph, or a box class the slot carries (.sb-alert__icon, .sb-toast__icon). */
+  const NAMES_SLOT = /\.(?:sb-status(?:-icon)?|sb-alert__icon|sb-toast__icon)(?![\w-])/;
+  /** A selector item's last compound selector, its parenthesised arguments emptied (so :has(> .x) is not split). */
+  const lastCompound = (item: string) => item.replace(/\([^()]*\)/g, "()").trim().split(/\s*[>+~]\s*|\s+/).at(-1) ?? "";
+  /** L194 (k): a rule whose selector item's subject is a slot (by its class or a box class it carries) declares no position but relative and no display but (a)'s, in any layer or conditional at-rule. */
+  const slotBoxFindings = (sheet: ReturnType<typeof readCss>) => sheet.rules.flatMap((rule) => rule.selectors.filter((item) => /\.(?:sb-status|sb-alert__icon|sb-toast__icon)(?![\w-])/.test(lastCompound(item))).flatMap((item) => rule.decls
+    .filter(([property, value]) => (property === "position" && value.trim() !== "relative") || (property === "display" && value.trim() !== "inline-block"))
+    .map(([property, value]) => `${rule.layer ?? "(no layer)"}${rule.context === "" ? "" : ` ${rule.context}`} ${item} { ${property}: ${value} }`)));
   /** L170, L190 (b) and (c): the only colour declarations that may reach the slot or its glyph, by layer and selector. */
   const COLOUR_RULES = new Set(["sb.atoms.where-defined | .sb-status", "sb.atoms | .sb-badge--solid > .sb-status", "sb.atoms | .sb-button > .sb-status"]);
-  /** L190 (d): a color or a fill declared by any other rule whose selector list names .sb-status or .sb-status-icon, in any layer or conditional at-rule. */
-  const strayColours = (sheet: ReturnType<typeof readCss>) => sheet.rules.flatMap((rule) => rule.selectors.filter((item) => NAMES_STATUS.test(item)).flatMap((item) => rule.decls
+  /** L190 (d), widened by L194 (k): a color or a fill declared by any other rule whose selector list names the slot, its glyph or a box class the slot carries, in any layer or conditional at-rule. */
+  const strayColours = (sheet: ReturnType<typeof readCss>) => sheet.rules.flatMap((rule) => rule.selectors.filter((item) => NAMES_SLOT.test(item)).flatMap((item) => rule.decls
     .filter(([property]) => property === "fill" || (property === "color" && (rule.conditional || !COLOUR_RULES.has(`${rule.layer ?? ""} | ${normalSelector(item)}`))))
     .map(([property, value]) => `${rule.layer ?? "(no layer)"}${rule.context === "" ? "" : ` ${rule.context}`} ${item} { ${property}: ${value} }`)));
   /** L169, L190: sizes are inline-size and block-size, never width or height, on the slot, its glyph and the toast's slot box. */
@@ -5930,19 +5940,20 @@ try {
   .sb-button--danger { --edge: var(--sb-danger); --danger-rim: inset 0 0 0 2px var(--sb-danger-mark); --shadow-rest: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger, ${FALLOFF.rest}); --shadow-hover: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger-hover, ${FALLOFF.hover}); --shadow-press: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger-press, ${FALLOFF.press}); }
   .sb-button > .sb-status { color: inherit; }
   .sb-badge--solid > .sb-status { color: inherit; }
-  .sb-status { position: relative; display: inline-flex; flex-shrink: 0; vertical-align: -0.125em; }
-  .sb-status-icon { inline-size: 1.1em; block-size: 1.1em; }
+  .sb-status { position: relative; display: inline-block; flex-shrink: 0; vertical-align: baseline; }
+  .sb-status-icon { display: inline-block; vertical-align: middle; inline-size: 1.1em; block-size: 1.1em; }
   ${STATUS_TONES.map((tone) => `.sb-icon--${tone} { color: var(--sb-${tone}-mark, var(--sb-${tone})); }`).join("\n  ")}
   @layer where-defined {
     .sb-status { --status-ink: var(--sb-text-strong); color: var(--status-ink, revert-layer); }
   }
 }
 @layer sb.molecules {
-  .sb-alert__icon > .sb-status-icon { inline-size: 100%; block-size: 100%; }
+  .sb-alert__icon { flex-shrink: 0; inline-size: 1.25rem; block-size: 1.25rem; margin-block-start: 0.05em; }
+  .sb-alert__icon > .sb-status-icon { display: block; inline-size: 100%; block-size: 100%; }
   .sb-toast__icon { flex-shrink: 0; inline-size: 1.25rem; block-size: 1.25rem; margin-block-start: 0.05em; }
-  .sb-toast__icon > .sb-status-icon { inline-size: 100%; block-size: 100%; }
+  .sb-toast__icon > .sb-status-icon { display: block; inline-size: 100%; block-size: 100%; }
   .sb-menu__item .sb-status-icon { inline-size: 1em; block-size: 1em; }
-  .sb-menu__item[data-danger] > svg, .sb-menu__item[data-danger] > .sb-icon { display: none; }
+  .sb-menu__item[data-danger]:has(> .sb-status) > svg, .sb-menu__item[data-danger]:has(> .sb-status) > .sb-icon { display: none; }
   .sb-field__error > .sb-status { margin-inline-end: var(--sb-space-1); }
   ${STATUS_TONES.map((tone) => `.sb-toast--${tone} { border-inline-start: 3px solid var(--sb-${tone}-mark, var(--sb-${tone})); }`).join("\n  ")}
   @layer where-defined {
@@ -5953,7 +5964,7 @@ try {
     .sb-alert--info { box-shadow: var(--sb-edge-status-info, revert-layer); }
   }
 }`;
-    const all = (css: string) => [...formFindings(readCss(css), FORMS), ...strayColours(readCss(css)), ...physicalSizes(readCss(css)), ...otherRims(readCss(css)), ...filledShadowFindings(readCss(css))];
+    const all = (css: string) => [...formFindings(readCss(css), FORMS), ...strayColours(readCss(css)), ...slotBoxFindings(readCss(css)), ...physicalSizes(readCss(css)), ...otherRims(readCss(css)), ...filledShadowFindings(readCss(css))];
     assert.deepEqual(all(good), [], "the spec's forms");
     const swap = (from: string, to: string) => {
       assert.ok(good.includes(from), from);
@@ -5961,11 +5972,21 @@ try {
     };
     assert.deepEqual(swap("0 0 rgba(0, 0, 0, 0))", "0 0 #0000)"), [], "the placeholder in the other spelling");
     assert.equal(swap("position: relative; ", "").length, 1, "L186: (a) without position: relative");
+    assert.equal(swap("display: inline-block; flex-shrink: 0; vertical-align: baseline;", "display: inline-flex; flex-shrink: 0; vertical-align: -0.125em;").length, 3, "L194 (a): the inline-flex slot that lifted the badge off the text: (a) twice, and a display (k) refuses");
+    assert.equal(swap(".sb-status-icon { display: inline-block; vertical-align: middle; ", ".sb-status-icon { ").length, 2, "L194 (a): the glyph not inline and centred");
+    assert.equal(swap(".sb-alert__icon > .sb-status-icon { display: block; ", ".sb-alert__icon > .sb-status-icon { ").length, 1, "L194 (a): the alert's glyph not a block in its box");
+    // L194 (k): rules that reach the slot through another selector, each of which once passed and broke the page.
+    assert.equal(all(`${good} @layer sb.atoms { .sb-badge > .sb-status { position: static; } }`).length, 1, "(k) the slot made static through the badge (the page 625px wide at 390)");
+    assert.equal(all(`${good} @layer sb.molecules { .sb-alert__icon { position: static; } }`).length, 1, "(k) the alert's slot made static through its box class (633px)");
+    assert.equal(all(`${good} @layer sb.molecules { .sb-toast__icon { display: flex; } }`).length, 1, "(k) the toast's slot given another display through its box class");
+    assert.equal(all(`${good} @layer sb.molecules { .sb-alert__icon { color: red; } }`).length, 1, "(k) the alert's icon recoloured through its box class");
+    assert.equal(all(`${good} @layer sb.molecules { .sb-toast__icon { color: red; } }`).length, 1, "(k) the toast's icon recoloured through its box class");
+    assert.equal(all(`${good} @layer sb.molecules { .sb-alert__icon > .sb-status-icon { position: absolute; } }`).length, 0, "(k) reads the slot, not its glyph: the glyph's own position is not the word's containing block");
     assert.equal(swap("@layer where-defined {\n    .sb-status { --status-ink", "@layer other {\n    .sb-status { --status-ink").length, 3, "(b) outside the sublayer: two declarations not found there, and its color a stray (d)");
     assert.equal(swap(".sb-button > .sb-status { color: inherit; }", "@layer where-defined { .sb-button > .sb-status { color: inherit; } }").length, 2, "(c) in the sublayer it would not outrank: not found in sb.atoms, and a stray (d)");
     assert.equal(swap(".sb-status-icon { inline-size", ".sb-status-icon { color: red; fill: red; inline-size").length, 2, "(d) a color and a fill on the glyph");
     assert.equal(all(`${good} @media (min-width: 1px) { .sb-alert .sb-status { color: red; } }`).length, 1, "(d) inside a conditional rule");
-    assert.equal(swap(".sb-status-icon { inline-size: 1.1em; block-size: 1.1em; }", ".sb-status-icon { width: 1.1em; height: 1.1em; }").length, 4, "(e) width and height instead of inline-size and block-size");
+    assert.equal(swap(".sb-status-icon { display: inline-block; vertical-align: middle; inline-size: 1.1em; block-size: 1.1em; }", ".sb-status-icon { display: inline-block; vertical-align: middle; width: 1.1em; height: 1.1em; }").length, 4, "(e) width and height instead of inline-size and block-size");
     assert.equal(swap(".sb-toast__icon { flex-shrink: 0; ", ".sb-toast__icon { ").length, 1, "(e) the toast's slot box");
     assert.equal(swap(".sb-button--accent { --shadow-rest", ".sb-button--accent { --danger-rim: inset 0 0 0 2px red; --shadow-rest").length, 1, "(f) --danger-rim declared on another selector");
     assert.ok(swap("--shadow-hover: var(--danger-rim, 0 0 #0000), ", "--shadow-hover: ").length >= 2, "(f) the rim missing from the hover shadow (L152: it never vanishes on hover)");
@@ -5976,12 +5997,13 @@ try {
     assert.equal(swap("var(--danger-box, var(--sb-edge-status-danger, revert-layer))", "var(--danger-box, revert-layer)").length, 1, "(h) the danger box without the edge alone as its fallback (S44)");
     assert.equal(swap(".sb-toast--success { border-inline-start: 3px solid var(--sb-success-mark, var(--sb-success)); }", ".sb-toast--success { border-inline-start: 3px solid var(--sb-success); }").length, 1, "(i) the stripe not re-pointed (L179)");
     assert.equal(swap(".sb-icon--info { color: var(--sb-info-mark, var(--sb-info)); }", ".sb-icon--info { color: var(--sb-info); }").length, 1, "(i) the Icon atom's info tone not re-pointed (L179)");
-    assert.equal(swap(", .sb-menu__item[data-danger] > .sb-icon { display", " { display").length, 1, "(j) a consumer's .sb-icon left beside the octagon (L176)");
+    assert.equal(swap(", .sb-menu__item[data-danger]:has(> .sb-status) > .sb-icon { display", " { display").length, 1, "(j) a consumer's .sb-icon left beside the octagon (L176)");
+    assert.equal(swap(".sb-menu__item[data-danger]:has(> .sb-status) > svg, .sb-menu__item[data-danger]:has(> .sb-status) > .sb-icon", ".sb-menu__item[data-danger] > svg, .sb-menu__item[data-danger] > .sb-icon").length, 2, "L194 (e): the glyph hidden in a danger item with no octagon too");
     assert.equal(swap("margin-inline-end: var(--sb-space-1)", "margin-inline-end: 4px").length, 1, "(k)");
   });
 
-  test("2.5 L186 L190 (a) the status slot is its word's containing block: among the rules whose selector list holds .sb-status, outside conditional at-rules and the where-defined sublayer, the last position is relative and the last display inline-flex; flex-shrink 0 and vertical-align -0.125em", () => {
-    assert.deepEqual(formFindings(stylesheet(), formsOf("(a)")), []);
+  test("2.5 L186 L190 (a) L194 (a) (k) the status slot is its word's containing block and keeps the text's baseline: among the rules whose selector list holds .sb-status, outside conditional at-rules and the where-defined sublayer, the last position is relative and the last display inline-block; flex-shrink 0 and vertical-align baseline; and no rule whose subject is a slot, by any of its classes, declares another position or display", () => {
+    assert.deepEqual([...formFindings(stylesheet(), formsOf("(a)")), ...slotBoxFindings(stylesheet())], []);
   });
 
   test("2.5 L170 L190 (b) the slot's ink: in sb.atoms.where-defined, .sb-status sets --status-ink from text-strong with no fallback and reads color: var(--status-ink, revert-layer), so a theme without text-strong computes the colour the slot inherits", () => {
@@ -5992,11 +6014,11 @@ try {
     assert.deepEqual(formFindings(stylesheet(), formsOf("(c)")), []);
   });
 
-  test("2.5 L170 L190 (d) those are the only colour declarations that reach a status slot or its glyph: no other rule whose selector list names .sb-status or .sb-status-icon declares color, and none declares fill", () => {
+  test("2.5 L170 L190 (d) L194 (k) those are the only colour declarations that reach a status slot or its glyph: no other rule whose selector list names .sb-status, .sb-status-icon, .sb-alert__icon or .sb-toast__icon declares color, and none declares fill", () => {
     assert.deepEqual(strayColours(stylesheet()), []);
   });
 
-  test("2.5 L169 L172 L173 L190 (e) the glyph's sizes: 1.1em, 1em in a menu item, 100% of the 1.25rem slot leading an alert or a toast, the toast's slot box copying the alert's; always inline-size and block-size, never width or height", () => {
+  test("2.5 L169 L172 L173 L190 (e) L194 (a) the glyph's sizes: 1.1em, inline and centred on the text; 1em in a menu item; a block of 100% of the 1.25rem slot leading an alert or a toast, the toast's slot box copying the alert's; always inline-size and block-size, never width or height", () => {
     assert.deepEqual([...formFindings(stylesheet(), formsOf("(e)")), ...physicalSizes(stylesheet())], []);
   });
 
@@ -6016,7 +6038,7 @@ try {
     assert.deepEqual(formFindings(stylesheet(), formsOf("(i)")), []);
   });
 
-  test("2.5 L176 L190 (j) in a danger menu item a consumer's leading glyph is hidden, so the octagon takes its place: .sb-menu__item[data-danger] > svg and > .sb-icon are display: none", () => {
+  test("2.5 L176 L190 (j) L194 (e) in a danger menu item a consumer's leading glyph is hidden beside the octagon, which takes its place: .sb-menu__item[data-danger]:has(> .sb-status) > svg and > .sb-icon are display: none, and a hand-written danger item with no slot keeps its glyph", () => {
     assert.deepEqual(formFindings(stylesheet(), formsOf("(j)")), []);
   });
 

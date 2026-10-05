@@ -158,10 +158,9 @@
 
 /// The room a clipping or scrolling parent leaves for its children's all-round
 /// edge layer (L151): --sb-halo-room, which a theme with edge data emits (sorbet
-/// light 8px), and 0px everywhere else, so a frozen preset's padding stays 0.
-/// The room a clipping parent leaves for an all-round halo (L151). The
-/// fallback is the parent's old value of the property it pads: 0px for
-/// padding, `auto` for scroll-padding (L193).
+/// light 8px). The fallback is the parent's old value of the property it pads,
+/// so a frozen preset keeps it: 0px for padding, `auto` for scroll-padding
+/// (L193).
 @function halo-room($fallback: 0px) {
   // The unit is kept on purpose: L162 (c) fixes the form as written.
   // stylelint-disable-next-line length-zero-no-unit

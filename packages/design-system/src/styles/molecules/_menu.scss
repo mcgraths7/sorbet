@@ -55,9 +55,11 @@
 
       // The octagon replaces a leading glyph of the consumer's rather than
       // standing beside it: a menu lines its glyphs up in one column (L176).
-      // The octagon is inside its slot, out of reach of these.
-      > svg,
-      > .sb-icon {
+      // The octagon is inside its slot, out of reach of these. Only beside the
+      // octagon: a danger item written by hand, with no slot, keeps its glyph
+      // (L194 (e)).
+      &:has(> .sb-status) > svg,
+      &:has(> .sb-status) > .sb-icon {
         display: none;
       }
 
