@@ -575,7 +575,7 @@ reflowing as media arrives — handy well beyond masonry. Vanilla flavor:
       <label class="sb-label" for="name" data-required>Full name</label>
       <input class="sb-input" id="name" required>
       <p class="sb-field__hint">As it appears on your profile.</p>
-      <p class="sb-field__error">Name is required.</p>
+      <p class="sb-field__error"><span class="sb-status"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="sb-status-icon sb-status-icon--danger"><path fill="currentColor" fill-rule="evenodd" d="M8.1 0.8L15.9 0.8A1 1 0 0 1 16.607 1.093L22.907 7.393A1 1 0 0 1 23.2 8.1L23.2 15.9A1 1 0 0 1 22.907 16.607L16.607 22.907A1 1 0 0 1 15.9 23.2L8.1 23.2A1 1 0 0 1 7.393 22.907L1.093 16.607A1 1 0 0 1 0.8 15.9L0.8 8.1A1 1 0 0 1 1.093 7.393L7.393 1.093A1 1 0 0 1 8.1 0.8ZM12 10.162L14.281 7.881A1.3 1.3 0 0 1 16.119 9.719L13.838 12L16.119 14.281A1.3 1.3 0 0 1 14.281 16.119L12 13.838L9.719 16.119A1.3 1.3 0 0 1 7.881 14.281L10.162 12L7.881 9.719A1.3 1.3 0 0 1 9.719 7.881Z"></path></svg><span class="u-visually-hidden">Error: </span></span>Name is required.</p>
     </div>
   </div>
   <div class="sb-card__footer">
@@ -585,7 +585,9 @@ reflowing as media arrives — handy well beyond masonry. Vanilla flavor:
 ```
 
 No JS: the error reveals via `:has(:user-invalid)` after interaction, and the
-hint hides while the error shows. The React `Field` produces the same markup.
+hint hides while the error shows. The error leads with the danger status's
+octagon and a hidden "Error: " for screen readers, so it never rests on its
+colour. The React `Field` produces the same markup.
 
 ## Data visualization
 

@@ -892,6 +892,33 @@ try {
     assert.deepEqual(providerFindings(readFileSync(TOAST_SOURCE, "utf8")), []);
   });
 
+  // ── L194 (m): the HTML examples carry the slot ──────────────────────────────────────────────────────────────────
+  /** Every status element written by hand in `html` (L184's HTML API) that does not lead with a status slot. */
+  const slotless = (html: string) => {
+    const STATUS_OPENERS = [
+      /<p class="sb-field__error"[^>]*>/g,
+      /<div class="sb-alert sb-alert--(?:success|warning|danger|info)"[^>]*>/g,
+      /<span class="sb-badge sb-badge--(?:success|warning|danger|info)(?: [^"]*)?"[^>]*>/g,
+      /<(?:button|a) class="sb-button sb-button--danger(?: [^"]*)?"[^>]*>/g,
+      /<button class="sb-menu__item(?: [^"]*)?" data-danger[^>]*>/g,
+    ];
+    return STATUS_OPENERS.flatMap((opener) => [...html.matchAll(opener)].filter((m) => !/^\s*<span class="sb-status/.test(html.slice(m.index + m[0].length))).map((m) => m[0]));
+  };
+
+  test("L194 (m) (checker) a hand-written status element must lead with the slot: a bare field error, alert, status badge, danger button and danger menu item are each found; with the slot, after a line break or not, none is; a brand badge and a plain button are not statuses", () => {
+    const bare = "<p class=\"sb-field__error\">x</p><div class=\"sb-alert sb-alert--info\" role=\"status\"><div>x</div></div><span class=\"sb-badge sb-badge--danger sb-badge--solid\">7</span><button class=\"sb-button sb-button--danger\">x</button><button class=\"sb-menu__item\" data-danger>x</button>";
+    assert.equal(slotless(bare).length, 5, slotless(bare).join("\n"));
+    const slotted = bare.replace(/(<(?:p|div|span|button) class="sb-(?:field__error|alert|badge|button|menu__item)[^>]*>)/g, "$1\n  <span class=\"sb-status\"></span>");
+    assert.deepEqual(slotless(slotted), []);
+    assert.deepEqual(slotless("<span class=\"sb-badge sb-badge--primary\">New</span><button class=\"sb-button\">Save</button><button class=\"sb-button sb-button--secondary\">x</button>"), []);
+  });
+
+  for (const file of ["README.md", "demo/index.html"]) {
+    test(`L194 (m) L184 every status written by hand in ${file} (a field error, a status alert or badge, a danger button or menu item) leads with the status slot, as its component writes it`, () => {
+      assert.deepEqual(slotless(readFileSync(join(ROOT, file), "utf8")), []);
+    });
+  }
+
   // ── L181 case 10, L189: the barrel ───────────────────────────────────────────────────────────────────────────────
   test("L189 L169 the built barrel exports the four glyphs, SuccessIcon, WarningIcon, DangerIcon and InfoIcon", () => {
     assert.equal(barrelMissing, "", `packages/component-library/dist/index.js does not load: ${barrelMissing}`);
