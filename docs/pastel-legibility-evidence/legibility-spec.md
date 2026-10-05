@@ -1,7 +1,7 @@
 # Spec: the `legibility` contract and sorbet's new values (PR 2, step 2.0)
 
-Revision 3.3, 2026-10-05. Written against `main` at `e24df74` (the groundwork is
-merged). Step 2.1 is built and audited (§12.2); nothing after it exists yet. Paths are relative to
+Revision 3.5, 2026-10-05. Written against `main` at `e24df74` (the groundwork is
+merged). Steps 2.1 to 2.4 are built and audited (§12.2, §12.4); nothing after them exists yet. Paths are relative to
 `packages/design-system/` unless they start with `packages/`, `apps/`, `docs/`
 or `<root>/`. So `tools/test-contracts.ts` is
 `packages/design-system/tools/test-contracts.ts`, and the repo root's own
@@ -1301,8 +1301,8 @@ stylesheet does not yet paint, which is why nothing merges before step 2.6.
 | What is read | The checker reads | The Sass site that consumes it | Step |
 |---|---|---|---|
 | Control ring (checkbox, radio) | role `border-strong` | `atoms/_choice.scss:13` (unchanged) | 2.2 |
-| Switch ring | optional `switch-ring` | `atoms/_switch.scss`, a new inset ring on `.sb-switch` | 2.4 |
-| Switch thumb's ring; slider track's ring (sheet 2, `build-edges.mjs:123, 125`) | optional `switch-ring` | `atoms/_switch.scss:26`, a 1px ring layer added before `shadow(xs)` on the thumb; `atoms/_slider.scss:29, 51`, an inset 1px ring on the track. Both through `seam(switch-ring)`, whose fallback `transparent` leaves the four frozen presets pixel-identical. Without the thumb's ring the milk thumb sits 4.47 from the light off-track (`rev2/rev2.ts`); R191 holds the ring against that track | 2.4 |
+| Switch ring | optional `switch-ring` | `atoms/_switch.scss`, a new inset ring on `.sb-switch`, through `where-defined` with old value `none` (L148, L149; revision 3.5) | 2.4 |
+| Switch thumb's ring; slider track's ring (sheet 2, `build-edges.mjs:123, 125`) | optional `switch-ring` | `atoms/_switch.scss:26`, a 1px ring layer added before `shadow(xs)` on the thumb; `atoms/_slider.scss:29, 51`, an inset 1px ring on the track. Both through `where-defined` and `seam-only(switch-ring)`, with old values `shadow(xs)` (thumb) and `none` (track) (L148, L149). Revision 2 to 3.4 wrote `seam(switch-ring)` as an added transparent layer and said that left the frozen presets pixel-identical; it did not (audit C2, C3). Without the thumb's ring the milk thumb sits 4.47 from the light off-track (`rev2/rev2.ts`); R191 holds the ring against that track | 2.4 |
 | Switch off-track | optional `switch-off` | `atoms/_switch.scss:12` | 2.4 |
 | Switch on-track; progress fill; slider thumb; tab indicator | role `primary-solid` | `atoms/_switch.scss:31`; `_progress.scss:16`; `_slider.scss:39, 59`; `molecules/_tabs.scss:52` (unchanged) | 2.2 |
 | Progress track | role `bg-subtle` | `atoms/_progress.scss:10` (unchanged) | 2.2 |
@@ -1314,10 +1314,11 @@ stylesheet does not yet paint, which is why nothing merges before step 2.6.
 | Resting field edge | data `edges[mode].field.rest`, emitted `--sb-edge-field` | `atoms/_input.scss:8` and the same copies; the border colour through `field-line` | 2.4 |
 | Invalid rim | optional `danger-mark` | `atoms/_input.scss:34, 37` and the same copies; the danger button | 2.4, 2.5 |
 | Selected wash | optional `selected-wash` | `molecules/_tabs.scss:48`; the current item of navbar, sidebar, menu, pagination | 2.4 |
-| Selected bar | optional `selected-bar` | the same rows, a new inset 3px bar | 2.4 |
+| Selected bar | optional `selected-bar` | the same rows, a new inset 3px bar, through `selected-mark`, which writes it by `where-defined` with old value `none` and mirrors the start bar under `:dir(rtl)` (L148, L156). Not on the pills variant (L157) | 2.4 |
 | Status mark | optional `success-mark`, `warning-mark`, `danger-mark`, `info-mark` | `molecules/_toast.scss:66`, on the toast's `surface-raised` (R280 to R283); the app sites of proposal §12 | 2.5 |
 | Halo and deep tones | data: layer colours in `edges[mode]["filled-X"]` for X = primary, secondary, accent, danger, emitted `--sb-edge-filled-X`, `-hover`, `-press` | `atoms/_button.scss:70-90` (`--shadow-rest`, `-hover`, `-press`, read through `edge()` for the default button and each variant of the loop at line 92); border through `filled-line` at line 51 | 2.3 |
-| Card edge | data `edges[mode].container`, emitted `--sb-edge-container` | `molecules/_card.scss:7-9`; border through `container-line` | 2.4 |
+| Card edge | data `edges[mode].container`, emitted `--sb-edge-container` | `molecules/_card.scss:7-9`; border through `container-line`; the interactive card's hover reads the same edge and its line through `where-defined` (L152) | 2.4 |
+| Room for the halo in clipping parents | derived from edge data, emitted `--sb-halo-room` | `molecules/_carousel.scss:28`, `molecules/_marquee.scss:33` (L151) | 2.4 fix |
 | Menu, popover, modal, toast edge | data `edges[mode].floating` | `abstracts/_mixins.scss:176-186` (`popover-surface`, read by menu, popover, combobox, calendar, colour input) and the hand copies: `molecules/_toast.scss:20-27`, `organisms/_modal.scss:19-21`, `organisms/_drawer.scss:20-22`. The 1px `border-subtle` line `popover-surface` draws (`:180`) and the toast draws (`_toast.scss:22`) goes through `container-line` (L113) | 2.4 |
 | Well and track edge | data `edges[mode].sunken` | `atoms/_progress.scss:10` and sunken panels | 2.4 |
 | Quiet button edge | data `edges[mode].quiet` | `atoms/_button.scss:132-150` | 2.4 |
@@ -1491,7 +1492,7 @@ a contrast failure does.
 | C7 | `fills-steady` | a legibility mode | each of the 11 `-hover` and `-active` roles equals its resting fill (D6) |
 | C8 | `edge-direction` | a legibility mode | for each rule of `edge-container`, `edge-floating`, `edge-quiet`, `edge-filled` and `edge-status`: every edge pixel is darker than the backdrop in light, and lighter in dark, by OKLab lightness (`oklabOf(…)[0]`), in typical vision. `edge-field` and `edge-sunken` are left out: a sunken thing is edged the other way on purpose. All 18 such rules pass in both modes (24 in revision 1, six withdrawn; `gen.ts`). A rule whose element has no data is not a C8 failure: its measurement already fails by name (L39) |
 | C9 | `label-type` | a legibility mode whose contract has a tier with `requires` | the preset has a `buttonLabel`, and `buttonLabel.px` ≥ `requires.buttonLabelPx`, `buttonLabel.smallPx` ≥ `requires.buttonLabelSmallPx` and `buttonLabel.weight` ≥ `requires.buttonLabelWeight`. It holds the button, at both sizes, and nothing else (L65, L111, L115). That the stylesheet paints those sizes is held by C10 |
-| C10 | — (a test, step 2.5) | the stylesheet | every name in `SEAMS`, and every edge property sorbet emits (each `--sb-edge-X` and each `-hover` and `-press`, L53), is read by at least one `seam(…)` or `edge(…)` call under `src/styles`, and `button-label(md)` and `button-label(sm)` are each called at least once (L19). A token no site reads is a rule passing on a value nobody paints |
+| C10 | — (a test, step 2.5) | the stylesheet | every name in `SEAMS`, and every edge property sorbet emits (each `--sb-edge-X` and each `-hover` and `-press`, L53), is read by at least one `seam(…)` or `edge(…)` call under `src/styles`, and `button-label(md)` and `button-label(sm)` are each called at least once (L19), and `--sb-halo-room` is read (L151). A token no site reads is a rule passing on a value nobody paints |
 | C11 | — (a test, step 2.5) | the compiled stylesheet | The test reads the **compiled** CSS (`dist/css/sorbet.css` after `pnpm build`), not the Sass source, because two of L106's lines are written inside loops (`atoms/_button.scss:100`, `clr($variant)`; `molecules/_alert.scss:22`, `clr(#{$tone}-subtle)`) and only compile to a name per variant. One selector compiles to several rule blocks (`.sb-button` to five, the first from `control-reset` saying `background: none`; `.sb-input` to four), so the reading is exact (revision 3.1, verification finding N17): **for a selector S, take every rule whose selector list contains S as one whole item (so `.sb-button:hover:not(…)` is not S), that is not nested in a conditional at-rule (`@media`, `@supports`, `@container`); among them, S's fill is the last `background-color` or `background` declaration in source order.** Source order is cascade order here because the file's `@layer` blocks appear in the order its first line declares them, which the test asserts first. The fill must be `var(--sb-<fill>)` (from `clr`) or `var(--sb-<fill>, <fallback>)` (from `seam`) for the recipe's `fill`; for `.sb-progress`, `var(--sb-bg-subtle)` while D1 holds in sorbet's record; for a recipe whose fill is `"backdrop"`, `transparent` or no declaration. And at least one of those rules reads the element's `--sb-edge-<element>` property (after step 2.4). The selectors: container `.sb-card`; sunken `.sb-card--sunken`, `.sb-progress`; floating `.sb-popover`, `.sb-menu`, `.sb-combobox__panel`, `.sb-calendar`, `.sb-color-input__panel` (the five that include `popover-surface`), `.sb-toast`, `.sb-modal`, `.sb-drawer`; field `.sb-input`, `.sb-textarea`, `.sb-select select`, `.sb-number-input`, `.sb-combobox__field`, `.sb-date-range__control`; quiet `.sb-button--outline`; filled `.sb-button`, `.sb-button--secondary`, `.sb-button--accent`, `.sb-button--danger`; status `.sb-alert`, `.sb-alert--success`, `--warning`, `--danger`, `--info`. The floating and field lists are derived from the compiled CSS at `e24df74`: every rule painting `surface-raised` with `shadow-lg` or `shadow-xl`, and every rule painting `surface` with a `border-strong` border, less the checkbox and radio (a `choice`, not the field element; L70's unchecked-interior row), the dropzone (a dashed ring, §15 item 6) and the command trigger's hover state. Checked against that stylesheet with today's tokens, the reading picks the fill each L106 line paints for all 27 selectors (`rev2/c11.mjs`). A recipe whose fill is `"backdrop"` passes only where its rules paint `transparent` or nothing. (Revision 2 said the Sass lines must read `clr(<fill>)` literally, which the two loop lines cannot; verification finding N8) |
 
 **L80.** What C1 to C3 are **not** scoped to, and why it matters: read without a
@@ -1720,7 +1721,7 @@ the diff is the review artefact:
 | 2.2 | line 1 (the tagline); the light block of `:root` (the 69 roles, the 20 optional tokens, the five shadow lines re-tinted, `--sb-button-font-size` and `--sb-button-font-size-sm`, the 21 edge lines: 13 `rest`, 4 `-hover`, 4 `-press`); and, at the end of each of the two dark blocks, the 41 reset lines of L55 |
 | 2.6 | the two dark blocks only: the 69 roles, the 20 optional tokens and the 21 edge lines with their dark values, in place of the 41 reset lines |
 
-**L98.** No other step changes it. The four frozen goldens change in no step; the
+**L98.** No other step changes it, except one fix commit of step 2.4 (revision 3.5, L151): the light line `--sb-halo-room: 8px;` and its reset at the end of each dark block, which step 2.6 replaces with `1px`. The four frozen goldens change in no step; the
 update tool refuses them and `check-golden-base.ts` holds them to the base
 branch.
 
@@ -1871,7 +1872,7 @@ on screen) is written by the implementer and looked at.
   1. The four frozen presets render pixel-identical in both modes.
   2. Rendered edges are re-measured on the real components with the edge
      measurer of step 2.3, in light (dark waits for 2.6). For each element
-     sheet 2 measured, the weakest side at the worst simulation is no lower
+     sheet 2 measured, the weakest point of its whole boundary (L159) at the worst simulation is no lower
      than sheet 2's figure less 1.0. Sheet 2's figures (`edges-measure.json`,
      `Light`, `weakest.worstSim`): card 12.7; sunken panel 12.1; box in a well 14.4;
      floating menu 12.8; lilac / blush / butter button on a card
@@ -1909,7 +1910,10 @@ on screen) is written by the implementer and looked at.
 - *Files:* `src/tokens/presets.ts` (`colors.dark`, `edges.dark`,
   `contract.dark = "legibility"`); `tools/golden/sorbet.css`.
 - *Acceptance:* `colors.dark` and `edges.dark` equal §3 and §5.2; sorbet dark
-  passes `legibility` and the six checks; the known-bad fixture still fails
+  passes `legibility` and the six checks; every name the light block emits is
+  emitted by the dark block too (but the two button-size lines, the same in
+  both modes, L19), so no reset remains and `danger-active` no
+  longer leaks (L160); `--sb-halo-room` reads `1px` in dark (L151); the known-bad fixture still fails
   as §10 states, unchanged; the golden diff is the two dark blocks only; the
   edits of L105 for this step are made; the reports print
   `wcag-aa × 8, legibility × 2` and 946 pairings (950 in revision 1); rendered
@@ -2211,6 +2215,283 @@ the carousel's off dot stay `border-strong` as the ring colour (§13, §15 item
 file:line, computed size and class. (e) L146's Sass half is held through the
 compiled CSS: no composed `box-shadow` list may resolve to `none`.
 
+### 12.4 Revision 3.5: after the audit of steps 2.3 and 2.4 (2026-10-05)
+
+An independent agent audited steps 2.3 (`e6fd3d5`) and 2.4 (`f9add57`)
+rendered, against `c0504b7` (`audit234.txt`; probes in `audit234/`;
+screenshots in `drop/sorbet-pastel-2026-10-05-audit234/`). Sorbet dark has
+no light-only value leaking (41 resets, as L55 says), no focus indicator was
+lost, and every computed difference in the eight frozen preset-modes is an
+added fully transparent shadow layer. Two of those layers change pixels, the
+hand comparer could pass falsely, and four places fall short of what the
+spec asks. These statements close each finding. Where they and earlier text
+disagree, these win.
+
+| Id | Closed where, and how |
+|---|---|
+| C1 | L155: the screenshot tool covers every state the audit walked, plus staged fixtures for what the playground lacks, runs a same-commit control first, and never prints the frozen success line unless every frozen preset was compared in both modes |
+| C2, C3 | L148, L149: a frozen preset gains no new rendered layer. A new ring, bar or line comes wholly from a token the frozen presets do not define, through `where-defined`, with the element's old value as the fallback. L70's rows for the switch ring, the thumb and slider-track rings and the selected bar change; the "transparent fallback leaves them pixel-identical" sentence is withdrawn |
+| M1 | L150: L146 restated to cover a fallback-less `var()` whose declaration is `none` (`flat-elevation`), with the test's resolution: the closure of custom properties a composed list reads, over the compiled CSS. `flat-elevation` sets `0 0 #0000` |
+| M2 | L151: a clipping parent never cuts an all-round layer. The emitter derives `--sb-halo-room` from edge data (8px light, 1px dark); the carousel viewport and the marquee pad by it, through `calc(<old> + var(--sb-halo-room, 0px))`; each of proposal §7's six parents is named with its reach and decision |
+| M3 | L152: a state is never weaker than rest. The interactive card's hover reads `edge(container, shadow(lg))` and its line through `container-line` by `where-defined`; the frozen presets keep `shadow(lg)` and `border` exactly |
+| M4 | L153: a check on the compiled CSS catches every way a state selector gets a `box-shadow`: shadow-writing mixins, vendor prefixes, interpolated names, `@at-root`, and named BEM state modifiers. Out of scope, with reasons: style variants that are not states |
+| M5 | L154: "may only shrink" is held by a test in `pnpm test` (the allowlist plus an append-only removed list equals the e24df74 sites, recorded as a fixture) and by a CI base-branch check like `check-golden-base.ts`; `--check`'s false claim is corrected |
+| m1 | L156: the start bar is on the inline-start side in both directions (`:dir(rtl)` mirrors the offset) |
+| m2 | L157: the pills variant keeps its raised segment and takes no bar, on purpose; §13 records its figures and §15 item 18 puts it in front of the owner's eye |
+| m3 | L158: the input-group addon is cosmetic and left to the eye, with the reason |
+| m4 | L159: the rendered check takes the weakest point over the whole boundary, all four sides; the card's 11.81 against the bar 11.7 is recorded |
+| m5 | L161: a misspelt accessor is caught by a test on the compiled CSS: no function call whose name is not a CSS function |
+| m6 | No action in the spec: session-dependent corner rasterisation that does not reproduce in fresh pages. L155's control run is what keeps such noise from being read as a pass or a fail |
+| m7 | L160: the pre-existing `danger-active` light-to-dark leak is closed by step 2.6, which defines all 69 roles in dark (C1); roles are not reset before then, and why |
+| m8 | Out of scope: the playground's missing gutter at 390px predates these steps and is playground layout, not the library |
+| Noted (focus) | The command palette input has no visible focus indicator in either commit: a defect of `main`, recorded in §17 item 20 and deferred with the others (decision 16) |
+
+**L148.** **A frozen preset gains no new rendered layer.** "Pixel-identical"
+(L4, step 2.3 and 2.4 acceptance) is a promise about pixels, and a
+transparent layer is not nothing: a `transparent` inset ring added to the
+disabled slider's track moved 520 pixels by one level in every frozen preset
+and mode (C2), and one added to the switch moved two pixels by up to three
+levels when a disabled switch is focused (C3), through antialiasing. So:
+
+- A **rendered layer** is a shadow layer with any non-zero offset, blur or
+  spread, whatever its colour. A frozen preset's computed `box-shadow` may
+  gain none, in any state.
+- The one exception is the **placeholder** `0 0 #0000`, a layer with no
+  offset, blur, spread or colour, which L146 needs wherever two layers
+  compose. It has no geometry to rasterise. The audit's 101 groups of added
+  transparent layers in every frozen preset-mode changed no pixel except the
+  two spread rings above.
+- A new layer, ring, bar or line in sorbet comes **wholly from a token the
+  four frozen presets do not define**, and its fallback is **the element's
+  old value exactly**: its old `box-shadow` (or `border-color`), or `none`
+  where it had none and nothing composes over it. That is the edge seams'
+  shape already (`edge(container, shadow(sm))`), and L149 gives the shape for
+  a ring painted from a colour token.
+- Withdrawn: L70's sentence "fallback `transparent` leaves the four frozen
+  presets pixel-identical". It holds for a colour (`background-color`,
+  `border-color`), not for an added layer.
+
+The L70 rows this changes, each re-pointed through L149 in a step-2.4 fix
+commit: the switch ring (`atoms/_switch.scss`, old value `none`), the switch
+thumb's ring (old value `shadow(xs)`), the slider track's ring
+(`atoms/_slider.scss`, both engines, old value `none`) and the selected bar
+(`selected-mark`, at the tab, pagination, navbar and sidebar sites, old value
+`none` at each, or the site's own old `box-shadow` where it had one). The
+interactive card's hover line (L152) uses the same shape. No other added
+layer exists: the field, button and card edges already fall back to their
+old values or to placeholders. How it is held: the static check of L149 on
+the compiled CSS in `pnpm test`, and L155's staged fixtures (slider,
+disabled and focused switch states) in the screenshot tool.
+
+**L149.** **The shape for a ring painted from a colour token.** A new mixin,
+`where-defined($property, $local, $value, $old)` in `abstracts/_mixins.scss`,
+writes
+
+```
+--<local>: <value>;
+<property>: var(--<local>, <old>);
+```
+
+and a new accessor, `seam-only($name)` in `abstracts/_tokens.scss`, compiles
+to `var(--sb-<name>)` with **no** fallback (an unknown name fails the compile,
+as for `seam()`). `<value>` reads the token through `seam-only`, so in a
+theme that does not define the token the local property holds a `var()` of
+an unset property with no fallback. CSS makes such a custom property
+invalid at computed-value time, which is the same as unset, so `<property>`
+takes `<old>`, exactly. In sorbet the token is defined, the local property is
+valid, and the ring paints. For example the switch's track:
+`@include where-defined(box-shadow, switch-ring-layer, inset 0 0 0 1.5px
+seam-only(switch-ring), none)`; its thumb: `… thumb-ring-layer, (0 0 0 1px
+seam-only(switch-ring), shadow(xs)), shadow(xs))`. Rules for the pattern:
+the local property is declared on the same element (or pseudo-element) that
+reads it, is never registered with `@property` (a registered property falls
+back to its initial value, not to the `var()` fallback), and `seam-only` is
+legal only inside a `where-defined` value. Test, on the compiled CSS: every
+`var(--sb-<seam>)` without a fallback sits in the value of a custom property
+`--<local>`, and every read of `--<local>` is `var(--<local>, <old>)` with a
+fallback; and no `box-shadow` value anywhere contains a layer whose colour is
+a seam with a `transparent` fallback (the C2 shape).
+
+**L150.** **L146, restated.** No composed `box-shadow` list may resolve to a
+list containing `none`, in any state, **resolving every `var()`**: one with a
+fallback through its fallback when its property is unset, and one without a
+fallback through the declarations of its property. Found: `flat-elevation`
+(`atoms/_button.scss:33-38`) sets `--shadow-rest`, `-hover`, `-press` to
+`none`; `soft-edge` makes `--edge-layer: var(--shadow-rest)`; so the soft,
+ghost and link buttons compose `var(--state-layer, 0 0 #0000), none`, which
+is invalid and computes to no shadow at all, dropping any state layer (M1;
+latent, as no state layer is set on a button yet). Fix: `flat-elevation`
+sets the three to `0 0 #0000`. How a test resolves it, on the compiled CSS:
+take the custom properties a composed list reads as items (`--state-layer`,
+`--edge-layer`); add, repeatedly, every custom property any declaration of a
+property already in the set reads as its whole value (`var(--shadow-rest)`
+puts `--shadow-rest` in); then no declaration of a property in the set has
+the value `none`, or a `var()` whose fallback is `none`. The rendered half,
+in L155: on every element whose `box-shadow` composes, setting
+`--state-layer` to a visible ring paints it (the audit's probe,
+`audit234/tools/l146.mts`). L147(e) is replaced by this statement.
+
+**L151.** **Clipping parents make room for the all-round layer.** A
+clipping or scrolling parent may cut an element's offset falloff (depth) but
+never its all-round layer, which is what presence measures. The room comes
+from edge data, so nothing is typed twice: a preset with `edges[mode]` emits
+`--sb-halo-room: <n>px` in that mode's block, after the edge lines, where `n`
+is the largest outward reach, `max(|x|, |y|) + blur + spread`, of any
+all-round outset layer in the `rest`, `hover` and `press` of `container`,
+`quiet` and the four `filled-*` elements, rounded up to a whole px. For the
+new sorbet: **8px in light** (the filled buttons' hover, `0 0 6px 2px`) and
+**1px in dark** (the rims, `0 0 0 1px`) (`rev2/rev35.ts`). It is reset in
+dark by L55 until step 2.6, like the edge lines: 42 reset lines from the fix
+commit until then, and sorbet's golden gains the light line and the two
+resets (L97 is amended for this one change). A parent pads by it as
+`padding: calc(<old padding> + var(--sb-halo-room, 0px))`, with
+`scroll-padding` the same, so a frozen preset's computed padding equals its
+old value. C10 requires the property to be read. Proposal §7 item 8's six
+parents:
+
+| Parent | What it clips | Decision |
+|---|---|---|
+| `.sb-carousel__viewport` (`_carousel.scss:28`) | cards flush to its edge; their all-round layer (7px light) was cut on every side (M2) | pads by the room |
+| `.sb-marquee` (`_marquee.scss:33`) | arbitrary items flush to its edge | pads by the room |
+| `.sb-table-wrap` (`_table.scss:7`) | buttons in cells, inside cell padding of 12px or more (`:20, :53`) | no room: 12 > 8, so only offset falloff can be cut |
+| `.sb-tabs__list` (`_tabs.scss:15`) | underline tabs (an inset bar) and pills (`shadow(sm)`, 3px, inside the list's 4px padding) | no room: no all-round outset layer inside |
+| `.sb-combobox__panel` (`_combobox.scss:117`) | options, which carry no edge | no room |
+| `.sb-card` (`_card.scss:10`) | children inside its `space(4)` padding (16px) | no room: 16 > 8 |
+
+Visible in sorbet: the carousel and the marquee inset their content by 8px
+in light (1px in dark from step 2.6). Nothing changes in a frozen preset.
+
+**L152.** **A state is never weaker than rest.** A hovered, pressed, focused,
+selected or open element never draws less edge than it does at rest: its
+state edge is its rest edge or a stronger recipe, never a replacement that
+measures lower. The interactive card broke this (M3): its allowlisted hover
+wrote `box-shadow: shadow(lg)` and `border-color: clr(border)`, replacing
+sorbet's caramel container edge with a faint shadow and showing the
+transparent line. Fix, in the step-2.4 fix commit:
+`.sb-card--interactive:hover` writes `box-shadow: edge(container,
+shadow(lg))` (the container edge, since `edge()` allows a state only on
+`filled-*`; it equals rest, which is not weaker) and its line through
+`where-defined(border-color, card-hover-line, seam-only(container-line),
+clr(border))`. The frozen presets keep exactly `shadow(lg)` and `border`.
+A grown hover recipe for cards would be new edge data and an owner's look;
+it is not proposed. The site stays on the lint allowlist (L154), with this
+value.
+
+**L153.** **What the state-shadow rule catches.** The stylelint rule reads
+source and gives line numbers; it is backed by a check on the **compiled**
+CSS, in `pnpm test`, which sees every route at once. A rule of the compiled
+stylesheet is a **state rule** when a compound of its selector carries a
+state: a user-action or form pseudo-class (`:hover`, `:active`, `:focus`,
+`:focus-visible`, `:focus-within`, `:checked`, `:indeterminate`,
+`:disabled`, `:enabled`, `:invalid`, `:user-invalid`, `:open`,
+`:popover-open`, `:target`, also inside `:is()`, `:where()`, `:not()` and
+`:has()`); an `[aria-*]` or `[data-state]` attribute; or a BEM modifier from
+the named list `--selected`, `--active`, `--current`, `--open`, `--checked`,
+`--pressed`, `--expanded`, `--invalid`, `--disabled`, `--loading`. A state
+rule may declare `box-shadow`, `-webkit-box-shadow` or `-moz-box-shadow` only
+with the composed form (`var(--state-layer…), var(--edge-layer…)`) or at an
+allowlisted site. That catches a shadow-writing mixin such as `elevation` or
+`elevate` included under `&:hover`, a vendor prefix, an interpolated property
+name and `@at-root`, because all four are ordinary declarations once
+compiled. Out of scope, and why: a BEM modifier not on the list is a style
+variant (`--raised`, `--flat`, `--sm`, `--outline`), whose shadow is its
+resting look, not a state's; and a `@media` condition (`(hover: hover)`) is
+not a state of the element. The list is the spec's; adding a state modifier
+to a component adds it here.
+
+**L154.** **"May only shrink", enforced.** Three parts: (1) a fixture,
+`tools/fixtures/contracts/state-box-shadow-sites.at-e24df74.json`, recorded
+once from `git archive e24df74` by a committed recorder, lists the sites the
+rule finds there; (2) a committed, append-only list of removed sites,
+`tools/stylelint/state-box-shadow-removed.json`; (3) a test in `pnpm test`
+asserting that the allowlist and the removed list are disjoint, that their
+union is exactly the fixture, that every allowlisted site still exists in
+the source, and that no site outside the allowlist is found. So a hand-added
+entry that was never a site fails (1); one that was removed and is put back
+must be taken out of the removed list, a diff in review; and a CI step,
+`tools/check-allowlist-base.ts`, beside `check-golden-base.ts`, fails a pull
+request whose removed list lacks an entry its base branch's has. `--write`
+regenerates nothing the test could not reproduce; the file's claim that
+`--check` "catches one" is corrected to what it checks (each entry is a site
+at e24df74). Re-adding `.sb-button:hover` (M5) fails (2) and the base check.
+
+**L155.** **What the screenshot tool must cover, and when it may say
+"identical".** `tools/shots.ts compare` covers, for each of the four frozen
+presets in light and dark, in `ltr`, `rtl` and coarse-pointer runs (with
+animations frozen): the full page; a keyboard Tab walk over every focus stop;
+every roving and `tabindex=-1` item; a hover and a press on every interactive
+element; every overlay open (menu, popover, drawer, modal, confirm, toast,
+command palette, combobox, date range, date picker, colour panels) with hover
+and key navigation inside; every field invalid and focused; every control
+disabled, and disabled and hovered, and disabled and focused. For what the
+playground lacks it renders **staged fixtures**: the slider (resting,
+disabled), the switch (off, on, disabled, focused, focused and disabled), the
+interactive, raised, flat and sunken cards (rest and hover), pills tabs,
+toned progress bars, a static toast, small and large buttons, and
+`aria-disabled` controls. The audit's `audit234/tools/run.mts` and
+`staged.mts` are the reference list. Before comparing it runs a same-commit
+control; a shot that differs in the control is reported as unstable and
+blocks the success line. It prints "The frozen presets are pixel-identical"
+only when every frozen preset was compared in both modes with no difference
+and no unstable shot; `--only` that excludes any frozen preset, or a run that
+compared no frozen shot, ends with "no frozen preset compared" and a
+non-zero exit. The tool stays hand-run (step 2.3); a run's summary, with its
+shot count, is quoted in the commit that relies on it.
+
+**L156.** **The start bar follows the writing direction.** `box-shadow` has
+no logical offsets, so `selected-mark(start)` writes `inset 3px 0 0 0 …` and,
+under `&:dir(rtl)`, `inset -3px 0 0 0 …`, so the bar is on the inline-start
+side in both directions (m1). `selected-mark(end)`, the bottom bar, needs no
+mirroring. The staged RTL runs of L155 hold it.
+
+**L157.** **The pills tab keeps its raised segment, on purpose.** The pills
+variant is a segmented control: its selected segment is the raised fill
+(`surface-raised`) with `shadow(sm)`, over the list's well. The bar and the
+wash belong to underline tabs and rows, so the pills variant takes neither,
+and that is now stated rather than an accident of specificity (m2). Measured
+in sorbet: the raised fill against the well, light `#fffbf1` on `#f7ecd1`
+4.47 (tritan), dark `#463425` on `#140903` 18.49 (protan); `shadow(sm)` is
+caramel-tinted in light (L20), and the selected label is the strong ink at
+weight 600. Light's 4.47 is weak and no sheet drew it: §13 records it, and
+§15 item 18 asks the owner's eye. (Drawing the quiet slab there instead,
+19.69 light and 21.33 dark, would put a halo inside the list's 4px padding,
+which L151 forbids.)
+
+**L158.** **The input-group addon is left to the eye.** The addon is the well
+(`bg-subtle`) joined to the field, whose line is transparent in sorbet, so
+the field's inset ring stands next to an unframed well (m3). The addon is
+part of the field, not an element with an edge of its own, and sheet 2 drew
+none; it is cosmetic and listed in §13.
+
+**L159.** **The rendered check takes the whole boundary.** Step 2.4 and 2.6
+acceptance #2's "weakest side" is the weakest point along the whole boundary,
+all four sides, sampled along each side's full length less the corner radius,
+not one line per side (m4). Re-measured by the audit for the light card:
+11.81 at its weakest point, 0.1 above the bar of 11.7, so step 2.4's verdict
+stands. The measurer is changed to sample this way before step 2.6.
+
+**L160.** **The `danger-active` leak closes at step 2.6.** Sorbet's light
+block defines `danger-active`, its dark block (still from `buildMode`) does
+not, and roles are not reset, so a pressed danger button in sorbet dark
+paints the light `#f9c3c6` (m7). It predates these steps (`c0504b7`). Roles
+are not added to L55's resets: a reset role has no fallback at its sites
+(`clr()` writes none), so the press would paint no background at all, which
+is worse. Step 2.6 closes it by defining all 69 roles in dark, `danger-active`
+`#f9c3c6` by D6, which C1 then holds; its acceptance gains: no name the light
+block emits is missing from the dark block, but the two button-size lines
+(L19). Nothing merges before step 2.6 (L70).
+
+**L161.** **A misspelt accessor fails a test.** Sass passes an unknown
+function through as text, so `seem(...)`, `egde(...)` or
+`button-lable(...)` compile and lint cleanly and paint nothing (m5). A test
+on the compiled CSS asserts that every function call in a declaration value
+is a CSS function from a fixed list (`var`, `calc`, `min`, `max`, `clamp`,
+`color-mix`, `rgb`, `hsl`, `oklch`, `oklab`, `linear-gradient`,
+`radial-gradient`, `repeating-conic-gradient`, `url`, `translate`, `scale`,
+`rotate`, `cubic-bezier`, `steps`, `attr`, `env`, and the others the file
+already uses at `f9add57`, recorded with the test); anything else is an
+accessor that did not compile.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
@@ -2231,6 +2512,9 @@ the gate's silence as a pass.
 | A focus ring 2px from a fill against one that touches it: the button (offset 2px) against the selected calendar day and the current page (offset 0) | one pair of colours, two placements; R210 measures the pair (L68) | looked at in step 2.4 |
 | The danger button's rose rim against its own blush fill: `#d77784` on `#f9c3c6`, 18.36 (deutan) | the rim is painted from `danger-mark`, and the button's edge rule measures its halo alone (L116), which understates what is painted | decision 13 and sheet 2; looked at in step 2.5 |
 | An edge whose all-round layer barely renders: the light card with `0 0 200px 0.01px #000000 @ 1` measures 98.63 (L138) | presence ignores blur and the size of a spread, and a minimum would be a number nobody approved | sorbet's golden shows any recipe change; rendered measurement in steps 2.4 and 2.6 |
+| The selected pill: the raised fill on the list's well, light 4.47, dark 18.49, with `shadow(sm)` and the strong ink (L157) | the pills variant is a segmented control and takes no bar; a halo inside the list's 4px padding would be cut (L151) | §15 item 18 |
+| The input-group addon: an unframed well beside the field's inset ring (L158) | part of the field, not an element with an edge; cosmetic | looked at in step 2.4 |
+| An offset falloff cut by a clipping parent (a hovered button's deep-tone layer at a table's last row, at most 12px) | L151 makes room for the all-round layer only; the falloff is depth, not the edge presence measures | looked at |
 | An icon, a bold weight, a thumb's position | a token gate sees colours | status components derive icon and word from `tone` (step 2.5) |
 | Font size, apart from the button label at its two sizes (C9, L115) | the checker reads no Sass | the 47-row table of L72; L111 for 12px text on fills and washes |
 | "Paragraphs never sit on a full-strength fill" (the ink reads 62.47 on lilac) | a usage convention | none; stated in the docs of step 2.8 |
@@ -2389,8 +2673,10 @@ two questions and the small-button question are all answered (DECISIONS rows
 
 ### 14.1 Open
 
-None. Every question revision 2 raised was answered on 2026-10-04 (rows 28
-to 31), and revision 3 raises none. Nothing in this spec waits on the owner.
+One item, raised by revision 3.5: §15 item 18, the selected pill in the
+pills tab variant (light 4.47), for the owner's eye. It blocks no step and no
+test. Every question revision 2 raised was answered on 2026-10-04 (rows 28 to
+31).
 
 ## 15. Needs the owner's eye (sheet 3)
 
@@ -2474,7 +2760,14 @@ Items 15 to 17 were raised by revision 2 and answered on 2026-10-04:
     pair (R210). The sheets drew it 2px away, round a button.
     **Answered: visible enough; the 24.8 floor stands (DECISIONS row 30).**
 
-No item of this list is open.
+Item 18 was raised by revision 3.5 and is open:
+
+18. **The selected pill in the pills tab variant.** The raised segment
+    `#fffbf1` on the list's well `#f7ecd1`, 4.47 (tritan), with a
+    caramel-tinted `shadow(sm)` and the label in the strong ink `#472400` at
+    600; dark `#463425` on `#140903`, 18.49 (protan). No sheet drew pills
+    tabs. Not blocking any step; if it is too faint, the remedy is a new
+    recipe for the segment, which is the owner's look (L157).
 
 ## 16. Decided by the spec author
 
@@ -2598,6 +2891,9 @@ measuring.
     gradient, and text above its bottom 6.2% meets less than 4.5:1 over a
     white image (L110). It is so for all five presets today, and deferred
     with the existing defects.
+20. **The command palette's input shows no focus indicator** (found by the
+    audit of steps 2.3 and 2.4, in `main` as well). An existing defect of all
+    five presets, deferred with the others (decision 16).
 
 ## 18. Appendix G of the proposal, item by item
 
@@ -3053,6 +3349,7 @@ imports `packages/design-system/src/tokens/color.ts` from the
 | `rev2/rev2.ts` | Revision 2's measurements: the rule list with the six withdrawn and R280 to R283 appended, `quiet-fill`, every tier's weakest pair and floor (only `edge-filled` light moves: 15.7 → 17.7), the quiet button with the page showing through (the option DECISIONS row 28 closed), the counts (191, 277, 261, 193, 68, 823, 946), sorbet's new records under `wcag-aa` (seven light failures, none dark), the scrim values to 1e-4, the scrim gradient (L110), the known-bad fixture's counts (L84) |
 | `rev2/onestep.ts` | L59: the largest move one 8-bit step makes on any text or separation rule, both modes (0.593 Lc, 0.409 separation) |
 | `rev2/scope.ts` | L80: what C1, C2 and C3 would say of the five shipped presets unscoped |
+| `rev2/rev35.ts` | Revision 3.5: the halo room from edge data (8px light, 1px dark; L151) and the selected pill measured both ways (L157) |
 | `rev2/inflate.ts` | Revision 3.3, L138: the card's presence with its all-round layer replaced by one that barely renders |
 | `rev2/c11.mjs` | Revision 3.1: C11's reading run against the compiled `dist/css/sorbet.css` (postcss from the workspace's store); the layer-order check, the derived floating and field selector lists, and each selector's rule blocks and last background |
 | `rev2/rev3.ts` | Revision 3's measurements: each sorbet mode's tightest margin (×1.02, L105 #11), the 14px small button's label pairs and the other small variants (L115), the danger button with and without its rose rim and the rim against its fill (L116), the neutral badge (L111) |
