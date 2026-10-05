@@ -2,22 +2,30 @@
  * The allowlist of `sorbet/no-state-box-shadow`, generated, never typed:
  * `node tools/stylelint/state-box-shadow-allowlist.ts [--ref <commit>] [--write | --check]`.
  *
- * The rule forbids a partial outside `abstracts/` from writing `box-shadow`
- * on a state selector. The sites that already did so on `main` when the rule
- * arrived are its named exceptions, and the list of them is made by running
- * the rule itself over that commit's files (read with `git show`, so this
- * checkout is not touched). The list may only shrink:
+ * The rule forbids a partial outside `abstracts/` from writing `box-shadow` on
+ * a state selector (legibility-spec.md L153). The sites that did so on `main`
+ * when the rule arrived (`e24df74`) are its named exceptions until each is
+ * fixed; a fixed site moves to the append-only removed list,
+ * `state-box-shadow-removed.json`, and never comes back without a diff to that
+ * list (L154).
  *
  *   (no flag)  print the sites the rule finds at the ref
- *   --write    write the allowlist: the sites at the ref that the working tree
- *              still has, and, when an allowlist exists, only those already on
- *              it. It never adds an entry.
+ *   --write    rewrite the allowlist as: the sites the rule finds at the ref,
+ *              that it still finds in the working tree, less the removed list.
+ *              A site at the ref that is no longer one is APPENDED to the
+ *              removed list. Nothing here can add a site the ref did not have.
  *   --check    exit 1 unless every allowlisted entry is a site the rule finds
- *              at the ref, so an entry typed in by hand is caught
+ *              at the ref. That is all it checks. What holds "only shrinks" is
+ *              the test in `pnpm test` (allowlist + removed list = the sites the
+ *              compiled check finds at e24df74, recorded as a fixture) and the
+ *              CI step tools/check-allowlist-base.ts (the removed list keeps
+ *              every entry its base branch has).
  *
- * The rule reports an allowlisted entry that no longer matches anything, so a
- * fixed site has to leave the list in the same change. `--ref` defaults to
- * the commit the allowlist records (`generatedFrom`), else `e24df74`.
+ * The removed list was seeded once with the fifteen field focus and invalid
+ * glows, which the source rule cannot see (they are written by a mixin in
+ * abstracts/) but the compiled check found at e24df74 (L163), and which step
+ * 2.4 moved into `--state-layer`. `--ref` defaults to the commit the allowlist
+ * records (`generatedFrom`), else `e24df74`.
  */
 
 import { execFileSync } from "node:child_process";
@@ -29,12 +37,13 @@ import stylelint from "stylelint";
 const ROOT = new URL("../..", import.meta.url).pathname.replace(/\/$/, "");
 const STYLES = "packages/design-system/src/styles";
 const ALLOWLIST = join(ROOT, "tools", "stylelint", "state-box-shadow-allowlist.json");
+const REMOVED = join(ROOT, "tools", "stylelint", "state-box-shadow-removed.json");
 const RULE = "sorbet/no-state-box-shadow";
 
 interface Entry {
   file: string;
   selector: string;
-  line: number;
+  line?: number;
 }
 interface Allowlist {
   rule: string;
@@ -45,6 +54,7 @@ interface Allowlist {
 
 const argv = process.argv.slice(2);
 const existing: Allowlist | undefined = existsSync(ALLOWLIST) ? JSON.parse(readFileSync(ALLOWLIST, "utf8")) : undefined;
+const removed: Entry[] = existsSync(REMOVED) ? JSON.parse(readFileSync(REMOVED, "utf8")) : [];
 const at = argv.indexOf("--ref");
 const ref = at === -1 ? (existing?.generatedFrom ?? "e24df74") : argv[at + 1]!;
 const git = (...args: string[]) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 1 << 28 });
@@ -95,23 +105,27 @@ const refKeys = new Set(atRef.map(key));
 if (argv.includes("--check")) {
   const extra = (existing?.entries ?? []).filter((e) => !refKeys.has(key(e)));
   if (extra.length > 0) {
-    console.error(`✗ ${extra.length} allowlist entr${extra.length === 1 ? "y is" : "ies are"} not a site the rule finds at ${ref}: the allowlist only shrinks.`);
+    console.error(`✗ ${extra.length} allowlist entr${extra.length === 1 ? "y is" : "ies are"} not a site the rule finds at ${ref}.`);
     extra.forEach((e) => console.error(`  ${e.file}: ${e.selector}`));
     process.exit(1);
   }
-  console.log(`✓ All ${existing?.entries.length ?? 0} allowlist entries are sites the rule finds at ${ref} (${atRef.length} there).`);
+  console.log(`✓ All ${existing?.entries.length ?? 0} allowlist entries are sites the rule finds at ${ref} (${atRef.length} there). This is all --check holds; "only shrinks" is held by pnpm test and tools/check-allowlist-base.ts.`);
 } else if (argv.includes("--write")) {
   const hereKeys = new Set((await sites(partialsHere())).map(key));
-  const kept = existing === undefined ? undefined : new Set(existing.entries.map(key));
-  const entries = atRef.filter((e) => hereKeys.has(key(e)) && (kept === undefined || kept.has(key(e))));
+  const removedKeys = new Set(removed.map(key));
+  const entries = atRef.filter((e) => hereKeys.has(key(e)) && !removedKeys.has(key(e)));
+  const gone = atRef.filter((e) => !hereKeys.has(key(e)) && !removedKeys.has(key(e))).map(({ file, selector }) => ({ file, selector }));
   const list: Allowlist = {
     rule: RULE,
     generatedFrom: ref,
-    about: "Generated by tools/stylelint/state-box-shadow-allowlist.ts from the sites the rule finds at generatedFrom; `line` is the line there. It may only shrink: never add an entry by hand (--check catches one).",
+    about: "Generated by tools/stylelint/state-box-shadow-allowlist.ts: the sites the rule finds at generatedFrom that are still sites, less state-box-shadow-removed.json; `line` is the line there. It only shrinks: a fixed site moves to the append-only removed list, and pnpm test holds the two lists to the sites at e24df74 (L154).",
     entries,
   };
   writeFileSync(ALLOWLIST, `${JSON.stringify(list, null, 2)}\n`);
-  console.log(`Wrote ${entries.length} entr${entries.length === 1 ? "y" : "ies"} (of ${atRef.length} at ${ref}) to ${relative(ROOT, ALLOWLIST)}.`);
+  if (gone.length > 0) {
+    writeFileSync(REMOVED, `${JSON.stringify([...removed, ...gone], null, 2)}\n`);
+  }
+  console.log(`Wrote ${entries.length} allowlist entr${entries.length === 1 ? "y" : "ies"} (of ${atRef.length} at ${ref}); appended ${gone.length} to the removed list.`);
 } else {
   console.log(`${atRef.length} site(s) at ${ref}:`);
   atRef.forEach((e) => console.log(`  ${e.file}:${e.line}  ${e.selector}`));

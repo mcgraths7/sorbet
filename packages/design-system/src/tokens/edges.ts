@@ -252,6 +252,27 @@ export function shadowText(layers: readonly ShadowLayer[]): string {
     : layers.map((layer) => `${layer.inset ? "inset " : ""}${[layer.x, layer.y, layer.blur, layer.spread].map(length).join(" ")} ${withAlpha(layer.color, layer.alpha)}`).join(", ");
 }
 
+/** The elements whose all-round outset layers a clipping parent must make room for (L151): the ones that sit in flow beside their neighbours. */
+const HALO_ELEMENTS: readonly EdgeElement[] = ["container", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger"];
+
+/**
+ * How far a mode's all-round layers reach past an element's box, in whole px
+ * (L151): the largest `max(|x|, |y|) + blur + spread` of any all-round layer
+ * drawn outside the box, in the rest, hover and press of the container, the
+ * quiet element and the four filled ones, rounded up. A clipping or scrolling
+ * parent pads by it, so it never cuts the layer presence measures. 0 when no
+ * such layer exists.
+ */
+export function haloRoom(data: EdgeData): number {
+  const reaches = HALO_ELEMENTS.flatMap((element) => {
+    const recipe = data[element];
+    return recipe === undefined ? [] : [...recipe.rest, ...(recipe.hover ?? []), ...(recipe.press ?? [])];
+  })
+    .filter((layer) => allRound(layer) && !layer.inset)
+    .map((layer) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread);
+  return Math.ceil(Math.max(0, ...reaches));
+}
+
 /**
  * A layer that reaches every side alike: no offset and a positive spread.
  * Only such a layer can stand in for a border, so it is the only kind whose

@@ -6,27 +6,37 @@ const { createPlugin, utils } = stylelint;
 const ruleName = "sorbet/no-state-box-shadow";
 const messages = utils.ruleMessages(ruleName, {
   rejected: (selector) =>
-    `box-shadow on a state selector (${selector}). An element's shadow is a state layer over an edge layer, composed in abstracts/ (control-glow, soft-edge): set the layer's custom property here, or use those mixins, instead of writing box-shadow, which replaces the edge.`,
+    `box-shadow on a state selector (${selector}). An element's shadow is a state layer over an edge layer, composed in abstracts/ (control-glow, soft-edge): set the layer's custom property here, or use those mixins (or where-defined, on an element with no edge layer), instead of writing box-shadow, which replaces the edge.`,
   stale: (selector) =>
-    `allowlist entry no longer matches anything (${selector}): delete it from tools/stylelint/state-box-shadow-allowlist.json. The allowlist only shrinks.`,
+    `allowlist entry no longer matches anything (${selector}): move it from tools/stylelint/state-box-shadow-allowlist.json to state-box-shadow-removed.json. The allowlist only shrinks.`,
 });
 
 const ALLOWLIST = new URL("./state-box-shadow-allowlist.json", import.meta.url);
 
-// A state is a pseudo-class a user or the page turns on and off, or an
-// attribute the library sets to say so (aria-*, data-*, open). What sits
-// inside :not(…) is a condition on the state, not a state of its own, so it is
-// removed before testing: `.x:not(:disabled)` is the element at rest.
-const STATE_PSEUDO = /:(?:hover|focus|focus-visible|focus-within|active|checked|indeterminate|disabled|enabled|invalid|user-invalid|valid|user-valid|open|popover-open|target|placeholder-shown|autofill|visited|current)(?![\w-])/;
-const STATE_ATTRIBUTE = /\[\s*(?:aria-[\w-]+|data-[\w-]+|open)\s*[\]=~|^$*]/;
-const NOT = /:not\((?:[^()]|\([^()]*\))*\)/g;
+// What a state is: legibility-spec.md L153, the one definition, which the
+// compiled check in test-contracts.ts shares. A user-action or form
+// pseudo-class (also inside :is, :where, :not and :has), an [aria-*] or
+// [data-state] attribute, or a BEM modifier from the named list. A modifier not
+// on the list is a style variant (--raised, --flat, --sm), and another [data-*]
+// attribute is a fact about the element (L163: [data-today]), not a state.
+const STATE_PSEUDO = /:(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\w-])/;
+const STATE_ATTRIBUTE = /\[\s*(?:aria-[\w-]+|data-state)\s*[\]=~|^$*]/;
+const STATE_MODIFIER = /--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\w-])/;
+
+// What writes a shadow: the property, its vendor spellings, and the abstracts'
+// mixins that write one outright. A list composed of the two layers is the
+// allowed form (L153), as is any other mixin (control-glow composes; where-defined
+// is held by the compiled check, L162 (a)). An interpolated property name is
+// left to the compiled check, which sees it once Sass has resolved it.
+const SHADOW_PROPERTY = /^(?:-webkit-|-moz-)?box-shadow$/i;
+const SHADOW_MIXIN = /^(?:elevate|popover-surface)\b/;
+const COMPOSED = /^var\(--state-layer\b[\s\S]*\),\s*var\(--edge-layer\b/;
 
 const tidy = (text) => text.replace(/\s+/g, " ").trim();
 
 /** Whether one selector (as written, nesting `&` and all) names a state. */
 export function isStateSelector(selector) {
-  const bare = selector.replace(NOT, "");
-  return STATE_PSEUDO.test(bare) || STATE_ATTRIBUTE.test(bare);
+  return STATE_PSEUDO.test(selector) || STATE_ATTRIBUTE.test(selector) || STATE_MODIFIER.test(selector);
 }
 
 /** The partial's path under src/styles/, or undefined for a file that is not one. */
@@ -36,26 +46,37 @@ export function partialOf(file) {
 }
 
 /**
- * Every box-shadow declaration under a state selector, with the chain of
- * enclosing rules and at-rules that identifies it. The chain, not the line,
- * is the key: a line moves whenever something above it does; a chain moves
- * only when the site itself is rewritten.
+ * Every shadow written under a state selector, with the chain of enclosing
+ * rules and at-rules that identifies it. The chain, not the line, is the key:
+ * a line moves whenever something above it does; a chain moves only when the
+ * site itself is rewritten. `@at-root <selector>` counts as a selector.
  */
 export function stateBoxShadows(root) {
   const found = [];
-  root.walkDecls(/^box-shadow$/i, (decl) => {
+  const visit = (node) => {
     const chain = [];
     let state = false;
-    for (let node = decl.parent; node && node.type !== "root"; node = node.parent) {
-      if (node.type === "rule") {
-        chain.unshift(tidy(node.selector));
-        state ||= isStateSelector(node.selector);
-      } else if (node.type === "atrule") {
-        chain.unshift(tidy(`@${node.name} ${node.params}`));
+    for (let parent = node.parent; parent && parent.type !== "root"; parent = parent.parent) {
+      if (parent.type === "rule") {
+        chain.unshift(tidy(parent.selector));
+        state ||= isStateSelector(parent.selector);
+      } else if (parent.type === "atrule") {
+        chain.unshift(tidy(`@${parent.name} ${parent.params}`));
+        state ||= parent.name === "at-root" && isStateSelector(parent.params);
       }
     }
     if (state) {
-      found.push({ decl, selector: chain.join(" | ") });
+      found.push({ decl: node, selector: chain.join(" | ") });
+    }
+  };
+  root.walkDecls(SHADOW_PROPERTY, (decl) => {
+    if (!COMPOSED.test(decl.value.trim())) {
+      visit(decl);
+    }
+  });
+  root.walkAtRules("include", (include) => {
+    if (SHADOW_MIXIN.test(include.params.trim())) {
+      visit(include);
     }
   });
   return found;
@@ -69,7 +90,7 @@ const rule = (primary, secondary) => {
     if (!primary || file === undefined || file.startsWith("abstracts/")) {
       return;
     }
-    // `{ allowlist: false }` reports every site: what the generator runs on main.
+    // `{ allowlist: false }` reports every site: what the generator runs on a ref.
     const entries = secondary?.allowlist === false ? [] : readAllowlist().filter((e) => e.file === file);
     const unmatched = new Set(entries.map((e) => e.selector));
     for (const { decl, selector } of stateBoxShadows(root)) {

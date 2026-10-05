@@ -141,18 +141,46 @@
   @return clr($name);
 }
 
-/// The mark on a selected or current row: a 3px bar on one side, inset, in
+/// A layer, ring, bar or line painted from an optional colour token, that a
+/// theme which does not define the token never renders at all (L148, L149):
+///
+///   --<local>: <value>;
+///   <property>: var(--<local>, <old>);
+///
+/// `<value>` reads the token through seam-only(), with no fallback. Where the
+/// token is undefined, the local holds a var() of an unset property with no
+/// fallback, which CSS makes invalid at computed-value time, so `<property>`
+/// takes `<old>` — the element's value before the token existed — exactly. A
+/// `transparent` fallback is not the same: a transparent ring still goes
+/// through antialiasing and moved pixels in every frozen preset (C2, C3).
+///
+/// Declare the local on the element (or pseudo-element) that reads it, and
+/// never register it with @property: a registered property falls back to its
+/// initial value, not to the var() fallback.
+@mixin where-defined($property, $local, $value, $old) {
+  --#{$local}: #{$value};
+
+  #{$property}: var(--#{$local}, #{$old});
+}
+
+/// The mark on a selected or current row: a 3px bar, inset, in
 /// `selected-bar`: sheet 2 carries a selection with a wash, a bar and a
 /// weight, never with colour alone. `$side` is `start` (a list row: the bar
-/// stands on the left) or `end` (a tab or a nav link: it lies along the
-/// bottom). A theme that does not define the token paints the fallback,
-/// `transparent`, so the bar draws nothing there. The row's own shadow, when it
-/// has one, is replaced, which is why only rows with no shadow take it.
-@mixin selected-mark($side: start) {
+/// stands on the inline-start side, mirrored under right-to-left, L156) or
+/// `end` (a tab or a nav link: it lies along the bottom). `$old` is the row's
+/// box-shadow before the bar, which a theme without the token keeps exactly
+/// (L148). It replaces the row's own shadow, so it goes only on rows that
+/// carry no edge layer (L162 (a)). The pills tab variant keeps its raised
+/// segment instead, by its more specific rule, on purpose (L157).
+@mixin selected-mark($side: start, $old: none) {
   @if $side == start {
-    box-shadow: inset 3px 0 0 0 seam(selected-bar);
+    @include where-defined(box-shadow, selected-bar-layer, inset 3px 0 0 0 seam-only(selected-bar), $old);
+
+    &:dir(rtl) {
+      --selected-bar-layer: inset -3px 0 0 0 #{seam-only(selected-bar)};
+    }
   } @else if $side == end {
-    box-shadow: inset 0 -3px 0 0 seam(selected-bar);
+    @include where-defined(box-shadow, selected-bar-layer, inset 0 -3px 0 0 seam-only(selected-bar), $old);
   } @else {
     @error "selected-mark($side): `#{$side}` is not start or end";
   }

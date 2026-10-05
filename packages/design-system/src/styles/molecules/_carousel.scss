@@ -26,6 +26,10 @@
     display: flex;
     gap: var(--gap, #{space(4)});
     overflow-x: auto;
+    // Room for the slides' all-round edge layer, which the scroll box would
+    // otherwise cut (L151): 0 where a theme draws no such layer.
+    padding: halo-room();
+    scroll-padding: halo-room();
     // The carousel itself: slides settle on a snap point instead of anywhere.
     scroll-snap-type: x mandatory;
     // scrollTo() inherits this, so the JS never picks a motion mode.

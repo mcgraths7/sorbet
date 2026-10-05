@@ -24,12 +24,14 @@
   // visible on any surface — `clr(border)` collides with `surface-raised` in
   // dark mode, where border and the raised surface resolve to the same value.
   // That tint is slider-track's fallback; a theme may set the track (sorbet:
-  // the well) and ring it in switch-ring, which is transparent elsewhere.
+  // the well) and ring it in switch-ring; a theme without it renders no ring
+  // (L148).
   &::-webkit-slider-runnable-track {
     block-size: space(1);
     border-radius: radius(full);
     background-color: seam(slider-track);
-    box-shadow: inset 0 0 0 1px seam(switch-ring);
+
+    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), none);
   }
 
   &::-webkit-slider-thumb {
@@ -52,7 +54,8 @@
     block-size: space(1);
     border-radius: radius(full);
     background-color: seam(slider-track);
-    box-shadow: inset 0 0 0 1px seam(switch-ring);
+
+    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), none);
   }
 
   &::-moz-range-thumb {

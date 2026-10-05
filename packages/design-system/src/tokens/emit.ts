@@ -16,7 +16,7 @@
  */
 
 import { withAlpha, type Hex } from "./color.ts";
-import { EDGE_ELEMENTS, edgeProperties, presetEdgesOf, shadowText, type EdgeData } from "./edges.ts";
+import { EDGE_ELEMENTS, edgeProperties, haloRoom, presetEdgesOf, shadowText, type EdgeData } from "./edges.ts";
 import { contractOf } from "./rules.ts";
 import {
   breakpoints,
@@ -75,16 +75,20 @@ function buttonLabelDecls(preset: Preset): string[] {
   return [decl("button-font-size", `${(px as number) / 16}rem`), decl("button-font-size-sm", `${(smallPx as number) / 16}rem`)];
 }
 
-/** The custom properties a mode's optional data emits, in the order the block writes them: the present optional colour tokens of its record, then its edge properties. */
+/** The custom properties a mode's optional data emits, in the order the block writes them: the present optional colour tokens of its record, then its edge properties and the halo room (L151). */
 const optionalNames = (preset: Preset, mode: Mode, edges: EdgeData | undefined): string[] => [
   ...Object.entries(preset.colors[mode]).filter(([name, value]) => isSeam(name) && value !== undefined).map(([name]) => name),
-  ...(edges === undefined ? [] : edgeProperties(edges).map(([property]) => property)),
+  ...(edges === undefined ? [] : [...edgeProperties(edges).map(([property]) => property), "halo-room"]),
 ];
+
+/** A mode's edge lines, then the room a clipping parent leaves for their all-round layers (L151). */
+const edgeDecls = (edges: EdgeData | undefined): string[] =>
+  edges === undefined ? [] : [...edgeProperties(edges).map(([property, layers]) => decl(property, shadowText(layers))), decl("halo-room", `${haloRoom(edges)}px`)];
 
 /**
  * One mode's declarations: the colour scheme, the colours (roles and optional
  * tokens, in record order), the shadows, then — light only — the button
- * label's size, then the mode's edges. A dark block ends by resetting, with
+ * label's size, then the mode's edges and their halo room. A dark block ends by resetting, with
  * `initial`, every property the light block emits from optional data and the
  * dark block does not, one property at a time: `initial` makes a custom
  * property count as not set, so the stylesheet's fallback paints in dark
@@ -98,7 +102,7 @@ function modeBlock(preset: Preset, mode: Mode, edges: Partial<Record<Mode, EdgeD
     ...colorDecls(preset.colors[mode]),
     ...shadowDecls(mode, preset.shadowTint),
     ...(mode === "light" ? buttonLabelDecls(preset) : []),
-    ...(own === undefined ? [] : edgeProperties(own).map(([property, layers]) => decl(property, shadowText(layers)))),
+    ...edgeDecls(own),
   ];
   if (mode === "dark") {
     const defined = new Set(optionalNames(preset, "dark", own));

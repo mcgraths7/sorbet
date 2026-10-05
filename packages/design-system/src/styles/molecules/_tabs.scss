@@ -89,6 +89,9 @@
       &[aria-selected="true"] {
         // surface-raised (not surface) so the active pill stays distinct from
         // the bg-subtle track in dark mode, where surface == bg-subtle.
+        // A segmented control: its selection is this raised segment, so it
+        // takes neither the underline tabs' wash nor their bar, on purpose
+        // (L157); this rule outranks the base tab's selected-mark.
         background-color: clr(surface-raised);
         color: clr(text);
         box-shadow: shadow(sm);

@@ -144,6 +144,16 @@ jobs:
           git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           pnpm run check:golden:base "origin/${BASE_REF}"
 
+      # The state-shadow allowlist only shrinks (legibility-spec.md L154). The
+      # test holds allowlist + removed list to e24df74's sites, which a site
+      # moved back from one list to the other cannot break; the base branch's
+      # removed list can. Every entry it has must still be here.
+      - name: Verify the state-shadow removed list keeps the base branch's entries
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node tools/check-allowlist-base.ts "origin/${BASE_REF}"
+
       # A gate that has stopped working looks like a gate that passes. This
       # breaks the golden comparison on purpose and fails if it stays green.
       - name: Verify the golden gate still bites

@@ -31,10 +31,13 @@ $shadow-press: (
 /// lift. Shared by --soft, --ghost and --link, which differ in fill but agree
 /// completely about elevation.
 @mixin flat-elevation {
+  // The placeholder, not `none`: soft-edge composes these under the state
+  // layer, and a list holding `none` is invalid, so the button would draw no
+  // state layer either (L150).
   --lift: 0;
-  --shadow-rest: none;
-  --shadow-hover: none;
-  --shadow-press: none;
+  --shadow-rest: 0 0 #0000;
+  --shadow-hover: 0 0 #0000;
+  --shadow-press: 0 0 #0000;
 }
 
 .sb-button {

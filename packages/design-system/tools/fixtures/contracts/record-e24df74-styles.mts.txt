@@ -1,0 +1,71 @@
+// Records two fixtures of e24df74's stylesheet for legibility-spec.md revision 3.5 (§12.4) and L162 (b):
+//
+//   compiled.at-e24df74.css               — e24df74's src/styles/index.scss compiled with the repo's sass (expanded), as
+//                                           build:css compiles it. L148: a new ring, bar or line falls back to "the
+//                                           element's old value exactly"; the test reads each selector's old
+//                                           box-shadow and border-color here. (c0504b7's stylesheet is the same:
+//                                           step 2.2 changed no partial.)
+//   state-box-shadow-sites.at-e24df74.json — L154 (1) as L162 (b) rules it: the sites the COMPILED check of L153 finds
+//                                           in that stylesheet, allowing nothing. A site is a state selector of a
+//                                           rule that declares box-shadow, -webkit-box-shadow or -moz-box-shadow in
+//                                           neither the composed form nor L162 (a)'s where-defined form (neither
+//                                           exists at e24df74), each { selector, property, value }, one per
+//                                           distinct triple. test-contracts.ts reproduces the list from
+//                                           compiled.at-e24df74.css with its own check, so the two cannot drift.
+//
+// Committed as .txt for the reason record-fixtures.mts.txt is (M10.12). Run it on a checkout of e24df74's design
+// system, with the repo root that supplies sass and postcss:
+//
+//   mkdir -p /tmp/sorbet-e24df74 /tmp/sorbet-recorded
+//   git archive e24df74 packages/design-system | tar -x -C /tmp/sorbet-e24df74
+//   cp packages/design-system/tools/fixtures/contracts/record-e24df74-styles.mts.txt /tmp/record-e24df74-styles.mts
+//   node /tmp/record-e24df74-styles.mts /tmp/sorbet-e24df74/packages/design-system "$PWD" /tmp/sorbet-recorded
+//   diff -r /tmp/sorbet-recorded packages/design-system/tools/fixtures/contracts | grep -v '^Only in'
+
+import { writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join } from "node:path";
+
+const [designSystem, repoRoot, outDir] = process.argv.slice(2);
+if (!designSystem || !repoRoot || !outDir) {
+  console.error("usage: node record-e24df74-styles.mts <packages/design-system of e24df74> <repo root> <output dir>");
+  process.exit(1);
+}
+const req = createRequire(join(repoRoot, "package.json"));
+const sass = req("sass") as { compile: (path: string, options: object) => { css: string } };
+// postcss is stylelint's own dependency; pnpm does not hoist it to the root.
+const postcss = createRequire(req.resolve("stylelint"))("postcss") as { parse: (css: string) => { walkRules: (visit: (rule: { selectors: string[]; nodes: { type: string; prop?: string; value?: string }[] }) => void) => void } };
+const styles = join(designSystem, "src", "styles");
+const css = sass.compile(join(styles, "index.scss"), { loadPaths: [styles], style: "expanded" }).css;
+writeFileSync(join(outDir, "compiled.at-e24df74.css"), css);
+
+// L153's state rule and allowed forms.
+const STATE = /:(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\w-])|\[aria-|\[data-state|--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\w-])/;
+const SHADOW = new Set(["box-shadow", "-webkit-box-shadow", "-moz-box-shadow"]);
+const COMPOSED = /^var\(--state-layer\b[\s\S]*\),\s*var\(--edge-layer\b/;
+const normal = (text: string) => text.replace(/["']/g, "").replace(/\s+/g, " ").trim();
+
+const seen = new Map<string, { selector: string; property: string; value: string }>();
+postcss.parse(css).walkRules((rule) => {
+  for (const decl of rule.nodes) {
+    const property = decl.prop?.toLowerCase() ?? "";
+    if (decl.type !== "decl" || !SHADOW.has(property)) {
+      continue;
+    }
+    const value = normal(decl.value ?? "").replace(/\s*!important$/i, "");
+    if (COMPOSED.test(value)) {
+      continue;
+    }
+    for (const selector of rule.selectors.map(normal).filter((item) => STATE.test(item))) {
+      seen.set(`${selector}\n${property}\n${value}`, { selector, property, value });
+    }
+  }
+});
+const sites = [...seen.values()].sort((a, b) => a.selector.localeCompare(b.selector) || a.property.localeCompare(b.property) || a.value.localeCompare(b.value));
+writeFileSync(join(outDir, "state-box-shadow-sites.at-e24df74.json"), `${JSON.stringify({
+  recordedFrom: "e24df74",
+  check: "legibility-spec.md L153, on the compiled stylesheet",
+  note: "legibility-spec.md L154 (1) as L162 (b) rules it: the state selectors whose rule writes a box-shadow in neither the composed nor the where-defined form, in e24df74's compiled stylesheet, allowing nothing. Not edited after recording.",
+  sites,
+}, null, 2)}\n`);
+console.log(`recorded compiled.at-e24df74.css and state-box-shadow-sites.at-e24df74.json (${sites.length} sites, ${new Set(sites.map((site) => site.selector)).size} selectors) into ${outDir}`);

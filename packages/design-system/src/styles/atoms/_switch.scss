@@ -11,10 +11,12 @@
   border-radius: radius(full);
   // The off track (L70): its own token, so a theme can make it the well while
   // the rest paint today's border-strong. The ring round the track is inset
-  // (a clipping parent cannot cut it, and the control keeps its size) and
-  // reads switch-ring, transparent where a theme does not define it.
+  // (a clipping parent cannot cut it, and the control keeps its size), and a
+  // theme without switch-ring renders no ring at all (L148).
   background-color: seam(switch-off);
-  box-shadow: inset 0 0 0 1.5px seam(switch-ring);
+
+  @include where-defined(box-shadow, switch-ring-layer, inset 0 0 0 1.5px seam-only(switch-ring), none);
+
   position: relative;
   cursor: pointer;
   transition: background-color dur(base) ease(out);
@@ -29,8 +31,10 @@
     border-radius: radius(full);
     background-color: clr(surface);
     // A 1px ring under the thumb's shadow: without it a milk thumb sits close
-    // to a light off-track (L70). Transparent where a theme has no ring.
-    box-shadow: 0 0 0 1px seam(switch-ring), shadow(xs);
+    // to a light off-track (L70). A theme without switch-ring keeps shadow(xs)
+    // alone, exactly (L148).
+    @include where-defined(box-shadow, thumb-ring-layer, (0 0 0 1px seam-only(switch-ring), shadow(xs)), shadow(xs));
+
     transition: translate dur(base) ease(spring);
   }
 

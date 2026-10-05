@@ -1,0 +1,42 @@
+[
+  {
+    "file": "atoms/_input.scss",
+    "selector": ".sb-input, .sb-textarea, .sb-select select | &:focus-visible"
+  },
+  {
+    "file": "atoms/_input.scss",
+    "selector": ".sb-input, .sb-textarea, .sb-select select | &:user-invalid, &[aria-invalid=\"true\"] | &:focus-visible"
+  },
+  {
+    "file": "atoms/_number-input.scss",
+    "selector": ".sb-number-input | &:focus-within"
+  },
+  {
+    "file": "atoms/_number-input.scss",
+    "selector": ".sb-number-input | &:has(.sb-number-input__field[aria-invalid=\"true\"]) | &:focus-within"
+  },
+  {
+    "file": "molecules/_combobox.scss",
+    "selector": ".sb-combobox | &__field | &:focus-within"
+  },
+  {
+    "file": "molecules/_combobox.scss",
+    "selector": ".sb-combobox | &__field | &[data-invalid] | &:focus-within"
+  },
+  {
+    "file": "molecules/_date-range.scss",
+    "selector": ".sb-date-range | &__control | &:focus-within"
+  },
+  {
+    "file": "molecules/_date-range.scss",
+    "selector": ".sb-date-range | &__control | &[data-invalid] | &:focus-within"
+  },
+  {
+    "file": "atoms/_button.scss",
+    "selector": ".sb-button | &:hover:not(:disabled, [aria-disabled=\"true\"])"
+  },
+  {
+    "file": "atoms/_button.scss",
+    "selector": ".sb-button | &:active:not(:disabled, [aria-disabled=\"true\"])"
+  }
+]

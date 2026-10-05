@@ -108,6 +108,7 @@ export async function openPlayground(
   mode: Mode,
   viewport: { width: number; height: number },
   deviceScaleFactor = 1,
+  { coarse = false }: { coarse?: boolean } = {},
 ): Promise<Page> {
   const context = await browser.newContext({
     viewport,
@@ -116,6 +117,8 @@ export async function openPlayground(
     reducedMotion: "reduce",
     timezoneId: "UTC",
     locale: "en-US",
+    // A touch screen: Chromium then matches (pointer: coarse) and (hover: none).
+    hasTouch: coarse,
   });
   const page = await context.newPage();
   await page.clock.setFixedTime(FIXED_TIME);

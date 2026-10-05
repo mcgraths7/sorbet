@@ -84,9 +84,13 @@
   &--interactive {
     transition: box-shadow dur(base) ease(out), translate dur(base) ease(out), border-color dur(base) ease(out);
 
+    // Never weaker than rest (L152): a theme with edge data keeps its container
+    // edge and its line stays the container's (transparent in sorbet); every
+    // other theme lifts to shadow(lg) and shows the border line, as before.
     &:hover {
-      box-shadow: shadow(lg);
-      border-color: clr(border);
+      box-shadow: edge(container, shadow(lg));
+
+      @include where-defined(border-color, card-hover-line, seam-only(container-line), clr(border));
     }
 
     // Only the displacement is gated, not the whole hover state. A touch

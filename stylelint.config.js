@@ -22,8 +22,11 @@ export default {
     // box-shadow is one property: a state selector that writes it replaces the
     // element's edge. Outside abstracts/, a state sets a layer's custom
     // property instead (see control-glow and soft-edge). The sites that did so
-    // on main are allowlisted in tools/stylelint/state-box-shadow-allowlist.json,
-    // generated from main and only ever shrinking.
+    // on main are allowlisted in tools/stylelint/state-box-shadow-allowlist.json;
+    // a fixed site moves to the append-only state-box-shadow-removed.json. This
+    // rule reads source and gives line numbers; the check on the compiled CSS
+    // in pnpm test (legibility-spec.md L153, L154) is the one that sees every
+    // route, and holds the two lists to e24df74's sites.
     "sorbet/no-state-box-shadow": true,
   },
 };

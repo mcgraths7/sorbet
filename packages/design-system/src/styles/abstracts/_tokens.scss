@@ -141,3 +141,26 @@
   }
   @error "Unknown size `#{$size}` for button-label(). Valid: md, sm";
 }
+
+/// An optional colour token with NO fallback, e.g. seam-only(switch-ring) →
+/// var(--sb-switch-ring). Legal only inside a where-defined() value
+/// (abstracts/_mixins.scss, L149): in a theme that does not define the token the
+/// local property holding it is invalid at computed-value time, so the
+/// property that reads the local takes its old value exactly, and a frozen
+/// preset gains no new rendered layer (L148). An unknown name is a compile
+/// error, as for seam().
+@function seam-only($name) {
+  @if not map.get(gen.$seams, "#{$name}") {
+    @error "Unknown optional colour token `#{$name}` for seam-only(). Valid: #{map.keys(gen.$seams)}";
+  }
+  @return var(--sb-#{$name});
+}
+
+/// The room a clipping or scrolling parent leaves for its children's all-round
+/// edge layer (L151): --sb-halo-room, which a theme with edge data emits (sorbet
+/// light 8px), and 0px everywhere else, so a frozen preset's padding stays 0.
+@function halo-room() {
+  // The unit is kept on purpose: L162 (c) fixes the form as written.
+  // stylelint-disable-next-line length-zero-no-unit
+  @return var(--sb-halo-room, 0px);
+}

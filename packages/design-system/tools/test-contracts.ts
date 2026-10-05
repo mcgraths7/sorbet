@@ -3548,6 +3548,15 @@ try {
     ];
   });
   const colourLines = (record: ColorRecord) => Object.entries(record).map(([name, value]) => `--sb-${name}: ${value};`);
+  /**
+   * L151: the largest outward reach, max(|x|, |y|) + blur + spread, of any all-round outset layer in the rest, hover and
+   * press of container, quiet and the four filled-* elements, rounded up to a whole px.
+   */
+  const haloRoomOf = (edges: Partial<Edges>) => Math.ceil(Math.max(...["container", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger"]
+    .flatMap((element) => [...(edges[element]?.rest ?? []), ...(edges[element]?.hover ?? []), ...(edges[element]?.press ?? [])])
+    .filter((layer) => allRound(layer) && !layer.inset)
+    .map((layer) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread)));
+  const haloLine = (edges: Partial<Edges>) => `--sb-halo-room: ${haloRoomOf(edges)}px;`;
   const afterShadows = (lines: string[]) => {
     const at = lines.findIndex((line) => line.startsWith("--sb-shadow-xl:"));
     assert.ok(at >= 0, "no --sb-shadow-xl line");
@@ -3566,11 +3575,12 @@ try {
     const { light, dark } = blocksOf(css);
     const firstColour = (lines: string[]) => lines.findIndex((line) => line.startsWith("--sb-bg:"));
     assert.deepEqual(light.slice(firstColour(light), firstColour(light) + 89), colourLines(VALUES.colors.light), "light: the 89 colour lines, in record order (L16)");
-    assert.deepEqual(afterShadows(light), ["--sb-button-font-size: 1rem;", "--sb-button-font-size-sm: 0.875rem;", ...edgeLines(VALUES.edges.light)], "light, after the shadow lines (L19, L53)");
+    // L151 (revision 3.5): after the edge lines, the mode's --sb-halo-room.
+    assert.deepEqual(afterShadows(light), ["--sb-button-font-size: 1rem;", "--sb-button-font-size-sm: 0.875rem;", ...edgeLines(VALUES.edges.light), haloLine(VALUES.edges.light)], "light, after the shadow lines (L19, L53, L151)");
     assert.equal(edgeLines(VALUES.edges.light).length, 21, "13 rest, 4 hover, 4 press");
     for (const block of dark) {
       assert.deepEqual(block.slice(firstColour(block), firstColour(block) + 89), colourLines(VALUES.colors.dark), "dark: the 89 colour lines, in record order");
-      assert.deepEqual(afterShadows(block), edgeLines(VALUES.edges.dark), "dark, after the shadow lines: the edges, no button size (L55: it is not reset), and no reset (dark defines everything)");
+      assert.deepEqual(afterShadows(block), [...edgeLines(VALUES.edges.dark), haloLine(VALUES.edges.dark)], "dark, after the shadow lines: the edges and the room (L151), no button size (L55: it is not reset), and no reset (dark defines everything)");
     }
     assert.equal(css.split("--sb-button-font-size:").length - 1, 1, "--sb-button-font-size is emitted once (L19)");
   });
@@ -3584,13 +3594,14 @@ try {
     }
   });
 
-  test("L55 a dark block resets, with `initial`, every property the light block emits from optional data and it does not: the 20 optional tokens and the 21 edge properties — 41 lines, after everything else, in the light block's order", () => {
+  // L151 (revision 3.5): the light block's --sb-halo-room is reset too, after the edge properties: 41 resets became 42.
+  test("L55 L151 a dark block resets, with `initial`, every property the light block emits from optional data and it does not: the 20 optional tokens, the 21 edge properties and the halo room — 42 lines, after everything else, in the light block's order", () => {
     const preset = legiblePreset({ colors: { light: fresh().light, dark: oceanDark() }, edges: { light: freshEdges().light }, contract: { light: LEG, dark: WCAG } });
     const { dark } = blocksOf(themeCss(preset));
-    const resets = [...VALUES.seams.map((seam) => `--sb-${seam.name}: initial;`), ...edgeLines(VALUES.edges.light).map((line) => `${line.slice(0, line.indexOf(":"))}: initial;`)];
-    assert.equal(resets.length, 41);
+    const resets = [...VALUES.seams.map((seam) => `--sb-${seam.name}: initial;`), ...edgeLines(VALUES.edges.light).map((line) => `${line.slice(0, line.indexOf(":"))}: initial;`), "--sb-halo-room: initial;"];
+    assert.equal(resets.length, 42);
     for (const block of dark) {
-      assert.deepEqual(afterShadows(block), resets, "each dark block ends with the 41 resets (danger-active is a role, not optional data: it is not reset)");
+      assert.deepEqual(afterShadows(block), resets, "each dark block ends with the 42 resets (danger-active is a role, not optional data: it is not reset)");
     }
   });
 
@@ -3599,7 +3610,7 @@ try {
     delete edges.dark["filled-primary"]!.hover;
     const { dark } = blocksOf(themeCss(legiblePreset({ edges })));
     for (const block of dark) {
-      assert.deepEqual(afterShadows(block), [...edgeLines(edges.dark), "--sb-edge-filled-primary-hover: initial;"]);
+      assert.deepEqual(afterShadows(block), [...edgeLines(edges.dark), haloLine(edges.dark), "--sb-edge-filled-primary-hover: initial;"]); // L151: the room after the edges
     }
     const colors = fresh();
     delete colors.dark["quiet-fill"];
@@ -4350,28 +4361,30 @@ try {
         out.push(line.replaceAll("rgb(38 35 31 / ", "rgb(161 110 50 / "));
         if (t.startsWith("--sb-shadow-xl")) {
           // L19, then L53: the two button sizes, then the 21 edge lines.
-          out.push("  --sb-button-font-size: 1rem;", "  --sb-button-font-size-sm: 0.875rem;", ...edgeLines(VALUES.edges.light).map((decl) => `  ${decl}`));
+          // L151 (revision 3.5): then the halo room.
+          out.push("  --sb-button-font-size: 1rem;", "  --sb-button-font-size-sm: 0.875rem;", ...edgeLines(VALUES.edges.light).map((decl) => `  ${decl}`), `  ${haloLine(VALUES.edges.light)}`);
         }
         continue;
       }
       out.push(line);
       if (block === "dark" && t.startsWith("--sb-shadow-xl")) {
-        // L55: the 41 resets, after everything else, in the light block's order.
+        // L55: the 42 resets (41 until L151 added the halo room), after everything else, in the light block's order.
         const indent = /^\s*/.exec(line)![0];
-        out.push(...[...VALUES.seams.map((seam) => `--sb-${seam.name}: initial;`), ...edgeLines(VALUES.edges.light).map((decl) => `${decl.slice(0, decl.indexOf(":"))}: initial;`)].map((decl) => indent + decl));
+        out.push(...[...VALUES.seams.map((seam) => `--sb-${seam.name}: initial;`), ...edgeLines(VALUES.edges.light).map((decl) => `${decl.slice(0, decl.indexOf(":"))}: initial;`), "--sb-halo-room: initial;"].map((decl) => indent + decl));
       }
     }
     return out.join("\n");
   }
 
-  test("2.2 L97 L55 sorbet's golden is e24df74's changed only where §11.4 allows: line 1's tagline; in light, the 89 colour tokens, the five shadow lines tinted caramel, the two button sizes and the 21 edge lines; and the 41 resets at the end of each dark block", () => {
+  // L151, L98 (revision 3.5): the golden gains the light --sb-halo-room line and its two resets; 82 initial lines became 84.
+  test("2.2 L97 L55 L151 sorbet's golden is e24df74's changed only where §11.4 allows: line 1's tagline; in light, the 89 colour tokens, the five shadow lines tinted caramel, the two button sizes, the 21 edge lines and the halo room; and the 42 resets at the end of each dark block", () => {
     assert.equal(GOLDENS.recordedFrom, "e24df74");
     const golden = readFileSync(join(pkgRoot, "tools", "golden", "sorbet.css"), "utf8").split("\n");
     const [first, ...rest] = expectedGolden22().split("\n");
     assert.notEqual(golden[0], first, "line 1: the tagline is not rewritten (L21)");
     assert.equal(golden[0], `/* Sorbet DS theme: sorbet — ${shipped.sorbet!.tagline}`, "line 1 is the header with the preset's own tagline");
     assert.deepEqual(golden.slice(1), rest, "below line 1, sorbet's golden is not e24df74's with only §11.4's step-2.2 changes");
-    assert.equal(rest.filter((line) => line.endsWith(": initial;")).length, 82, "41 resets in each of the two dark blocks");
+    assert.equal(rest.filter((line) => line.endsWith(": initial;")).length, 84, "42 resets in each of the two dark blocks");
   });
 
   test("2.2 L4 L98 the four frozen goldens are byte for byte what e24df74 has", () => {
@@ -4536,9 +4549,10 @@ try {
     return parts.filter((part) => part !== "");
   };
   /** A compiled stylesheet read back: every style rule in source order, with whether a conditional at-rule (@media, @supports, @container) encloses it, and the @layer order. */
-  function readCss(text: string): { rules: CssRule[]; declaredLayers: string[]; layerBlocks: string[] } {
+  function readCss(text: string): { rules: CssRule[]; declaredLayers: string[]; layerBlocks: string[]; atRules: string[] } {
     const rules: CssRule[] = [];
     const layerBlocks: string[] = [];
+    const atRules: string[] = [];
     let declaredLayers: string[] = [];
     type Frame = { rule: CssRule } | { conditional: boolean; layer: string | null; opaque: boolean };
     const stack: Frame[] = [];
@@ -4588,6 +4602,7 @@ try {
         buffer = "";
         const frames = stack.filter((frame): frame is { conditional: boolean; layer: string | null; opaque: boolean } => !("rule" in frame));
         if (prelude.startsWith("@")) {
+          atRules.push(prelude);
           const name = /^@([\w-]+)/.exec(prelude)![1]!.toLowerCase();
           const layer = name === "layer" ? prelude.slice("@layer".length).trim() : null;
           if (layer !== null && stack.length === 0) {
@@ -4608,7 +4623,7 @@ try {
         }
       }
     }
-    return { rules, declaredLayers, layerBlocks };
+    return { rules, declaredLayers, layerBlocks, atRules };
   }
   let compiledStylesheet: ReturnType<typeof readCss> | undefined;
   /** The library's stylesheet, compiled now from src/styles/index.scss as build:css compiles it. */
@@ -4784,6 +4799,360 @@ try {
     }
     const changed = [...new Set([...Object.keys(base.files), ...Object.keys(now)])].sort().filter((path) => base.files[path] !== now[path]).map((path) => `${path}: ${base.files[path] === undefined ? "added" : now[path] === undefined ? "removed" : "changed"}`);
     assert.deepEqual(changed, []);
+  });
+
+  // ══ revision 3.5 (§12.4, L148 to L161): after the audit of steps 2.3 and 2.4 ══════════════════════════════
+  // Every check reads the stylesheet compiled now (stylesheet()), and where L148 asks for "the element's old value",
+  // e24df74's stylesheet, recorded by record-e24df74-styles.mts.txt (step 2.2 changed no partial, so c0504b7's is the same).
+  let olderStylesheet: ReturnType<typeof readCss> | undefined;
+  const oldStylesheet = () => {
+    olderStylesheet ??= readCss(readFileSync(join(fixtures, "compiled.at-e24df74.css"), "utf8"));
+    return olderStylesheet;
+  };
+  const lastIn = (sheet: ReturnType<typeof readCss>, selector: string, properties: string[]) =>
+    sheet.rules.filter((rule) => !rule.conditional && rule.selectors.includes(selector)).flatMap((rule) => rule.decls).filter(([property]) => properties.includes(property)).at(-1)?.[1];
+  const SHADOW_PROPERTIES = ["box-shadow", "-webkit-box-shadow", "-moz-box-shadow"];
+  const SEAM_NAMES = VALUES.seams.map((seam) => seam.name);
+  /** The custom properties a var() in `value` reads, by name. */
+  const readsOf = (value: string) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]!);
+  /** L150's closure over a stylesheet: the custom properties composed box-shadow lists read as items, and every property any declaration of one reads as its whole value. */
+  function composedClosure(sheet: ReturnType<typeof readCss>): Set<string> {
+    const set = new Set<string>();
+    for (const rule of sheet.rules) {
+      for (const [property, value] of rule.decls) {
+        const items = splitTop(value);
+        if (SHADOW_PROPERTIES.includes(property) && items.length > 1) {
+          for (const item of items) {
+            const whole = /^var\(\s*(--[\w-]+)/.exec(item.trim());
+            if (whole) {
+              set.add(whole[1]!);
+            }
+          }
+        }
+      }
+    }
+    for (let grew = true; grew;) {
+      grew = false;
+      for (const rule of sheet.rules) {
+        for (const [property, value] of rule.decls) {
+          const whole = /^var\(\s*(--[\w-]+)\s*(?:,[\s\S]*)?\)$/.exec(value.trim());
+          if (set.has(property) && whole && !set.has(whole[1]!)) {
+            set.add(whole[1]!);
+            grew = true;
+          }
+        }
+      }
+    }
+    return set;
+  }
+  /** `none`, or a var() whose fallbacks end in none. */
+  const resolvesToNone = (value: string): boolean => {
+    const text = value.trim();
+    if (text === "none") {
+      return true;
+    }
+    const v = /^var\(\s*--[\w-]+\s*,([\s\S]*)\)$/.exec(text);
+    return v !== null && resolvesToNone(v[1]!);
+  };
+  /** L150: every declaration of a property in the closure that resolves to none. */
+  const noneInClosure = (sheet: ReturnType<typeof readCss>) => {
+    const closure = composedClosure(sheet);
+    return sheet.rules.flatMap((rule) => rule.decls.filter(([property, value]) => closure.has(property) && resolvesToNone(value)).map(([property, value]) => `${rule.selectors.join(", ")} { ${property}: ${value} }`));
+  };
+  /** The custom properties a box-shadow value reads, directly or through other custom properties (the C2 context). */
+  function shadowContext(sheet: ReturnType<typeof readCss>): Set<string> {
+    const set = new Set<string>();
+    for (const rule of sheet.rules) {
+      for (const [property, value] of rule.decls) {
+        if (SHADOW_PROPERTIES.includes(property)) {
+          readsOf(value).forEach((name) => set.add(name));
+        }
+      }
+    }
+    for (let grew = true; grew;) {
+      grew = false;
+      for (const rule of sheet.rules) {
+        for (const [property, value] of rule.decls) {
+          if (set.has(property)) {
+            for (const name of readsOf(value).filter((name) => !set.has(name))) {
+              set.add(name);
+              grew = true;
+            }
+          }
+        }
+      }
+    }
+    return set;
+  }
+  /** The locals where-defined sets: custom properties (not --sb-*) whose value reads a seam with no fallback. */
+  const whereDefinedLocals = (sheet: ReturnType<typeof readCss>) => {
+    const bare = new RegExp(`var\\(\\s*--sb-(${SEAM_NAMES.join("|")})\\s*\\)`);
+    return new Set(sheet.rules.flatMap((rule) => rule.decls.filter(([property, value]) => property.startsWith("--") && !property.startsWith("--sb-") && bare.test(value)).map(([property]) => property)));
+  };
+
+  test("2.4 L149 seam-only(<name>) compiles to var(--sb-<name>) with no fallback, for each of the 20 optional tokens; an unknown name fails the compile, naming it", () => {
+    for (const name of SEAM_NAMES) {
+      assert.deepEqual(compiled(`  --probe: #{seam-only(${name})};\n  color: seam-only(${name});`, `seam-only(${name})`).color, `var(--sb-${name})`, `seam-only(${name})`);
+    }
+    for (const name of ["nope", "switch-rng", "surface", "edge-container"]) {
+      refusedByCompile(`  color: seam-only(${name});`, name, `seam-only(${name})`);
+    }
+  });
+
+  test("2.4 L148 L149 no box-shadow layer is coloured by a seam with a transparent fallback (C2's shape): not in a box-shadow, nor in a custom property a box-shadow reads", () => {
+    const sheet = stylesheet();
+    const context = shadowContext(sheet);
+    const transparent = new RegExp(`var\\(\\s*--sb-(${SEAM_NAMES.join("|")})\\s*,\\s*transparent\\s*\\)`);
+    const found = sheet.rules.flatMap((rule) => rule.decls.filter(([property, value]) => (SHADOW_PROPERTIES.includes(property) || context.has(property)) && transparent.test(value)).map(([property, value]) => `${rule.selectors.join(", ")} { ${property}: ${value} }`));
+    assert.deepEqual(found, []);
+  });
+
+  test("2.4 L149 where-defined: a seam read with no fallback sits only in a local custom property; every read of that local is var(--<local>, <old>) in the rule that declares it; no local is @property-registered — and the switch, thumb and slider-track rings and the four selected bars read this way (L148)", () => {
+    const sheet = stylesheet();
+    const bare = new RegExp(`var\\(\\s*--sb-(${SEAM_NAMES.join("|")})\\s*\\)`, "g");
+    const wrong: string[] = [];
+    const sites: Record<string, number> = {};
+    for (const rule of sheet.rules) {
+      for (const [property, value] of rule.decls) {
+        for (const m of value.matchAll(bare)) {
+          sites[m[1]!] = (sites[m[1]!] ?? 0) + 1;
+          if (!property.startsWith("--") || property.startsWith("--sb-")) {
+            wrong.push(`${rule.selectors.join(", ")} { ${property}: ${value} }: seam-only outside a where-defined local`);
+          }
+        }
+      }
+    }
+    const locals = whereDefinedLocals(sheet);
+    for (const rule of sheet.rules) {
+      for (const [property, value] of rule.decls) {
+        for (const local of readsOf(value).filter((name) => locals.has(name))) {
+          if (!new RegExp(`var\\(\\s*${local}\\s*,\\s*\\S`).test(value)) {
+            wrong.push(`${rule.selectors.join(", ")} { ${property}: ${value} }: reads ${local} with no fallback`);
+          }
+          if (!rule.decls.some(([declared]) => declared === local)) {
+            wrong.push(`${rule.selectors.join(", ")}: reads ${local} without declaring it on the same element`);
+          }
+        }
+      }
+    }
+    for (const prelude of sheet.atRules.filter((at) => /^@property\b/.test(at))) {
+      const name = prelude.slice("@property".length).trim();
+      if (locals.has(name)) {
+        wrong.push(`${prelude}: a where-defined local is registered`);
+      }
+    }
+    assert.deepEqual(wrong, []);
+    assert.ok((sites["switch-ring"] ?? 0) >= 4, `the switch ring, the thumb's ring and the slider track's ring in both engines read switch-ring through where-defined (L148): ${sites["switch-ring"] ?? 0} sites`);
+    assert.ok((sites["selected-bar"] ?? 0) >= 4, `the tab, pagination, navbar and sidebar bars read selected-bar through where-defined (L148): ${sites["selected-bar"] ?? 0} sites`);
+  });
+
+  test("2.4 L148 a frozen preset gains no new rendered layer: each where-defined read falls back to the element's old value exactly — its box-shadow or border-color at e24df74, or none where it had none", () => {
+    const sheet = stylesheet();
+    const locals = whereDefinedLocals(sheet);
+    const wrong: string[] = [];
+    let reads = 0;
+    for (const rule of sheet.rules.filter((each) => !each.conditional)) {
+      for (const [property, value] of rule.decls.filter(([name]) => SHADOW_PROPERTIES.includes(name) || name === "border-color")) {
+        const read = /^var\(\s*(--[\w-]+)\s*,([\s\S]*)\)$/.exec(value);
+        if (read === null || !locals.has(read[1]!)) {
+          continue;
+        }
+        reads++;
+        for (const selector of rule.selectors) {
+          const old = lastIn(oldStylesheet(), selector, [property]) ?? "none";
+          if (read[2]!.trim() !== old) {
+            wrong.push(`${selector} { ${property}: ${value} } falls back to ${read[2]!.trim()}, and its old value is ${old}`);
+          }
+        }
+      }
+    }
+    assert.ok(reads >= 9, `${reads} where-defined reads: the switch, thumb, two slider tracks, four bars and the card hover's line (L148, L152)`);
+    assert.deepEqual(wrong, []);
+  });
+
+  test("2.4 L150 (checker) the closure resolves a fallback-less var() through its declarations: flat-elevation's --shadow-rest: none under soft-edge's --edge-layer is caught, 0 0 #0000 is not", () => {
+    const sheetOf = (rest: string) => readCss(`.b { --shadow-rest: ${rest}; --edge-layer: var(--shadow-rest); box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); }`);
+    assert.equal(noneInClosure(sheetOf("none")).length, 1, "the planted flat-elevation");
+    assert.deepEqual(noneInClosure(sheetOf("0 0 #0000")), [], "the fix");
+    assert.equal(noneInClosure(readCss(".b { --x: var(--y, none); box-shadow: var(--state-layer, 0 0 #0000), var(--x); }")).length, 1, "a fallback that ends in none");
+  });
+
+  test("2.4 L150 no composed box-shadow list resolves to none through any var(): no declaration of a custom property such a list reads — directly, or as another's whole value — is none or a var() that ends in none", () => {
+    assert.deepEqual(noneInClosure(stylesheet()), []);
+  });
+
+  test("2.4 L151 the halo room: max(|x|, |y|) + blur + spread over the all-round outset layers of container, quiet and the filled-* elements' rest, hover and press, rounded up — 8px in light and 1px in dark for §3's edges, and nothing else counts", () => {
+    assert.deepEqual([haloRoomOf(VALUES.edges.light), haloRoomOf(VALUES.edges.dark)], [8, 1], "L151's figures");
+    const grown = freshEdges();
+    grown.light.container!.rest.find(allRound)!.blur = 12.5;
+    assert.equal(haloRoomOf(grown.light), 14, "12.5 + 1, rounded up");
+    const ignored = freshEdges();
+    ignored.light.field!.rest.push({ inset: false, x: 0, y: 0, blur: 40, spread: 4, color: "#000000", alpha: 0.5 });
+    ignored.light["status-info"]!.rest.push({ inset: false, x: 0, y: 0, blur: 40, spread: 4, color: "#000000", alpha: 0.5 });
+    ignored.light["filled-accent"]!.rest.push({ inset: true, x: 0, y: 0, blur: 40, spread: 4, color: "#000000", alpha: 0.5 }, { inset: false, x: 0, y: 30, blur: 40, spread: 0, color: "#000000", alpha: 0.5 });
+    assert.equal(haloRoomOf(ignored.light), 8, "a field's, a status box's, an inset and an offset layer do not count");
+    for (const [edges, mode] of [[grown, "light"], [ignored, "light"]] as const) {
+      assert.ok(blocksOf(themeCss(legiblePreset({ edges }))).light.includes(haloLine(edges[mode])), `the emitted room follows the edge data: ${haloLine(edges[mode])}`);
+    }
+    for (const name of ["ocean", "forest", "noir", "midnight"]) {
+      assert.ok(!themeCss(shipped[name]!).includes("--sb-halo-room"), `${name} emits a halo room: it has no edges`);
+    }
+  });
+
+  // L162 (c): the two parents had no padding at e24df74, so the form is exactly var(--sb-halo-room, 0px), no calc();
+  // scroll-padding the same, on the carousel viewport only (the marquee is overflow: hidden).
+  test("2.4 L151 L162 the carousel viewport pads by exactly var(--sb-halo-room, 0px), its scroll-padding the same; the marquee pads the same and sets no scroll-padding — so a frozen preset's padding stays 0", () => {
+    for (const selector of [".sb-carousel__viewport", ".sb-marquee"]) {
+      for (const property of ["padding", "scroll-padding"]) {
+        assert.equal(lastIn(oldStylesheet(), selector, [property]), undefined, `${selector} had a ${property} at e24df74: L162 (c)'s premise`);
+      }
+    }
+    assert.deepEqual([lastOf(".sb-carousel__viewport", ["padding"]), lastOf(".sb-carousel__viewport", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", "var(--sb-halo-room, 0px)"], ".sb-carousel__viewport");
+    assert.deepEqual([lastOf(".sb-marquee", ["padding"]), lastOf(".sb-marquee", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", undefined], ".sb-marquee");
+  });
+
+  test("2.4 L152 the interactive card's hover is never weaker than rest: its box-shadow is edge(container, shadow(lg)) and its line comes through where-defined from container-line, falling back to clr(border)", () => {
+    const selector = ".sb-card--interactive:hover";
+    const shadowLg = compiled("  box-shadow: shadow(lg);", "shadow(lg)")["box-shadow"];
+    assert.equal(lastOf(selector, ["box-shadow"]), `var(--sb-edge-container, ${shadowLg})`, "box-shadow");
+    const line = lastOf(selector, ["border-color"]);
+    const local = /^var\(\s*(--[\w-]+)\s*,\s*var\(--sb-border\)\s*\)$/.exec(line ?? "");
+    assert.ok(local, `border-color is ${line}, not var(--<local>, var(--sb-border))`);
+    assert.ok(rulesOf(selector).some((rule) => rule.decls.some(([property, value]) => property === local[1] && value === "var(--sb-container-line)")), `${local[1]} is not set from seam-only(container-line) on the hover rule`);
+  });
+
+  /** L153's state compound, in a compiled selector item. */
+  const STATE = new RegExp([
+    ":(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\\w-])",
+    "\\[aria-",
+    "\\[data-state",
+    "--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\\w-])",
+  ].join("|"));
+  const normalSelector = (selector: string) => selector.replace(/["']/g, "").replace(/\s+/g, " ").trim();
+  /**
+   * An allowlist entry's source path (".sb-card | &--interactive | &:hover") as the compiled selectors it becomes: each
+   * part may itself be a selector list, so a path expands to every combination.
+   */
+  const compiledPaths = (path: string) => path.split(" | ").reduce<string[]>((done, part) => (done.length === 0
+    ? splitTop(part)
+    : done.flatMap((outer) => splitTop(part).map((inner) => (inner.includes("&") ? inner.replaceAll("&", outer) : `${outer} ${inner}`)))), []).map(normalSelector);
+  /** One state in a selector, whole: a state pseudo-class, an [aria-…] or [data-state…] attribute, or a state modifier. */
+  const STATE_PART = /:(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\w-])|\[(?:aria-|data-state)[^\]]*\]|--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\w-])/g;
+  /** A state selector with its states taken off: the element it is a state of. */
+  const elementOf = (selector: string) => {
+    let text = normalSelector(selector);
+    for (let before = ""; before !== text;) {
+      before = text;
+      text = text.replace(/:(?:not|is|where|has)\(([^()]*)\)/g, (whole, inner: string) => (STATE.test(inner) ? "" : whole));
+    }
+    return text.replace(STATE_PART, "").trim();
+  };
+  /** Whether the element a selector names carries an edge layer: some rule for it sets or reads --edge-layer, or reads an --sb-edge-* property. */
+  const carriesEdge = (sheet: ReturnType<typeof readCss>, selector: string) => {
+    const element = elementOf(selector);
+    return sheet.rules.some((rule) => rule.selectors.some((item) => elementOf(item) === element) && rule.decls.some(([property, value]) => property === "--edge-layer" || /var\(\s*--edge-layer\b|var\(\s*--sb-edge-/.test(value)));
+  };
+  /** L149's form, in one rule: box-shadow: var(--<local>, <old>), with --<local> set there from a seam read with no fallback. */
+  const isWhereDefined = (rule: CssRule, value: string) => {
+    const local = /^var\(\s*(--[\w-]+)\s*,[\s\S]+\)$/.exec(value)?.[1];
+    return local !== undefined && rule.decls.some(([property, declared]) => property === local && new RegExp(`var\\(\\s*--sb-(${SEAM_NAMES.join("|")})\\s*\\)`).test(declared));
+  };
+  /** L153: state rules that write a box-shadow neither composed, nor where-defined on an element with no edge layer (L162 (a)), nor at an allowed site. */
+  const stateShadows = (sheet: ReturnType<typeof readCss>, allowed: Set<string>) => sheet.rules.flatMap((rule) => rule.decls
+    .filter(([property, value]) => SHADOW_PROPERTIES.includes(property) && !/^var\(--state-layer\b[\s\S]*\),\s*var\(--edge-layer\b/.test(value))
+    .flatMap(([property, value]) => rule.selectors
+      .filter((selector) => STATE.test(selector) && !allowed.has(normalSelector(selector)) && !(isWhereDefined(rule, value) && !carriesEdge(sheet, selector)))
+      .map((selector) => `${selector} { ${property}: ${value} }`)));
+  const allowlistEntries = () => (JSON.parse(readFileSync(join(repoRoot, "tools", "stylelint", "state-box-shadow-allowlist.json"), "utf8")) as { entries: { file: string; selector: string; line?: number }[] }).entries;
+  const allowedSelectors = () => new Set(allowlistEntries().flatMap((entry) => compiledPaths(entry.selector)));
+
+  test("2.4 L153 (checker) a state rule is one with a state pseudo-class (inside :is, :where, :not and :has too), an [aria-*] or [data-state] attribute, or a named BEM state modifier; a variant modifier or a @media condition is not", () => {
+    const flagged = (css: string) => stateShadows(readCss(css), new Set()).length;
+    for (const css of [".x:hover { box-shadow: 0 0 0 1px red; }", ".x:hover { -webkit-box-shadow: 0 0 0 1px red; }", ".x:is(:focus-visible) { box-shadow: none; }", ".x:has(:checked) { -moz-box-shadow: 0 0 1px red; }", ".x[aria-expanded=true] { box-shadow: none; }", ".x[data-state=open] { box-shadow: none; }", ".x--selected { box-shadow: 0 0 1px red; }", ".x__y--pressed { box-shadow: none; }", "@media (hover: hover) { .x:hover { box-shadow: none; } }"]) {
+      assert.equal(flagged(css), 1, css);
+    }
+    for (const css of [".x--raised { box-shadow: 0 0 1px red; }", ".x--flat { box-shadow: none; }", "@media (hover: hover) { .x { box-shadow: none; } }", ".x:hover { box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer, 0 0 #0000); }", ".x:hover { --state-layer: 0 0 0 2px red; }", ".x:focus-visibles { box-shadow: none; }"]) {
+      assert.equal(flagged(css), 0, css);
+    }
+    assert.deepEqual(stateShadows(readCss(".sb-card--interactive:hover { box-shadow: none; }"), new Set(compiledPaths(".sb-card | &--interactive | &:hover"))), [], "an allowlisted site");
+    assert.deepEqual(compiledPaths(".sb-input, .sb-textarea | &:focus-visible"), [".sb-input:focus-visible", ".sb-textarea:focus-visible"], "a path whose parts are lists");
+    // L162 (a): where-defined on a state selector is exempt where the element carries no edge layer — and only there.
+    const bar = ".x[aria-current=page] { --bar: inset 3px 0 0 0 var(--sb-selected-bar); box-shadow: var(--bar, none); }";
+    assert.equal(flagged(`.x { color: red; } ${bar}`), 0, "a where-defined bar on an element with no edge layer");
+    assert.equal(flagged(`.x { --edge-layer: var(--sb-edge-container, 0 0 #0000); box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); } ${bar}`), 1, "a where-defined bar on an element WITH an edge layer still fails: it would clobber the edge");
+    assert.equal(flagged(`.x { box-shadow: var(--sb-edge-quiet, none); } ${bar}`), 1, "an element whose edge is read through --sb-edge-* directly");
+    assert.equal(flagged(".x:hover:not(:disabled) { --l: 0 0 0 1px var(--sb-switch-ring); box-shadow: var(--l, none); } .x { --edge-layer: 0 0 #0000; }"), 1, "the element under its :not() guard is the same element");
+    assert.equal(flagged(".x[aria-current=page] { --bar: inset 3px 0 0 0 var(--sb-selected-bar, transparent); box-shadow: var(--bar, none); }"), 1, "a local set from a seam WITH a fallback is not where-defined");
+  });
+
+  test("2.4 L153 L162 no state rule in the compiled stylesheet writes box-shadow, -webkit-box-shadow or -moz-box-shadow except in the composed form, in the where-defined form on an element with no edge layer, or at an allowlisted site", () => {
+    assert.deepEqual(stateShadows(stylesheet(), allowedSelectors()), []);
+  });
+
+  /** L154 (1), as L162 (b) rules: e24df74's sites are the state selectors the COMPILED check finds there, allowing nothing. */
+  const STATE_SITES = json("state-box-shadow-sites.at-e24df74.json") as { recordedFrom: string; sites: { selector: string; property: string; value: string }[] };
+  const siteSelector = (finding: string) => normalSelector(finding.slice(0, finding.indexOf(" { ")));
+
+  test("2.4 L154 L162 (fixture) the e24df74 sites are exactly what this file's compiled check finds in e24df74's stylesheet, allowing nothing", () => {
+    assert.equal(STATE_SITES.recordedFrom, "e24df74");
+    assert.deepEqual(STATE_SITES.sites.map((site) => normalSelector(site.selector)).sort(), [...new Set(stateShadows(oldStylesheet(), new Set()).map(siteSelector))].sort());
+    assert.ok(STATE_SITES.sites.some((site) => site.selector === ".sb-segmented__option[aria-checked=true]"), "L162 (b): the segmented option, which the source rule missed");
+  });
+
+  test("2.4 L154 L162 may only shrink: the allowlist and the append-only removed list ({ file, selector }) are disjoint and together are e24df74's sites; every allowlisted site is still one", () => {
+    const removedPath = join(repoRoot, "tools", "stylelint", "state-box-shadow-removed.json");
+    assert.ok(existsSync(removedPath), "tools/stylelint/state-box-shadow-removed.json, the append-only list of removed sites, does not exist (L154 (2))");
+    const removed = JSON.parse(readFileSync(removedPath, "utf8")) as { file: string; selector: string }[];
+    assert.ok(Array.isArray(removed) && removed.every((entry) => typeof entry.file === "string" && typeof entry.selector === "string"), "L162 (d): an array of { file, selector }");
+    const place = (entry: { file: string; selector: string }) => `${entry.file} | ${entry.selector}`;
+    const allow = allowlistEntries();
+    assert.deepEqual(allow.map(place).filter((entry) => removed.map(place).includes(entry)), [], "an entry both allowed and removed");
+    const union = [...new Set([...allow, ...removed].flatMap((entry) => compiledPaths(entry.selector)))].sort();
+    assert.deepEqual(union, STATE_SITES.sites.map((site) => normalSelector(site.selector)).sort(), "the allowlist and the removed list are not, together, the sites at e24df74");
+    const still = new Set(stateShadows(stylesheet(), new Set()).map(siteSelector));
+    assert.deepEqual(allow.flatMap((entry) => compiledPaths(entry.selector)).filter((selector) => !still.has(selector)), [], "an allowlisted site that is no longer one: move it to the removed list");
+  });
+
+  test("2.4 L154 (3) a CI step, tools/check-allowlist-base.ts, holds the removed list to its base branch's, beside check-golden-base.ts", () => {
+    assert.ok(existsSync(join(repoRoot, "tools", "check-allowlist-base.ts")), "tools/check-allowlist-base.ts does not exist");
+    const workflow = readFileSync(join(repoRoot, ".github", "workflows", "build.yml"), "utf8");
+    assert.match(workflow, /check-allowlist-base\.ts/, "build.yml does not run it");
+  });
+
+  test("2.4 L156 every start bar (inset 3px 0 0 0) is mirrored under :dir(rtl) to inset -3px 0 0 0, on the same element and property", () => {
+    const sheet = stylesheet();
+    const wrong: string[] = [];
+    let bars = 0;
+    for (const rule of sheet.rules) {
+      for (const [property, value] of rule.decls.filter(([, value]) => /(^|,\s*)inset 3px 0 0 0\b/.test(value))) {
+        for (const selector of rule.selectors.filter((item) => !item.includes(":dir("))) {
+          bars++;
+          const mirror = sheet.rules.some((other) => other.selectors.some((item) => normalSelector(item) === normalSelector(`${selector}:dir(rtl)`)) && other.decls.some(([name, mirrored]) => name === property && /(^|,\s*)inset -3px 0 0 0\b/.test(mirrored)));
+          if (!mirror) {
+            wrong.push(`${selector} { ${property}: ${value} } has no :dir(rtl) mirror`);
+          }
+        }
+      }
+    }
+    assert.ok(bars > 0, "no start bar in the stylesheet: the probe finds nothing to hold");
+    assert.deepEqual(wrong, []);
+  });
+
+  /** L161: CSS functions — the spec's list, and those the stylesheet already used at f9add57 (recorded here: blur, inset, minmax, polygon, repeat, rgba, translateX, translateY). */
+  const CSS_FUNCTIONS = new Set([
+    "var", "calc", "min", "max", "clamp", "color-mix", "rgb", "hsl", "oklch", "oklab", "linear-gradient", "radial-gradient", "repeating-conic-gradient",
+    "url", "translate", "scale", "rotate", "cubic-bezier", "steps", "attr", "env",
+    "blur", "inset", "minmax", "polygon", "repeat", "rgba", "translateX", "translateY",
+  ]);
+  const unknownFunctions = (sheet: ReturnType<typeof readCss>) => sheet.rules.flatMap((rule) => rule.decls.flatMap(([property, value]) => [...value.matchAll(/(?:^|[^\w-])([a-zA-Z_][\w-]*)\(/g)].map((m) => m[1]!).filter((name) => !CSS_FUNCTIONS.has(name)).map((name) => `${rule.selectors.join(", ")} { ${property}: … ${name}(… }`)));
+
+  test("2.4 L161 (checker) a misspelt accessor, which Sass passes through as text, is a function call not on the list", () => {
+    assert.deepEqual(unknownFunctions(readCss(".p { color: seem(field-fill); box-shadow: egde(container, none); font-size: button-lable(md); }")).length, 3);
+    assert.deepEqual(unknownFunctions(readCss(".p { color: var(--a, rgb(0 0 0 / 0.5)); width: calc(100% - min(2px, 1vw)); }")), []);
+  });
+
+  test("2.4 L161 every function call in the compiled stylesheet's declarations is a CSS function: no accessor is left uncompiled", () => {
+    assert.deepEqual(unknownFunctions(stylesheet()), []);
   });
 
   legibilityCount = ran - legibilityFrom;

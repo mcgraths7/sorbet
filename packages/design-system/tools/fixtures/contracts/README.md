@@ -73,6 +73,8 @@ was produced by the code under test.
 | `wcag-aa.at-e24df74.json` | L1, L2: `contracts["wcag-aa"]` and the first 86 rules (fg, bg, tier, why, mode) as `e24df74` has them | recorded the same way |
 | `goldens.at-e24df74.json` | L97, L98: sorbet's golden theme file as `e24df74` has it (the base of step 2.2's and 2.6's allowed diffs), and the sha256 of each frozen golden | recorded the same way |
 | `step-2.4-untouched.json` | Step 2.4 acceptance #3: the sha256 of every file under `packages/component-library/src` and `packages/design-system/src/behaviors` at `e6fd3d5` (step 2.3), which step 2.4 may not change. Retired when step 2.5 edits the component library | hashed from the working tree after `git diff --quiet e6fd3d5` on both directories and no untracked file there |
+| `compiled.at-e24df74.css` | L148: e24df74's stylesheet compiled with the repo's sass, so a new ring, bar or line's fallback can be held to the element's old value exactly | recorded by `record-e24df74-styles.mts.txt` |
+| `state-box-shadow-sites.at-e24df74.json` | L154 (1) as L162 (b) rules it: the sites the COMPILED check of L153 finds in e24df74's stylesheet, allowing nothing — 22 state selectors, `{ selector, property, value }`. The test reproduces the list from `compiled.at-e24df74.css` with its own check | recorded the same way |
 
 **The two transcribed files follow the spec, not the code.** If the spec is
 revised, re-run the transcriber (`node --input-type=module - <repo root> <

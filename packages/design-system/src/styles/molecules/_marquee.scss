@@ -31,6 +31,8 @@
 
   position: relative;
   overflow: hidden;
+  // Room for the items' all-round edge layer (L151): 0 where a theme draws none.
+  padding: halo-room();
 
   &__track {
     display: flex;
