@@ -2165,6 +2165,25 @@ it; the barrel exports it. L24's code block, which shows it among
 `rules.ts`'s declarations, shows the shape, not the file. No consumer is
 affected.
 
+### 12.3 Revision 3.4: the Sass accessors' forms, fixed after step 2.3's test author (2026-10-05)
+
+**L143.** `edge($element, $fallback, $state: rest)` is the accessor's
+signature. `$state` is `rest`, `hover` or `press`. It compiles to
+`var(--sb-edge-<element>, <fallback>)` for `rest`, and to
+`var(--sb-edge-<element>-<state>, <fallback>)` otherwise. `$element` must be
+one of the thirteen in `$edge-elements`. A `$state` other than the three, or
+`hover`/`press` on an element that is not a `filled-*` one, fails the
+compile, naming both. A state is never a separate element name:
+`edge(filled-primary-hover, …)` fails.
+
+**L144.** `seam($name)` compiles to `var(--sb-<name>, var(--sb-<role>))` for
+a role fallback, and to `var(--sb-<name>, <css>)` for a css fallback. An
+unknown name fails the compile, naming it.
+
+**L145.** A quoted name (`seam("field-fill")`) is the same name as its
+unquoted form, as Sass compares strings. It is accepted and compiles
+identically.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
