@@ -1924,6 +1924,61 @@ on screen) is written by the implementer and looked at.
 - *Acceptance:* `check:catalog` and `check:cli` green; no document says
   sorbet is "WCAG AA verified".
 
+### 12.1 Revision 3.2: readings fixed after step 2.1's test author (2026-10-04)
+
+The step 2.1 test author listed thirteen places where the text allows two
+readings. These statements fix each one. Where they and earlier text
+disagree, these win.
+
+**L117.** Step 2.1 acceptance #8's planted preset declares `legibility` in
+LIGHT only; dark stays `wcag-aa`. The 24 failures and "✗ 24 contrast
+failure(s)" are per mode. Declared in both modes it would be 48.
+
+**L118.** A gate line for a rule that could not be measured, whatever its
+metric, starts `<preset>/<mode>: <fg> on <bg> ` and contains "could not be
+measured". Nothing after that is pinned.
+
+**L119.** From step 2.1, the package barrel exports `measurePreset`,
+`metricFor`, `applyingCount`, `checkStructure` and `SEAMS`.
+
+**L120.** The order of several failing tiers' why/retire lines (L89) is not
+pinned. They are compared as a set per preset and mode.
+
+**L121.** Structure rows (L90) sit after the mode lines of the preset they
+belong to. "✗ <n> structure failure(s)" may be on either stream. The
+contrast count stays on stderr, as today.
+
+**L122.** L43's refusal names the element and the layer's position when
+measured, counting from 1 in the element's `rest` list. It names the preset
+and the element when emitted. A measuring call that knows no preset name need
+not invent one.
+
+**L123.** An edge-data key that is not one of the thirteen elements (L44) is
+malformed. That includes the withdrawn `filled-success`, `filled-warning` and
+`filled-info`. It is refused, as L43 refuses a malformed layer, both when
+emitted and when measured. A key nothing reads is a silent no-op, so it may
+never pass quietly.
+
+**L124.** A malformed `hover` or `press` layer is refused when emitted. Only
+`rest` is measured, so the measuring path need not look at the others.
+
+**L125.** For `views`, `checks` and `requires` (L35), "present" means an own
+key whose value is not `undefined`. `null` is present, and refused as
+malformed. This is the convention M10.3 set for a rule's `mode`.
+
+**L126.** M10.1's rule that a per-mode floor needs a usable number in both
+modes holds for every metric. `{ light: 50 }` is refused.
+
+**L127.** README's counts (L105 #21) may be worded freely. They must state
+`wcag-aa` measuring 70 and `legibility` measuring 193 a mode. They may never
+say "measures all N".
+
+**L128.** C3 and C8 apply in both modes, so step 2.1 #7 breaks each in both
+modes. The text names the dark break only as an example.
+
+**L129.** A planted defect that moves a figure by less than appendix A's 0.01
+is caught by the tests' own arithmetic, to 1e-9, and not by the table.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
