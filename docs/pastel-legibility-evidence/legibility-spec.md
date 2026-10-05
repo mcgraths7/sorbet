@@ -3759,6 +3759,29 @@ class is exactly `sb-status` (L186); L190 (c) is held in the layer `sb.atoms`
 (L170); and #51's widened fallback is allowed on `.sb-alert--danger` only
 (L183).
 
+**L193.** **CORRECTION 2026-10-05 to L151 and L162 (c): the carousel's
+`scroll-padding` falls back to `auto`, not `0px`.** `auto` is its initial
+value and what every preset computed at e24df74, and L148 asks a fallback for
+the element's old value exactly; it was the one computed difference left in
+the frozen presets (the frozen lens of the audit of 7a683fd: `scroll-padding`
+`auto` to `0px` on `.sb-carousel__viewport`, over 27,200 element-states). So
+`halo-room()` takes the property's old value as its fallback,
+`halo-room($fallback: 0px)`, and the viewport writes
+`scroll-padding: halo-room(auto)`, compiling to `var(--sb-halo-room, auto)`;
+`padding` keeps `0px`. The L151 test's expected value changes with it.
+
+What this is not: the fix for the right-to-left carousel shots. The full L155
+run of `ffddc2c` (24 runs) found `disabled-full` and `staged-all` differing in
+four right-to-left runs, the carousel at the foot of the page on another slide
+(up to 204 levels in a 104 by 32 box). Those shots also differ between two
+shots of the same tree (`unstable`) in other right-to-left runs, appear in
+some presets and not others, and still differ with this fallback in place
+(ocean, rtl, re-run): the carousel settles on a slide that varies from one
+page load to the next. That is noise in the tool, not a frozen change, and it
+is why no full run here reaches L155's success line. Left open for the tool:
+settle the carousel (wait for scroll-snap to finish, or pin its slide) before
+a page-level shot.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads

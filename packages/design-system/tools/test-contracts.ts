@@ -5026,13 +5026,15 @@ try {
 
   // L162 (c): the two parents had no padding at e24df74, so the form is exactly var(--sb-halo-room, 0px), no calc();
   // scroll-padding the same, on the carousel viewport only (the marquee is overflow: hidden).
-  test("2.4 L151 L162 the carousel viewport pads by exactly var(--sb-halo-room, 0px), its scroll-padding the same; the marquee pads the same and sets no scroll-padding — so a frozen preset's padding stays 0", () => {
+  test("2.4 L151 L162 L193 the carousel viewport pads by exactly var(--sb-halo-room, 0px), its scroll-padding by var(--sb-halo-room, auto); the marquee pads the same and sets no scroll-padding — so a frozen preset's padding stays 0", () => {
     for (const selector of [".sb-carousel__viewport", ".sb-marquee"]) {
       for (const property of ["padding", "scroll-padding"]) {
         assert.equal(lastIn(oldStylesheet(), selector, [property]), undefined, `${selector} had a ${property} at e24df74: L162 (c)'s premise`);
       }
     }
-    assert.deepEqual([lastOf(".sb-carousel__viewport", ["padding"]), lastOf(".sb-carousel__viewport", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", "var(--sb-halo-room, 0px)"], ".sb-carousel__viewport");
+    // L193 (CORRECTION 2026-10-05): scroll-padding falls back to auto, its e24df74 value (L148: the old value exactly);
+    // 0px was the one computed difference the frozen lens found in the frozen presets.
+    assert.deepEqual([lastOf(".sb-carousel__viewport", ["padding"]), lastOf(".sb-carousel__viewport", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", "var(--sb-halo-room, auto)"], ".sb-carousel__viewport");
     assert.deepEqual([lastOf(".sb-marquee", ["padding"]), lastOf(".sb-marquee", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", undefined], ".sb-marquee");
   });
 
