@@ -1,6 +1,6 @@
 # Spec: the `legibility` contract and sorbet's new values (PR 2, step 2.0)
 
-Revision 3, 2026-10-04. Written against `main` at `e24df74` (the groundwork is
+Revision 3.1, 2026-10-04. Written against `main` at `e24df74` (the groundwork is
 merged). No product code exists for anything below. Paths are relative to
 `packages/design-system/` unless they start with `packages/`, `apps/`, `docs/`
 or `<root>/`. So `tools/test-contracts.ts` is
@@ -95,6 +95,22 @@ unchanged; new statements are L115 and L116. Revision 3's measurements are
 | Row 29 | §14.0, L61, L69: the filled buttons on the page pass; §15 item 15 answered |
 | Row 30 | §14.0, L68: the touching focus ring passes; §15 item 17 answered |
 | Row 31 | §14.0, L19, C9, C10, L115 |
+
+### Revision 3.1
+
+A re-verification of revision 3 raised N16 to N23. Statement and rule numbers
+are unchanged, and no statement was added. Script: `rev2/c11.mjs` (appendix C).
+
+| Id | Closed where, and how |
+|---|---|
+| N16 | L105 #47 is one well-formed table row; the note on #39 that ran on from it is its own paragraph |
+| N17 | C11 states one reading: among rules whose selector list contains the selector as a whole item, outside conditional at-rules, the last `background-color` or `background` in source order (source order is cascade order, layer blocks being in declared order, which the test asserts). It names all 27 selectors, derives the floating and field lists from the compiled CSS, and was checked against the real `dist/css/sorbet.css`: it holds for all 27 |
+| N18 | L65 and L115 say only what row 31 records: the question stated "Labels on lilac and blush read Lc 70.9", the figure does not depend on size (71.32, 70.92), and no sheet drew a 14px label |
+| N19 | L66's `label` reason and retirement, and S25's reason, cover both sizes: 16px approved by eye, 14px decided on the figure (row 31) |
+| N20 | L111's title is "12px text off cream and milk", it counts four, and §13's row lists all four |
+| N21 | `pre` is taken out of L106's sunken map: it is not a sunken element (no L70 row, no sheet drew it), so C11 and L106 agree |
+| N22 | L105 #24 cites `tools/test-contracts.ts:168` |
+| N23 | L105 #43 says where an oracle may live (`tools/test-contracts.ts`, or a file added to `MAY_CALL` in the same edit), that step 2.1 needs none for the four instruments, and that its functions must not share their names |
 
 This is what step 2.0 of `docs/pastel-legibility-contract.md` ("the proposal")
 says it delivers. It replaces the proposal's §5, which is marked "not
@@ -263,7 +279,7 @@ implementer's edit).
 | 9 | `tools/test-contracts.ts:544` | a failure's keys are the six of PR 1 | those six plus `tier`, `metric` and `view` | L7 |
 | 10 | `tools/test-contracts.ts:651` | `wcag-aa`'s 70 measurements are every rule that applies in the mode | they are every rule that applies in the mode whose tier `wcag-aa` lists, in `RULES` order | L2, L58 |
 | 11 | `tools/test-contracts.ts:982` | `tools/check-contrast.ts` prints `fixtures/contracts/check-contrast.report.txt` byte for byte | the fixture is not re-recorded (its README forbids it). The expected text is the fixture transformed as L86 and L91 say: each mode line gains ` — wcag-aa; 191 rules not held`, and the last line becomes `✓ every declared contract holds for every preset in both modes (700 pairings measured): wcag-aa × 10`. The transformation is written in the test, from this spec's sentences | L86, L91 |
-| 43 | `tools/test-contracts.ts:1213-1223` | the four instruments (`oklabOf`, `apcaLc`, `simulateCvd`, `separation`) are called only by `color.ts`, `tools/check-cvd.ts` and the test itself | `MAY_CALL` gains `packages/design-system/src/tokens/rules.ts` and `packages/design-system/src/tokens/edges.ts`, the two files L24, L27 and L101 make measure with them; the test's name loses "in this increment". The barrel test above it (`:1205-1211`, the instruments are not on `src/tokens/index.ts`) stays true: L101's exports add none of the four | L24, L27, L101 |
+| 43 | `tools/test-contracts.ts:1213-1223` | the four instruments (`oklabOf`, `apcaLc`, `simulateCvd`, `separation`) are called only by `color.ts`, `tools/check-cvd.ts` and the test itself | `MAY_CALL` gains `packages/design-system/src/tokens/rules.ts` and `packages/design-system/src/tokens/edges.ts`, the two files L24, L27 and L101 make measure with them; the test's name loses "in this increment". The barrel test above it (`:1205-1211`, the instruments are not on `src/tokens/index.ts`) stays true: L101's exports add none of the four. **Where the tests' independent oracle lives:** the step-2.1 tests need none of their own for these four, because their expected values are this spec's numbers typed in (appendix A, appendix B, L29, L30, L50, L82), and the instrument values themselves are already held by PR 1's fixtures. If the test author writes one anyway, it lives in `tools/test-contracts.ts` (already in `MAY_CALL`) or in a file added to `MAY_CALL` in the same edit; and its own functions are not named `oklabOf`, `apcaLc`, `simulateCvd` or `separation`, because the test's regex (`:1219`) matches a call by its name, whoever defines the function (verification finding N23) | L24, L27, L101 |
 | 44 | `tools/test-contrast.ts:514` | a scrim measurement deep-equals a seven-key literal (`tier`, `kind`, `min`, `actual`, `holds`, `fg`, `bg`) | the literal gains `metric: "ratio"` and `view: "typical"` (the pair is measured, `actual` 1) | L7 |
 | 45 | `tools/test-contrast.ts:661-665` | `checkColors` deep-equals failures built with six keys, over the shipped and broken presets | the built failures gain `tier`, `metric` and `view` from the measurement. (`:668`, the other half of the test, is #38) | L7 |
 | 12 | `tools/test-contracts.ts:994-995` | each of the five measuring surfaces matches `measureColors(`/`checkColors(` and `contractOf(` | each matches `measurePreset(` and matches neither `measureColors(` nor `checkColors(` | L25 |
@@ -290,7 +306,7 @@ false here:
 
 | # | File:line | What it asserts today | New expectation | Required by |
 |---|---|---|---|---|
-| 24 | `tools/test-contracts.ts:144` | `colorsOf`'s default preset is sorbet | the default is `"ocean"`. This one edit keeps lines 692, 858 and 1932 true (each measures the default under `wcag-aa` and expects a pass) | L3 |
+| 24 | `tools/test-contracts.ts:168` | `colorsOf`'s default preset is sorbet | the default is `"ocean"`. This one edit keeps lines 692, 858 and 1932 true (each measures the default under `wcag-aa` and expects a pass) | L3 |
 | 25 | `tools/test-contracts.ts:202-215`, `2019` (check700) | the 700 measurements, sorbet included | the rows of preset-modes that still declare `wcag-aa`: 630 from step 2.2, 560 from step 2.6, compared with the fixture's rows of those preset-modes | L3 |
 | 26 | `tools/test-contracts.ts:552, 554` | all five declare `wcag-aa` in both modes | sorbet declares `{ light: "legibility", dark: "wcag-aa" }`; from step 2.6 `legibility` in both; the four others unchanged | L101, steps 2.2 and 2.6 |
 | 27 | `tools/test-contracts.ts:665` | every shipped preset-mode has no `wcag-aa` failure with one tier removed | the same, over the preset-modes that declare `wcag-aa` | L3 |
@@ -315,7 +331,9 @@ one more:
 
 | # | File:line | What it asserts today | New expectation | Required by |
 |---|---|---|---|---|
-| 47 | `tools/test-contrast.ts:215` (and the report rows read at `:349-363`, `:380`) | the tamper "an impossible alpha", `scrim` `rgb(0 0 0 / 1.5)`, is on sorbet dark | it moves to forest dark. On sorbet dark under `legibility` the unreadable `scrim` also fails C1 (`roles-complete`), and L90 prints `    ✗ roles-complete: …`, which `printedModes` reads as a failure row, so every report's `p.rows` comparison would fail. Forest dark has no tamper yet; the six unmeasurable pairs and "the mode beside a broken one" (`:654`, ocean) are unchanged. The move may be made in step 2.2 with #33 | L90, C1 | (#39 is not used: `tools/test-contrast.ts:552`
+| 47 | `tools/test-contrast.ts:215` (and the report rows read at `:349-363`, `:380`) | the tamper "an impossible alpha", `scrim` `rgb(0 0 0 / 1.5)`, is on sorbet dark | it moves to forest dark. On sorbet dark under `legibility` the unreadable `scrim` also fails C1 (`roles-complete`), and L90 prints `    ✗ roles-complete: …`, which `printedModes` reads as a failure row, so every report's `p.rows` comparison would fail. Forest dark has no tamper yet; the six unmeasurable pairs and "the mode beside a broken one" (`:654`, ocean) are unchanged. The move may be made in step 2.2 with #33 | L90, C1 |
+
+(#39 is not used: `tools/test-contrast.ts:552`
 compares a minified record with the preset's under `wcag-aa`, which reads no
 see-through foreground, so it stays true. It must not be widened to the
 declared contract without L109's exception: under `legibility` the new dark
@@ -1142,7 +1160,10 @@ element, the field's pinned to the field as approved, 11.0 on a card):
 (the small size from DECISIONS row 31). In words: Lc 70.92
 on a fill is an acceptable **button** label only at the size the owner
 approved it at (decision 6); at 14px the published guidance asks about 75.
-Check C9 holds the preset's `buttonLabel` to it. C9 speaks for the button
+For the small button's 14px label, DECISIONS row 31 records exactly this: the
+question that was answered stated "Labels on lilac and blush read Lc 70.9",
+and no sheet drew a 14px label; the size was decided on that figure, not by
+eye (L115). Check C9 holds the preset's `buttonLabel` to both sizes. C9 speaks for the button
 only. The same colour pairs are also painted at 12px semi-bold by the solid
 badge (`atoms/_badge.scss:9-10, 24-27`), which no type size in the theme
 controls: the tier's number is not a claim about that size, and L111 says what
@@ -1161,12 +1182,16 @@ holds it:
   small buttons are held by the `label` tier (R153 to R170), floor 68.9 in
   both modes. That floor was pinned to the pairs as approved at 16px
   (decision 6); no floor is pinned to the 14px size, and none is raised for
-  it. Measured at the worst view, the same in both modes: lilac (primary)
-  `#472400` on `#dac5fc` Lc 71.32 (deutan); blush (secondary, danger) on
-  `#f9c3c6` 70.92 (protan); butter (accent) on `#f5e3a2` 82.57 (tritan). The
-  published guidance L65 cites asks about 75 at 14px; two of the three sit
-  under it, and row 31 is the owner's decision to use 14px with these
-  colours. What would retire it: a small button the owner finds hard to read,
+  it. Measured at the worst view, the same in both modes (the figure does not
+  depend on size): lilac (primary) `#472400` on `#dac5fc` Lc 71.32 (deutan);
+  blush (secondary, danger) on `#f9c3c6` 70.92 (protan); butter (accent) on
+  `#f5e3a2` 82.57 (tritan). The published guidance L65 cites asks about 75 at
+  14px; two of the three sit under it. What row 31 records, and no more: the
+  question the owner answered stated "Labels on lilac and blush read Lc 70.9",
+  and no sheet drew a 14px label. So the 14px small label is decided on that
+  figure and has not been seen. (Revision 3 called row 31 "the owner's
+  decision to use 14px with these colours", which claimed more; verification
+  finding N18.) What would retire it: a small button the owner finds hard to read,
   or "small buttons feeling crowded" (row 31).
 - **The other small variants** take their colours from tiers that are not
   `label` and are held there, not by size: outline (`text` on `quiet-fill`)
@@ -1188,7 +1213,7 @@ are printed once under its failures by the gate and the reports.
 | `secondary` | secondary text, links and brand-coloured text on the page and on surfaces | the owner finds small text hard to read while the gate is green (decision 21) |
 | `on-wash` | status and selected text on its own wash | the wash strength changes, or status text stops being the ordinary ink |
 | `tinted` | secondary text and links on a tinted ground: the well or a wash | the same as `secondary` |
-| `label` | a label on a full-strength fill, approved for the button at 16px semi-bold (C9 holds the button to that size); the 12px solid badge paints the same pairs and is not size-checked (L111) | a fill gets lighter or darker, or the button label size changes (decision 6) |
+| `label` | a label on a full-strength fill: approved by eye for the default button at 16px semi-bold (decision 6), and for the small button at 14px semi-bold on the figure alone (row 31, L115); C9 holds the button to both sizes; the 12px solid badge paints the same pairs and is not size-checked (L111) | a fill gets lighter or darker, or either button label size changes (decision 6, row 31) |
 | `placeholder` | placeholder and disabled text; nothing a reader needs | `text-subtle` being used for text a reader needs |
 | `mark-area` | a filled shape that carries a state with no label, against what it is read against | a bar or switch state missed on a real screen |
 | `mark-line` | a ring, bar or status mark 3px or thinner | the ring or a status mark proving faint or heavy in use |
@@ -1312,7 +1337,7 @@ never on screen (revision 1's quiet button: 18.18 on the page as measured,
 | `container` | `surface` | `molecules/_card.scss:8` | the same token |
 | `floating` | `surface-raised` | `abstracts/_mixins.scss:182` (`popover-surface`); `molecules/_toast.scss:23`; `organisms/_modal.scss:19`; `organisms/_drawer.scss:20` | the same token |
 | `field` | `field-fill` | `atoms/_input.scss:10` (today `clr(surface)`, re-pointed to `seam(field-fill)` in 2.4) and its hand copies (L70) | the same token after 2.4 |
-| `sunken` | `surface-sunken` | `molecules/_card.scss:71` (`.sb-card--sunken`); `base/_typography.scss:89` (`pre`); `atoms/_progress.scss:10` paints `bg-subtle` | the same token; for the progress track, D1 (`bg-subtle` equals `surface-sunken`), which C11 checks |
+| `sunken` | `surface-sunken` | `molecules/_card.scss:71` (`.sb-card--sunken`); `atoms/_progress.scss:10` paints `bg-subtle` | the same token; for the progress track, D1 (`bg-subtle` equals `surface-sunken`), which C11 checks. (`pre`, `base/_typography.scss:89`, also paints `surface-sunken` but is not a sunken element: no L70 row gives it the sunken edge, sheet 2 drew no code block, and it keeps its flat fill. Revision 3 listed it here; verification finding N21) |
 | `quiet` | `quiet-fill` | `atoms/_button.scss:144` (today `transparent`, re-pointed to `seam(quiet-fill)` in 2.4) | the same token after 2.4 |
 | `filled-primary` | `primary` | `atoms/_button.scss:40` | the same token |
 | `filled-secondary`, `filled-accent`, `filled-danger` | `secondary`, `accent`, `danger` | `atoms/_button.scss:100` (the loop of line 92) | the same token |
@@ -1461,7 +1486,7 @@ a contrast failure does.
 | C8 | `edge-direction` | a legibility mode | for each rule of `edge-container`, `edge-floating`, `edge-quiet`, `edge-filled` and `edge-status`: every edge pixel is darker than the backdrop in light, and lighter in dark, by OKLab lightness (`oklabOf(…)[0]`), in typical vision. `edge-field` and `edge-sunken` are left out: a sunken thing is edged the other way on purpose. All 18 such rules pass in both modes (24 in revision 1, six withdrawn; `gen.ts`). A rule whose element has no data is not a C8 failure: its measurement already fails by name (L39) |
 | C9 | `label-type` | a legibility mode whose contract has a tier with `requires` | the preset has a `buttonLabel`, and `buttonLabel.px` ≥ `requires.buttonLabelPx`, `buttonLabel.smallPx` ≥ `requires.buttonLabelSmallPx` and `buttonLabel.weight` ≥ `requires.buttonLabelWeight`. It holds the button, at both sizes, and nothing else (L65, L111, L115). That the stylesheet paints those sizes is held by C10 |
 | C10 | — (a test, step 2.5) | the stylesheet | every name in `SEAMS`, and every edge property sorbet emits (each `--sb-edge-X` and each `-hover` and `-press`, L53), is read by at least one `seam(…)` or `edge(…)` call under `src/styles`, and `button-label(md)` and `button-label(sm)` are each called at least once (L19). A token no site reads is a rule passing on a value nobody paints |
-| C11 | — (a test, step 2.5) | the compiled stylesheet | the test reads the **compiled** CSS (`dist/css/sorbet.css` after `pnpm build`), not the Sass source, because two of L106's lines are written inside loops (`atoms/_button.scss:100`, `clr($variant)`; `molecules/_alert.scss:22`, `clr(#{$tone}-subtle)`) and only compile to a name per variant. For each edge element, the rule of each selector L106's lines compile to (`.sb-card`, `.sb-card--sunken`, `.sb-progress`, `.sb-input` and the hand copies, the selectors that include `popover-surface`, `.sb-toast`, `.sb-modal`, `.sb-drawer`, `.sb-button`, `.sb-button--secondary`, `--accent`, `--danger`, `.sb-button--outline`, `.sb-alert` and `.sb-alert--<tone>`) declares `background-color` (or `background`) as `var(--sb-<fill>)` (from `clr`) or `var(--sb-<fill>, <fallback>)` (from `seam`) with the recipe's `fill`, or, for `.sb-progress`, `var(--sb-bg-subtle)` while D1 holds in sorbet's record; and the same rule reads the element's `--sb-edge-<element>` property. A recipe whose fill is `"backdrop"` passes only where its rule paints `transparent` or no background. (Revision 2 said the Sass lines must read `clr(<fill>)` literally, which the two loop lines cannot; verification finding N8.) This is the fill half of C10: a rule that measures a fill the stylesheet does not paint passes on nothing |
+| C11 | — (a test, step 2.5) | the compiled stylesheet | The test reads the **compiled** CSS (`dist/css/sorbet.css` after `pnpm build`), not the Sass source, because two of L106's lines are written inside loops (`atoms/_button.scss:100`, `clr($variant)`; `molecules/_alert.scss:22`, `clr(#{$tone}-subtle)`) and only compile to a name per variant. One selector compiles to several rule blocks (`.sb-button` to five, the first from `control-reset` saying `background: none`; `.sb-input` to four), so the reading is exact (revision 3.1, verification finding N17): **for a selector S, take every rule whose selector list contains S as one whole item (so `.sb-button:hover:not(…)` is not S), that is not nested in a conditional at-rule (`@media`, `@supports`, `@container`); among them, S's fill is the last `background-color` or `background` declaration in source order.** Source order is cascade order here because the file's `@layer` blocks appear in the order its first line declares them, which the test asserts first. The fill must be `var(--sb-<fill>)` (from `clr`) or `var(--sb-<fill>, <fallback>)` (from `seam`) for the recipe's `fill`; for `.sb-progress`, `var(--sb-bg-subtle)` while D1 holds in sorbet's record; for a recipe whose fill is `"backdrop"`, `transparent` or no declaration. And at least one of those rules reads the element's `--sb-edge-<element>` property (after step 2.4). The selectors: container `.sb-card`; sunken `.sb-card--sunken`, `.sb-progress`; floating `.sb-popover`, `.sb-menu`, `.sb-combobox__panel`, `.sb-calendar`, `.sb-color-input__panel` (the five that include `popover-surface`), `.sb-toast`, `.sb-modal`, `.sb-drawer`; field `.sb-input`, `.sb-textarea`, `.sb-select select`, `.sb-number-input`, `.sb-combobox__field`, `.sb-date-range__control`; quiet `.sb-button--outline`; filled `.sb-button`, `.sb-button--secondary`, `.sb-button--accent`, `.sb-button--danger`; status `.sb-alert`, `.sb-alert--success`, `--warning`, `--danger`, `--info`. The floating and field lists are derived from the compiled CSS at `e24df74`: every rule painting `surface-raised` with `shadow-lg` or `shadow-xl`, and every rule painting `surface` with a `border-strong` border, less the checkbox and radio (a `choice`, not the field element; L70's unchecked-interior row), the dropzone (a dashed ring, §15 item 6) and the command trigger's hover state. Checked against that stylesheet with today's tokens, the reading picks the fill each L106 line paints for all 27 selectors (`rev2/c11.mjs`). A recipe whose fill is `"backdrop"` passes only where its rules paint `transparent` or nothing. (Revision 2 said the Sass lines must read `clr(<fill>)` literally, which the two loop lines cannot; verification finding N8) |
 
 **L80.** What C1 to C3 are **not** scoped to, and why it matters: read without a
 scope, each fails all five shipped presets, measured (`rev2/scope.ts`):
@@ -1912,7 +1937,7 @@ the gate's silence as a pass.
 | Whether an edge is *enough* | presence is a heuristic, neither an upper nor a lower bound (L48, L51) | rendered measurement by hand in steps 2.4 and 2.6 |
 | Hover and pressed edges | they are transient, and sheet 2's hover and pressed recipes measure above rest (light, the four filled buttons: hover 20.11 to 21.98, pressed 21.42 to 23.44, against 18.73 to 20.52 at rest; revision 1's 17.54 and 16.54 were the withdrawn robin's-egg element; `rev2/states.ts`) | emitted from the same data; looked at |
 | Disabled controls (L112) | the library fades a disabled control with `opacity: 0.55` (`abstracts/_mixins.scss:85`), which is not a token, and WCAG exempts inactive components too | sheet 3 drew the library's fade and the owner passed it (row 27); step 2.4 looks at the real thing |
-| 12px text on a fill, a wash or the ink: the solid badge, the soft badge, the tooltip (L111) | the checker reads no type size but the button's | row 27; sheet 3 drew them at their real size |
+| 12px text off cream and milk: the solid badge, the neutral badge, the soft badge, the tooltip (L111) | the checker reads no type size but the button's | row 27; sheet 3 drew them at their real size |
 | Text over the default scrim's gradient (L110) | the gate measures the full-strength scrim, which the gradient reaches only at its bottom edge | an existing defect of all five presets, deferred (L110) |
 | The selected wash in a dark menu: `#554445` on the menu's `#463425`, 6.38 (12.85 on a card) | the wash is stored opaque over `surface` (D7), and the menu is raised | the selected bar (R195, 31.29) and the heavier weight carry the selection; neither is colour alone |
 | The slider thumb: the library paints it `primary-solid` `#b096d7` with `shadow(sm)`; sheet 2 drew a milk thumb with a lilac ring | the library's thumb is the stronger of the two (R180: 23.04 on its light track) and no rule needs changing for it | looked at in step 2.4 |
@@ -1956,8 +1981,12 @@ proposal's §9 and deferred with them (decision 16): fixing it is a shared Sass
 change (a taller band, or a full-strength floor under the content), which
 would move pixels in the four frozen presets. (Sheet 3 finding S3-1.)
 
-**L111.** **12px text on a fill, a wash or the ink is not size-checked.** The
-library paints three of them, all at `fs(xs)` (12px):
+**L111.** **12px text off cream and milk is not size-checked.** A15 asks
+12px text to sit on cream or milk only; the library paints four 12px pairings
+that do not, all at `fs(xs)`: on a fill, on the well, on a wash and on the
+ink. (Revision 2 titled this "on a fill, a wash or the ink" and counted
+three; revision 3 added the neutral badge without updating either;
+verification finding N20.)
 
 | Where | Pair | Rules | Lc at the worst view |
 |---|---|---|---|
@@ -1969,11 +1998,11 @@ library paints three of them, all at `fs(xs)` (12px):
 Each is held by its tier's floor, which was approved for that colour pair at
 the size it was drawn on sheets 1 and 2 (16px, or 16px semi-bold for labels).
 None is held to a type size: C9 holds the button only, and a theme has no
-token for a badge's size. The owner saw all three at 12px on sheet 3 and passed
-them (row 27, items 7 and 9, and the solid badges sheet 3 drew), and **no
+token for a badge's size. The owner saw all four at 12px on sheet 3 and passed
+them (row 27, items 7, 9 and 10, and the solid badges sheet 3 drew), and **no
 floor is pinned to them on that answer**: the floors stay the ones the 16px
-pairs set. So the solid badge is legible by the owner's eye and not by a
-gate, and it is listed in §13. A15's "12px text on cream or milk only" is
+pairs set. So these four are legible by the owner's eye and not by a gate,
+and all four are listed in §13. A15's "12px text on cream or milk only" is
 enforced for `text-subtle` sites (L72) and for nothing else. (Adversary M3;
 sheet 3 finding S3-2.)
 
@@ -2193,7 +2222,7 @@ S34.
 | S22 | Headings and field labels get two seams, `heading-ink` and `text-strong` | Their fallbacks differ: a heading sets no colour today, a label sets `text` | — |
 | S23 | Step 2.4's rendered bar is sheet 2's rendered figure less 1.0 | The same instrument on the same recipe should land within a pixel's rounding; the gate's own figure cannot stand in, because it is a heuristic that reads above or below what renders (L48) | the edge measurer disagreeing with sheet 2 on sheet 2 itself |
 | S24 | Sorbet's `shadowTint` becomes the caramel | "Caramel shadows" in step 2.2 (proposal §8) need it, and it touches only sorbet's light block | — |
-| S25 | The `label` tier's size condition is data on the floor (`requires`, both sizes since revision 3), checked against `preset.buttonLabel` (C9), a new field; `Preset.label`, the display name, is untouched | The button floor is only true at 16px semi-bold (appendix G, G20), and a checker that cannot see the size cannot say so; reusing `label` would break the manifest, the reports' headings and the four frozen goldens (adversary C1) | button labels going back to one size for every theme |
+| S25 | The `label` tier's size condition is data on the floor (`requires`, both sizes since revision 3), checked against `preset.buttonLabel` (C9), a new field; `Preset.label`, the display name, is untouched | The floor was approved by eye for the default button at 16px semi-bold (appendix G, G20), and the small button's 14px was decided on the figure, unseen (row 31, L115); a checker that cannot see the sizes cannot say so; reusing `label` would break the manifest, the reports' headings and the four frozen goldens (adversary C1) | button labels going back to one size for every theme |
 | S26 | `filled-success`, `filled-warning`, `filled-info` and their six rules are withdrawn | No Sass site paints an edge round those fills (the library has no such button), so C10 could not pass and one of them held the whole tier's floor 2 below the real buttons | a button variant in a status fill |
 | S27 | Status marks are also held on `surface-raised` (R280 to R283), and the card rules stay | The toast paints its stripe on the raised surface; decision A5 names the card | a status mark painted on another surface |
 | S28 | An edge recipe's fill is the token its Sass site paints, and C11 checks the stylesheet against L106 | A rule measuring an unpainted fill passes on nothing (adversary C2) | — |
@@ -2736,6 +2765,7 @@ imports `packages/design-system/src/tokens/color.ts` from the
 | `rev2/rev2.ts` | Revision 2's measurements: the rule list with the six withdrawn and R280 to R283 appended, `quiet-fill`, every tier's weakest pair and floor (only `edge-filled` light moves: 15.7 → 17.7), the quiet button with the page showing through (the option DECISIONS row 28 closed), the counts (191, 277, 261, 193, 68, 823, 946), sorbet's new records under `wcag-aa` (seven light failures, none dark), the scrim values to 1e-4, the scrim gradient (L110), the known-bad fixture's counts (L84) |
 | `rev2/onestep.ts` | L59: the largest move one 8-bit step makes on any text or separation rule, both modes (0.593 Lc, 0.409 separation) |
 | `rev2/scope.ts` | L80: what C1, C2 and C3 would say of the five shipped presets unscoped |
+| `rev2/c11.mjs` | Revision 3.1: C11's reading run against the compiled `dist/css/sorbet.css` (postcss from the workspace's store); the layer-order check, the derived floating and field selector lists, and each selector's rule blocks and last background |
 | `rev2/rev3.ts` | Revision 3's measurements: each sorbet mode's tightest margin (×1.02, L105 #11), the 14px small button's label pairs and the other small variants (L115), the danger button with and without its rose rim and the rim against its fill (L116), the neutral badge (L111) |
 | `rev2/states.ts` | §13: the hover and pressed edges of the four filled buttons, against rest |
 | `rev2/tamper.ts` | L105 #33: which preset can carry `tools/test-contrast.ts`'s hair-under tamper (forest light, the same page) |

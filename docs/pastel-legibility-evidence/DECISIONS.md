@@ -38,7 +38,7 @@ The record the two sample sheets are built from, and the evidence behind
 | 28 | The outline (quiet) button's fill | a milk slab as sheet 2 drew it: optional token `quiet-fill`, `#fffbf1` light and `#463425` dark (fallback transparent, so the other four themes are unchanged); the light edge floor stays 16.0 | owner, 2026-10-04, after sheet 3's revision-2 section | the slab reading as a different kind of button from the outline one |
 | 29 | Filled buttons straight on the page | blush, danger, lilac and butter on the cream page all pass as distinct (18.73, 18.73, 18.99, 18.98), so the light filled-button edge floor 17.7 stands | owner, 2026-10-04 | a button lost on the page in use |
 | 30 | The focus ring touching a lilac fill | `#8e6ac7` on `#dac5fc` at 26.13 (selected calendar day, current page) is visible enough; the light focus floor 24.8 stands | owner, 2026-10-04 | losing track of focus on those controls |
-| 31 | Small button label | 14px semi-bold for sorbet's small buttons (16px is the default size's), a sorbet-only setting with today's 12px as the other themes' fallback | owner, 2026-10-04 | small buttons feeling crowded |
+| 31 | Small button label | 14px semi-bold for sorbet's small buttons (16px is the default size's), a sorbet-only setting with today's 12px as the other themes' fallback. The question that was answered stated the colour figure: "Labels on lilac and blush read Lc 70.9" (that figure does not depend on size; measured at 14px: lilac 71.32, blush 70.92). No sheet drew a 14px label | owner, 2026-10-04 | small buttons feeling crowded |
 
 The five decisions the proposal's section 11 left open were made on 2026-10-04
 (rows 20 to 24). Nothing in the proposal is waiting on the owner.
