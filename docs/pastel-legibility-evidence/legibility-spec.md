@@ -2197,6 +2197,17 @@ every Sass fallback that can sit in such a list is `0 0 #0000`, not `none`.
 an empty `rest`, so no golden changes. Amends L54; L53's own examples are
 unaffected.
 
+**L147.** **Readings fixed after step 2.4's test author (2026-10-05).**
+(a) D1 is a rule of §3's record. C11's track check holds against §3's values,
+not against sorbet's dark record before step 2.6. (b) Acceptance #4's "off
+fill" is the switch's alone, as L70 re-points it. The rating's empty star and
+the carousel's off dot stay `border-strong` as the ring colour (§13, §15 item
+6). (c) `.sb-alert` with no tone modifier is the info status box
+(`status-info`). (d) L72's 47-row table is committed with step 2.4 as
+`docs/pastel-legibility-evidence/caption-sites.md`: one row per site, with
+file:line, computed size and class. (e) L146's Sass half is held through the
+compiled CSS: no composed `box-shadow` list may resolve to `none`.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
