@@ -1010,7 +1010,7 @@ Examples (`gen.ts`):
   --sb-edge-field: inset 0 1px 3px 0 rgb(5 2 10 / 0.7), inset 0 0 0 1px rgb(254 244 220 / 0.34), 0 1px 0 0 rgb(254 244 220 / 0.12);
 ```
 
-**L54.** An element with an empty `rest` emits `--sb-edge-<element>: none;`.
+**L54.** An element with an empty `rest` emits `--sb-edge-<element>: none;`. CORRECTION 2026-10-05 (L146): it emits `--sb-edge-<element>: 0 0 #0000;`.
 
 **L55.** **A mode that lacks what the other mode defines resets it, property
 by property.** The unit is the emitted custom property, never the element. For
@@ -2183,6 +2183,19 @@ unknown name fails the compile, naming it.
 **L145.** A quoted name (`seam("field-fill")`) is the same name as its
 unquoted form, as Sass compares strings. It is accepted and compiles
 identically.
+
+**L146.** **An empty shadow is `0 0 #0000`, never `none`, wherever it can
+join a list.** From step 2.3 the stylesheet composes an element's shadow as a
+list, its state layer over its edge layer. In CSS a `box-shadow` list
+containing `none` is invalid, and an invalid declaration paints no shadow at
+all. So a theme writing `--sb-edge-X: none` would silently remove the focus or
+invalid glow from every element that also carries a state layer. Found by
+step 2.3's implementer. Therefore L54's emitted value is `0 0 #0000` (a
+transparent zero shadow, which paints nothing and is a valid list item). And
+every Sass fallback that can sit in such a list is `0 0 #0000`, not `none`.
+`none` stays legal only where a shadow is never composed. No shipped theme has
+an empty `rest`, so no golden changes. Amends L54; L53's own examples are
+unaffected.
 
 ## 13. Left to the eye
 
