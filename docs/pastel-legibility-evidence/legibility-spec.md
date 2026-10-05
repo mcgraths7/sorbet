@@ -2136,7 +2136,10 @@ write nothing. This is L79 and L90 said for the one case the tests never
 planted. Step 2.1 acceptance gains: **10.** A planted tree in which the only
 failure is structural (the step-2.6 shape with `buttonLabel.px` set to 14, so
 C9 fails and every rule holds) is run through all five surfaces: each exits
-non-zero, prints `✗ 1 structure failure(s)`, prints no "✓ every declared…"
+non-zero, prints `✗ 2 structure failure(s)` (C9 runs once per legibility
+mode and the step-2.6 shape declares `legibility` in both; CORRECTION
+2026-10-05: revision 3.3 said 1. A twin declaring `legibility` in light only
+prints `✗ 1 structure failure(s)`, and is planted too), prints no "✓ every declared…"
 or "✓ every preset holds…" line, and neither gate writes. Four planted
 defects survived the suite for want of this case (the audit's M32, M33, M59,
 M60).
