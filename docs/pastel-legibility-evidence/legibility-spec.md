@@ -3742,6 +3742,23 @@ figure less 1.0. A clone keeps the success glyph inside; the glyph is not on
 the boundary the measurer samples, so it does not move a figure, and the
 danger clone gets the rim from its class (L178).
 
+**L192.** **Rulings after step 2.5's test author (2026-10-05).**
+(a) L167's mask refusal lives in `tools/shots.ts`'s `compare`, after
+`baselineRefusal` (`tools/shots-provenance.ts`) has accepted the baseline, not
+inside `baselineRefusal`. So that function and its existing assertions in
+`tools/test-contracts.ts` (the L155 provenance tests) are unchanged, and L183's
+list stays complete. A baseline whose `mask` is missing or differs from the
+run's is refused with a non-zero exit, naming the mask.
+(b) L189's build check walks the source files in sorted order in one pass, and
+the first problem it meets wins: a missing counterpart or a stale one,
+whichever comes first.
+(c) L178's Sass block may carry the blank line the repo's stylelint asks for
+(`declaration-empty-line-before`); formatting only, no value changes.
+(d) The test author's three readings stand: the menu's and the field's slot
+class is exactly `sb-status` (L186); L190 (c) is held in the layer `sb.atoms`
+(L170); and #51's widened fallback is allowed on `.sb-alert--danger` only
+(L183).
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
