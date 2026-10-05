@@ -2492,6 +2492,25 @@ is a CSS function from a fixed list (`var`, `calc`, `min`, `max`, `clamp`,
 already uses at `f9add57`, recorded with the test); anything else is an
 accessor that did not compile.
 
+**L162.** **Rulings after revision 3.5's test author (2026-10-05).**
+(a) The `where-defined` form is allowed on a state selector. That form is
+`box-shadow: var(--<local>, <old>)`, with `--<local>` set from `seam-only()`
+in the same rule. L153 exempts it, but only where the element carries no edge
+layer, so that it cannot clobber one. The six selected-bar selectors qualify.
+L153 still forbids any other non-composed state `box-shadow`.
+(b) L154's fixture of e24df74 sites is the set the COMPILED check (L153)
+finds at e24df74, not the source rule's set. The compiled check is the
+stricter and the one that runs. That adds
+`.sb-segmented__option[aria-checked=true] { box-shadow: var(--sb-shadow-sm) }`,
+which the source rule missed. It is allowlisted as it stands, the same shape as
+the pills tab (L157): a raised segment, not a halo.
+(c) L151's parents had no padding at e24df74, so the form is exactly
+`padding: var(--sb-halo-room, 0px)`, with no `calc()`. `scroll-padding` is
+set the same way, and only on `.sb-carousel__viewport`, the one scroll
+container. The marquee is `overflow: hidden`.
+(d) `state-box-shadow-removed.json` has the allowlist's own entry shape: an
+array of `{ file, selector }`. Entries are appended, never edited or removed.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
