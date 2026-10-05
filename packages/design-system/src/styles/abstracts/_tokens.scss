@@ -126,3 +126,18 @@
   }
   @return var(--sb-edge-#{$element}-#{$state}, $fallback);
 }
+
+/// A button's label size: button-label(md) for the default button,
+/// button-label(sm) for the small one. A theme that sets `buttonLabel` emits
+/// --sb-button-font-size and --sb-button-font-size-sm (sorbet: 16px and 14px);
+/// every other theme paints today's sizes, fs(sm) and fs(xs). Any other size
+/// is a compile error: the large button keeps fs(md) and reads no token.
+@function button-label($size) {
+  @if "#{$size}" == "md" {
+    @return var(--sb-button-font-size, fs(sm));
+  }
+  @if "#{$size}" == "sm" {
+    @return var(--sb-button-font-size-sm, fs(xs));
+  }
+  @error "Unknown size `#{$size}` for button-label(). Valid: md, sm";
+}

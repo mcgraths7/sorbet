@@ -50,7 +50,9 @@ $shadow-press: (
   padding-inline: space(4);
   border-radius: radius(md);
   font-weight: fw(semibold);
-  font-size: fs(sm);
+  // A theme with a buttonLabel (sorbet: 16px) sets the label's size; the rest
+  // paint fs(sm) as before (L19).
+  font-size: button-label(md);
   white-space: nowrap;
   text-decoration: none;
   // This shorthand overrides the one `pressable` sets, so it has to restate
@@ -154,16 +156,19 @@ $shadow-press: (
   &--outline {
     // Owns its own ring; the filled-button border, falloff and lift would all
     // double it. The ring is the shape in every state, so it is pinned across
-    // the three elevations rather than being swapped out on hover.
+    // the three elevations rather than being swapped out on hover. A theme with
+    // edge data replaces the ring with the quiet edge (sorbet: a caramel halo
+    // round a milk slab), which has a resting state only.
     $ring: inset 0 0 0 1px #{clr(border-strong)};
+    $quiet: edge(quiet, $ring);
 
     --lift: 0;
-    --shadow-rest: #{$ring};
-    --shadow-hover: #{$ring};
-    --shadow-press: #{$ring};
+    --shadow-rest: #{$quiet};
+    --shadow-hover: #{$quiet};
+    --shadow-press: #{$quiet};
 
     border-color: transparent;
-    background-color: transparent;
+    background-color: seam(quiet-fill);
     color: clr(text);
 
     &:hover:not(:disabled, [aria-disabled="true"]),
@@ -212,7 +217,7 @@ $shadow-press: (
   &--sm {
     block-size: token(control-height-sm);
     padding-inline: space(3);
-    font-size: fs(xs);
+    font-size: button-label(sm);
     border-radius: radius(sm);
   }
 

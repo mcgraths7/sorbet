@@ -37,6 +37,8 @@
     &[aria-current="page"] {
       background-color: clr(primary);
       color: clr(on-primary);
+
+      @include selected-mark(end);
     }
   }
 

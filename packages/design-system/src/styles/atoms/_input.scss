@@ -5,11 +5,17 @@
 @mixin control-surface {
   inline-size: 100%;
   padding-inline: space(3);
-  border: token(border-width) solid clr(border-strong);
+  // The frame is the field's line, its fill the field's own, and its shadow
+  // the field's edge beneath the focus glow: a theme with edge data (sorbet)
+  // sets all three; the rest paint today's border-strong frame on surface, and
+  // an edge of nothing.
+  border: token(border-width) solid seam(field-line);
   border-radius: radius(sm);
-  background-color: clr(surface);
+  background-color: seam(field-fill);
   color: clr(text);
   transition: border-color dur(fast) ease(out), box-shadow dur(fast) ease(out);
+
+  @include soft-edge(edge(field, 0 0 #0000));
 
   &::placeholder {
     color: clr(text-subtle);
@@ -31,10 +37,10 @@
   // app says so explicitly.
   &:user-invalid,
   &[aria-invalid="true"] {
-    border-color: clr(danger);
+    border-color: seam(danger-mark);
 
     &:focus-visible {
-      @include control-glow(danger);
+      @include control-glow(danger-mark);
     }
   }
 }

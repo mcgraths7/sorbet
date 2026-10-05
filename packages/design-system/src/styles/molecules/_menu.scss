@@ -55,7 +55,7 @@
 
   &__kbd {
     margin-inline-start: auto;
-    color: clr(text-subtle);
+    color: seam(text-caption);
     font-family: font(mono);
     font-size: fs(xs);
   }
@@ -72,6 +72,6 @@
     font-weight: fw(semibold);
     letter-spacing: ls(wide);
     text-transform: uppercase;
-    color: clr(text-subtle);
+    color: seam(text-caption);
   }
 }

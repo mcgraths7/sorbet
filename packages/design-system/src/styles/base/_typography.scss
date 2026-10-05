@@ -9,6 +9,9 @@ h6 {
   font-family: font(display);
   line-height: lh(tight);
   font-weight: fw(bold);
+  // The heading ink (L70): a theme may set it; the rest inherit, as headings
+  // always have.
+  color: seam(heading-ink);
 }
 
 h1 { font-size: fs(4xl); }

@@ -72,6 +72,7 @@ was produced by the code under test.
 | `sorbet-as-shipped.json` | §10's known-bad fixture (L81): sorbet's colours as `e24df74` ships them, and L81's container edge | recorded from `e24df74` by `record-legibility-fixtures.mts.txt` (the edge typed in from L81) |
 | `wcag-aa.at-e24df74.json` | L1, L2: `contracts["wcag-aa"]` and the first 86 rules (fg, bg, tier, why, mode) as `e24df74` has them | recorded the same way |
 | `goldens.at-e24df74.json` | L97, L98: sorbet's golden theme file as `e24df74` has it (the base of step 2.2's and 2.6's allowed diffs), and the sha256 of each frozen golden | recorded the same way |
+| `step-2.4-untouched.json` | Step 2.4 acceptance #3: the sha256 of every file under `packages/component-library/src` and `packages/design-system/src/behaviors` at `e6fd3d5` (step 2.3), which step 2.4 may not change. Retired when step 2.5 edits the component library | hashed from the working tree after `git diff --quiet e6fd3d5` on both directories and no untracked file there |
 
 **The two transcribed files follow the spec, not the code.** If the spec is
 revised, re-run the transcriber (`node --input-type=module - <repo root> <

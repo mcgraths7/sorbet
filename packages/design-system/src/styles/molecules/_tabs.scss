@@ -47,6 +47,11 @@
 
     &[aria-selected="true"] {
       color: clr(primary-text);
+      // The selected wash and bar (L70): transparent where a theme does not
+      // define them, so the indicator below stays the only mark there.
+      background-color: seam(selected-wash);
+
+      @include selected-mark(end);
 
       &::after {
         background-color: clr(primary-solid);

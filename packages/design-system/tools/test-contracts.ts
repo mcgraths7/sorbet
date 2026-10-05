@@ -3535,7 +3535,9 @@ try {
   /** L53: a layer as `[inset ]<x> <y> <blur> <spread> <colour>`, each length `0` or `<n>px`, the colour as withAlpha writes it. */
   const lengthOf = (n: number) => (n === 0 ? "0" : `${n}px`);
   const layerText = (layer: Layer) => `${layer.inset ? "inset " : ""}${[layer.x, layer.y, layer.blur, layer.spread].map(lengthOf).join(" ")} rgb(${bytesOf(layer.color).join(" ")} / ${layer.alpha})`;
-  const layersText = (layers: Layer[]) => (layers.length === 0 ? "none" : layers.map(layerText).join(", "));
+  // L146 (amends L54): an empty rest is the transparent zero shadow `0 0 #0000`, a valid item of a composed box-shadow list;
+  // `none` is not (a list containing it is invalid, and paints nothing).
+  const layersText = (layers: Layer[]) => (layers.length === 0 ? "0 0 #0000" : layers.map(layerText).join(", "));
   /** L53, L54: one line per element in EdgeElement order, then its -hover and -press where it has them. */
   const edgeLines = (edges: Partial<Edges>) => ELEMENTS.filter((element) => edges[element] !== undefined).flatMap((element) => {
     const recipe = edges[element]!;
@@ -3606,10 +3608,13 @@ try {
     }
   });
 
-  test("L54 an element with an empty rest emits --sb-edge-<element>: none;", () => {
+  // L146 (CORRECTION to L54, 2026-10-05): this expected `none`, which L54 said until L146; it now expects `0 0 #0000`.
+  test("L54 L146 an element with an empty rest emits --sb-edge-<element>: 0 0 #0000; — never none", () => {
     const edges = freshEdges();
     edges.light.sunken!.rest = [];
-    assert.ok(blocksOf(themeCss(legiblePreset({ edges }))).light.includes("--sb-edge-sunken: none;"));
+    const light = blocksOf(themeCss(legiblePreset({ edges }))).light;
+    assert.ok(light.includes("--sb-edge-sunken: 0 0 #0000;"), `the sunken element with an empty rest: ${light.find((line) => line.startsWith("--sb-edge-sunken:"))}`);
+    assert.ok(!light.some((line) => line.startsWith("--sb-edge-") && / none;$/.test(line)), "an edge property emitted as none (L146)");
   });
 
   test("L43 L122 L124 malformed edge data is a TypeError when it is EMITTED too, naming the preset and the element — a hover layer included", () => {
@@ -4494,6 +4499,291 @@ try {
     }
     refusedByCompile("  color: seam(\"feild-fill\");", "feild-fill", "seam(\"feild-fill\")");
     refusedByCompile("  outline: edge(\"filled-success\", none);", "filled-success", "edge(\"filled-success\", none)");
+  });
+
+  // ══ PR 2, step 2.4: components by layer (L101) — the parts that can fail silently ═══════════════════════
+  // The stylesheet is compiled here, from src/styles/index.scss with the repo's sass, as build:css compiles it; the
+  // compiled CSS is read, never the partials (step 2.4's implementation). Acceptance #1 and #2 are the hand-run tools.
+  interface CssRule {
+    selectors: string[];
+    decls: [property: string, value: string][];
+    conditional: boolean;
+    layer: string | null;
+  }
+  /** Split at commas outside parentheses and quotes. */
+  const splitTop = (text: string) => {
+    const parts: string[] = [];
+    let depth = 0;
+    let quote = "";
+    let current = "";
+    for (const ch of text) {
+      if (quote !== "") {
+        quote = ch === quote ? "" : quote;
+      } else if (ch === "\"" || ch === "'") {
+        quote = ch;
+      } else if (ch === "(") {
+        depth++;
+      } else if (ch === ")") {
+        depth--;
+      } else if (ch === "," && depth === 0) {
+        parts.push(current.trim());
+        current = "";
+        continue;
+      }
+      current += ch;
+    }
+    parts.push(current.trim());
+    return parts.filter((part) => part !== "");
+  };
+  /** A compiled stylesheet read back: every style rule in source order, with whether a conditional at-rule (@media, @supports, @container) encloses it, and the @layer order. */
+  function readCss(text: string): { rules: CssRule[]; declaredLayers: string[]; layerBlocks: string[] } {
+    const rules: CssRule[] = [];
+    const layerBlocks: string[] = [];
+    let declaredLayers: string[] = [];
+    type Frame = { rule: CssRule } | { conditional: boolean; layer: string | null; opaque: boolean };
+    const stack: Frame[] = [];
+    let buffer = "";
+    let quote = "";
+    let depth = 0;
+    const statement = () => {
+      const text = buffer.trim();
+      buffer = "";
+      const top = stack.at(-1);
+      if (text === "") {
+        return;
+      }
+      if (top !== undefined && "rule" in top) {
+        const colon = text.indexOf(":");
+        if (colon > 0) {
+          top.rule.decls.push([text.slice(0, colon).trim().toLowerCase(), text.slice(colon + 1).replace(/\s*!important\s*$/i, "").replace(/\s+/g, " ").trim()]);
+        }
+      } else if (stack.length === 0 && /^@layer\s/.test(text) && declaredLayers.length === 0) {
+        declaredLayers = splitTop(text.slice("@layer".length));
+      }
+    };
+    for (const ch of text.replace(/\/\*[\s\S]*?\*\//g, "")) {
+      if (quote !== "") {
+        buffer += ch;
+        quote = ch === quote ? "" : quote;
+        continue;
+      }
+      if (ch === "\"" || ch === "'") {
+        quote = ch;
+      } else if (ch === "(") {
+        depth++;
+      } else if (ch === ")") {
+        depth--;
+      }
+      if (depth > 0 || (ch !== ";" && ch !== "{" && ch !== "}")) {
+        buffer += ch;
+        continue;
+      }
+      if (ch === ";") {
+        statement();
+      } else if (ch === "}") {
+        statement();
+        stack.pop();
+      } else {
+        const prelude = buffer.trim().replace(/\s+/g, " ");
+        buffer = "";
+        const frames = stack.filter((frame): frame is { conditional: boolean; layer: string | null; opaque: boolean } => !("rule" in frame));
+        if (prelude.startsWith("@")) {
+          const name = /^@([\w-]+)/.exec(prelude)![1]!.toLowerCase();
+          const layer = name === "layer" ? prelude.slice("@layer".length).trim() : null;
+          if (layer !== null && stack.length === 0) {
+            layerBlocks.push(layer);
+          }
+          stack.push({ conditional: ["media", "supports", "container"].includes(name), layer, opaque: !["media", "supports", "container", "layer"].includes(name) });
+        } else if (frames.some((frame) => frame.opaque)) {
+          stack.push({ conditional: false, layer: null, opaque: true }); // a keyframe stop, a font-face: not a style rule
+        } else {
+          const rule: CssRule = {
+            selectors: splitTop(prelude).map((item) => item.replace(/\s+/g, " ")),
+            decls: [],
+            conditional: frames.some((frame) => frame.conditional),
+            layer: [...frames].reverse().find((frame) => frame.layer !== null)?.layer ?? null,
+          };
+          rules.push(rule);
+          stack.push({ rule });
+        }
+      }
+    }
+    return { rules, declaredLayers, layerBlocks };
+  }
+  let compiledStylesheet: ReturnType<typeof readCss> | undefined;
+  /** The library's stylesheet, compiled now from src/styles/index.scss as build:css compiles it. */
+  const stylesheet = () => {
+    compiledStylesheet ??= readCss(sass.compile(join(pkgRoot, "src", "styles", "index.scss"), { loadPaths: [join(pkgRoot, "src", "styles")], style: "expanded" }).css);
+    return compiledStylesheet;
+  };
+  /** C11's reading: the rules whose selector list holds `selector` as one whole item, outside conditional at-rules. */
+  const rulesOf = (selector: string) => stylesheet().rules.filter((rule) => !rule.conditional && rule.selectors.includes(selector));
+  /** The last declaration of any of `properties` among those rules, in source order. */
+  const lastOf = (selector: string, properties: string[]) => rulesOf(selector).flatMap((rule) => rule.decls).filter(([property]) => properties.includes(property)).at(-1)?.[1];
+  /** C11's selectors, element by element (L79, revision 3.1). `.sb-progress` is the well's track (D1); `.sb-alert` is the info box its default tone paints. */
+  const C11_SELECTORS: [element: string, selectors: string[]][] = [
+    ["container", [".sb-card"]],
+    ["sunken", [".sb-card--sunken", ".sb-progress"]],
+    ["floating", [".sb-popover", ".sb-menu", ".sb-combobox__panel", ".sb-calendar", ".sb-color-input__panel", ".sb-toast", ".sb-modal", ".sb-drawer"]],
+    ["field", [".sb-input", ".sb-textarea", ".sb-select select", ".sb-number-input", ".sb-combobox__field", ".sb-date-range__control"]],
+    ["quiet", [".sb-button--outline"]],
+    ["filled-primary", [".sb-button"]],
+    ["filled-secondary", [".sb-button--secondary"]],
+    ["filled-accent", [".sb-button--accent"]],
+    ["filled-danger", [".sb-button--danger"]],
+    ["status-info", [".sb-alert", ".sb-alert--info"]],
+    ["status-success", [".sb-alert--success"]],
+    ["status-warning", [".sb-alert--warning"]],
+    ["status-danger", [".sb-alert--danger"]],
+  ];
+  /** A value that is var(--sb-<name>) or var(--sb-<name>, <fallback>) — clr()'s form or seam()'s. */
+  const readsToken = (value: string | undefined, name: string) => value !== undefined && (value === `var(--sb-${name})` || (value.startsWith(`var(--sb-${name}, `) && value.endsWith(")")));
+
+  test("2.4 C11 (reader) the compiled stylesheet's @layer blocks appear in the order its first line declares them, so source order is cascade order", () => {
+    const { declaredLayers, layerBlocks, rules } = stylesheet();
+    assert.ok(declaredLayers.length > 0, "no @layer order statement");
+    assert.deepEqual([...new Set(layerBlocks)], declaredLayers.filter((layer) => layerBlocks.includes(layer)), "the layer blocks are out of the declared order");
+    assert.ok(rules.length > 500 && rulesOf(".sb-card").length > 0, `the reader found ${rules.length} rules`);
+  });
+
+  test("2.4 C11 L106 each of the 27 selectors paints its element's recipe fill: the last background or background-color in source order, outside conditional at-rules, is var(--sb-<fill>) or var(--sb-<fill>, <fallback>)", () => {
+    assert.equal(C11_SELECTORS.flatMap(([, selectors]) => selectors).length, 27);
+    // D1 is a rule of §3's record (bg-subtle equals surface-sunken), read off the transcription: sorbet's dark record is
+    // buildMode's until step 2.6, where it does not hold (see spec_problems).
+    const d1 = MODES.every((mode) => VALUES.colors[mode]["bg-subtle"] === VALUES.colors[mode]["surface-sunken"]);
+    assert.ok(d1, "D1 does not hold in §3's record");
+    const wrong: string[] = [];
+    for (const [element, selectors] of C11_SELECTORS) {
+      const fill = VALUES.edges.light[element]!.fill;
+      assert.equal(VALUES.edges.dark[element]!.fill, fill, `${element}: one fill in both modes`);
+      for (const selector of selectors) {
+        const want = selector === ".sb-progress" && d1 ? "bg-subtle" : fill;
+        const got = lastOf(selector, ["background", "background-color"]);
+        if (!readsToken(got, want)) {
+          wrong.push(`${selector} (${element}) paints ${got ?? "nothing"}, not ${want}`);
+        }
+      }
+    }
+    assert.deepEqual(wrong, [], "fills the recipe names and the stylesheet does not paint (L106, C11)");
+  });
+
+  test("2.4 C11 L70 after step 2.4 each selector reads its element's edge property, --sb-edge-<element> — all but the status boxes, whose edge is step 2.5's", () => {
+    const missing: string[] = [];
+    for (const [element, selectors] of C11_SELECTORS.filter(([element]) => !element.startsWith("status-"))) {
+      const property = new RegExp(`--sb-edge-${element}(?![\\w-])`);
+      for (const selector of selectors) {
+        if (!rulesOf(selector).some((rule) => rule.decls.some(([, value]) => property.test(value)))) {
+          missing.push(`${selector} does not read --sb-edge-${element}`);
+        }
+      }
+    }
+    assert.deepEqual(missing, []);
+  });
+
+  test("2.4 L113 L70 the 1px lines read their seams: the card's and the floating surfaces' through container-line, the fields' frames through field-line — each with today's colour as its fallback", () => {
+    const wrong: string[] = [];
+    const lines: [seam: string, fallback: string, selectors: string[]][] = [
+      ["container-line", "border-subtle", [".sb-card", ".sb-popover", ".sb-menu", ".sb-combobox__panel", ".sb-calendar", ".sb-color-input__panel", ".sb-toast"]],
+      ["field-line", "border-strong", [".sb-input", ".sb-textarea", ".sb-select select", ".sb-number-input", ".sb-combobox__field", ".sb-date-range__control"]],
+    ];
+    for (const [seam, fallback, selectors] of lines) {
+      for (const selector of selectors) {
+        const got = lastOf(selector, ["border", "border-color"]);
+        if (got === undefined || !got.includes(`var(--sb-${seam}, var(--sb-${fallback}))`)) {
+          wrong.push(`${selector}'s line is ${got ?? "nothing"}, not through ${seam}`);
+        }
+      }
+    }
+    assert.deepEqual(wrong, []);
+  });
+
+  /** fs(<size>) as the abstracts compile it: the fallbacks L19 names. */
+  const fsOf = (size: string) => compiled(`  font-size: fs(${size});`, `fs(${size})`)["font-size"]!;
+
+  test("2.4 L19 L115 button-label(md) and button-label(sm) compile to var(--sb-button-font-size, fs(sm)) and var(--sb-button-font-size-sm, fs(xs)); any other size fails the compile", () => {
+    assert.deepEqual(compiled("  font-size: button-label(md);", "button-label(md)"), { "font-size": `var(--sb-button-font-size, ${fsOf("sm")})` });
+    assert.deepEqual(compiled("  font-size: button-label(sm);", "button-label(sm)"), { "font-size": `var(--sb-button-font-size-sm, ${fsOf("xs")})` });
+    for (const size of ["lg", "xs", "medium", "small", "nope"]) {
+      refusedByCompile(`  font-size: button-label(${size});`, size, `button-label(${size})`);
+    }
+  });
+
+  test("2.4 L19 the default and small buttons set their labels through button-label(): .sb-button's font-size is the md form, .sb-button--sm's the sm form, and .sb-button--lg is untouched (fs(md))", () => {
+    assert.equal(lastOf(".sb-button", ["font-size"]), `var(--sb-button-font-size, ${fsOf("sm")})`, ".sb-button");
+    assert.equal(lastOf(".sb-button--sm", ["font-size"]), `var(--sb-button-font-size-sm, ${fsOf("xs")})`, ".sb-button--sm");
+    assert.equal(lastOf(".sb-button--lg", ["font-size"]), fsOf("md"), ".sb-button--lg");
+  });
+
+  /** Every library partial, for the source-text checks acceptance #4 and L72 state as greps. */
+  const partials = () => {
+    const root = join(pkgRoot, "src", "styles");
+    const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(join(dir, entry.name)) : entry.name.endsWith(".scss") ? [join(dir, entry.name)] : []));
+    return walk(root).map((file) => ({ path: relative(root, file).split(sep).join("/"), text: readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "") }));
+  };
+  const count = (text: string, call: string, name: string) => text.match(new RegExp(`\\b${call}\\(\\s*["']?${name}["']?\\s*\\)`, "g"))?.length ?? 0;
+
+  test("2.4 #4 L70 no clr(border-strong) remains at a field frame or the switch's off track: grep finds it only at the ring and line sites (proposal §7), and the frames read seam(field-line), the switch seam(switch-off)", () => {
+    // Proposal §7's 18 uses (checked at e24df74: 18 in 16 files). The six field frames go to field-line and the switch's
+    // off-track to switch-off (L70, 2.4); the ring and line sites stay, the rating's empty star and the carousel's off dot
+    // among them (§13, §15 item 6: they become the ring colour).
+    const REMAINING: Record<string, number> = {
+      "atoms/_choice.scss": 1, "atoms/_button.scss": 1, "atoms/_divider.scss": 1, "atoms/_rating.scss": 1,
+      "molecules/_dropzone.scss": 2, "molecules/_calendar.scss": 1, "molecules/_carousel.scss": 2,
+      "organisms/_command-palette.scss": 1, "organisms/_chart.scss": 1,
+    };
+    const found = Object.fromEntries(partials().map(({ path, text }) => [path, count(text, "clr", "border-strong")]).filter(([, n]) => (n as number) > 0));
+    assert.deepEqual(found, REMAINING, "clr(border-strong) by file");
+    const moved: [file: string, seam: string][] = [
+      ["atoms/_input.scss", "field-line"], ["atoms/_number-input.scss", "field-line"], ["atoms/_color-input.scss", "field-line"],
+      ["molecules/_combobox.scss", "field-line"], ["molecules/_date-range.scss", "field-line"], ["molecules/_input-group.scss", "field-line"],
+      ["atoms/_switch.scss", "switch-off"],
+    ];
+    for (const [file, seam] of moved) {
+      const text = partials().find((partial) => partial.path === file)?.text ?? "";
+      assert.ok(count(text, "seam", seam) > 0, `${file} does not read seam(${seam})`);
+    }
+  });
+
+  test("2.4 L72 the 47 text-subtle sites are split, none lost: clr(text-subtle) and seam(text-caption) together still number 47 (the caption rule itself needs the rendered sizes, step 2.4's table)", () => {
+    const all = partials();
+    const subtle = all.reduce((sum, { text }) => sum + count(text, "clr", "text-subtle"), 0);
+    const caption = all.reduce((sum, { text }) => sum + count(text, "seam", "text-caption"), 0);
+    assert.equal(subtle + caption, 47, `clr(text-subtle) ${subtle} and seam(text-caption) ${caption}`);
+  });
+
+  test("2.4 L146 no composed box-shadow list in the stylesheet can resolve to none: no item is none, and no item's var() fallbacks end in none — a list containing none is invalid and paints nothing", () => {
+    const endsInNone = (item: string): boolean => {
+      const text = item.trim();
+      if (text === "none") {
+        return true;
+      }
+      const v = /^var\(\s*--[\w-]+\s*,(.*)\)$/s.exec(text);
+      return v !== null && endsInNone(v[1]!);
+    };
+    const wrong: string[] = [];
+    for (const rule of stylesheet().rules) {
+      for (const [property, value] of rule.decls) {
+        const items = splitTop(value);
+        if (property === "box-shadow" && items.length > 1) {
+          wrong.push(...items.filter(endsInNone).map((item) => `${rule.selectors.join(", ")}: box-shadow item ${item}`));
+        }
+      }
+    }
+    assert.deepEqual(wrong, []);
+  });
+
+  test("2.4 #3 step 2.4 is Sass only: no file under packages/component-library/src or packages/design-system/src/behaviors differs from e6fd3d5 (step 2.3), none added, none removed", () => {
+    const base = json("step-2.4-untouched.json") as { recordedFrom: string; files: Record<string, string> };
+    assert.equal(base.recordedFrom, "e6fd3d5");
+    const now: Record<string, string> = {};
+    for (const dir of ["packages/component-library/src", "packages/design-system/src/behaviors"]) {
+      const walk = (path: string): string[] => readdirSync(path, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(join(path, entry.name)) : [join(path, entry.name)]));
+      for (const file of walk(join(repoRoot, dir))) {
+        now[posix(file)] = createHash("sha256").update(readFileSync(file)).digest("hex");
+      }
+    }
+    const changed = [...new Set([...Object.keys(base.files), ...Object.keys(now)])].sort().filter((path) => base.files[path] !== now[path]).map((path) => `${path}: ${base.files[path] === undefined ? "added" : now[path] === undefined ? "removed" : "changed"}`);
+    assert.deepEqual(changed, []);
   });
 
   legibilityCount = ran - legibilityFrom;

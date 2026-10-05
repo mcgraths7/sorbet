@@ -4,9 +4,13 @@
   display: flex;
   flex-direction: column;
   border-radius: radius(lg);
-  border: token(border-width) solid clr(border-subtle);
+  // The line and the shadow are the container's, through their seams: a theme
+  // with edge data (sorbet) makes the line transparent, keeping its 1px of
+  // layout, and draws the boundary with the container edge alone (L113); the
+  // rest paint the border-subtle line and shadow(sm) as before.
+  border: token(border-width) solid seam(container-line);
   background-color: clr(surface);
-  box-shadow: shadow(sm);
+  box-shadow: edge(container, shadow(sm));
   overflow: hidden;
 
   &__header,
@@ -63,14 +67,17 @@
     box-shadow: shadow(md);
   }
 
+  // Flat drops the elevation, not the boundary. Where the boundary is the line,
+  // that is no shadow at all; where a theme draws it with the edge and no line,
+  // a flat card keeps the edge, or it would have nothing to show where it ends.
   &--flat {
-    box-shadow: none;
+    box-shadow: edge(container, none);
   }
 
   &--sunken {
     background-color: clr(surface-sunken);
     border: none;
-    box-shadow: none;
+    box-shadow: edge(sunken, none);
   }
 
   // Whole-card link/button affordance.

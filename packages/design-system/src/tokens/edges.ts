@@ -244,11 +244,11 @@ export function edgeProperties(data: EdgeData): [property: string, layers: Shado
   });
 }
 
-/** A layer list as CSS writes a box-shadow: `[inset ]<x> <y> <blur> <spread> <colour>`, each length `0` or `<n>px`, joined by `, `; `none` for no layers. */
+/** A layer list as CSS writes a box-shadow: `[inset ]<x> <y> <blur> <spread> <colour>`, each length `0` or `<n>px`, joined by `, `; for no layers `0 0 #0000`, a transparent zero shadow, never `none`: the stylesheet composes an edge into a box-shadow list, where `none` is invalid and would erase the whole list (L146). */
 export function shadowText(layers: readonly ShadowLayer[]): string {
   const length = (n: number) => (n === 0 ? "0" : `${n}px`);
   return layers.length === 0
-    ? "none"
+    ? "0 0 #0000"
     : layers.map((layer) => `${layer.inset ? "inset " : ""}${[layer.x, layer.y, layer.blur, layer.spread].map(length).join(" ")} ${withAlpha(layer.color, layer.alpha)}`).join(", ");
 }
 

@@ -19,11 +19,12 @@
   gap: space(3);
   padding: space(3) space(4);
   border-radius: radius(md);
-  border: token(border-width) solid clr(border-subtle);
+  // The floating surface's line and edge, as popover-surface draws them (L113).
+  border: token(border-width) solid seam(container-line);
   background-color: clr(surface-raised);
   color: clr(text);
   font-size: fs(sm);
-  box-shadow: shadow(lg);
+  box-shadow: edge(floating, shadow(lg));
   animation: sb-toast-in dur(slow) ease(spring);
 
   &[data-leaving] {

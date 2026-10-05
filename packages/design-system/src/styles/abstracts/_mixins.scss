@@ -133,6 +133,31 @@
   }
 }
 
+/// A role through clr(), or an optional colour token through its seam.
+@function clr-or-seam($name) {
+  @if map.has-key(gen.$seams, "#{$name}") {
+    @return seam($name);
+  }
+  @return clr($name);
+}
+
+/// The mark on a selected or current row: a 3px bar on one side, inset, in
+/// `selected-bar`: sheet 2 carries a selection with a wash, a bar and a
+/// weight, never with colour alone. `$side` is `start` (a list row: the bar
+/// stands on the left) or `end` (a tab or a nav link: it lies along the
+/// bottom). A theme that does not define the token paints the fallback,
+/// `transparent`, so the bar draws nothing there. The row's own shadow, when it
+/// has one, is replaced, which is why only rows with no shadow take it.
+@mixin selected-mark($side: start) {
+  @if $side == start {
+    box-shadow: inset 3px 0 0 0 seam(selected-bar);
+  } @else if $side == end {
+    box-shadow: inset 0 -3px 0 0 seam(selected-bar);
+  } @else {
+    @error "selected-mark($side): `#{$side}` is not start or end";
+  }
+}
+
 /// The text-control focus glow: ring-colored border plus a soft halo one
 /// ring-width wide. Every input-shaped control shares this exact chrome; the
 /// selector that triggers it stays with the component (native controls use
@@ -141,10 +166,15 @@
 ///
 /// The halo is the STATE layer: it is drawn over the element's edge layer,
 /// when it has one, instead of replacing it.
+///
+/// `$color` is a role, or an optional colour token read through its seam: the
+/// invalid flavour passes `danger-mark`, whose fallback is `danger`.
 @mixin control-glow($color: focus-ring) {
-  --state-layer: #{0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, clr($color), transparent 70%)};
+  $paint: clr-or-seam($color);
 
-  border-color: clr($color);
+  --state-layer: #{0 0 0 calc(token(focus-ring-width) - 1px) color-mix(in oklab, $paint, transparent 70%)};
+
+  border-color: $paint;
   box-shadow: var(--state-layer), var(--edge-layer, 0 0 #0000);
 }
 
@@ -222,15 +252,19 @@
 /// Fixed anchored-panel chrome for the Popover-API surfaces (menu, pickers, the
 /// generic Popover). The component positions it (position:fixed, inset cleared);
 /// this is the shared shape + elevation.
+///
+/// The 1px line reads `container-line` (L113): a theme with edge data sets it
+/// transparent, so the line keeps its pixel of layout and the floating edge
+/// alone draws the boundary.
 @mixin popover-surface {
   position: fixed;
   inset: auto;
   margin: 0;
-  border: token(border-width) solid clr(border-subtle);
+  border: token(border-width) solid seam(container-line);
   border-radius: radius(md);
   background-color: clr(surface-raised);
   color: clr(text);
-  box-shadow: shadow(lg);
+  box-shadow: edge(floating, shadow(lg));
   z-index: z(popover);
 }
 

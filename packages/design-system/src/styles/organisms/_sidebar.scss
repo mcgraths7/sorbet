@@ -18,7 +18,7 @@
     font-weight: fw(semibold);
     letter-spacing: ls(wider);
     text-transform: uppercase;
-    color: clr(text-subtle);
+    color: seam(text-caption);
 
     &:first-child {
       padding-block-start: space(1);
@@ -54,6 +54,8 @@
     &[aria-current="true"] {
       color: clr(primary-text);
       background-color: clr(primary-subtle);
+
+      @include selected-mark(start);
     }
 
     .sb-badge {

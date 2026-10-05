@@ -1878,6 +1878,9 @@ on screen) is written by the implementer and looked at.
      14.9 / 14.8 / 14.7 (the danger button is the blush one); quiet button on
      a card 12.8; butter button on the page 13.5; quiet button on the page
      14.4; text field 11.4; checkbox and switch, off, 27.0; status box 10.9.
+     CORRECTION 2026-10-05: the status box is measured at step 2.5, not here.
+     L70 schedules its edge for 2.5, and C11's edge test exempts it until then.
+     The implementer found the clash; L70, the more specific statement, wins.
      (Sheet 2's robin's-egg button, 13.3 and 12.3, has no component to
      measure.) This is by hand and is the only check of *sufficiency*: the
      gate's number is a heuristic (L51).

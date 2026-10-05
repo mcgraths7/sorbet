@@ -17,14 +17,16 @@
   // it is positioned out of flow, and that it rests hidden until something
   // opens it. Without this it would be a fixed, fully transparent panel.
   // The shadow goes too: it is not floating above anything any more. The
-  // border stays, so it still reads as one surface.
+  // border stays, so it still reads as one surface; where a theme draws the
+  // boundary with an edge instead of a line, the inline calendar takes the
+  // container's, as a card would.
   &--inline {
     position: static;
     z-index: auto;
     opacity: 1;
     scale: 1;
     transition: none;
-    box-shadow: none;
+    box-shadow: edge(container, none);
   }
 
   &__header {
@@ -96,7 +98,7 @@
     block-size: token(control-height-sm);
     font-size: fs(xs);
     font-weight: fw(semibold);
-    color: clr(text-subtle);
+    color: seam(text-caption);
     text-decoration: none;
     cursor: default;
   }

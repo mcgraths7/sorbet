@@ -93,7 +93,7 @@
     font-weight: fw(semibold);
     text-transform: uppercase;
     letter-spacing: ls(wide);
-    color: clr(text-subtle);
+    color: seam(text-caption);
 
     &:first-child {
       margin-block-start: 0;
