@@ -1,0 +1,89 @@
+// Records status-markup-more.at-ec97a20.json for legibility-spec.md L194 (g), (d) and (i): the markup ec97a20's built
+// component library renders for the cases the 39 of status-markup.at-9b83e50.json missed (the audit of step 2.5, frozen
+// lens F3), each the renderToStaticMarkup of ec97a20's build. ec97a20 stands for 9b83e50, which was never pushed: this
+// file's sibling, record-status-markup.mts.txt, run against ec97a20's build writes status-markup.at-9b83e50.json byte
+// for byte. The presence test reads the cases from the fixture, renders each with this tree's build, removes every
+// slot with L194 (g)'s exact pattern and requires the fixture's markup, character for character.
+//
+// A .txt, like record-status-markup.mts.txt, so nothing runs or lints it by accident. It was run once, before the
+// repair changed the components, and the fixture is never re-recorded; its sha256 is pinned in test-status.ts.
+//
+// To run it: copy it out as a .mts file, and point it at the root of a checkout of ec97a20 whose component library is
+// built:
+//
+//   mkdir -p /tmp/sorbet-ec97a20
+//   git archive ec97a20 | tar -x -C /tmp/sorbet-ec97a20
+//   (cd /tmp/sorbet-ec97a20 && pnpm install --offline && pnpm build)
+//   cp packages/component-library/tools/fixtures/record-status-markup-more.mts.txt /tmp/record-status-markup-more.mts
+//   node /tmp/record-status-markup-more.mts /tmp/sorbet-ec97a20 /tmp/status-markup-more.at-ec97a20.json
+//   cmp /tmp/status-markup-more.at-ec97a20.json packages/component-library/tools/fixtures/status-markup-more.at-ec97a20.json
+
+import { writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
+
+const [checkout, out] = process.argv.slice(2);
+if (!checkout || !out) {
+  console.error("usage: node record-status-markup-more.mts <root of a built ec97a20 checkout> <output file>");
+  process.exit(1);
+}
+const library = join(checkout, "packages", "component-library");
+// react and react-dom from the component library's own peer dependencies, as the presence test resolves them (L189).
+const req = createRequire(join(library, "package.json"));
+const React = req("react") as { createElement: (type: unknown, props?: Record<string, unknown> | null, ...children: unknown[]) => unknown };
+const { renderToStaticMarkup } = req("react-dom/server") as { renderToStaticMarkup: (element: unknown) => string };
+const barrel = (await import(pathToFileURL(join(library, "dist", "index.js")).href)) as Record<string, unknown>;
+
+type Props = Record<string, unknown>;
+const input = { element: "input", props: { className: "sb-input" } };
+const ERROR = "That is more rice than the pantry holds.";
+
+// L194 (g)'s cases, in its order: what the 39 missed, and (d)'s tones that are not a status.
+const CASES: { id: string; component: string; props: Props }[] = [
+  { id: "A6", component: "Alert", props: { tone: "danger", title: "Sync failed", children: "x" } },
+  { id: "A7", component: "Alert", props: { tone: "warning", title: "Heads up", onDismiss: "noop", dismissLabel: "Schliessen", children: "x" } },
+  { id: "B22", component: "Badge", props: { tone: "danger", solid: true, className: "x", children: "7" } },
+  { id: "B23", component: "Badge", props: { tone: "success", children: { element: "strong", props: { children: "Done" } } } },
+  { id: "C15", component: "Button", props: { variant: "danger", pill: true, children: "Delete" } },
+  { id: "C16", component: "Button", props: { variant: "danger", full: true, children: "Delete" } },
+  { id: "C17", component: "Button", props: { variant: "danger", disabled: true, children: "Delete" } },
+  { id: "C18", component: "Button", props: { variant: "danger", className: "x", children: "Delete" } },
+  { id: "C19", component: "Button", props: { variant: "danger", as: "a", href: "#delete", pill: true, children: "Delete" } },
+  { id: "D5", component: "MenuItem", props: { danger: true, disabled: true, children: "Delete" } },
+  { id: "D6", component: "MenuItem", props: { danger: true, className: "x", shortcut: "Del", children: "Delete" } },
+  { id: "E4", component: "Field", props: { label: "Rice", hint: "Cups, cooked.", error: ERROR, invalid: true, children: input } },
+  { id: "E5", component: "Field", props: { label: "Rice", required: true, error: ERROR, invalid: true, children: input } },
+  { id: "E6", component: "Field", props: { label: "Rice", optional: true, hint: "Cups, cooked.", error: ERROR, children: input } },
+  { id: "H1", component: "Alert", props: { tone: "primary", children: "x" } },
+  { id: "H2", component: "Alert", props: { tone: "neutral", children: "x" } },
+];
+
+/** Props as data, made React props: "noop" for onDismiss is a function that does nothing; a child { element, props } is one host element. */
+function live(props: Props): Props {
+  const made: Props = {};
+  for (const [key, value] of Object.entries(props)) {
+    if (key === "onDismiss" && value === "noop") {
+      made[key] = () => {};
+    } else if (key === "children" && typeof value === "object" && value !== null && "element" in value) {
+      const child = value as { element: string; props: Props };
+      made[key] = React.createElement(child.element, child.props);
+    } else {
+      made[key] = value;
+    }
+  }
+  return made;
+}
+
+const cases = CASES.map(({ id, component, props }) => {
+  const Component = barrel[component];
+  if (typeof Component !== "function") {
+    throw new Error(`${id}: ec97a20's barrel exports no ${component}`);
+  }
+  return { id, component, props, html: renderToStaticMarkup(React.createElement(Component, live(props))) };
+});
+if (cases.length !== 16) {
+  throw new Error(`${cases.length} cases, not L194 (g)'s 16`);
+}
+writeFileSync(out, `${JSON.stringify({ recordedFrom: "ec97a20", cases }, null, 2)}\n`);
+console.log(`recorded ${cases.length} cases from ${library} into ${out}`);

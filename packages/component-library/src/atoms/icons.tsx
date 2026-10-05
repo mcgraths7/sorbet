@@ -241,10 +241,15 @@ export interface StatusMarkProps {
  * `position: absolute`), so the word stays inside its component and inside
  * any scroller round it. The only place the slot's markup is written. Every
  * status component renders it from its status, so a status cannot render
- * without its icon and word (legibility-spec.md L168, L171, L186).
+ * without its icon and word (legibility-spec.md L168, L171, L186). A tone that
+ * is not a status (from untyped code) renders nothing, so the component renders
+ * as it did before it had a slot, rather than throwing (L194 (d)).
  * Internal (not in `atoms/index.ts`).
  */
 export function StatusMark({ tone, statusLabel, wordless, className }: StatusMarkProps) {
+  if (!Object.hasOwn(STATUS_GLYPHS, tone)) {
+    return null;
+  }
   const Glyph = STATUS_GLYPHS[tone];
   const word = statusLabel?.trim() || STATUS_WORDS[tone];
   return (

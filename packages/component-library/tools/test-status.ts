@@ -163,9 +163,29 @@ const CASES: Record<string, { component: string; props: Props }> = {
   G5: { component: "Alert", props: { tone: "danger", children: "x", statusLabel: " Fehler " } },
   G6: { component: "Alert", props: { tone: "danger", children: "x", statusLabel: "" } },
   G7: { component: "Alert", props: { tone: "danger", children: "x", statusLabel: "  " } },
+  // L194 (g): what the 39 missed, recorded from ec97a20 (status-markup-more.at-ec97a20.json); (d): tones that are no status.
+  A6: { component: "Alert", props: { tone: "danger", title: "Sync failed", children: "x" } },
+  A7: { component: "Alert", props: { tone: "warning", title: "Heads up", onDismiss: "noop", dismissLabel: "Schliessen", children: "x" } },
+  B22: { component: "Badge", props: { tone: "danger", solid: true, className: "x", children: "7" } },
+  B23: { component: "Badge", props: { tone: "success", children: { element: "strong", props: { children: "Done" } } } },
+  C15: { component: "Button", props: { variant: "danger", pill: true, children: "Delete" } },
+  C16: { component: "Button", props: { variant: "danger", full: true, children: "Delete" } },
+  C17: { component: "Button", props: { variant: "danger", disabled: true, children: "Delete" } },
+  C18: { component: "Button", props: { variant: "danger", className: "x", children: "Delete" } },
+  C19: { component: "Button", props: { variant: "danger", as: "a", href: "#delete", pill: true, children: "Delete" } },
+  D5: { component: "MenuItem", props: { danger: true, disabled: true, children: "Delete" } },
+  D6: { component: "MenuItem", props: { danger: true, className: "x", shortcut: "Del", children: "Delete" } },
+  E4: { component: "Field", props: { label: "Rice", hint: "Cups, cooked.", error: RICE, invalid: true, children: INPUT } },
+  E5: { component: "Field", props: { label: "Rice", required: true, error: RICE, invalid: true, children: INPUT } },
+  E6: { component: "Field", props: { label: "Rice", optional: true, hint: "Cups, cooked.", error: RICE, children: INPUT } },
+  H1: { component: "Alert", props: { tone: "primary", children: "x" } },
+  H2: { component: "Alert", props: { tone: "neutral", children: "x" } },
+  H3: { component: "ToastItem", props: { tone: "primary", message: "x", onDismiss: "noop" } },
 };
 /** L187: the 39 the fixture holds, in its order; the rest are the ones 9b83e50 cannot render the same way. */
 const RECORDED = ["A1", "A2", "A3", "A4", "A5", ...Array.from({ length: 13 }, (_, i) => `B${i + 1}`), ...Array.from({ length: 14 }, (_, i) => `C${i + 1}`), "D1", "D2", "D3", "D4", "E1", "E2", "E3"];
+/** L194 (g): the 16 the second fixture holds, in its order. */
+const RECORDED_MORE = ["A6", "A7", "B22", "B23", "C15", "C16", "C17", "C18", "C19", "D5", "D6", "E4", "E5", "E6", "H1", "H2"];
 
 /** Props as data, made React props. */
 function live(props: Props): Props {
@@ -349,6 +369,110 @@ try {
     }
   });
 
+  // ── L194 (j): the symbol is knocked out ──────────────────────────────────────────────────────────────────────────
+  /** A glyph's path flattened to closed polygons: absolute M, L, H, V, A and Z, as the four glyphs are written. */
+  function polygons(d: string): [number, number][][] {
+    const tokens = [...d.matchAll(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g)].map((m) => m[0]);
+    assert.ok(tokens.every((token) => !/[a-z]/.test(token)), `the check reads absolute commands only: ${d}`);
+    const shapes: [number, number][][] = [];
+    let shape: [number, number][] = [];
+    let [x, y] = [0, 0];
+    let command = "";
+    for (let i = 0; i < tokens.length;) {
+      if (/[A-Z]/.test(tokens[i]!)) {
+        command = tokens[i++]!;
+      }
+      const take = (n: number) => tokens.slice(i, (i += n)).map(Number);
+      if (command === "M") {
+        if (shape.length > 0) {
+          shapes.push(shape);
+        }
+        [x, y] = take(2) as [number, number];
+        shape = [[x, y]];
+        command = "L";
+      } else if (command === "L") {
+        [x, y] = take(2) as [number, number];
+        shape.push([x, y]);
+      } else if (command === "H") {
+        [x] = take(1) as [number];
+        shape.push([x, y]);
+      } else if (command === "V") {
+        [y] = take(1) as [number];
+        shape.push([x, y]);
+      } else if (command === "A") {
+        // SVG's arc, from its endpoint form to its centre form (SVG 1.1, F.6.5), then sampled.
+        const [rx0, ry0, rotation, large, sweep, x2, y2] = take(7) as number[];
+        const phi = (rotation! * Math.PI) / 180;
+        const [cos, sin] = [Math.cos(phi), Math.sin(phi)];
+        const [dx, dy] = [(x - x2!) / 2, (y - y2!) / 2];
+        const [x1p, y1p] = [cos * dx + sin * dy, -sin * dx + cos * dy];
+        let [rx, ry] = [Math.abs(rx0!), Math.abs(ry0!)];
+        const lambda = (x1p * x1p) / (rx * rx) + (y1p * y1p) / (ry * ry);
+        if (lambda > 1) {
+          [rx, ry] = [rx * Math.sqrt(lambda), ry * Math.sqrt(lambda)];
+        }
+        const num = rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p;
+        const coef = (large !== sweep ? 1 : -1) * Math.sqrt(Math.max(0, num / (rx * rx * y1p * y1p + ry * ry * x1p * x1p)));
+        const [cxp, cyp] = [(coef * rx * y1p) / ry, (-coef * ry * x1p) / rx];
+        const [cx, cy] = [cos * cxp - sin * cyp + (x + x2!) / 2, sin * cxp + cos * cyp + (y + y2!) / 2];
+        const angle = (ux: number, uy: number, vx: number, vy: number) => Math.atan2(ux * vy - uy * vx, ux * vx + uy * vy);
+        const theta = angle(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
+        let delta = angle((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
+        if (!sweep && delta > 0) {
+          delta -= 2 * Math.PI;
+        } else if (sweep && delta < 0) {
+          delta += 2 * Math.PI;
+        }
+        for (let step = 1; step <= 64; step++) {
+          const t = theta + (delta * step) / 64;
+          shape.push([cx + rx * cos * Math.cos(t) - ry * sin * Math.sin(t), cy + rx * sin * Math.cos(t) + ry * cos * Math.sin(t)]);
+        }
+        [x, y] = [x2!, y2!];
+      } else if (command === "Z") {
+        shapes.push(shape);
+        shape = [];
+        [x, y] = shapes.at(-1)![0]!;
+      } else {
+        assert.fail(`the check does not read the command ${command}: ${d}`);
+      }
+    }
+    if (shape.length > 0) {
+      shapes.push(shape);
+    }
+    return shapes;
+  }
+  /** Even-odd: a point is filled when a ray from it crosses the path's edges an odd number of times. */
+  const filled = (shapes: [number, number][][], [px, py]: [number, number]) => shapes.reduce((inside, shape) => shape.reduce((acc, [x1, y1], k) => {
+    const [x2, y2] = shape[(k + 1) % shape.length]!;
+    return (y1 > py) !== (y2 > py) && px < ((x2 - x1) * (py - y1)) / (y2 - y1) + x1 ? !acc : acc;
+  }, inside), false);
+  /** L169's geometry: points on each symbol's centre line (knocked out), and points of the silhouette clear of it (filled). */
+  const KNOCKOUT: Record<Tone, { hole: [number, number][]; ink: [number, number][] }> = {
+    success: { hole: [[8.5, 13.5], [10.5, 15.5], [13.5, 12.25]], ink: [[12, 3], [4, 12], [12, 20]] },
+    warning: { hole: [[12, 11.6], [12, 17.2]], ink: [[12, 6], [6, 19], [18, 19]] },
+    danger: { hole: [[12, 12], [9.5, 9.5], [14.5, 14.5], [14.5, 9.5], [9.5, 14.5]], ink: [[12, 3], [3, 12], [12, 21], [21, 12]] },
+    info: { hole: [[12, 7.6], [12, 14]], ink: [[5, 12], [19, 12], [12, 20], [12, 4]] },
+  };
+
+  test("L194 (j) (checker) the even-odd reading: a square with a square hole is filled in its ring and empty in its hole; two overlapping holes fill their overlap again", () => {
+    const ring = polygons("M2 2H22V22H2ZM8 8H16V16H8Z");
+    assert.deepEqual([filled(ring, [4, 4]), filled(ring, [12, 12])], [true, false]);
+    const crossed = polygons("M2 2H22V22H2ZM10 4H14V20H10ZM4 10H20V14H4Z");
+    assert.deepEqual([filled(crossed, [12, 6]), filled(crossed, [6, 12]), filled(crossed, [12, 12])], [false, false, true], "a cross drawn as two overlapping bars refills its centre");
+    const disc = polygons("M1 12A11 11 0 1 0 23 12A11 11 0 1 0 1 12Z");
+    assert.deepEqual([filled(disc, [12, 12]), filled(disc, [2, 2]), filled(disc, [12, 1.5])], [true, false, true], "an arc read as its circle");
+  });
+
+  for (const tone of STATUS) {
+    test(`L169 L194 (j) ${GLYPH[tone]}: under the even-odd rule its symbol is a hole (${KNOCKOUT[tone].hole.map((p) => `(${p.join(", ")})`).join(" ")} unfilled) and its silhouette round it is ink`, () => {
+      const path = elements([rootOf(render(GLYPH[tone], {}))]).find((el) => el.tag === "path");
+      assert.ok(path?.attrs.d !== undefined, "the glyph has a path with a d");
+      const shapes = polygons(path.attrs.d);
+      assert.deepEqual(KNOCKOUT[tone].hole.filter((p) => filled(shapes, p)).map((p) => `(${p.join(", ")}) is filled`), [], "the symbol is knocked out");
+      assert.deepEqual(KNOCKOUT[tone].ink.filter((p) => !filled(shapes, p)).map((p) => `(${p.join(", ")}) is empty`), [], "the silhouette is ink");
+    });
+  }
+
   // ── L181 case 2: Alert ───────────────────────────────────────────────────────────────────────────────────────────
   const ALERT_LEAD: Record<string, string> = { A1: "Deployed", A2: "Payment failed", A3: "Two items run out before Thursday.", A4: "Note", A5: "No tone was given." };
   for (const id of ["A1", "A2", "A3", "A4", "A5"]) {
@@ -478,8 +602,12 @@ try {
   const FIXTURE = join(LIB, "tools", "fixtures", "status-markup.at-9b83e50.json");
   const FIXTURE_SHA256 = "c616a18114b6d1e13246c75abb84c92d621b6247d0b5294baf6f8eb357439f81";
   const fixture = JSON.parse(readFileSync(FIXTURE, "utf8")) as { recordedFrom: string; cases: { id: string; component: string; props: Props; html: string }[] };
-  /** L187's removal: a slot, whole, with its glyph and its word. */
-  const SLOT = /<span class="sb-status[^"]*"><svg[^>]*>[\s\S]*?<\/svg>(?:<span class="u-visually-hidden">[^<]*<\/span>)?<\/span>/g;
+  /**
+   * L187's removal, as L194 (g) tightens it: a slot, whole, exactly as StatusMark writes it, with its glyph and its
+   * word. (It was `<span class="sb-status[^"]*">…`, which also took a visible `<span class="sb-status-pad">` the mask
+   * does not hide.)
+   */
+  const SLOT = /<span class="sb-status(?: sb-alert__icon| sb-toast__icon)?"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="sb-status-icon sb-status-icon--(?:success|warning|danger|info)"><path fill="currentColor" fill-rule="evenodd" d="[^"]*"><\/path><\/svg>(?:<span class="u-visually-hidden">[^<]*<\/span>)?<\/span>/g;
   const unslotted = (html: string) => html.replace(SLOT, "");
 
   test("L187 (fixture) status-markup.at-9b83e50.json is byte for byte what record-status-markup.mts.txt recorded from 9b83e50's build: pinned by sha256", () => {
@@ -500,7 +628,8 @@ try {
     assert.equal(unslotted(`<span class="sb-badge sb-badge--danger"><span class="sb-status">${glyph}<span class="u-visually-hidden">Error: </span></span>Overdue</span>`), "<span class=\"sb-badge sb-badge--danger\">Overdue</span>", "L174's badge");
     assert.equal(unslotted(`<div role="status" class="sb-alert sb-alert--danger"><span class="sb-status sb-alert__icon">${glyph}<span class="u-visually-hidden">Error: </span></span><div>x</div></div>`), "<div role=\"status\" class=\"sb-alert sb-alert--danger\"><div>x</div></div>", "an alert's slot, with its box class");
     assert.equal(unslotted(`<button class="sb-button sb-button--danger" type="button"><span class="sb-status">${glyph}</span>Delete</button>`), "<button class=\"sb-button sb-button--danger\" type=\"button\">Delete</button>", "a wordless slot");
-    for (const extra of [`<span class="sb-status">${glyph}<b>!</b></span>`, `<span class="sb-status" data-x="1">${glyph}</span>`, `<span class="sb-status">${glyph}<span class="u-visually-hidden">Error: </span><span class="u-visually-hidden">Error: </span></span>`]) {
+    const pad = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\" class=\"x\"><path d=\"M1 1Z\"></path></svg>";
+    for (const extra of [`<span class="sb-status">${glyph}<b>!</b></span>`, `<span class="sb-status" data-x="1">${glyph}</span>`, `<span class="sb-status">${glyph}<span class="u-visually-hidden">Error: </span><span class="u-visually-hidden">Error: </span></span>`, `<span class="sb-status-pad">${pad}</span>`, `<span class="sb-status sb-other">${glyph}</span>`, `<span class="sb-status">${glyph.replace(" focusable=\"false\"", "")}</span>`]) {
       assert.notEqual(unslotted(`<span class="sb-badge">${extra}x</span>`), "<span class=\"sb-badge\">x</span>", extra);
     }
   });
@@ -523,10 +652,71 @@ try {
     });
   }
 
+  // ── L194 (g), (d), (i): the cases the 39 missed, and tones that are no status ──────────────────────────────────
+  const FIXTURE_MORE = join(LIB, "tools", "fixtures", "status-markup-more.at-ec97a20.json");
+  const FIXTURE_MORE_SHA256 = "53128feca1cfe8574f7a640efbdb6a39e2a83e1cdfcf7023f02f4bf4af61b3b4";
+  const more = JSON.parse(readFileSync(FIXTURE_MORE, "utf8")) as typeof fixture;
+
+  test("L194 (g) (fixture) status-markup-more.at-ec97a20.json is byte for byte what record-status-markup-more.mts.txt recorded from ec97a20's build (9b83e50's stand-in): pinned by sha256; it holds the 16 cases A6, A7, B22, B23, C15 to C19, D5, D6, E4 to E6, H1 and H2, in order, each with L194's component and props", () => {
+    assert.equal(createHash("sha256").update(readFileSync(FIXTURE_MORE)).digest("hex"), FIXTURE_MORE_SHA256);
+    assert.equal(more.recordedFrom, "ec97a20");
+    assert.deepEqual(more.cases.map((entry) => entry.id), RECORDED_MORE);
+    for (const entry of more.cases) {
+      assert.deepEqual({ component: entry.component, props: entry.props }, CASES[entry.id], entry.id);
+    }
+  });
+
+  for (const entry of more.cases) {
+    test(`L194 (g) ${entry.id} ${entry.component}: with every slot removed, the markup this tree's build renders is ec97a20's, character for character`, () => {
+      assert.equal(unslotted(render(entry.component, entry.props)), entry.html);
+    });
+  }
+
+  const MORE_PRESENCE: [id: string, holder: (root: El) => El, slotClass: string, tone: Tone, word: string | null][] = [
+    ["A6", atRoot, "sb-status sb-alert__icon", "danger", WORD.danger],
+    ["A7", atRoot, "sb-status sb-alert__icon", "warning", WORD.warning],
+    ["B22", atRoot, "sb-status", "danger", WORD.danger],
+    ["B23", atRoot, "sb-status", "success", WORD.success],
+    ...["C15", "C16", "C17", "C18", "C19"].map((id): [string, (root: El) => El, string, Tone, null] => [id, atRoot, "sb-status", "danger", null]),
+    ["D5", atRoot, "sb-status", "danger", null],
+    ["D6", atRoot, "sb-status", "danger", null],
+    ["E4", errorParagraph, "sb-status", "danger", WORD.danger],
+    ["E5", errorParagraph, "sb-status", "danger", WORD.danger],
+    ["E6", errorParagraph, "sb-status", "danger", WORD.danger],
+  ];
+  for (const [id, holder, slotClass, tone, word] of MORE_PRESENCE) {
+    test(`L194 (g) L181 ${id} ${CASES[id]!.component}: the slot is first (exactly ${slotClass}), with one icon of ${tone}${word === null ? " and no word" : ` and then "${word}"`}`, () => {
+      assertPresent(renderCase(id), { holder, slotClass, tone, word });
+    });
+  }
+
+  test("L194 (i) S39 L172 A6 a danger alert given no role is role=\"status\": a danger tone does not derive role=\"alert\"", () => {
+    assert.equal(rootOf(renderCase("A6")).attrs.role, "status");
+  });
+
+  for (const id of ["H1", "H2", "H3"]) {
+    const { component, props } = CASES[id]!;
+    test(`L194 (d) ${id} ${component} with tone ${JSON.stringify(props.tone)}, which is no status (from untyped code): it renders, without throwing, with no slot, no icon and no word`, () => {
+      let html = "";
+      assert.doesNotThrow(() => {
+        html = renderCase(id);
+      });
+      assertAbsent(html);
+    });
+  }
+  test("L194 (d) L187 H3 ToastItem with tone \"primary\": its markup is the toned toast's, with no slot", () => {
+    assert.equal(renderCase("H3"), "<div class=\"sb-toast sb-toast--primary\"><div><p class=\"sb-toast__body\">x</p></div><button type=\"button\" class=\"sb-toast__dismiss sb-close\" aria-label=\"Dismiss notification\"></button></div>");
+  });
+
   // ── L181 case 9, L188: the provider passes the tone and the word through ─────────────────────────────────────────
-  /** L188's four textual checks on toast.tsx, its whitespace runs collapsed to one space: each that fails, by what it reads. */
+  /**
+   * L188's four textual checks on toast.tsx, its comments removed and its whitespace runs collapsed to one space (L194
+   * (h): a JSX comment holding the ToastItem text once satisfied all four), and L194 (h)'s two more: no element with the
+   * class sb-toast outside ToastItem's own body, and the record holds statusLabel as itself. Each that fails, by what
+   * it reads.
+   */
   function providerFindings(source: string): string[] {
-    const text = source.replace(/\s+/g, " ");
+    const text = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1").replace(/\s+/g, " ");
     const findings: string[] = [];
     const uses = text.split("<ToastItem ").length - 1;
     if (uses !== 1) {
@@ -551,6 +741,14 @@ try {
     const record = between("[...all, {", "}");
     if (!(record ?? "").includes("statusLabel")) {
       findings.push(record === undefined ? "no \"[...all, { … }\"" : "the record toast() adds does not hold statusLabel");
+    } else if (!/(?:^|,)\s*statusLabel\s*(?:,|$)/.test(record!)) {
+      findings.push("the record toast() adds does not hold statusLabel as itself (a shorthand property)");
+    }
+    const item = text.indexOf("export function ToastItem(");
+    const after = item === -1 ? -1 : text.indexOf("export function ", item + 1);
+    const outside = item === -1 ? text : `${text.slice(0, item)}${after === -1 ? "" : text.slice(after)}`;
+    if (/sb-toast(?!-region)/.test(outside)) {
+      findings.push("an element with the class sb-toast is rendered outside ToastItem");
     }
     return findings;
   }
@@ -573,6 +771,13 @@ try {
     assert.deepEqual(cut("{ title, tone, statusLabel, duration = 5000 }", "{ title, tone, duration = 5000 }"), ["toast() does not destructure statusLabel from its options"]);
     assert.deepEqual(cut("{ id, message, title, tone, statusLabel, duration }", "{ id, message, title, tone, duration }"), ["the record toast() adds does not hold statusLabel"]);
     assert.deepEqual(providerFindings(`${good}\n<ToastItem key={1} message="x" onDismiss={f} />`), ["\"<ToastItem \" occurs 2 times, not exactly once"]);
+    // L194 (h): the status lens's plants, each of which once passed and lost every real toast's word.
+    const element = good.slice(good.indexOf("{toasts.map("));
+    const inline = "{toasts.map((t) => (\n  <div key={t.id} className={cx(\"sb-toast\", t.tone && `sb-toast--${t.tone}`)}>{t.message}</div>\n))}";
+    assert.deepEqual(providerFindings(good.replace(element, `${inline}\n{/* ${element} */}`)), ["\"<ToastItem \" occurs 0 times, not exactly once", "the ToastItem element does not pass tone={t.tone}", "the ToastItem element does not pass statusLabel={t.statusLabel}", "an element with the class sb-toast is rendered outside ToastItem"], "the old inline markup, with the ToastItem text left in a JSX comment");
+    assert.deepEqual(providerFindings(good.replace(element, `// ${element.split("\n").join("\n// ")}`)), ["\"<ToastItem \" occurs 0 times, not exactly once", "the ToastItem element does not pass tone={t.tone}", "the ToastItem element does not pass statusLabel={t.statusLabel}"], "the ToastItem text in line comments");
+    assert.deepEqual(cut("{ id, message, title, tone, statusLabel, duration }", "{ id, message, title, tone, statusLabel: undefined, duration }"), ["the record toast() adds does not hold statusLabel as itself (a shorthand property)"]);
+    assert.deepEqual(providerFindings(`export function ToastItem() {\n  return <div className="sb-toast"><span className="sb-toast__title" /></div>;\n}\nexport function ToastProvider() {\n${good}\n}`), [], "ToastItem's own body may name sb-toast");
   });
 
   test("L173 the toast region is unchanged: role=\"region\", aria-live=\"polite\", aria-label=\"Notifications\"", () => {
