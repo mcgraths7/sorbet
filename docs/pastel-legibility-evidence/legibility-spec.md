@@ -1,7 +1,8 @@
 # Spec: the `legibility` contract and sorbet's new values (PR 2, step 2.0)
 
-Revision 3.5, 2026-10-05. Written against `main` at `e24df74` (the groundwork is
-merged). Steps 2.1 to 2.4 are built and audited (§12.2, §12.4); nothing after them exists yet. Paths are relative to
+Revision 3.6, 2026-10-05. Written against `main` at `e24df74` (the groundwork is
+merged). Steps 2.1 to 2.4 are built and audited (§12.2, §12.4); nothing after them exists yet. Step 2.5 is settled
+in full, after its spec adversary, the owner's answers and a verifier (§12.5, L166 to L191). Paths are relative to
 `packages/design-system/` unless they start with `packages/`, `apps/`, `docs/`
 or `<root>/`. So `tools/test-contracts.ts` is
 `packages/design-system/tools/test-contracts.ts`, and the repo root's own
@@ -132,6 +133,11 @@ build and test from, and §17 lists each disagreement with its reason.
 - Revision 1 was attacked by a spec adversary before any test was written
   (proposal §8, step 2.0); revision 2 closes its findings, and revision 3
   closes the verification of revision 2 (the tables above).
+- Step 2.5's text was attacked the same way on 2026-10-05, and the owner
+  answered its four questions that day (DECISIONS rows 36 to 39): the status
+  icon and word appear in every theme, the icon is a filled shape in the dark
+  ink with its symbol knocked out, the word is hidden for screen readers, and
+  the field's error message takes the octagon. §12.5 settles the step.
 
 ## 0. How to read this
 
@@ -192,6 +198,7 @@ build and test from, and §17 lists each disagreement with its reason.
 | The known-bad fixture, with expected measurements | §10 |
 | Carry-overs: report lines, unheld counts, placeholder text, TokenStudio, the golden | §11 |
 | Steps 2.1 to 2.8: files, acceptance, what is tests-first | §12 |
+| Step 2.5's status icon and word: where, what shape, what ink, what a reader hears, how the frozen presets are still checked | §12.5 |
 | Appendix G of the proposal, item by item | §18 |
 
 ## 2. What does not move
@@ -217,7 +224,9 @@ ratios under `wcag-aa`, and seven of them fail it: L105.)
 
 **L4.** The four frozen golden files (`tools/golden/{ocean,forest,noir,midnight}.css`)
 do not change in any step. `FROZEN_PRESETS` (`tools/check-golden.ts:91`) is not
-edited.
+edited. (Revision 3.6: what those presets *render* changes from step 2.5, by
+the owner's decision, in the status components only, and L166 says what of
+the promise still holds.)
 
 **L5.** `shadowDecls` (`src/tokens/emit.ts:34-43`) is not edited, and is still
 called for every preset in both modes, sorbet included. A preset that defines
@@ -249,7 +258,9 @@ the statement here that requires it. (Revision 1 named eight of them.) No other
 assertion of PR 1 is changed. A test author or implementer who finds one more
 does not edit it: that is a defect of this spec, reported with the four-field
 contradiction report of the lab's write-tests-first lane, and L105 is amended
-first.
+first. (Revision 3.6: the tests written for this pull request's own steps
+that a later step makes false are listed by that step's statements, in the
+same form; for step 2.5, L183.)
 
 **L105.** The complete list: 47 numbered entries, #1 to #38 and #40 to #48
 (#39 is unused; #48 added in revision 3.3), plus "#11 again", the same line's step-2.2 expectation.
@@ -1312,10 +1323,12 @@ stylesheet does not yet paint, which is why nothing merges before step 2.6.
 | Tick and radio dot | role `on-primary` | `atoms/_choice.scss:48, 70` (unchanged) | 2.2 |
 | Unchecked interior; field fill | optional `field-fill` | `atoms/_choice.scss:14`; `atoms/_input.scss:10` and its hand copies (`_number-input.scss`, `_color-input.scss`, `molecules/_combobox.scss`, `_date-range.scss`, `_input-group.scss`) | 2.4 |
 | Resting field edge | data `edges[mode].field.rest`, emitted `--sb-edge-field` | `atoms/_input.scss:8` and the same copies; the border colour through `field-line` | 2.4 |
-| Invalid rim | optional `danger-mark` | `atoms/_input.scss:34, 37` and the same copies; the danger button | 2.4, 2.5 |
+| Invalid rim | optional `danger-mark` | `atoms/_input.scss:34, 37` and the same copies (2.4); the danger button's rim, a local in `filled-edge` read ahead of the edge in its three shadows, and the danger status box's rim, one local with its edge through `where-absent` (2.5; L175, L178, revision 3.6) | 2.4, 2.5 |
 | Selected wash | optional `selected-wash` | `molecules/_tabs.scss:48`; the current item of navbar, sidebar, menu, pagination | 2.4 |
 | Selected bar | optional `selected-bar` | the same rows, a new inset 3px bar, through `selected-mark`, which writes it by `where-defined` with old value `revert-layer`, in the `where-defined` nested layer, and mirrors the start bar under `:dir(rtl)` (L148, L156). Not on the pills variant (L157) | 2.4 |
-| Status mark | optional `success-mark`, `warning-mark`, `danger-mark`, `info-mark` | `molecules/_toast.scss:66`, on the toast's `surface-raised` (R280 to R283); the app sites of proposal §12 | 2.5 |
+| Status mark | optional `success-mark`, `warning-mark`, `danger-mark`, `info-mark` | `molecules/_toast.scss:66`, on the toast's `surface-raised` (R280 to R283), through `seam(#{$tone}-mark)` (L179). The app sites of proposal §12 change at their own sync, not in step 2.5 (CORRECTION 2026-10-05, revision 3.6: this row named them as 2.5's; adversary m-1) | 2.5 |
+| Status icon (the `Icon` atom's four status tones) | optional `success-mark`, `warning-mark`, `danger-mark`, `info-mark` | `atoms/_icon.scss:58-72`, `color: clr(X)` becomes `seam(X-mark)` (L179; added in revision 3.6) | 2.5 |
+| Status icon ink (the four status glyphs) | optional `text-strong` on a wash or a surface; role `on-X` on a fill | the status slot `.sb-status` (`atoms/_icon.scss`), through `where-defined` falling back to `revert-layer`; `color: inherit` on `.sb-badge--solid > .sb-status` and `.sb-button > .sb-status` (L170, L186; added in revision 3.6) | 2.5 |
 | Halo and deep tones | data: layer colours in `edges[mode]["filled-X"]` for X = primary, secondary, accent, danger, emitted `--sb-edge-filled-X`, `-hover`, `-press` | `atoms/_button.scss:70-90` (`--shadow-rest`, `-hover`, `-press`, read through `edge()` for the default button and each variant of the loop at line 92); border through `filled-line` at line 51 | 2.3 |
 | Card edge | data `edges[mode].container`, emitted `--sb-edge-container` | `molecules/_card.scss:7-9`; border through `container-line`; the interactive card's hover reads the same edge and its line through `where-defined` (L152) | 2.4 |
 | Raised card edge; sunken card's hover edge | data `edges[mode].container`; data `edges[mode].sunken` | `molecules/_card.scss`: `.sb-card--raised` `box-shadow: edge(container, shadow(md))`; `.sb-card--sunken` sets `--card-hover-edge: edge(sunken, shadow(lg))`, which the interactive hover reads with the container edge as its fallback (L165 (b), (c); the frozen presets keep `shadow(md)` and the `shadow(lg)` hover) | repair of 7a683fd |
@@ -1324,7 +1337,7 @@ stylesheet does not yet paint, which is why nothing merges before step 2.6.
 | Well and track edge | data `edges[mode].sunken` | `atoms/_progress.scss:10` and sunken panels | 2.4 |
 | Quiet button edge | data `edges[mode].quiet` | `atoms/_button.scss:132-150` | 2.4 |
 | Quiet button fill | optional `quiet-fill` | `atoms/_button.scss:144`, `background-color: transparent` becomes `seam(quiet-fill)` (fallback `transparent`: the frozen presets are unchanged) | 2.4 |
-| Status box edge | data `edges[mode]["status-X"]` | `molecules/_alert.scss:15-25` | 2.5 |
+| Status box edge | data `edges[mode]["status-X"]` | `molecules/_alert.scss:15-25`, through `where-absent` falling back to `revert-layer`; the danger box with its rim (L178, revision 3.6) | 2.5 |
 | Focus ring | role `focus-ring` | `abstracts/_mixins.scss:29-32`; `base/_root.scss:42-45`; `atoms/_color-input.scss:263-266` (unchanged) | 2.2 |
 | Divider | roles `border`, `border-subtle` | existing sites (unchanged) | 2.2 |
 | Heading ink | optional `heading-ink` | the heading rule of `base/_typography.scss:3-12`, a new `color` declaration | 2.4 |
@@ -1383,7 +1396,8 @@ and the focus ring (R224, R225), on a card and on its wash (R200, R201), and
 on a raised surface (R282). Against the blush fill it is 18.36 (deutan),
 which no rule holds; it is listed in §13. (Verification finding N13,
 rejected as a defect of the gate with this evidence; the omission is now
-stated.)
+stated.) The rim's Sass form, on the button and on the danger status box, is
+L175 and L178 (revision 3.6).
 
 **L71.** The Sass reads an optional colour token only through a new accessor,
 `seam($name)` in `abstracts/_tokens.scss`, which returns
@@ -1493,8 +1507,8 @@ a contrast failure does.
 | C7 | `fills-steady` | a legibility mode | each of the 11 `-hover` and `-active` roles equals its resting fill (D6) |
 | C8 | `edge-direction` | a legibility mode | for each rule of `edge-container`, `edge-floating`, `edge-quiet`, `edge-filled` and `edge-status`: every edge pixel is darker than the backdrop in light, and lighter in dark, by OKLab lightness (`oklabOf(…)[0]`), in typical vision. `edge-field` and `edge-sunken` are left out: a sunken thing is edged the other way on purpose. All 18 such rules pass in both modes (24 in revision 1, six withdrawn; `gen.ts`). A rule whose element has no data is not a C8 failure: its measurement already fails by name (L39) |
 | C9 | `label-type` | a legibility mode whose contract has a tier with `requires` | the preset has a `buttonLabel`, and `buttonLabel.px` ≥ `requires.buttonLabelPx`, `buttonLabel.smallPx` ≥ `requires.buttonLabelSmallPx` and `buttonLabel.weight` ≥ `requires.buttonLabelWeight`. It holds the button, at both sizes, and nothing else (L65, L111, L115). That the stylesheet paints those sizes is held by C10 |
-| C10 | — (a test, step 2.5) | the stylesheet | every name in `SEAMS`, and every edge property sorbet emits (each `--sb-edge-X` and each `-hover` and `-press`, L53), is read by at least one `seam(…)` or `edge(…)` call under `src/styles`, and `button-label(md)` and `button-label(sm)` are each called at least once (L19), and `--sb-halo-room` is read (L151). A token no site reads is a rule passing on a value nobody paints |
-| C11 | — (a test, step 2.5) | the compiled stylesheet | The test reads the **compiled** CSS (`dist/css/sorbet.css` after `pnpm build`), not the Sass source, because two of L106's lines are written inside loops (`atoms/_button.scss:100`, `clr($variant)`; `molecules/_alert.scss:22`, `clr(#{$tone}-subtle)`) and only compile to a name per variant. One selector compiles to several rule blocks (`.sb-button` to five, the first from `control-reset` saying `background: none`; `.sb-input` to four), so the reading is exact (revision 3.1, verification finding N17): **for a selector S, take every rule whose selector list contains S as one whole item (so `.sb-button:hover:not(…)` is not S), that is not nested in a conditional at-rule (`@media`, `@supports`, `@container`); among them, S's fill is the last `background-color` or `background` declaration in source order.** Source order is cascade order here because the file's `@layer` blocks appear in the order its first line declares them, which the test asserts first. The fill must be `var(--sb-<fill>)` (from `clr`) or `var(--sb-<fill>, <fallback>)` (from `seam`) for the recipe's `fill`; for `.sb-progress`, `var(--sb-bg-subtle)` while D1 holds in sorbet's record; for a recipe whose fill is `"backdrop"`, `transparent` or no declaration. And at least one of those rules reads the element's `--sb-edge-<element>` property (after step 2.4). The selectors: container `.sb-card`; sunken `.sb-card--sunken`, `.sb-progress`; floating `.sb-popover`, `.sb-menu`, `.sb-combobox__panel`, `.sb-calendar`, `.sb-color-input__panel` (the five that include `popover-surface`), `.sb-toast`, `.sb-modal`, `.sb-drawer`; field `.sb-input`, `.sb-textarea`, `.sb-select select`, `.sb-number-input`, `.sb-combobox__field`, `.sb-date-range__control`; quiet `.sb-button--outline`; filled `.sb-button`, `.sb-button--secondary`, `.sb-button--accent`, `.sb-button--danger`; status `.sb-alert`, `.sb-alert--success`, `--warning`, `--danger`, `--info`. The floating and field lists are derived from the compiled CSS at `e24df74`: every rule painting `surface-raised` with `shadow-lg` or `shadow-xl`, and every rule painting `surface` with a `border-strong` border, less the checkbox and radio (a `choice`, not the field element; L70's unchecked-interior row), the dropzone (a dashed ring, §15 item 6) and the command trigger's hover state. Checked against that stylesheet with today's tokens, the reading picks the fill each L106 line paints for all 27 selectors (`rev2/c11.mjs`). A recipe whose fill is `"backdrop"` passes only where its rules paint `transparent` or nothing. (Revision 2 said the Sass lines must read `clr(<fill>)` literally, which the two loop lines cannot; verification finding N8) |
+| C10 | — (a test, step 2.5) | the stylesheet | every name in `SEAMS`, and every edge property sorbet emits (each `--sb-edge-X` and each `-hover` and `-press`, L53), is read by at least one `seam(…)` or `edge(…)` call under `src/styles`, and `button-label(md)` and `button-label(sm)` are each called at least once (L19), and `--sb-halo-room` is read (L151). A token no site reads is a rule passing on a value nobody paints. CORRECTION 2026-10-05 (revision 3.6, L182; adversary M-5): read off the Sass source this could never pass, since 17 names are read only through `seam-only`, a loop's interpolated name or `filled-edge`, and `--sb-halo-room` only through `halo-room()`. C10 reads the compiled stylesheet, as C11 does: each name appears whole in a `var(--sb-<name>` inside some declaration's value |
+| C11 | — (a test, step 2.5) | the compiled stylesheet | The test reads the **compiled** CSS (`dist/css/sorbet.css` after `pnpm build`), not the Sass source, because two of L106's lines are written inside loops (`atoms/_button.scss:100`, `clr($variant)`; `molecules/_alert.scss:22`, `clr(#{$tone}-subtle)`) and only compile to a name per variant. One selector compiles to several rule blocks (`.sb-button` to five, the first from `control-reset` saying `background: none`; `.sb-input` to four), so the reading is exact (revision 3.1, verification finding N17): **for a selector S, take every rule whose selector list contains S as one whole item (so `.sb-button:hover:not(…)` is not S), that is not nested in a conditional at-rule (`@media`, `@supports`, `@container`); among them, S's fill is the last `background-color` or `background` declaration in source order.** Source order is cascade order here because the file's `@layer` blocks appear in the order its first line declares them, which the test asserts first. The fill must be `var(--sb-<fill>)` (from `clr`) or `var(--sb-<fill>, <fallback>)` (from `seam`) for the recipe's `fill`; for `.sb-progress`, `var(--sb-bg-subtle)` while D1 holds in sorbet's record; for a recipe whose fill is `"backdrop"`, `transparent` or no declaration. And at least one of those rules reads the element's `--sb-edge-<element>` property (after step 2.4 for the 22 selectors that are not status boxes; the five status selectors after step 2.5, L178 and L183 #50: CORRECTION 2026-10-05, revision 3.6, adversary m-2). The selectors: container `.sb-card`; sunken `.sb-card--sunken`, `.sb-progress`; floating `.sb-popover`, `.sb-menu`, `.sb-combobox__panel`, `.sb-calendar`, `.sb-color-input__panel` (the five that include `popover-surface`), `.sb-toast`, `.sb-modal`, `.sb-drawer`; field `.sb-input`, `.sb-textarea`, `.sb-select select`, `.sb-number-input`, `.sb-combobox__field`, `.sb-date-range__control`; quiet `.sb-button--outline`; filled `.sb-button`, `.sb-button--secondary`, `.sb-button--accent`, `.sb-button--danger`; status `.sb-alert`, `.sb-alert--success`, `--warning`, `--danger`, `--info`. The floating and field lists are derived from the compiled CSS at `e24df74`: every rule painting `surface-raised` with `shadow-lg` or `shadow-xl`, and every rule painting `surface` with a `border-strong` border, less the checkbox and radio (a `choice`, not the field element; L70's unchecked-interior row), the dropzone (a dashed ring, §15 item 6) and the command trigger's hover state. Checked against that stylesheet with today's tokens, the reading picks the fill each L106 line paints for all 27 selectors (`rev2/c11.mjs`). A recipe whose fill is `"backdrop"` passes only where its rules paint `transparent` or nothing. (Revision 2 said the Sass lines must read `clr(<fill>)` literally, which the two loop lines cannot; verification finding N8) |
 
 **L80.** What C1 to C3 are **not** scoped to, and why it matters: read without a
 scope, each fails all five shipped presets, measured (`rev2/scope.ts`):
@@ -1814,6 +1828,8 @@ on screen) is written by the implementer and looked at.
      hex; darken `primary-hover`; make the dark rim darker than the page;
      set `buttonLabel.px` to 14, and separately `buttonLabel.smallPx` to 12
      (each alone must fail C9). C11 is a stylesheet test of step 2.5.
+     (Revision 3.6: C11's fills and 22 of its edge reads were enforced from
+     step 2.4; its five status selectors are step 2.5's, L183 #50.)
   8. A planted preset that declares `legibility`, with the §3 colours and
      `buttonLabel` and no `edges`, fails by name on 24 rules, in the gate and
      all three reports: the 22 edge rules, and R224 and R227, whose `bg` is
@@ -1883,6 +1899,8 @@ on screen) is written by the implementer and looked at.
      CORRECTION 2026-10-05: the status box is measured at step 2.5, not here.
      L70 schedules its edge for 2.5, and C11's edge test exempts it until then.
      The implementer found the clash; L70, the more specific statement, wins.
+     Its bar is step 2.5's acceptance #5 (revision 3.6): each of the four
+     tones on a card, light, at least 9.9.
      (Sheet 2's robin's-egg button, 13.3 and 12.3, has no component to
      measure.) This is by hand and is the only check of *sufficiency*: the
      gate's number is a heuristic (L51).
@@ -1892,19 +1910,81 @@ on screen) is written by the implementer and looked at.
      three-job split of proposal §7): `grep` shows it only at the ring and
      line sites.
 
-**2.5 Statuses carry an icon and a word** — loud; C10 tests first
+**2.5 Statuses carry an icon and a word** — the presence test (L181), C10
+and C11's status half tests first; the look loud
 
-- *Files:* `packages/component-library/src/molecules/alert.tsx`, `toast.tsx`,
-  `atoms/badge.tsx`, `atoms/button.tsx`, `molecules/menu.tsx`,
-  `atoms/icons.tsx` (four outlined shapes, decision 23: a tick in a circle, an
-  exclamation mark in a triangle, a cross in an octagon, an i in a square);
-  `README.md`'s "Component catalog" (each new exported icon must be listed,
-  or `<root>/tools/check-catalog.ts` fails); the Sass sites of L70 marked
-  2.5.
-- *Acceptance:* the icon and word are derived from `tone` inside each
-  component, so a status cannot render without them; `check:consumable` still
-  renders its 126 components; C10 and C11 pass (both are first enforced here,
-  when the last consumer lands); the diff is reviewed as an ARIA change.
+(Rewritten in revision 3.6, §12.5. Revision 3.5's text named five components
+and "four outlined shapes", gave no colour, size, word or rim form, and said
+"`check:consumable` still renders its 126 components" and "C10 and C11 pass
+(both are first enforced here)": the spec adversary's findings, closed in
+§12.5's table.)
+
+- *Files:* in `packages/component-library/src/`: `atoms/icons.tsx` (the four
+  glyphs, `STATUS_GLYPHS`, `STATUS_WORDS` and the slot `StatusMark`: L169,
+  L171, L186), `atoms/index.ts`
+  (the four exports), `atoms/badge.tsx` (L174), `atoms/button.tsx` (L175),
+  `molecules/alert.tsx` (L172), `molecules/toast.tsx` (L173),
+  `molecules/menu.tsx` (L176), `molecules/field.tsx` (L177). The Sass, in
+  `src/styles/`: `atoms/_icon.scss` (`.sb-status` and `.sb-status-icon`,
+  L186; the re-point, L179), `atoms/_badge.scss` (L170, L174),
+  `atoms/_button.scss` (L170; the rim, L175), `molecules/_alert.scss` (L172,
+  L178), `molecules/_toast.scss` (L173, L179), `molecules/_menu.scss` (L169,
+  L176), `molecules/_field.scss` (L177). `<root>/README.md`'s Component
+  catalog (L169). `<root>/tools/shots.ts` (the mask, the success line and
+  `baseline.json`'s `mask`, L167). `<root>/tools/measure-edges.ts` (three
+  staged status boxes, L191). The presence test and its wiring (L181, L187
+  to L189): `packages/component-library/tools/test-status.ts`, the fixture
+  `packages/component-library/tools/fixtures/status-markup.at-9b83e50.json`
+  and its recorder `record-status-markup.mts.txt` beside it, the
+  `test:status` scripts in `packages/component-library/package.json` and
+  `<root>/package.json`, the root `test` chain, `.github/workflows/build.yml`
+  and the `pnpm test` line of `<root>/CLAUDE.md`, which lists the chain.
+  `tools/test-contracts.ts` (C10, C11's status half, the compiled checks of
+  L190, and L183's #49 to #51), and the fixtures README's row for
+  `step-2.4-untouched.json` (L183). No playground demo (L167), and no token.
+  The commit that carries revision 3.6 re-runs the spec's transcriber, before
+  step 2.5 (§12.5's addendum).
+- *Acceptance* (each test among them shown red without the change):
+  1. The presence test of L181 passes: every case, the markup fixture (L187)
+     and the provider's form (L188) among them. It fails with any one
+     component's icon, word or slot for any status removed, and it refuses a
+     missing or stale build (L189). It and its fixture are written before
+     the components are changed.
+  2. C10 (L182) and C11's five status selectors (L178, L183 #50) pass. C10 is
+     first enforced here; C11's fills and its other 22 edge reads have been
+     since step 2.4 (adversary m-3).
+  3. On the compiled stylesheet, in `pnpm test`: L190's rows (a) to (k),
+     among them the slot's `position: relative` (L186). L183's #49 to #51
+     edited as stated, and no other existing assertion.
+  4. With the status icons masked (L167), the four frozen presets render
+     pixel-identical in both modes to the previous commit's library
+     stylesheet, and the run's summary is quoted in the commit (L155).
+  5. Rendered edges, light, with the edge measurer of step 2.3, at the
+     weakest point of the whole boundary (L159) at the worst simulation: the
+     status box in each of the four tones, on a card, is no lower than 9.9,
+     sheet 2's 10.9 (`edges-measure.json`, `Light`, "Status box",
+     `weakest.worstSim`) less 1.0 (S23). Sheet 2 measured the success box; the
+     same bar holds all four, staged as L191 says, and the danger box is
+     measured with its rim, as painted (adversary M-7). Dark (22.6) is step
+     2.6's.
+  6. `pnpm check:consumable --no-build` passes: at least its floor of 126
+     components render with no props (`RENDERED_FLOOR`,
+     `<root>/tools/check-consumable.ts:206`, a floor and not a count; not
+     raised here, S50). 131 render at `9b83e50` (counted by the step-2.5
+     adversary with the tool's own logic), and 135 once the four glyphs are
+     exported (adversary M-6). `check:catalog` passes with the
+     four listed.
+  7. Looked at: the rendered sheet of L167, each component and status in all
+     five presets and both modes, among them the danger button's rim on its
+     blush fill (§13), the knocked-out symbol on a solid fill and on a wash
+     (L169, the owner's first sight of it), and the icons beside 12px text.
+  8. The ARIA change is reviewed against L180's table in a browser's
+     accessibility tree, row by row, and the result is quoted in the commit.
+  9. The overflow probe of L186: a status badge in an overflowing
+     `.sb-table-wrap` at 390px leaves `document.documentElement.scrollWidth`
+     equal to `innerWidth`, in each of the five presets and both modes,
+     quoted in the commit.
+- *Does not:* L184 (among it, the React Menu's ARIA defect).
 
 **2.6 Sorbet dark** — tests first for the values
 
@@ -1928,7 +2008,9 @@ on screen) is written by the implementer and looked at.
 **2.7 Token Studio** — the resolution tests first; the panel loud
 
 - *Files:* `packages/component-library/src/organisms/token-studio.tsx`,
-  `_token-studio.scss`; the edits of L105 for this step (#40 to #42).
+  `_token-studio.scss`; the edits of L105 for this step (#40 to #42), and
+  L183's #49 again, which leaves `organisms/token-studio.tsx` out of the
+  "2.4 #3" comparison (revision 3.6).
 - *Acceptance:* §11.3; loading each of the five themes in the playground, the
   badge names that theme's contract and sorbet shows no WCAG failure.
 
@@ -2247,7 +2329,11 @@ disagree, these win.
 | m8 | Out of scope: the playground's missing gutter at 390px predates these steps and is playground layout, not the library |
 | Noted (focus) | The command palette input has no visible focus indicator in either commit: a defect of `main`, recorded in §17 item 20 and deferred with the others (decision 16) |
 
-**L148.** **A frozen preset gains no new rendered layer.** "Pixel-identical"
+**L148.** **A frozen preset gains no new rendered layer.** (Revision 3.6:
+from step 2.5 the frozen presets' rendered content changes by the status
+icon, inside the status components only, by the owner's decision; L166 says
+what of this statement still holds, all of its cascade rule among it, and
+L167 how it is checked.) "Pixel-identical"
 (L4, step 2.3 and 2.4 acceptance) is a promise about pixels, and a
 transparent layer is not nothing: a `transparent` inset ring added to the
 disabled slider's track moved 520 pixels by one level in every frozen preset
@@ -2345,7 +2431,12 @@ Rules for the pattern:
 the local property is declared on the same element (or pseudo-element) that
 reads it, is never registered with `@property` (a registered property falls
 back to its initial value, not to the `var()` fallback), and `seam-only` is
-legal only inside a `where-defined` value. Test, on the compiled CSS: every
+legal only inside a `where-defined` value. (Revision 3.6: "a `where-defined`
+value" is the pattern, a local declared on the element and read only with a
+fallback, which is what the test below checks. The danger rims write it by
+hand: L175 reads its local as one item of a list, and L178's fallback is an
+edge read inside the `where-defined` sublayer, and the mixin writes
+neither.) Test, on the compiled CSS: every
 `var(--sb-<seam>)` without a fallback sits in the value of a custom property
 `--<local>`, and every read of `--<local>` is `var(--<local>, <old>)` with a
 fallback; and no `box-shadow` value anywhere contains a layer whose colour is
@@ -2490,7 +2581,9 @@ regenerates nothing the test could not reproduce; the file's claim that
 at e24df74). Re-adding `.sb-button:hover` (M5) fails (2) and the base check.
 
 **L155.** **What the screenshot tool must cover, and when it may say
-"identical".** `tools/shots.ts compare` covers, for each of the four frozen
+"identical".** (Revision 3.6: the tool is `<root>/tools/shots.ts`, not
+`tools/shots.ts`; and from step 2.5 both sides of a compare mask the status
+icons, L167.) `tools/shots.ts compare` covers, for each of the four frozen
 presets in light and dark, in `ltr`, `rtl` and coarse-pointer runs (with
 animations frozen): the full page; a keyboard Tab walk over every focus stop;
 every roving and `tabindex=-1` item; a hover and a press on every interactive
@@ -2697,6 +2790,958 @@ at once instead of fading, because `box-shadow` left `color-transition`
 (L148); and a hovered filled button in a compact table cell loses 1px of its
 halo, at most 3 levels, to the cell's 8px padding (L151's table).
 
+### 12.5 Revision 3.6: step 2.5 settled (2026-10-05)
+
+A spec adversary attacked step 2.5's text before any test was written
+(`sa25-report.md` in the session scratchpad; its probes in `sa25/`): 3
+critical, 11 major and 6 minor findings. The owner answered the four design
+questions they raised on 2026-10-05, choosing from a rendered sheet
+(`drop/sorbet-pastel-2026-10-05-status-icons/`; DECISIONS rows 36 to 39), and
+the orchestrator ruled on the rest (row 40); the spec author's own calls are
+S35 to S51 (§16). These statements close every finding. Where they and earlier
+text disagree, these win, and each earlier statement they change carries a
+dated pointer here. Measurements: `sa25-author/m1.mts` (appendix C's
+instruments, `src/tokens/color.ts`).
+
+| Id | Closed where, and how |
+|---|---|
+| C-1 | L166 (owner, row 36: "Every theme"): the icon and word are component markup in all five presets; L4 and L148's cascade still hold, and a frozen preset's rendered content changes only by the icon inside the components L168 names. L167: from step 2.5 the L155 compare masks the status icons on both sides and must then be pixel-identical; the icons themselves are looked at, unmasked, on a sheet of all five presets. L185 and §17 item 21: buylist, `apps/admin` and `apps/meal-kit` change, superseding proposal §12's "nothing changes" for them |
+| C-2 | L170: the icon is `currentColor` with the symbol knocked out, so it has one colour pair. On a full-strength fill it is the label's ink (R153 to R159, exactly); elsewhere sorbet paints `text-strong` (R091 to R093 exactly on surfaces; the status washes are R128 to R134's hexes in dark, and in light one is R128's and three are in §13 with their figures), and a frozen preset paints the component's own text colour, held wherever `wcag-aa` holds that text |
+| C-3 | L179: `.sb-icon--X` reads `seam(X-mark)`; a frozen preset is unchanged (the fallback is `X`); sorbet light goes from 6.47 to 13.10 on a card to 24.45 to 30.38 (R196, R198, R200, R202). L70 gains the row; §13 records the page and the dark figures |
+| M-1 | L171: the four words, hidden (owner, row 38), a colon and a space, overridable by `statusLabel`; L181: a test holds their presence, since their absence shows nothing |
+| M-2 | L172: Alert's `icon` prop is removed (row 40) |
+| M-3 | L175 (the danger button's rim, folded into its three shadows, so it is in every state and no state rule changes) and L178 (the danger status box's rim, with its edge, through `where-absent`); the danger menu item has no rim (L176, row 40) |
+| M-4 | L169: a filled silhouette with the symbol knocked out (owner, row 37), one even-odd path, the four names, exported through `atoms/index.ts` and listed in the catalog (whose "nine icons" is corrected), the tone-to-shape map (L168) and one size rule |
+| M-5 | L182: C10 reads the compiled stylesheet. Measured there at `9b83e50`, every name is read but `info-mark` and the four `--sb-edge-status-*`, which step 2.5 adds |
+| M-6 | Step 2.5's acceptance #6: at least the floor of 126 render; 131 at `9b83e50`, 135 with the four glyphs |
+| M-7 | Step 2.5's acceptance #5: each tone's status box on a card, light, at least 9.9 (sheet 2's 10.9 less 1.0), the danger box with its rim |
+| M-8 | L183: three existing tests change, each named with its new expectation (#49 narrows "2.4 #3", #50 lifts C11's status exemption, #51 reads L178's one new fallback form) |
+| M-9 | L177: the field's error message takes the octagon (owner, row 39). L168: brand and neutral tones take none (row 40). §13: toned progress bars (11 of the 15 pairs of bar colours under 10 apart at the worst view, the least 4.02) and Token Studio's failure list (0.00 from body text), with their figures (owner, row 39), and, beyond the finding, the dropzone's error line and the rating's stars |
+| M-10 | L175 (Button: `variant="danger"` only; no hidden word; none on `iconOnly`; hidden with the label under `loading`; a consumer's glyph stays) and L176 (MenuItem: the octagon first, replacing a consumer's leading glyph; no word; no rim) |
+| M-11 | L180: role, accessible name and reading order per component and tone, the review's oracle. A danger alert keeps `role="status"` (S39) |
+| m-1 | L70's status-mark row: the app sites change at their own sync, not in step 2.5 |
+| m-2 | C11's row: "after step 2.4" for 22 selectors, the five status selectors from step 2.5 |
+| m-3 | Step 2.5's acceptance #2: C10 is first enforced at step 2.5; C11's status half is; its fill half and 22 edge reads have been since step 2.4 |
+| m-4 | L184: "cannot render without them" is the React components' property; the HTML API's comments show the new markup |
+| m-5 | L184: no glyph is drawn by the stylesheet, so L161's function list is unchanged |
+| m-6 | L184: step 2.5 does not fix the React Menu's ARIA |
+| Owner 1 to 4 | Rows 36 to 39: L166 and L167; L169 and L170; L171 and L181; L177 and §13 |
+
+**Revision 3.6, after its verifier (2026-10-05).** An independent agent read
+revision 3.6 against the code (`sa36-report.md` in the session scratchpad;
+scratch evidence in `sa36/`, among it the step-2.5 Sass of L170 to L179
+applied, compiled and run). It found 18 of the 20 findings closed and C-1 and
+M-7 partly closed, raised three silent majors (N1 to N3), six minors (N4 to
+N9) and three nits (N10 to N12), and listed thirteen values a test author
+would have had to invent. The orchestrator ruled on each (2026-10-05). The
+statements above are amended in place, and L186 to L191 are new. This
+revision changes the header's revision number, so the commit that carries it
+re-runs the transcriber (`node --input-type=module - <repo root> <
+packages/design-system/tools/fixtures/contracts/transcribe-legibility-spec.mjs.txt`):
+`tools/test-contracts.ts:2582` ("2.1 #2 (fixture)") checks the two
+transcribed fixtures' `transcribedFrom`, which still says "revision 3.5", and
+the re-transcription differs from them in that line only (verifier N4; the
+orchestrator runs it at the commit).
+
+| Id | Closed where, and how |
+|---|---|
+| C-1 (rest) | L187: the markup, with the slot removed, equals `9b83e50`'s for 39 recorded cases and three toast cases given here, so a markup change the masked compare cannot see fails a test |
+| M-7 (rest) | L191: the measurer stages the warning, info and danger boxes by cloning the success box and swapping its tone class, each filed under sheet 2's "Status box" on "card" |
+| N1 | L186: the glyph and the word sit in one `span.sb-status`, `position: relative`, so the word's containing block is inside the component; a compiled-CSS test (L190 (a)) and a hand probe (a status badge in an overflowing `.sb-table-wrap` at 390px: the page does not scroll sideways, every preset, both modes). L167's mask, L169's sizes, L170's colour rules and L172 to L177's markup now name the slot |
+| N2 | L187 (the fixture, its recorder, the 39 cases, the removal pattern, the three toast strings) and L181 case 9 |
+| N3 | L188 (the provider's source form and four textual checks) and L173 (`ToastItem`'s exact props) |
+| N4 | This addendum's preamble: the commit re-runs the transcriber |
+| N5 | L169: line 704's slash list gains the four exported names |
+| N6 | L191; `<root>/tools/measure-edges.ts` added to step 2.5's files |
+| N7 | L190: the placeholder in either spelling `PLACEHOLDER` accepts; L175 quotes the falloff, textually `.sb-button--secondary`'s |
+| N8 | L169: the knock-out is the spec author's call (S36, DECISIONS row 41), what it shows on a fill and on a wash, and that the owner sees it on the look sheet; DECISIONS row 37 corrected |
+| N9 | L189: the test fails, naming `pnpm build`, when the build is missing or older than its source |
+| N10 | L183: #50 stays true at step 2.5 and is widened, not made false |
+| N11 | §16's preamble and DECISIONS row 41 now list S36 and S49 |
+| N12 | L170: the slot's two rules are the only colour declarations that reach it; the menu's `> svg` rules match only direct children |
+| Values 1 to 13 | 1: L189 (imports). 2: L175 (sizes, variants). 3: L187 (every component's props and strings, the field's child, the toast's `message`, `leaving`, `onDismiss`). 4: L181 ("first" defined). 5: L189 (failure text, exit code 1). 6: L171 (a non-empty `statusLabel` is trimmed). 7: L189 (the script bodies, the CI step, CLAUDE.md's line). 8: L169 and L189 (`StatusMark`, `STATUS_GLYPHS`, `STATUS_WORDS`; tested only as absent from the barrel). 9: L169, L190 (`inline-size`, `block-size`). 10: L175. 11: L190. 12: L167 (the success line's words and place; `baseline.json` records the mask). 13: L191 |
+
+**L166.** **The status icon and word render in every theme (DECISIONS row
+36).** The owner: "Every theme". The icon and the word are markup the React
+components write from their status (L168), so from step 2.5 they appear in
+all five presets, the four frozen ones included. That is a change of
+content, not of colour, and it is confined to the components L168 names and
+to what composes them (the alert dialog's danger confirm button,
+`organisms/alert-dialog.tsx:112`; Token Studio's report badge; a table cell
+holding a status badge). What still holds for the frozen four:
+
+- **L4**: their theme files and golden files, byte for byte. Step 2.5 adds
+  no token, so no preset's theme file changes.
+- **L148's cascade**: `box-shadow` and every `transition` property,
+  selector by selector, as e24df74 had them, and no new rendered layer. The
+  two rims (L175, L178), the status boxes' edges (L178) and the icon's ink
+  (L170) all come from tokens the frozen four do not define, so a frozen
+  preset computes from them a placeholder `0 0 #0000`, `revert-layer`, or
+  its own text colour.
+- **Every colour a frozen preset painted, it still paints**: the two
+  re-points of L179 fall back to exactly the value they replace.
+
+What changes in a frozen preset, and only inside the named components: the
+icon is drawn and takes room. A status badge is wider by the icon and its
+gap; an alert and a toast lead with a 1.25rem slot; the danger button and the
+danger menu item lead with the octagon; the field's error message starts with
+it; a status badge given `dot` shows the icon in the dot's place (L174); and
+a glyph a consumer passes as a direct child of a danger menu item is hidden,
+the octagon taking its place (L176).
+L148's first sentence reads L4 as a promise about pixels. For these
+components that reading is superseded by this statement, and L167 says how
+the rest of the promise is still checked. L185 says which apps show it.
+
+**L167.** **How the frozen promise is checked from step 2.5.** Both sides of
+L155's compare render this tree's markup (only the library stylesheet
+differs between them), so the icons are on both sides. From step 2.5 the
+tool masks them. `<root>/tools/shots.ts` gains a constant `MASK`, exactly
+`.sb-status{display:none!important}`, which `fresh()` writes into the same
+`<style>` element as `FREEZE`, after it, on both sides and in every shot.
+Every status icon and word sits inside one `.sb-status` slot (L186), so the
+mask removes the glyph, the word and the slot's room together, and the word,
+which paints nothing anyway (`u-visually-hidden`, `base/_utilities.scss:5-7`),
+goes with them. With the icons masked, the four frozen presets must be
+**pixel-identical** in both modes, as L155 states. The success line then
+reads `✓ The frozen presets are pixel-identical to <commit>'s library
+stylesheet in both modes, in <variants>, with the status icons masked (<n>
+shots, control stable).`: the words "with the status icons masked" go
+after the variants and before the parenthesis (`<root>/tools/shots.ts:814`
+today). `baseline.json` records the mask as `"mask":
+".sb-status{display:none!important}"`, and `compare` refuses, with a
+non-zero exit, a baseline whose `mask` is missing or is not its own, as it
+refuses one from another Chromium (L155). A difference in the masked run is
+a finding. Two things make that achievable, and step 2.5 keeps to both.
+Every rule it adds styles the slot or its glyph, reads a colour or a shadow
+from a token the frozen four do not define (L170, L175, L178), or hides a
+consumer's glyph in a danger menu item (L176, which no playground item has);
+nothing else of the named components moves. And it edits no playground
+demo, since a demo that grew a row would differ in every masked shot below
+it. Masking was chosen over judging each differing shot by eye (S46): a
+full-page shot of a page whose alert grew a slot differs everywhere below
+the alert, so "confined to the icon" cannot be read off it. The mask cannot
+see a change to the markup itself, since both sides render the same tree;
+the markup fixture of L187 holds that. Unmasked, the icons are looked at: a
+rendered sheet of each component and status of L168 in all five presets and
+both modes, put in a dated folder under `~/homelab/drop/` (the lab's rule for
+anything to be looked at) and checked in the audit. The frozen four's icon is
+content nobody has yet seen in those themes, and the owner sees the
+knocked-out symbol there for the first time (L169). (L155 wrote the tool's
+path as `tools/shots.ts`; it is `<root>/tools/shots.ts`.)
+
+**L168.** **Where the icon and word render, and where they do not.** Each is
+derived inside the React component from its status. A consumer cannot leave
+either out; the override of L171 changes the word's text and never removes
+it.
+
+| Component | What makes it a status | Icon | Word |
+|---|---|---|---|
+| `Alert` (`molecules/alert.tsx`) | `tone`, default `info` | the tone's, in a leading slot (L172) | yes |
+| A toast (`molecules/toast.tsx`) | `toast(…, { tone })` | the tone's, in a leading slot (L173); none without a tone | yes; none without a tone |
+| `Badge` (`atoms/badge.tsx`) | `tone` of `success`, `warning`, `danger` or `info`, soft or `solid` | the tone's, first (L174) | yes |
+| `Badge` | `tone` of `primary`, `secondary` or `accent`, or none | none | none |
+| `Button` (`atoms/button.tsx`) | `variant="danger"` | the octagon, first; none when `iconOnly` (L175) | none: its label is its word |
+| `Button` | any other variant | none | none |
+| `MenuItem` (`molecules/menu.tsx`) | `danger` | the octagon, first (L176) | none: its label is its word |
+| `Field`'s error message (`molecules/field.tsx`) | `error` given | the octagon, first (L177) | `Error: ` |
+
+Tone to shape: `success` the tick in a circle, `warning` the exclamation mark
+in a triangle, `danger` the cross in an octagon, `info` the i in a square
+(rows 23 and 37). No icon and no word: the brand and neutral tones above,
+which are not statuses (row 40); the `Icon` atom, which is a box for the
+consumer's own glyph and only colours it (its status tones are re-pointed,
+L179; row 40); toned progress bars and Token Studio's failure list (row 39);
+and, not put to the owner, the dropzone's error line and the rating's stars
+(S49). §13 gives each its figures. In sorbet three brand fills share a
+status's hex (`secondary` and `danger` `#f9c3c6`, `accent` and `warning`
+`#f5e3a2`, `primary` and `info` `#dac5fc`), so on a badge the icon is the
+only thing that tells a status from a brand tone, which is its job.
+
+**L169.** **The four glyphs (DECISIONS row 37).** The owner: "A. Filled, dark
+ink (as sheet 2)", section A of the status-icons sheet. `atoms/icons.tsx`
+gains `SuccessIcon`, `WarningIcon`, `DangerIcon` and `InfoIcon`. They are
+exported through `atoms/index.ts` beside the nine house glyphs (`:11-23`)
+and listed in `<root>/README.md`'s Component catalog. There, line 704's
+slash list gains `/SuccessIcon/WarningIcon/DangerIcon/InfoIcon` after
+`MinusIcon`, and its "the nine icons" becomes "the thirteen icons"; line
+705's list gains "Success, Warning, Danger, Info" after "Minus".
+`<root>/tools/check-catalog.ts:35-47` needs each exported name verbatim (or
+a line whose first word prefixes it), so the short names of line 705 alone
+would fail it (verifier N5).
+
+- **Shape.** A silhouette filled in the ink, with the symbol knocked out, so
+  the surface under the icon shows through the symbol. The geometry is the
+  sheet's, on a 24-unit grid. The silhouette is the sheet's shape with its
+  2-unit round-joined stroke included: a disc of radius 11 at (12, 12); the
+  triangle `M12 2.8 22.2 20.6H1.8Z`, the octagon `M8.1 1.8h7.8l6.3
+  6.3v7.8l-6.3 6.3H8.1l-6.3-6.3V8.1Z` and the square from 2 to 22 with
+  corner radius 4.5, each grown by 1 unit with round corners. The symbol is
+  the sheet's 2.6-unit round-capped strokes: the tick `M7.5 12.5l3 3
+  6-6.5`; the bar `M12 9.3v4.6` and a dot of radius 1.61 at (12, 17.2); the
+  cross `M8.8 8.8l6.4 6.4M15.2 8.8l-6.4 6.4`; a dot of radius 1.61 at (12,
+  7.6) and the bar `M12 11v6`. Both are written as outlines.
+- **The knock-out is the spec author's call, not the owner's** (S36;
+  DECISIONS row 41, not yet seen by the owner; verifier N8). The sheet the
+  owner chose from drew the symbol in a fixed milk `#fffbf1` (as sheet 2
+  did, `build-edges.mjs:143-144`). Knocked out, the symbol shows whatever is
+  under the icon instead: on the solid danger button the blush fill
+  `#f9c3c6`, on a wash the wash's own hex (the danger wash `#fcdfdc` in
+  light, `#5b443a` in dark), on a surface the surface. A fixed milk symbol
+  would vanish in dark mode, where the silhouette is the cream `#f3e7ce`:
+  `#fffbf1` on it is Lc 9.80 and 5.79 apart (both tritan), where the
+  knocked-out dark danger wash reads Lc 76.98 (deutan). The owner sees the
+  knock-out on the step's look sheet (L167; acceptance #7).
+- **The knock-out is one path.** Each glyph is `<svg viewBox="0 0 24 24"
+  aria-hidden="true" focusable="false" class="sb-status-icon
+  sb-status-icon--<tone>">` holding one `<path fill="currentColor"
+  fill-rule="evenodd" d="…">`, whose first subpath is the silhouette and
+  whose others are the symbol. Under the even-odd rule a subpath inside the
+  silhouette is a hole, so the symbol's subpaths must not overlap one
+  another: the cross is one outline, the union of its two strokes (two
+  overlapping subpaths would fill the centre again). No colour is written
+  anywhere in a glyph (no hex, no `rgb()`, no second `fill`, no `stroke`),
+  and nothing is referenced by id (no `<mask>`, no `clip-path`). A mask needs
+  an id unique in the document, and generating one needs a hook, which would
+  make `icons.tsx` a client module
+  (`packages/component-library/tools/check-client-directives.ts`) (S36). So a
+  glyph is whatever colour its `color` resolves to, on every surface and in
+  every preset, and its symbol is always the surface itself.
+- **No intrinsic size,** like the house glyphs (`atoms/icons.tsx:3-17`). One
+  size rule (S43), set with `inline-size` and `block-size` (never `width` or
+  `height`): `.sb-status-icon` is 1.1em square, the size the button already
+  gives a glyph (`atoms/_button.scss:276-280`); 1em in a menu item, the
+  menu's glyph size (`molecules/_menu.scss:28-32`), by a rule
+  `.sb-menu__item .sb-status-icon`; and 100% of the 1.25rem slot leading an
+  alert or a toast (`molecules/_alert.scss:27-32`, which the toast's slot
+  copies, L173), by `.sb-alert__icon > .sb-status-icon` and
+  `.sb-toast__icon > .sb-status-icon`. At a badge's or an error message's
+  12px, 1.1em is 13.2px (sheet A drew 14px beside 12px text). The glyph sits
+  inside its slot (L186), so the button's and the menu's `> svg` rules no
+  longer reach it; the menu's rule above restates the menu's size.
+- **For the components,** `icons.tsx` also exports three internal names: the
+  map from tone to glyph, `STATUS_GLYPHS`; the default words of L171,
+  `STATUS_WORDS`; and the slot of L186, `StatusMark` (props `tone`,
+  `statusLabel?`, `wordless?`, `className?`), which every status component
+  renders. The six
+  status components import them (from `./icons.tsx` in `atoms/`, from
+  `../atoms/icons.tsx` in `molecules/`). They are not exported through
+  `atoms/index.ts`, so they are not public, and L189 holds that the package's
+  barrel does not export them. A consumer's `className` is added to a
+  glyph's class list, and its other props pass to the `svg`, as for the
+  house glyphs.
+
+**L170.** **The icon's ink.** The glyph paints `currentColor`, so its ink is
+whatever its `color` resolves to, and because the symbol is a hole the icon
+has one colour pair: that ink against what is under it. The glyph sits in
+the status slot (L186) and sets no colour of its own, so the slot's colour
+is the ink. Two rules decide it.
+
+- **On a full-strength fill** (a solid badge, the danger button) the icon
+  takes the label's ink: the slot inherits `on-X`. In sorbet that is
+  `#472400` in both modes (L12; DECISIONS rows 5 and 8). Under `loading` the
+  button's label is transparent (`atoms/_button.scss:259`), so the icon is
+  too, and it hides with the label.
+- **Anywhere else** (on a wash, on a surface) the icon takes the strong ink
+  where the theme defines it, and the component's own text colour where it
+  does not: the slot's `color` reads the optional token `text-strong`
+  through `where-defined` (L149), falling back to `revert-layer`, so that a
+  theme without the token computes the colour the slot inherits. In sorbet:
+  `#472400` in light and `#f3e7ce` in dark, as sheet A drew it in light and
+  sheet 2 in dark (`build-edges.mjs:144`, the ink `--ink`). In a frozen
+  preset, and in sorbet dark until step 2.6 (where L55 resets
+  `text-strong`): the component's own text colour, inherited. This is the
+  orchestrator's portability rule (`seam(text-strong)` falling back to the
+  component's text colour), chosen over a bare `currentColor` because that
+  would paint the icon on sorbet's light washes and surfaces in `#693800`,
+  not the `#472400` the owner chose (S35).
+
+The rules, two in all (amended after the verifier: five per-component sites
+became one rule on the slot, since the slot holds nothing else that a colour
+could reach):
+
+| Rule | Selector | Declaration | A frozen preset computes |
+|---|---|---|---|
+| Every status slot | `.sb-status` (`atoms/_icon.scss`, new) | `@include where-defined(color, status-ink, seam-only(text-strong), revert-layer)`, so it is written in the atoms layer's `where-defined` sublayer: `--status-ink: var(--sb-text-strong); color: var(--status-ink, revert-layer);` | `revert-layer`: the colour the slot inherits from its component |
+| On a fill | `.sb-badge--solid > .sb-status` (`atoms/_badge.scss`) and `.sb-button > .sb-status` (`atoms/_button.scss`), new | `color: inherit;`, in the atoms layer itself, which outranks its sublayer | `inherit`, the same |
+
+These are the only colour declarations that reach a status slot or its
+glyph, and no rule declares `fill` on either. The menu's `> svg` colour rules
+(`molecules/_menu.scss:28-32, 45-47`) and the button's `> svg` size rule
+(`atoms/_button.scss:276-280`) match only direct `svg` children, which the
+glyph is not; they now reach only a consumer's own glyph (verifier N12).
+Where each component's icon sits, in sorbet: an alert's on `X-subtle`; a
+toast's on `surface-raised`; a soft badge's on `X-subtle`; a solid badge's on
+`X`; the danger button's on `danger`; the danger menu item's on
+`surface-raised`, and hovered on `danger-subtle`; a field error's on whatever
+the field sits on, `surface` or `bg`.
+
+What holds each pair. **In a frozen preset** the icon is the same pair as the
+text beside it, so it is held exactly where `wcag-aa` holds that text:
+`X-text` on `X-subtle`, `on-X` on `X`, `text` on `surface-raised` and
+`danger-text` on `bg` are among its 86 rules
+(`tools/fixtures/contracts/rules.order.json`); `danger-text` on `surface`
+and on `surface-raised` (the field's error on a card, the danger menu item)
+are not, and there the icon is held no less than its own words. **In
+sorbet**: on a fill, the `label` tier, R153 to R159, exactly (the danger
+button is R158, `#472400` on `#f9c3c6`, 70.92 protan). On a surface, the
+`body` tier, exactly: R093 for the toast and the menu item (97.14 tritan /
+85.24 protan), R092 for an error on a card (97.14 / 88.77), R091 on the page
+(92.90 / 90.87). On a status wash in dark, the pairs of R128 to R134
+exactly, since `text-strong` and every `X-text` are `#f3e7ce` there (78.22 to
+79.93, protan). On a status wash in light: `#472400` on the info wash
+`#ede0f7` has R128's hexes, 84.18 (deutan); on the success, warning and danger
+washes, `#d3f4f0`, `#faefca` and `#fcdfdc` (the last also the hovered danger
+menu item), it measures 87.74 (deutan), 89.70 (tritan) and 84.21 (tritan).
+No rule names `text-strong` on a status wash, so §13 lists those three. Each
+is above the `on-wash` floor of 73.3 by 10.8 or more, and above the `X-text`
+the floor holds on the same wash by 8.0 or more, the ink being the darker.
+
+So in sorbet light the icon (`#472400`) is darker than the alert's title,
+which stays `X-text`, `#693800` (8.69 apart, protan). Sheet A drew both in
+`#472400`; this step changes no title (S35). Inside a scrim layer's content
+`text-strong` is `on-scrim` (L110), so a status component placed there paints
+its icon in it, as a field label there does.
+
+**L171.** **The word (DECISIONS row 38).** The owner: "Hidden, for screen
+readers". The word is text in a `<span class="u-visually-hidden">`
+(`base/_utilities.scss:5-7`; the library already uses it,
+`molecules/calendar.tsx:259`), placed immediately after the icon, inside the status slot (L186), so a
+screen reader meets it before the consumer's words. It is never visible: the
+consumer's title or text stays the visible words. Its text is the word, a
+colon and one space:
+
+| Tone | Text |
+|---|---|
+| `success` | `Success: ` |
+| `warning` | `Warning: ` |
+| `danger` | `Error: ` |
+| `info` | `Information: ` |
+
+"Error", not "Danger": the tone is named for the colour's job, the word for
+what a listener needs, and these mark failures, not hazards; GOV.UK's error
+message prefixes the same hidden "Error:". "Information", not "Info": a word
+a reader says, not an abbreviation it may spell out (S37). The colon and
+space end the word so the reader pauses before the consumer's words; the
+space is inside the span so the text reads "Error: Overdue" whether what
+follows is inline (a badge) or a block (an alert's title). **Override, for
+another language:** a `statusLabel` prop on `Alert`, `Badge` and `Field`, and
+a `statusLabel` option of `toast()`, replaces the word; the component adds
+the colon and the space. A `statusLabel` is trimmed: an empty or
+whitespace-only one gives the default word, so a status never renders
+without one (S38), and `" Fehler "` gives `Fehler: `. That is the
+library's existing pattern for its own words (`Alert`'s `dismissLabel`,
+`molecules/alert.tsx:11`). The danger button and the danger menu item take no
+word (L175, L176). A missing hidden word changes nothing on screen, so its
+presence is held by a test (L181).
+
+**L172.** **`Alert` (orchestrator ruling, row 40).** Its `icon` prop
+(`molecules/alert.tsx:8, 21-25`) is removed: a status cannot render without
+its derived icon, and a prop that replaced it would be a hole in that. It is
+a breaking change, allowed before 1.0 (every consumer is the owner's own
+app); `pnpm typecheck` fails for a caller that passes one, and none does
+(checked: the playground's two alerts, `apps/admin/src/sections/kitchen.tsx:26`,
+buylist's seven). The alert always renders, as the root's first element
+child, the status slot with the tone's glyph and word (L186), carrying the
+slot's box class too: `<span class="sb-status sb-alert__icon">`. The slot
+no longer carries `aria-hidden`: the glyph carries its own, and the word must
+be read. `molecules/_alert.scss:27-32` sizes the slot, and a new
+`.sb-alert__icon > .sb-status-icon { inline-size: 100%; block-size: 100%; }`
+makes the glyph fill it. The root keeps `role="status"` for every tone, and a
+consumer's `role` still wins (`{...rest}` follows it): a danger tone does not
+derive `role="alert"` (S39). The library's note says to use `role="alert"`
+*only* for urgent interruptions (`molecules/_alert.scss:8`), which is a
+limit, not a default. Urgency is the consumer's to declare, and a tone is not
+urgency: buylist's danger alerts are a page's standing state, rendered with
+the page, and an assertive role would interrupt the reader with each. The
+comment's example markup (`molecules/_alert.scss:3-7`) is updated to the
+slot.
+
+**L173.** **The toast.** A toast with a tone renders, as the toast's first
+element child, the status slot with the glyph and the word, carrying the
+toast's slot class: `<span class="sb-status sb-toast__icon">` (L186). A new
+`.sb-toast__icon` rule in `molecules/_toast.scss` copies `.sb-alert__icon`'s
+box (`flex-shrink: 0`, `inline-size` and `block-size` 1.25rem,
+`margin-block-start: 0.05em`), with the same `> .sb-status-icon` rule. A
+toast without a tone renders no slot. `ToastOptions` gains `statusLabel`
+(L171). So that L181's test can render a toast without a browser (the
+provider renders toasts only after mount, `molecules/toast.tsx:84`), the
+markup of one toast moves into a component, `ToastItem`, with exactly these
+props: `title?: ReactNode`, `message: ReactNode`, `tone?: Tone`,
+`statusLabel?: string`, `leaving?: boolean`, `onDismiss: () => void`. It
+renders no attribute it is not given a prop for, and everything but the slot
+is the markup `molecules/toast.tsx:93-108` renders today (L187 gives it
+exactly). `ToastProvider` renders one `ToastItem` per record, in the form
+L188 pins. `molecules/toast.tsx` exports `ToastItem` and `molecules/index.ts`
+does not, so it is not public API, not in the catalog and not counted by
+`check:consumable` (S42). The region (`role="region"`, `aria-live="polite"`,
+`aria-label="Notifications"`, `:91`) is unchanged. The stripe is L179.
+
+**L174.** **`Badge`.** With a status tone, soft or `solid`, it renders the
+status slot (glyph and word) as its first element child, then its children:
+`<span class="sb-badge sb-badge--danger"><span class="sb-status">…</span>Overdue</span>`.
+With a brand tone or none it renders as today. Its `dot` (a leading dot in
+`currentColor`, `atoms/_badge.scss:30-36`) is a status sign drawn in colour
+alone, so with a status tone the icon takes its place and the dot is not
+rendered (S40); with a brand tone or none the dot renders as today. `Badge`
+gains `statusLabel` (L171). The badge's `gap` (`space(1)`, `:6`) spaces the
+slot from the text. On a solid badge the slot is `on-X`, on a soft one the
+strong ink (L170). The comment example (`:30`) shows the new markup.
+
+**L175.** **The danger button, and its rim (orchestrator rulings, row 40).**
+
+- Only `variant="danger"` carries a status. The status slot with
+  `DangerIcon` and no word, `<span class="sb-status"><svg …></svg></span>`,
+  is rendered as the button's first child, before the children, with the
+  glyph at 1.1em (L169), in the label's ink (L170). The visible label is its
+  word, so no hidden word is added and its accessible name is the label
+  alone. An `iconOnly` danger button gets no slot: its one glyph is the
+  consumer's, named by `aria-label`. Under `loading` the slot stays in the
+  DOM and is painted transparent with the label (L170). A glyph the
+  consumer passes among the children stays where it is, after the slot
+  (S41). `Button` destructures `children` to do this; `as` is unchanged, so
+  a danger button rendered as a link carries it too, as does the alert
+  dialog's danger confirm (`organisms/alert-dialog.tsx:112`), with no change
+  to that file. The sizes are `sm`, `md` (the default, no `size` prop) and
+  `lg`; the other variants, which carry nothing, are `primary` (the default,
+  no `variant` prop), `secondary`, `accent`, `soft`, `outline`, `ghost` and
+  `link` (`atoms/button.tsx:5`).
+- **The rim** (decision 13; sheet 2, `build-edges.mjs:109`) is drawn on the
+  danger button in both modes, 2px, inset, above the halo, from `danger-mark`
+  (L116). Its form obeys L148, L149, L152 and L153: `filled-edge`
+  (`atoms/_button.scss:24-28`) gains an optional `$rim`, which the danger
+  variant passes as `inset 0 0 0 2px seam-only(danger-mark)`. With a rim, the
+  mixin writes a local and puts it ahead of the edge in each of the three
+  shadows. Compiled, `.sb-button--danger` reads exactly these four lines (L190
+  says how a test compares them):
+
+  ```
+  --danger-rim: inset 0 0 0 2px var(--sb-danger-mark);
+  --shadow-rest: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger, 0 1px 2px color-mix(in oklab, var(--edge) 22%, transparent), 0 2px 6px color-mix(in oklab, var(--edge) 12%, transparent));
+  --shadow-hover: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger-hover, 0 2px 4px color-mix(in oklab, var(--edge) 26%, transparent), 0 6px 14px color-mix(in oklab, var(--edge) 14%, transparent));
+  --shadow-press: var(--danger-rim, 0 0 #0000), var(--sb-edge-filled-danger-press, 0 1px 1px color-mix(in oklab, var(--edge) 26%, transparent), 0 1px 2px color-mix(in oklab, var(--edge) 14%, transparent));
+  ```
+
+  The falloff inside each edge read is today's, textually the same as
+  `.sb-button--secondary`'s for the same state (`$shadow-rest`, `-hover`,
+  `-press`, `atoms/_button.scss:6-17`). `soft-edge`'s rest, hover and active
+  rules already put `--shadow-rest`, `-hover` and `-press` into
+  `--edge-layer` (`abstracts/_mixins.scss:128-148`), so the rim is in all
+  three states and never vanishes on hover or press (L152). This is the
+  orchestrator's "set at rest and in the hover and active rules", reached
+  through the three shadows rather than through new declarations in the
+  state rules (S45), so no state rule gains a declaration and `box-shadow`
+  stays the composed two-item form (L153). The local is declared on the
+  element that reads it, and every read has the placeholder as its fallback
+  (L149's test, `tools/test-contracts.ts:4946`). In a frozen preset
+  `danger-mark` is undefined, so the local is invalid at computed-value time,
+  and each shadow computes the placeholder followed by exactly its old
+  falloff: no new rendered layer (L148). The rim is inset, so it adds nothing
+  to the halo room (L151). The other filled variants pass no `$rim` and
+  compile as today.
+
+**L176.** **The danger menu item.** `MenuItem` with `danger` renders the
+status slot with `DangerIcon` and no word as its first child, before its
+children, with the glyph at the menu's 1em (L169). Its label is its word, so
+it takes no hidden word. It has no rim (row 40): a menu item is a row of a
+list, not a bounded control, and sheet 2 drew no rim on a row. A glyph the
+consumer passes as a direct child (an `svg`, or an `.sb-icon`) is hidden in a
+danger item, so the octagon replaces it rather than standing beside it
+(S41): `_menu.scss` adds `.sb-menu__item[data-danger] > svg,
+.sb-menu__item[data-danger] > .sb-icon { display: none; }`, which cannot
+reach the octagon, inside its slot. A menu lines its glyphs up in one
+column, and a second leading glyph would push the danger item's label out of
+it. No in-repo or buylist danger item passes a glyph (checked: the
+playground's menu demo, `apps/admin/src/sections/orders.tsx:92`). The
+octagon's colour is the slot's (L170); `_menu.scss:45-47` is not edited.
+`data-danger` is one of L153's named facts, so neither rule is a state rule.
+
+**L177.** **The field's error message (DECISIONS row 39).** The owner: "Form
+field error message", as sheet 2 drew it (`build-edges.mjs:195`). When
+`Field` is given `error`, its `<p class="sb-field__error">` holds the status
+slot (the `danger` glyph and the word `Error: `, overridden by `Field`'s
+`statusLabel`) as its first element child, then the message. The message is
+the control's description through `aria-describedby` when the field is
+invalid (`molecules/field.tsx:45-46`), so a reader hears "Error: …" as the
+description. `molecules/_field.scss` adds `.sb-field__error > .sb-status {
+margin-inline-end: space(1); }`. The paragraph keeps `display: none` until
+the field is invalid (`:27-37`), and the slot is hidden with it.
+
+**L178.** **The status box's edge, and the danger box's rim.** The five
+selectors of C11's status row read their edge through `where-absent`,
+falling back to `revert-layer`, as the progress track does
+(`atoms/_progress.scss:17-19`), because none of them declared a `box-shadow`
+at e24df74 (L148).
+
+- `.sb-alert` and `.sb-alert--info`: `box-shadow: edge(status-info,
+  revert-layer)` (L147 (c)). `.sb-alert--success` and `--warning`:
+  `edge(status-<tone>, revert-layer)`.
+- `.sb-alert--danger` adds the rose rim sheet 2 drew on the danger box
+  (`build-edges.mjs:142`: `inset 0 0 0 2px`, above the edge). A rim and an
+  edge are two layers, and `revert-layer` can only be a whole value, never an
+  item of a list, so the pair is one local:
+
+  ```
+  @include where-absent {
+    --danger-box: inset 0 0 0 2px #{seam-only(danger-mark)}, #{edge(status-danger, 0 0 #0000)};
+    box-shadow: var(--danger-box, #{edge(status-danger, revert-layer)});
+  }
+  ```
+
+  Compiled, `#{edge(status-danger, 0 0 #0000)}` reads
+  `var(--sb-edge-status-danger, 0 0 rgba(0, 0, 0, 0))`: Sass evaluates the
+  placeholder inside `#{}`, and either spelling is the placeholder (L190).
+  In sorbet the box draws the rim over its edge. A theme with the edge and no
+  `danger-mark` draws the edge alone (the local is invalid, and the fallback
+  reads the edge); one with `danger-mark` and no edge, the rim alone; one
+  with neither, a frozen preset among them, computes `revert-layer`, so the
+  box keeps whatever reached it before (S44). In sorbet dark until step 2.6
+  both are reset (L55), so it computes `revert-layer` there too. The read's
+  fallback is itself an edge read whose own fallback is `revert-layer`; that
+  is the one new form in this step, and L183 #51 says how the existing test
+  reads it.
+
+R276 to R279 measure the status edges without the rim (understating the
+danger box, as L116 says of the button); the rim on the danger box's own wash
+is R201 (`#d77784` on `#fcdfdc`, 24.31 deutan; 23.23 protan in dark). The
+rendered bar is step 2.5's
+acceptance #5.
+
+**L179.** **Two colours re-pointed to the marks.** Each is a colour seam
+whose fallback is the value it replaces, so a frozen preset computes exactly
+what it did (L148, fourth bullet).
+
+- **The toast's stripe** (`molecules/_toast.scss:65-69`): `border-inline-start:
+  3px solid clr($tone)` becomes `seam(#{$tone}-mark)`, as L70 scheduled. In
+  sorbet it is held by R280 to R283 on the toast's raised surface: light
+  24.45 / 29.05 / 30.38 / 27.03, dark 35.94 / 36.41 / 29.81 / 37.65. It and
+  the `Icon` atom's info tone below are the two sites that read `info-mark`,
+  which C10 needs.
+- **The `Icon` atom's four status tones** (`atoms/_icon.scss:58-72`;
+  orchestrator ruling, row 40; adversary C-3): `.sb-icon--X { color: clr(X) }`
+  becomes `seam(X-mark)` for X in `success`, `warning`, `danger` and `info`,
+  as `--primary` already reads `primary-solid` (`:54-56`). In sorbet light
+  the pastel it painted is 6.47 (protan), 7.99 (tritan), 12.02 (deutan) and
+  13.10 (tritan) from a card, under the `mark-line` floor of 19.5; the marks
+  are 24.45, 29.05, 30.38 and 27.03 there (R196, R198, R200, R202; on the
+  washes R197 to R203, on a raised surface R280 to R283). In sorbet dark the
+  marks are weaker than the pastels they replace (42.30, 42.93, 36.22 and
+  44.13 on a card, against 61.98, 63.88, 57.60 and 58.06) and still clear the
+  dark floor of 22.0. An icon on the bare page is held by no rule (§13). The
+  atom gains no glyph and no word (L168).
+
+**L180.** **What a reader meets: the ARIA review's oracle (adversary M-11).**
+Every status glyph is `aria-hidden="true"` and `focusable="false"`, with no
+role and no title, so it adds nothing to a name or to what is read; its slot
+(L186) has no role either, and adds only the word. "Read
+text" is what a screen reader meets in order, with every `aria-hidden`
+subtree left out.
+
+| Component and status | Role | Accessible name | Read text, in order |
+|---|---|---|---|
+| `Alert`, each tone (default `info`) | `status` for every tone; a consumer's `role="alert"` is kept, never derived (S39) | none (a status takes no name from its content) | the word (`Information: `), the title, the children, then the dismiss button, named "Dismiss" (or `dismissLabel`) |
+| A toast with a tone | none on the toast; the region is `role="region"`, named "Notifications", `aria-live="polite"` (unchanged) | — | the word, the title, the message, the dismiss button ("Dismiss notification") |
+| A toast without a tone | as today | — | the title, the message, the dismiss button |
+| `Badge`, a status tone, soft or solid | none (a `span`) | none of its own; inside a link or a button it is part of that control's name, e.g. "Error: Overdue" | the word, then the children |
+| `Badge`, a brand tone or none | as today | as today | the children |
+| `Button`, `variant="danger"` | `button` (or the `as` element's own) | its label, unchanged ("Delete account"); no word | the label |
+| `Button`, `variant="danger"`, `iconOnly` | `button` | the consumer's `aria-label`, unchanged | — |
+| `MenuItem`, `danger` | `button`, as today (not `menuitem`: L184) | its label, unchanged | the label, then the shortcut |
+| `Field` with `error`, invalid | the control's own | the control's label, unchanged | its description: "Error: " and the message |
+
+The review is made in a browser's accessibility tree (Chromium's), row by
+row, on the playground and the look sheet of L167, and its result is quoted
+in the step's commit. The presence test of L181, a server render, holds the
+DOM side of the same table; the tree is the check that the separating space and the order survive
+layout.
+
+**L181.** **The test that the icon and word are there.** A hidden word's
+absence shows nothing on screen, so its presence is a test (the owner's
+answer, row 38). The file, its scripts, what it imports and how it refuses a
+missing or stale build are L189; the props of each case are L187's table,
+by case id. Definitions: *the slot* is an element whose class list holds
+`sb-status`; *the icon of tone T* is an `svg` whose class list holds
+`sb-status-icon` and `sb-status-icon--T`; *the word W* is an element whose
+class list holds `u-visually-hidden` and whose text is exactly `W: `; *the
+read text* is the markup's text with every element carrying
+`aria-hidden="true"` removed with its contents, runs of whitespace collapsed
+to one space, and trimmed; *first* means the root's first element child (for
+the field, `p.sb-field__error`'s). Counts are exact: "one icon" means one, and
+no second icon of any tone. The cases:
+
+1. **Each glyph alone** (`SuccessIcon`, `WarningIcon`, `DangerIcon`,
+   `InfoIcon`, no props; and each with `className="x"`): one `svg`, the icon
+   of its tone, `aria-hidden="true"`, `focusable="false"`,
+   `viewBox="0 0 24 24"`, holding exactly one `path` with
+   `fill="currentColor"` and `fill-rule="evenodd"`; no other `fill` or
+   `stroke` attribute anywhere, no colour literal (`#`, `rgb(`, `hsl(`,
+   `oklch(`), no `id`, `url(`, `mask`, `clip-path` or `style`, and no slot.
+   With `className="x"` the class list is `sb-status-icon
+   sb-status-icon--<tone> x`.
+2. **`Alert`**, cases A1 to A5: the slot is first, its class list is exactly
+   `sb-status sb-alert__icon`, and it holds one icon (of the case's tone, of
+   `info` for A5) and then one word; the read text starts with the word
+   followed by the title (A1, A2, A4) or the children (A3, A5); the root's
+   `role` is `status`, and `alert` for A2.
+3. **`ToastItem`**, cases F1 and F2: the slot is first, its class list is
+   exactly `sb-status sb-toast__icon`, with one icon and one word. F3 (no
+   tone): no slot, no icon, no word.
+4. **`Badge`**, cases B1 to B8: the slot is first, its class list exactly
+   `sb-status`, with one icon and one word, then the children. Cases B14 to
+   B21 (a status tone with `dot`, soft and solid): the same, and no
+   `.sb-badge__dot`. Cases B9 to B13: no slot, no icon, no word; the dot
+   exactly in B9, B11 and B13.
+5. **`Button`**, cases C1 to C4 and C6: the slot is first, its class list
+   exactly `sb-status`, holding one icon of `danger` and no word; the read
+   text is the label. C5 (`iconOnly`): no slot. C6 (`loading`): the slot is
+   there. C7 to C14: no slot.
+6. **`MenuItem`**, cases D1 and D2: the slot is first, holding one icon of
+   `danger` and no word. D3 and D4: no slot.
+7. **`Field`**, cases E1 and E3: in `p.sb-field__error`, the slot is first,
+   with one icon of `danger` and then the word `Error: `, then the message;
+   the read text of the paragraph is `Error: That is more rice than the
+   pantry holds.` E2: no slot and no word anywhere in the field.
+8. **Overrides**, cases G1 to G7: `statusLabel` `"Fehler"` on `Alert`,
+   `Badge`, `Field` and `ToastItem` gives the word `Fehler: `; `" Fehler "`
+   gives `Fehler: ` (it is trimmed, L171); `""` and `"  "` give the default
+   word.
+9. **The markup is otherwise unchanged** (L187), and **the provider passes
+   the tone and the word through** (L188).
+10. **Internal names stay internal** (L189): the barrel exports none of
+    `StatusMark`, `STATUS_GLYPHS`, `STATUS_WORDS`, `ToastItem`.
+
+Each case is shown red with its icon, its word or its slot removed from the
+component.
+
+**L182.** **C10 reads the compiled stylesheet (CORRECTION 2026-10-05 to
+C10; adversary M-5).** C10 said "read by at least one `seam(…)` or `edge(…)`
+call under `src/styles`". Read off the Sass source it could never pass: 17
+names are read only through `seam-only(…)` (`switch-ring`, `selected-bar`), a
+loop's interpolated name (`seam(#{$tone}-mark)`: four marks now, and
+`info-mark` after step 2.5) or `filled-edge`'s `edge($element, …)` (the three
+filled variants' edges and all eight hover and press edges), and
+`--sb-halo-room` only through `halo-room()`.
+So C10 reads the same compiled stylesheet C11 reads (`src/styles/index.scss`
+compiled as `build:css` compiles it, `--style=expanded`; the test may compile
+it in memory). It is true when every name in `SEAMS`, every edge property
+sorbet emits (each `--sb-edge-X`, and each `-hover` and `-press`, L53),
+`--sb-halo-room` (L151) and the two label sizes `--sb-button-font-size` and
+`--sb-button-font-size-sm` (L19) appears as a whole name (the next character
+is not a letter, a digit or `-`) in a `var(--sb-<name>` inside the value of
+some declaration. A `seam-only` read counts; a comment does not, and neither
+does a custom property's own name on the left of a declaration. Measured on
+the compiled stylesheet at `9b83e50`: every such name is read but
+`info-mark` and the four `--sb-edge-status-*`, which step 2.5 adds (L179,
+L178). C10 is written by step 2.5's test author before the step is built,
+and is red until it is.
+
+**L183.** **The tests step 2.5 changes (adversary M-8).** L10 and L105 cover
+PR 1's assertions. These three were written for step 2.4 and its repair. Step
+2.5 makes #49 and #51 false; #50 stays true and is widened, so that it holds
+what step 2.5 adds (verifier N10). Step 2.5's test author edits them, in the step, and
+no other existing assertion; one more found is a defect of this spec,
+reported as L10 says.
+
+| # | File:line (at `9b83e50`) | What it asserts today | New expectation | Required by |
+|---|---|---|---|---|
+| 49 | `tools/test-contracts.ts:4823` ("2.4 #3") | no file under `packages/component-library/src` or `packages/design-system/src/behaviors` differs from `e6fd3d5` (fixture `step-2.4-untouched.json`), none added, none removed | narrowed, not retired (S47): the same, less the eight files step 2.5 names under `packages/component-library/src` (`atoms/badge.tsx`, `atoms/button.tsx`, `atoms/icons.tsx`, `atoms/index.ts`, `molecules/alert.tsx`, `molecules/field.tsx`, `molecules/menu.tsx`, `molecules/toast.tsx`), which may change; still none added and none removed. The fixture is not re-recorded. Step 2.7 removes `organisms/token-studio.tsx` from the comparison the same way (#49 again) | step 2.5's file list |
+| 50 | `tools/test-contracts.ts:4718` (C11's edge reads) | the 22 non-status selectors each read their element's `--sb-edge-<element>`; the five status selectors are exempt (it stays true after step 2.5) | widened: all 27 do, the exemption is lifted, and `.sb-alert` and `.sb-alert--info` read `--sb-edge-status-info` | C11, L178 |
+| 51 | `tools/test-contracts.ts:5452` (L148's read fallback) | a `where-defined` read in the sublayer falls back to exactly `revert-layer` | to `revert-layer`, or to an edge read whose own fallback is `revert-layer` (`var(--sb-edge-<element>, revert-layer)`, the element one of the thirteen), which a frozen preset also computes as `revert-layer`. The one such read is `.sb-alert--danger`'s (L178) | L178 |
+
+One document changes with them: the row for `step-2.4-untouched.json` in
+`packages/design-system/tools/fixtures/contracts/README.md` says "Retired
+when step 2.5 edits the component library"; step 2.5's test author changes
+it to say the fixture is narrowed by L183 #49, not retired.
+
+Unaffected, checked against each form step 2.5 adds (L170, L175, L176,
+L178): L148's cascade and sublayer tests (`:5434`, `:5442`), L149's
+(`:4946`), L150's, L153's and L161's. Each local is declared where it is read
+and read with a fallback; each new `box-shadow` is in the sublayer and
+computes `revert-layer` in a frozen preset; the danger button's shadows gain
+only placeholders there; no state rule writes `box-shadow`; no new function
+is called.
+
+**L184.** **What step 2.5 does not do.**
+
+- It does not fix the React `Menu`'s ARIA: `MenuItem` stays a `button`, not
+  a `menuitem` (the proposal's step 2.5: "Does not: fix the React Menu ARIA
+  defect in the same file (§9, item 12)"). It is deferred with the other
+  existing defects (decision 16).
+- "A status cannot render without its icon and word" is true of the React
+  components. The HTML API (`molecules/_alert.scss:3-7`,
+  `atoms/_badge.scss:30`) and a consumer that uses only the stylesheet get
+  them only by writing the markup, which the updated comments show; nothing
+  checks hand-written markup (adversary m-4). A glyph drawn by the stylesheet
+  (`glyph()`, `abstracts/_glyphs.scss:20`) would reach them, but a test
+  rendering the markup could not see it, and the ruling placed the glyphs in
+  `atoms/icons.tsx` (row 40).
+- No glyph is drawn by the stylesheet, so L161's list of CSS functions is
+  unchanged (adversary m-5: `circle()`, `ellipse()` and `path()` would fail
+  it).
+- No token is added, so no theme file and no golden changes (L4).
+
+**L185.** **Who sees the icons, and when (§17 item 21).** Every React
+consumer of `@sorbet/component-library` renders the icon and word once it has
+step 2.5's build, in its own theme and colours (L166). `apps/admin` (ocean)
+and `apps/meal-kit` (forest) build from the workspace (`workspace:*`), so they
+change with step 2.5 itself. buylist (ocean) changes at its next re-pack
+(proposal §12's `pnpm pack:vendor`), in its alerts and its status badges (its
+`dot` badge shows the icon instead, L174). linecook changes at its sync (row
+24). A consumer that vendors only the stylesheet (pantry, wallpaper-admin and
+the musicdisco admin, all noir) changes in nothing: none of its markup
+changes, and every Sass change of step 2.5 computes its old values there
+(L167).
+
+**L186.** **The status slot: the glyph and the word in one positioned element
+(verifier N1).** The word is `u-visually-hidden`, which is `position:
+absolute` (`abstracts/_mixins.scss:45-55`). Placed bare inside a component,
+its containing block is the nearest positioned ancestor, which can lie
+outside a scrolling container: measured at 390px under ocean, a status badge
+in a `.sb-table-wrap` (`molecules/table.tsx:61`, not positioned) made the
+document 595px wide where today it is 390, breaking `_table.scss:3-4` ("The
+wrapper owns horizontal overflow so the page never scrolls sideways") in
+every preset, and neither the masked compare nor a server render can see it.
+So every status icon, with its word where it has one, sits in one slot that
+is its own containing block:
+
+- **Markup.** `<span class="sb-status">` holding the glyph and then, where
+  the component has a word, `<span class="u-visually-hidden">W: </span>`:
+  `<span class="sb-status"><svg class="sb-status-icon sb-status-icon--danger" …></svg><span class="u-visually-hidden">Error: </span></span>`.
+  The alert's and the toast's slot also carries its box class, after
+  `sb-status`: `class="sb-status sb-alert__icon"`, `class="sb-status
+  sb-toast__icon"`. The button's and the menu item's slot holds the glyph
+  alone. The slot has no other attribute; it is rendered by `StatusMark`
+  (L169), which is the only place the slot's markup is written.
+- **Sass,** in `atoms/_icon.scss`:
+
+  ```
+  .sb-status {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    vertical-align: -0.125em;
+
+    @include where-defined(color, status-ink, seam-only(text-strong), revert-layer);
+  }
+
+  .sb-status-icon {
+    inline-size: 1.1em;
+    block-size: 1.1em;
+  }
+  ```
+
+  `position: relative` with no offset moves nothing; it makes the slot the
+  word's containing block, so the word stays inside the component and inside
+  any scroller round it. `vertical-align` is `.sb-icon`'s optical alignment
+  (`atoms/_icon.scss:18`), which a flex line ignores; in an alert or a toast
+  the slot is a flex item, so `display` is blockified and the slot class's
+  box (1.25rem) sizes it.
+- **Test, on the compiled stylesheet, in `pnpm test`** (step 2.5's tests
+  first): among the rules whose selector list holds `.sb-status` as a whole
+  item, outside every conditional at-rule and outside the `where-defined`
+  sublayer, the last `position` is `relative` and the last `display` is
+  `inline-flex` (L190 (a)). It is shown red with `position: relative`
+  removed.
+- **Probe, run by hand in the review** (Playwright's Chromium, as
+  `<root>/tools/shots.ts` uses), quoted in the step's commit: a page of the
+  compiled library stylesheet and one preset's theme file, viewport 390 by
+  700, whose body is `<div class="sb-table-wrap"><table
+  class="sb-table"><tbody><tr>` + six cells `<td>Customer name N here</td>`
+  (N from 0 to 5) + `<td>` holding the markup of case B3 (L187),
+  `<Badge tone="danger">Overdue</Badge>`, rendered by this tree's built
+  library + `</td></tr></tbody></table></div>`. In each of the five presets
+  and both modes, `document.documentElement.scrollWidth` equals
+  `innerWidth`. (The verifier's probe, `sa36/overflow2.mjs`, is the
+  reference.)
+
+**L187.** **The markup is otherwise unchanged (verifier N2).** The masked
+compare cannot see a change to the components' markup, since both of its
+sides render this tree (L167). So the presence test (L181 case 9) holds the
+markup itself: for each case, the markup this tree's build renders, with
+every slot removed, equals what `9b83e50`'s build rendered for the same
+props.
+
+- **The cases** (props as data; `"noop"` for `onDismiss` is a function that
+  does nothing; a child `{ "element": "input", "props": { "className":
+  "sb-input" } }` is one host element; every string is plain ASCII):
+
+| Ids | Component | Props |
+|---|---|---|
+| A1 | `Alert` | `tone: "success", title: "Deployed", children: "Build 214 is live in production."` |
+| A2 | `Alert` | `tone: "danger", title: "Payment failed", role: "alert", children: "We could not charge your card."` |
+| A3 | `Alert` | `tone: "warning", children: "Two items run out before Thursday."` |
+| A4 | `Alert` | `tone: "info", title: "Note", onDismiss: "noop", children: "The Thursday shop covers the rest of the week."` |
+| A5 | `Alert` | `children: "No tone was given."` |
+| B1 to B4 | `Badge` | `tone: T, children: "Overdue"`, T in `success`, `warning`, `danger`, `info` |
+| B5 to B8 | `Badge` | `tone: T, solid: true, children: "7"`, the same four T |
+| B9 | `Badge` | `tone: "primary", dot: true, children: "New"` |
+| B10 | `Badge` | `tone: "secondary", children: "Draft"` |
+| B11 | `Badge` | `tone: "accent", dot: true, children: "Beta"` |
+| B12 | `Badge` | `children: "Neutral"` |
+| B13 | `Badge` | `dot: true, children: "Neutral"` |
+| B14 to B17 | `Badge` | `tone: T, dot: true, children: "Active"`, the four T (presence only: the dot is replaced) |
+| B18 to B21 | `Badge` | `tone: T, solid: true, dot: true, children: "7"`, the four T (presence only) |
+| C1 | `Button` | `variant: "danger", children: "Delete account"` |
+| C2, C3 | `Button` | `variant: "danger", size: "sm"` and `size: "lg"`, `children: "Delete"` |
+| C4 | `Button` | `variant: "danger", as: "a", href: "#delete", children: "Delete"` |
+| C5 | `Button` | `variant: "danger", iconOnly: true, "aria-label": "Delete", children: "x"` |
+| C6 | `Button` | `variant: "danger", loading: true, children: "Deleting"` |
+| C7 | `Button` | `children: "Save"` |
+| C8 to C14 | `Button` | `variant: V, children: "Save"`, V in `primary`, `secondary`, `accent`, `soft`, `outline`, `ghost`, `link` |
+| D1 | `MenuItem` | `danger: true, children: "Delete project"` |
+| D2 | `MenuItem` | `danger: true, shortcut: "Del", children: "Delete"` |
+| D3 | `MenuItem` | `children: "Rename"` |
+| D4 | `MenuItem` | `shortcut: "R", children: "Rename"` |
+| E1 | `Field` | `label: "Rice", error: "That is more rice than the pantry holds.", invalid: true`, child `input.sb-input` |
+| E2 | `Field` | `label: "Rice", hint: "Cups, cooked."`, child `input.sb-input` |
+| E3 | `Field` | `label: "Rice", error: "That is more rice than the pantry holds."`, child `input.sb-input` |
+| F1 | `ToastItem` | `tone: "success", title: "Sticky", message: "I stay until dismissed.", onDismiss: "noop"` |
+| F2 | `ToastItem` | `tone: "danger", message: "Account deleted.", leaving: true, onDismiss: "noop"` |
+| F3 | `ToastItem` | `message: "All changes saved.", onDismiss: "noop"` |
+| G1 | `Alert` | `tone: "danger", statusLabel: "Fehler", children: "x"` (presence only) |
+| G2 | `Badge` | `tone: "danger", statusLabel: "Fehler", children: "x"` (presence only) |
+| G3 | `Field` | `label: "Rice", error: "x", invalid: true, statusLabel: "Fehler"`, child `input.sb-input` (presence only) |
+| G4 | `ToastItem` | `tone: "danger", statusLabel: "Fehler", message: "x", onDismiss: "noop"` (presence only) |
+| G5 to G7 | `Alert` | `tone: "danger", children: "x"` with `statusLabel` `" Fehler "`, `""` and `"  "` (presence only) |
+
+- **The fixture.** `packages/component-library/tools/fixtures/status-markup.at-9b83e50.json`,
+  `{ "recordedFrom": "9b83e50", "cases": [{ "id", "component", "props", "html" }] }`,
+  holds the 39 cases A1 to A5, B1 to B13, C1 to C14, D1 to D4 and E1 to E3,
+  each `html` the `renderToStaticMarkup` of `9b83e50`'s build. A committed
+  recorder, `packages/component-library/tools/fixtures/record-status-markup.mts.txt`
+  (a `.txt`, like `record-e24df74-styles.mts.txt`, so nothing runs or lints
+  it by accident), holds the case list and, run against a checkout of
+  `9b83e50` whose component library is built (`git worktree add` or `git
+  archive`, `pnpm install`, `pnpm --filter @sorbet/component-library
+  build`), writes the fixture. The test author records it before the
+  components change, and it is never re-recorded. The test reads the cases
+  from the fixture, renders each with this tree's build, and pins the
+  fixture's sha256 (as L154's fixtures are pinned). The cases left out are
+  the ones `9b83e50` cannot render the same way: a status tone with `dot`
+  (the dot is now replaced, L174), `statusLabel` (new) and `ToastItem`
+  (new).
+- **The removal.** Each slot is removed with its contents. A slot's markup
+  is exactly `<span class="sb-status…">`, one `<svg…>…</svg>`, at most one
+  `<span class="u-visually-hidden">…</span>`, then `</span>`, so the pattern
+  `<span class="sb-status[^"]*"><svg[^>]*>[\s\S]*?</svg>(?:<span class="u-visually-hidden">[^<]*</span>)?</span>`
+  matches it whole. After removal each case's markup equals its fixture
+  `html` exactly, character for character. (At `9b83e50`, `Alert` with no
+  `icon` rendered no slot, so its removed `icon` prop needs no account.)
+- **The toast** has no server-renderable form at `9b83e50`, so its expected
+  markup after removal is given here, as `molecules/toast.tsx:93-108` renders
+  it at `9b83e50` for the same record (rendered with `react-dom/server` while
+  writing this):
+  - F1: `<div class="sb-toast sb-toast--success"><div><p class="sb-toast__title">Sticky</p><p class="sb-toast__body">I stay until dismissed.</p></div><button type="button" class="sb-toast__dismiss sb-close" aria-label="Dismiss notification"></button></div>`
+  - F2: `<div class="sb-toast sb-toast--danger" data-leaving="true"><div><p class="sb-toast__body">Account deleted.</p></div><button type="button" class="sb-toast__dismiss sb-close" aria-label="Dismiss notification"></button></div>`
+  - F3: `<div class="sb-toast"><div><p class="sb-toast__body">All changes saved.</p></div><button type="button" class="sb-toast__dismiss sb-close" aria-label="Dismiss notification"></button></div>`
+
+**L188.** **The provider passes the tone and the word through (verifier
+N3).** Consumers reach a toast only through `toast()` and `ToastProvider`,
+which renders after mount and so cannot be server-rendered; if it stopped
+using `ToastItem`, or dropped `tone` or `statusLabel`, every real toast would
+lose its word in silence. So the source is pinned, and the presence test (L181
+case 9) reads `packages/component-library/src/molecules/toast.tsx`:
+
+- `ToastOptions` declares `statusLabel?: string`.
+- `toast`'s options are destructured as `{ title, tone, statusLabel, duration
+  = 5000 }`, and the record it adds holds `statusLabel` beside `title` and
+  `tone`.
+- Inside `toasts.map((t) => …)` the provider renders exactly one element,
+  `<ToastItem key={t.id} title={t.title} message={t.message} tone={t.tone}
+  statusLabel={t.statusLabel} leaving={t.leaving} onDismiss={() =>
+  dismiss(t.id)} />`, and the file renders no other element with the class
+  `sb-toast` outside `ToastItem`.
+
+The test collapses the source's whitespace runs to one space and asserts:
+`<ToastItem ` occurs exactly once; the text from it to the next `/>` contains
+`tone={t.tone}` and `statusLabel={t.statusLabel}`; the text between
+`(message: ReactNode, {` and `}: ToastOptions` contains `statusLabel`; and
+the text between `[...all, {` and the next `}` contains `statusLabel`. Each
+is shown red by deleting the one attribute or name it reads.
+
+**L189.** **The presence test's harness, pinned (verifier N9; values 1, 5, 7
+and 8).**
+
+- **File and scripts.** `packages/component-library/tools/test-status.ts`,
+  run as `node tools/test-status.ts` (Node 24 runs TypeScript directly, as
+  `packages/component-library/tools/check-client-directives.ts` is run). `packages/component-library/package.json`
+  gains `"test:status": "node tools/test-status.ts"`; `<root>/package.json`
+  gains `"test:status": "pnpm --filter @sorbet/component-library
+  test:status"`, and its `"test"` ends `… && pnpm run test:contracts && pnpm
+  run test:status`. `.github/workflows/build.yml` gains, after the step that
+  runs `pnpm run test:contracts` and before `check:consumable`, a step
+  `- name: Verify every status carries its icon and word` with `run: pnpm
+  run test:status`, and a comment in the file's style saying why: a hidden
+  word's absence shows nothing. `<root>/CLAUDE.md`'s `pnpm test` line becomes
+  `# check:contrast + check:client + test:golden + test:contrast +
+  test:contracts + test:status`. It asserts with `node:assert/strict`,
+  prints one line per case, and exits 1 if any case fails.
+- **What it imports.** `react` and `react-dom/server` resolved from
+  `packages/component-library` (its peer dependencies, installed there);
+  `Alert`, `Badge`, `Button`, `MenuItem`, `Field` and the four glyphs from the
+  built barrel `packages/component-library/dist/index.js`, which is what a
+  consumer gets; `ToastItem` from `packages/component-library/dist/molecules/toast.js`;
+  the fixture of L187; and, for L188, the source file. It does not import
+  `StatusMark`, `STATUS_GLYPHS` or `STATUS_WORDS`: the words are checked
+  through what renders. It asserts the barrel exports the four glyphs and
+  none of `StatusMark`, `STATUS_GLYPHS`, `STATUS_WORDS` and `ToastItem`.
+- **A missing or stale build fails before any case.** The root `test` chain
+  does not build, so a local `pnpm test` after a source edit would otherwise
+  test the previous build in silence. For each `.ts` and `.tsx` file under
+  `packages/component-library/src` (not `.d.ts`), in sorted order of its
+  path, its counterpart is the same path under
+  `packages/component-library/dist` with the extension `.js`. The first
+  counterpart that does not exist prints `✗ test:status reads the built
+  component library: <dist path> does not exist. Run pnpm build first.`; the
+  first one older than its source (`mtimeMs`) prints `✗ test:status reads the
+  built component library: <src path> is newer than <dist path>. Run pnpm
+  build first.` Paths are relative to the repo root. Either exits with code
+  1. CI builds first, so there it never fires.
+
+**L190.** **The compiled forms, pinned (verifier N7; values 9 to 11).** The
+checks of step 2.5's acceptance #3 read the compiled stylesheet as C11 does
+(the last declaration among the rules whose selector list holds the selector
+as a whole item, outside conditional at-rules), compare values with
+whitespace runs collapsed to one space, and accept the placeholder in either
+spelling `PLACEHOLDER` accepts (`<root>/tools/stylelint/state-definition.js:102`):
+Sass writes the literal `0 0 #0000` as written, but evaluates it inside `#{}`
+to `0 0 rgba(0, 0, 0, 0)` (35 such spellings already compile, and L178's
+`--danger-box` is one). Sizes are always `inline-size` and `block-size`.
+
+| | Selector | Declarations |
+|---|---|---|
+| (a) | `.sb-status`, outside the sublayer | `position: relative`, `display: inline-flex`, `flex-shrink: 0`, `vertical-align: -0.125em` |
+| (b) | `.sb-status`, in `sb.atoms.where-defined` | `--status-ink: var(--sb-text-strong)`, `color: var(--status-ink, revert-layer)` |
+| (c) | `.sb-badge--solid > .sb-status`; `.sb-button > .sb-status` | `color: inherit` |
+| (d) | any other rule whose selector list names `.sb-status` or `.sb-status-icon` | no `color` and no `fill` |
+| (e) | `.sb-status-icon`; `.sb-menu__item .sb-status-icon`; `.sb-alert__icon > .sb-status-icon`, `.sb-toast__icon > .sb-status-icon`; `.sb-toast__icon` | `inline-size` and `block-size` `1.1em`; `1em`; `100%`; and `flex-shrink: 0`, `inline-size: 1.25rem`, `block-size: 1.25rem`, `margin-block-start: 0.05em` |
+| (f) | `.sb-button--danger` | L175's four lines, the falloff in each textually `.sb-button--secondary`'s for the same state; no other selector declares `--danger-rim` |
+| (g) | `.sb-alert`, `.sb-alert--info`, `.sb-alert--success`, `.sb-alert--warning`, in `sb.molecules.where-defined` | `box-shadow: var(--sb-edge-status-<tone>, revert-layer)` (`info` for the first two) |
+| (h) | `.sb-alert--danger`, in `sb.molecules.where-defined` | `--danger-box: inset 0 0 0 2px var(--sb-danger-mark), var(--sb-edge-status-danger, <placeholder>)`, `box-shadow: var(--danger-box, var(--sb-edge-status-danger, revert-layer))` |
+| (i) | `.sb-toast--X`; `.sb-icon--X`, X each status | `border-inline-start: 3px solid var(--sb-X-mark, var(--sb-X))`; `color: var(--sb-X-mark, var(--sb-X))` |
+| (j) | `.sb-menu__item[data-danger] > svg`, `.sb-menu__item[data-danger] > .sb-icon` | `display: none` |
+| (k) | `.sb-field__error > .sb-status` | `margin-inline-end: var(--sb-space-1)` |
+
+**L191.** **The measurer stages all four status boxes (verifier N6; value
+13).** The playground has a success and a danger alert, neither on a card
+(`apps/playground/src/demos/alerts-toasts.tsx:14, 17`), and no warning or
+info alert; step 2.5 adds no demo (L167). `<root>/tools/measure-edges.ts`
+already stages the success box on a card by cloning it; it now stages the
+other three the same way, cloning the success box and swapping its tone
+class (the measurer is in step 2.5's files). Its target "Status box on a card" is relabelled
+"Status box (success) on a card", and three targets follow it:
+
+```
+{ label: "Status box (warning) on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; e.classList.replace('sb-alert--success', 'sb-alert--warning'); })", staged: true },
+{ label: "Status box (info) on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; e.classList.replace('sb-alert--success', 'sb-alert--info'); })", staged: true },
+{ label: "Status box (danger) on a card", sheet2: { name: "Status box", on: "card" }, find: "staged('.sb-alert--success', null, (e) => { e.style.inlineSize = '100%'; e.classList.replace('sb-alert--success', 'sb-alert--danger'); })", staged: true },
+```
+
+All four are filed under sheet 2's `"Status box"` on `"card"`
+(`edges-measure.json`, `Light`: 10.9; `Dark`: 22.6), so each bar is that
+figure less 1.0. A clone keeps the success glyph inside; the glyph is not on
+the boundary the measurer samples, so it does not move a figure, and the
+danger clone gets the rim from its class (L178).
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
@@ -2715,12 +3760,18 @@ the gate's silence as a pass.
 | The selected wash in a dark menu: `#554445` on the menu's `#463425`, 6.38 (12.85 on a card) | the wash is stored opaque over `surface` (D7), and the menu is raised | the selected bar (R195, 31.29) and the heavier weight carry the selection; neither is colour alone |
 | The slider thumb: the library paints it `primary-solid` `#b096d7` with `shadow(sm)`; sheet 2 drew a milk thumb with a lilac ring | the library's thumb is the stronger of the two (R180: 23.04 on its light track) and no rule needs changing for it | looked at in step 2.4 |
 | A focus ring 2px from a fill against one that touches it: the button (offset 2px) against the selected calendar day and the current page (offset 0) | one pair of colours, two placements; R210 measures the pair (L68) | looked at in step 2.4 |
-| The danger button's rose rim against its own blush fill: `#d77784` on `#f9c3c6`, 18.36 (deutan) | the rim is painted from `danger-mark`, and the button's edge rule measures its halo alone (L116), which understates what is painted | decision 13 and sheet 2; looked at in step 2.5 |
+| The danger button's rose rim against its own blush fill: `#d77784` on `#f9c3c6`, 18.36 (deutan) | the rim is painted from `danger-mark`, and the button's edge rule measures its halo alone (L116), which understates what is painted | decision 13 and sheet 2; looked at in step 2.5, on the sheet of L167 (acceptance #7) |
 | An edge whose all-round layer barely renders: the light card with `0 0 200px 0.01px #000000 @ 1` measures 98.63 (L138) | presence ignores blur and the size of a spread, and a minimum would be a number nobody approved | sorbet's golden shows any recipe change; rendered measurement in steps 2.4 and 2.6 |
 | The selected pill: the raised fill on the list's well, light 4.47, with `shadow(sm)` and the `text` ink against the unselected `text-muted` (L157, corrected by L164); dark, from step 2.6, 18.49 | the pills variant is a segmented control and takes no bar; a halo inside the list's 4px padding would be cut (L151) | §15 item 18 |
 | The input-group addon: an unframed well beside the field's inset ring (L158) | part of the field, not an element with an edge; cosmetic | looked at in step 2.4 |
 | An offset falloff cut by a clipping parent (a hovered button's deep-tone layer at a table's last row, at most 12px) | L151 makes room for the all-round layer only; the falloff is depth, not the edge presence measures | looked at |
-| An icon, a bold weight, a thumb's position | a token gate sees colours | status components derive icon and word from `tone` (step 2.5) |
+| An icon, a bold weight, a thumb's position | a token gate sees colours | status components derive the icon and word from their status (L168); the presence test of L181 holds that both are there; their look is by eye (L167) |
+| The status icon's ink on three light status washes: `#472400` on `#d3f4f0` 87.74 (deutan), on `#faefca` 89.70 (tritan), on `#fcdfdc` 84.21 (tritan), the last also the hovered danger menu item (L170) | no rule names `text-strong` on a status wash; the ink is darker than the `X-text` the `on-wash` tier holds on the same washes (76.17 to 81.66), and every other pair of the icon is a rule's pair exactly | each is 10.8 or more above the `on-wash` floor; the look of L167 |
+| The `Icon` atom's status tones off the surfaces the mark rules name: on the page, light 22.52 (protan) to 28.48 (deutan), dark 43.13 (protan) to 51.17 (tritan); and in dark the marks are weaker than the pastels they replace, 36.22 to 44.13 on a card against 57.60 to 63.88 (L179) | an icon can sit anywhere; R196 to R203 and R280 to R283 hold the card, the washes and the raised surface | every figure clears its mode's `mark-line` floor (19.5, 22.0) |
+| Toned progress bars: the tone is colour alone. Of the 15 pairs of the six bar colours (the default `primary-solid` `#b096d7` and the five marks), 11 are under 10 apart at the worst view, the least warning and secondary 4.02 (tritan), the default and success 4.04 (deutan), danger and secondary 4.50 (deutan) | the owner chose no icon for them (DECISIONS row 39) | the bar's label and value, which the consumer writes (`aria-valuenow`); each bar against its track is held (`mark-area`) |
+| Token Studio's failure list (`organisms/_token-studio.scss:126`): its lines are `danger-text`, in sorbet light the body text's own hex `#693800`, 0.00 apart | the owner chose no icon for it (DECISIONS row 39) | its summary is a danger `Badge`, which carries the octagon and `Error: ` from step 2.5 (L174); each line names the pair, its figure and its floor in words |
+| The dropzone's error line (`molecules/_dropzone.scss:87-91`, `role="alert"`): `danger-text`, the body text's hex in sorbet light | not put to the owner; the field's error message, which was, takes the octagon (L177) | its words; giving it the octagon is a small change if wanted (S49) |
+| The rating's stars in a tone: `clr(X)`, the pastel (warning `#f5e3a2` 7.99, tritan, from a card) | a rating is not a status; the star count and the fractional fill carry its value | the off star's ring (the row on `border-strong` lines below) |
 | Font size, apart from the button label at its two sizes (C9, L115) | the checker reads no Sass | the 47-row table of L72; L111 for 12px text on fills and washes |
 | "Paragraphs never sit on a full-strength fill" (the ink reads 62.47 on lilac) | a usage convention | none; stated in the docs of step 2.8 |
 | Placements sheet 2 did not draw: a status box on the bare page (14.47 to 16.27 light); a well on the bare page (6.37 light, 14.06 dark); a card inside a card (15.47 light, 14.03 dark); a divider on the page in light (9.68) and on a raised surface in dark (9.91) | a floor pinned to them would be pinned to something nobody approved; several sit under their class's floor | §15, item 13 |
@@ -2889,7 +3940,12 @@ two questions and the small-button question are all answered (DECISIONS rows
 
 None. §15 item 18, the one item revision 3.5 raised, was answered on
 2026-10-05: the milk segment stays as built (DECISIONS row 32, L164). Every
-question revision 2 raised was answered on 2026-10-04 (rows 28 to 31).
+question revision 2 raised was answered on 2026-10-04 (rows 28 to 31). Step
+2.5's four questions were answered on 2026-10-05 (rows 36 to 39; §12.5):
+"Every theme", "A. Filled, dark ink (as sheet 2)", "Hidden, for screen
+readers", and "Form field error message" (not progress bars, not Token
+Studio's failure list). The orchestrator's rulings for the step are row 40,
+the spec author's S35 to S54; either is the owner's to overturn.
 
 ## 15. Needs the owner's eye (sheet 3)
 
@@ -2990,7 +4046,10 @@ Routine calls, made and named. Each has one sentence of reason and what would
 overturn it. None is the owner's by the test of §14 (a new visible value, or a
 floor with no approved measurement behind it). Revision 2 moved one of
 revision 1's calls to the owner (S4, which was not routine) and added S26 to
-S34.
+S34. Revision 3.6 adds S35 to S51, for step 2.5, and S52 to S54 after its
+verifier; the visible ones among them (S35, S36, S37, S39, S40, S43, S49) are
+also DECISIONS row 41, so the owner sees them (S36 and S49 added after the
+verifier, N11).
 
 | # | Choice | Reason | Overturned by |
 |---|---|---|---|
@@ -3028,13 +4087,34 @@ S34.
 | S32 | 12px text on fills and washes, and disabled controls, are left to the eye with their figures (L111, L112) | No theme token sets their size or their fade, and the owner passed them as drawn; a floor pinned on that answer alone would be unapproved | a badge or disabled control the owner cannot read in use |
 | S33 | Structure failures are counted on their own line (L90) | PR 1's tests and the reports read "contrast failure(s)" as a count of failed measurements | — |
 | S34 | The dark border stays `rgb(254 244 220 / 0.14)` though minifying it moves the divider by up to 0.25 (L109) | It is sheet 2's value; the gate measures the record, and both spellings pass | a Token Studio reading that crosses the floor |
+| S35 | The status icon's ink is `text-strong` on a wash or a surface, through `where-defined` falling back to the component's own text colour, and the label ink `on-X` on a fill (L170) | It gives the `#472400` the owner chose in light and sheet 2's `#f3e7ce` in dark, and a frozen preset's icon is exactly the pair of the words beside it. A bare `currentColor` (the other way the orchestrator named) would hold every pair by an existing rule but paint `#693800` on sorbet's light washes, 8.69 (protan) lighter than the chosen ink. The alert's title stays `#693800`, so in light the icon is the darker of the two, where sheet A drew both alike | the owner preferring the icon to match its title (then `currentColor`, or the title re-pointed to `text-strong`) |
+| S36 | The symbol is knocked out, not drawn in a colour, and the knock-out is one even-odd path per glyph, not a mask (L169). The knock-out itself is this author's call, not the owner's: the sheet the owner chose from drew the symbol in a fixed `#fffbf1` (verifier N8). Knocked out, the symbol shows the blush fill `#f9c3c6` on the solid danger button and a wash's own hex on a wash (`#fcdfdc` on the danger wash in light). The owner sees it on the step's look sheet | A fixed milk symbol vanishes in dark mode, on the cream silhouette `#f3e7ce` (Lc 9.80, tritan), and would be a colour written into the glyph, which the portability ruling forbids; the knocked-out dark danger wash reads Lc 76.98 (deutan). A mask is referenced by an id unique in the document; generating one needs a hook, which would make `icons.tsx`, a server module like every house glyph, a client module (`check:client`); a fixed id would repeat wherever two icons render | the owner wanting the drawn milk symbol (a fixed `#fffbf1` in light, and a dark symbol in dark); a glyph whose symbol cannot be drawn as outlines inside its silhouette |
+| S37 | The words are "Success", "Warning", "Error", "Information", each followed by ": " inside the hidden span (L171) | "Error" is what a listener needs for a failure ("Danger" announces a hazard; GOV.UK prefixes "Error:"); "Information" is a word, not an abbreviation; the colon makes the pause, and the space inside the span keeps inline text from running on | the owner choosing other words |
+| S38 | The words are overridden per component by a `statusLabel` prop (and a `toast()` option); empty gives the default (L171) | It is the library's existing pattern for its own words (`dismissLabel`); the library has no locale provider, and adding one is not this step; an empty override would remove the word and break the invariant | a locale provider in the library |
+| S39 | A danger alert keeps `role="status"`; `role="alert"` stays the consumer's to pass (L172) | Urgency is not a tone: a danger alert rendered with the page (buylist's) would interrupt the reader if assertive, and the library's own note makes `alert` a limit, not a default | the owner wanting danger alerts announced assertively |
+| S40 | With a status tone, the badge's icon replaces its `dot` (L174) | The dot is a status sign in colour alone, which is what the icon replaces; two leading marks are one too many | a badge wanting both |
+| S41 | In a danger menu item the octagon replaces a consumer's leading glyph; in a danger button a consumer's glyph stays, after it (L175, L176) | A menu lines its glyphs up in one column, and a second leading glyph breaks it; a button has no column, and its glyph may trail the label | a consumer needing its own glyph in a danger menu item |
+| S42 | The glyphs are named for their tone (`SuccessIcon` …), carry `sb-status-icon sb-status-icon--<tone>`; the internal names are `StatusMark` (the slot, props `tone`, `statusLabel?`, `wordless?`, `className?`), `STATUS_GLYPHS` and `STATUS_WORDS`; the alert's and toast's slot carries `sb-status` first, then its box class; the toast's markup is a `ToastItem` with six named props, exported from its module but not from the barrel (L169, L173, L186) | The components look a glyph up by tone; one component writes the slot, so its markup has one source; the classes let the stylesheet, the mask and the test find them; a toast can only be rendered without a browser if its markup is a component | — |
+| S43 | One size rule: 1.1em (the button's glyph size), 1em in a menu item (the menu's), and the whole 1.25rem slot leading an alert or a toast, always as `inline-size` and `block-size` (L169, L190 (e)) | It reuses the sizes the library already gives glyphs, so a status icon is no larger or smaller than any other glyph beside it; inside the slot the components' `> svg` rules no longer reach the glyph, so the menu's size is restated | the icons reading too small at 12px |
+| S44 | The danger status box draws its rim and edge from one local, falling back to the edge alone, then to `revert-layer` (L178) | `revert-layer` cannot be an item of a list, and the nested fallback is right in all four cases (both tokens, either, neither); the price is one widened test condition (L183 #51) | — |
+| S45 | The button's rim reaches the hover and press states through `--shadow-rest`, `-hover` and `-press`, not new declarations in the state rules (L175) | No state rule changes (L153), and a state cannot lose the rim because each state's shadow carries it (L152) | — |
+| S46 | From step 2.5 the frozen compare masks the status icons on both sides and must then be pixel-identical (L167) | Both sides render this tree's markup, so masking is exact; judging each differing shot by eye cannot separate the icon from the reflow below it | a change to the status components that is not confined to the icon |
+| S47 | "2.4 #3" is narrowed to the files step 2.5 does not name, not retired (L183 #49) | It still fences each later step to its stated files at no cost | the steps ending (after 2.8) |
+| S48 | The presence test lives in `packages/component-library/tools/test-status.ts`, reads the built `dist`, and runs in `pnpm test` and CI after the build (L181) | The component library has `react-dom`; the design system's tests do not import React; reading `dist` tests what consumers get, as `check:consumable` does | a test runner for the component library's sources |
+| S49 | The dropzone's error line and the rating's stars get no icon in this step (L168, §13) | Neither was put to the owner, and the owner named the places that change; each is recorded with its figure | the owner wanting either |
+| S50 | `check:consumable`'s floor (126) is not raised to 135 (step 2.5's acceptance #6) | The floor is that tool's ratchet against shrinking coverage; the presence test already renders the four glyphs | — |
+| S51 | Step 2.5 adds no playground demo (L167) | A demo that grew a row would differ in every masked shot below it, and the look sheet shows the icons | step 2.8's docs wanting one |
+| S52 | A `statusLabel` is trimmed; empty after trimming gives the default word (L171) | A stray space would read "Fehler : " or double the space before the consumer's words; trimmed, an override takes the default's exact form | a language whose word needs a space kept |
+| S53 | The presence test's cases are plain ASCII, and the toast's markup at `9b83e50` is given as text (L187) | No entity escaping for a test to undo; `9b83e50`'s toast renders only after mount, so it cannot be recorded by a server render | — |
+| S54 | The test refuses a stale build by comparing each source file's time with its built file's (L189) | It costs no build inside the test, and catches the case that matters, a local `pnpm test` after an edit; CI builds first | a checkout that leaves built files newer than edited sources (then the test builds, as `check:consumable` does without `--no-build`) |
 
 ## 17. Where the proposal is superseded or wrong
 
 Each line says what the proposal's text says, what this spec does instead, and
 why. Items 1 to 9 supersede §5. Items 10 to 16, and 17 to 19 of revision 2,
 are things found wrong while
-measuring.
+measuring. Items 21 and 22 (revision 3.6) supersede the proposal's §12 and
+its step 2.5 where the owner's answers on step 2.5 moved them.
 
 1. **The edge formula** (§5, "Edge presence"): `max(sep(fill, behind), sep(blend(edge, behind), behind))`.
    Superseded by L49. Two reasons. It blends an inset edge over
@@ -3109,6 +4189,23 @@ measuring.
 20. **The command palette's input shows no focus indicator** (found by the
     audit of steps 2.3 and 2.4, in `main` as well). An existing defect of all
     five presets, deferred with the others (decision 16).
+21. **Proposal §12, buylist: "What changes: nothing, by design: its readers
+    are not the owner"**, and the in-repo stand-ins `apps/admin` (ocean) and
+    `apps/meal-kit` (forest), which it uses as buylist's check. Superseded for
+    the status components by the owner's "Every theme" (DECISIONS row 36):
+    their colours do not change, and their alerts, toasts, status badges,
+    danger buttons, danger menu items and field errors gain the icon and the
+    hidden word, `apps/admin` and `apps/meal-kit` with step 2.5 itself and
+    buylist at its next re-pack (L166, L185). The three noir pages of
+    proposal §12 vendor only the stylesheet and still change in nothing.
+22. **Proposal step 2.5's proofs: "the invariant is held by construction,
+    which matters in a repo with no test runner", and "`check:consumable`
+    still renders its 126 components".** Construction stays (the icon and word
+    are derived inside each component, L168), and a test holds it as well
+    (L181), because a hidden word's absence shows nothing. 126 is
+    `check:consumable`'s floor, not its count: 131 render at `9b83e50`, 135
+    with the four glyphs. Its "four silhouettes" stands, and supersedes
+    DECISIONS row 23's "outlined" (row 37).
 
 ## 18. Appendix G of the proposal, item by item
 
@@ -3571,3 +4668,4 @@ imports `packages/design-system/src/tokens/color.ts` from the
 | `rev2/states.ts` | §13: the hover and pressed edges of the four filled buttons, against rest |
 | `rev2/tamper.ts` | L105 #33: which preset can carry `tools/test-contrast.ts`'s hair-under tamper (forest light, the same page) |
 | `../spec2-adversary/p9_minify.ts` | L109: the dark divider read from a minified theme (the adversary's probe, re-run and reproduced) |
+| `sa25-author/m1.mts` (in `/private/tmp/claude-501/-Users-homelab/7dafc3c4-72a2-4f8b-b1c7-3c50b101249c/scratchpad/`, importing `color.ts` from the `~/code/sorbet-repair` worktree) | Revision 3.6, step 2.5: the icon's ink on each status wash and surface in both modes (L170), the two inks apart (8.69), the label ink on the fills, the `Icon` atom's pastels and marks on the card and the page in both modes (L179), every pair of the six progress-bar colours (§13), Token Studio's list against body text, the rim against its blush fill. The C10 reading of L182 is the step-2.5 adversary's `sa25/c10.mjs`, re-run on its compiled stylesheet of `9b83e50`. After the verifier, `sa25-author/m2.mts`: the fixed milk symbol on the dark cream silhouette (Lc 9.80, 5.79 apart) against the knocked-out dark danger wash (Lc 76.98) (S36); and the toast markup of L187, rendered from `9b83e50`'s `molecules/toast.tsx:93-108` with `react-dom/server` (`sa36-author/r.mjs`). The overflow of L186 is the verifier's `sa36/overflow2.mjs` |
