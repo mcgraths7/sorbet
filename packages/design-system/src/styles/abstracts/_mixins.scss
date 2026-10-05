@@ -115,6 +115,16 @@
 /// and while pressed (a disabled control has neither), beneath whatever state
 /// layer the element carries. Read each edge through edge() in
 /// abstracts/_tokens.scss, with the site's own shadow as its fallback.
+///
+/// A hover or press edge also restates the composed list on its own state
+/// rule. The list is the same, so nothing paints differently on this element;
+/// what it keeps is WHERE the declaration sits. Before the edge layers, the
+/// state's shadow was declared on the state selector (`.sb-button:hover:not(…)`,
+/// specificity 0,3,0), and an element that composes another class whose rule
+/// writes its own shadow in the same layer (`.sb-button.sb-fab`: `.sb-fab:hover`
+/// is 0,2,0) took the button's state shadow. Declared on the base selector
+/// alone (0,1,0), the other class would win, a pixel change in every frozen
+/// preset (audit of 7a683fd, frozen lens F1 (b)).
 @mixin soft-edge($rest, $hover: null, $press: null) {
   --edge-layer: #{$rest};
 
@@ -123,12 +133,16 @@
   @if $hover {
     &:hover:not(:disabled, [aria-disabled="true"]) {
       --edge-layer: #{$hover};
+
+      box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer);
     }
   }
 
   @if $press {
     &:active:not(:disabled, [aria-disabled="true"]) {
       --edge-layer: #{$press};
+
+      box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer);
     }
   }
 }
@@ -141,6 +155,33 @@
   @return clr($name);
 }
 
+/// A declaration on an element that had NO declaration of this property
+/// before (L148, revision 3.5 repair): the rule `@content` writes goes into
+/// the `where-defined` sublayer of whatever layer the partial is loaded into
+/// (`sb.atoms.where-defined`, `sb.molecules.where-defined`, …). Two things
+/// make that exact in a theme that does not define the token:
+///
+/// - a nested layer ranks BELOW every rule written directly in its parent
+///   layer, whatever their specificity or order, so any older declaration
+///   that reached the element from this layer still wins exactly as before;
+/// - the value falls back to `revert-layer`, which hands the property back to
+///   the layers below, so a declaration from a lower layer (a `.sb-button`
+///   composed with a selected tab) still reaches the element too.
+///
+/// So the element computes exactly what it computed before the declaration
+/// existed, whichever classes it composes. A literal fallback (`none`) is the
+/// selector's old value, not the element's: it beats every lower layer and
+/// every weaker rule, and a selected tab that is also an `.sb-button` lost
+/// the button's shadow in every frozen preset (audit of 7a683fd, frozen lens
+/// F1 (a)). In a theme that defines the token, the declaration paints, below
+/// any rule of its own layer that writes the property: an edge declared in the
+/// same layer is never clobbered by it.
+@mixin where-absent {
+  @layer where-defined {
+    @content;
+  }
+}
+
 /// A layer, ring, bar or line painted from an optional colour token, that a
 /// theme which does not define the token never renders at all (L148, L149):
 ///
@@ -150,34 +191,56 @@
 /// `<value>` reads the token through seam-only(), with no fallback. Where the
 /// token is undefined, the local holds a var() of an unset property with no
 /// fallback, which CSS makes invalid at computed-value time, so `<property>`
-/// takes `<old>` — the element's value before the token existed — exactly. A
-/// `transparent` fallback is not the same: a transparent ring still goes
-/// through antialiasing and moved pixels in every frozen preset (C2, C3).
+/// takes `<old>`. A `transparent` fallback is not the same: a transparent ring
+/// still goes through antialiasing and moved pixels in every frozen preset
+/// (C2, C3).
+///
+/// `<old>` is the element's value before the token existed:
+///
+/// - where this same rule declared the property before, its old value
+///   (the thumb's `shadow(xs)`, the card hover's `clr(border)`), so the
+///   declaration keeps its old place in the cascade;
+/// - where it declared NONE, `revert-layer`, and the pair is written through
+///   where-absent above, so the element keeps whatever reached it before,
+///   from any rule (frozen lens F1 (a); never `none`).
 ///
 /// Declare the local on the element (or pseudo-element) that reads it, and
-/// never register it with @property: a registered property falls back to its
-/// initial value, not to the var() fallback.
+/// never register it with @property: a registered property with an initial
+/// value computes to that value, so the var() fallback would never be taken.
 @mixin where-defined($property, $local, $value, $old) {
-  --#{$local}: #{$value};
+  @if $old == revert-layer {
+    @include where-absent {
+      --#{$local}: #{$value};
 
-  #{$property}: var(--#{$local}, #{$old});
+      #{$property}: var(--#{$local}, revert-layer);
+    }
+  } @else {
+    --#{$local}: #{$value};
+
+    #{$property}: var(--#{$local}, #{$old});
+  }
 }
 
 /// The mark on a selected or current row: a 3px bar, inset, in
 /// `selected-bar`: sheet 2 carries a selection with a wash, a bar and a
 /// weight, never with colour alone. `$side` is `start` (a list row: the bar
 /// stands on the inline-start side, mirrored under right-to-left, L156) or
-/// `end` (a tab or a nav link: it lies along the bottom). `$old` is the row's
-/// box-shadow before the bar, which a theme without the token keeps exactly
-/// (L148). It replaces the row's own shadow, so it goes only on rows that
-/// carry no edge layer (L162 (a)). The pills tab variant keeps its raised
-/// segment instead, by its more specific rule, on purpose (L157).
-@mixin selected-mark($side: start, $old: none) {
+/// `end` (a tab or a nav link: it lies along the bottom). None of the four
+/// rows declared a box-shadow before the bar, so a theme without the token
+/// keeps whatever reached the row before, from any rule (`revert-layer` in the
+/// where-defined sublayer, L148): a selected tab that is also an `.sb-button`
+/// keeps the button's shadow. `$old` is there for a row that did declare one.
+/// It goes only on rows that carry no edge layer (L162 (a)). The pills tab
+/// variant keeps its raised segment instead, by its own rule, on purpose
+/// (L157): that rule is in the tab's layer itself, so it outranks the bar.
+@mixin selected-mark($side: start, $old: revert-layer) {
   @if $side == start {
     @include where-defined(box-shadow, selected-bar-layer, inset 3px 0 0 0 seam-only(selected-bar), $old);
 
     &:dir(rtl) {
-      --selected-bar-layer: inset -3px 0 0 0 #{seam-only(selected-bar)};
+      @include where-absent {
+        --selected-bar-layer: inset -3px 0 0 0 #{seam-only(selected-bar)};
+      }
     }
   } @else if $side == end {
     @include where-defined(box-shadow, selected-bar-layer, inset 0 -3px 0 0 seam-only(selected-bar), $old);
@@ -206,11 +269,18 @@
   box-shadow: var(--state-layer), var(--edge-layer, 0 0 #0000);
 }
 
-/// The standard tint change: text, fill, border and shadow eased together. Any
-/// control whose hover or focus state swaps a colour token or an edge should
-/// use this rather than snapping — and rather than re-declaring the same list
-/// per partial. The shadow is in the list because an edge is a shadow: without
-/// it an edge that changes with the state snaps while its colours ease.
+/// The standard tint change: text, fill and edge eased together. Any control
+/// whose hover or focus state swaps a colour token should use this rather than
+/// snapping — and rather than re-declaring the same triple per partial.
+///
+/// `box-shadow` is not in the list, and must not be: this mixin's users are
+/// shared by every preset, and a shadow that changes on one of them (the
+/// calendar's today ring, in every preset) snapped at e24df74. Eased, it fades
+/// over the duration instead, a change in every frozen preset that no shot can
+/// see, since the screenshot tool freezes transitions (audit of 7a683fd,
+/// frozen lens F4). A control whose own edge changes with a state lists
+/// box-shadow in its own `transition`, as the button and the fields did
+/// before the edge layers existed.
 ///
 /// No reduced-motion guard needed: base/_reset.scss already collapses every
 /// transition-duration to 0.01ms under `prefers-reduced-motion: reduce`.
@@ -218,8 +288,7 @@
   transition:
     color dur($speed) ease(out),
     background-color dur($speed) ease(out),
-    border-color dur($speed) ease(out),
-    box-shadow dur($speed) ease(out);
+    border-color dur($speed) ease(out);
 }
 
 /// Playful press feedback that respects prefers-reduced-motion.

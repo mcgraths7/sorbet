@@ -8,10 +8,15 @@
   block-size: 0.5rem;
   border-radius: radius(full);
   background-color: clr(bg-subtle);
-  // The track is a well (D1: bg-subtle is surface-sunken), so it takes the
-  // sunken edge where a theme has one.
-  box-shadow: edge(sunken, none);
   overflow: hidden;
+
+  // The track is a well (D1: bg-subtle is surface-sunken), so it takes the
+  // sunken edge where a theme has one. The track declared no box-shadow
+  // before the edge, so a theme without one keeps whatever reached it, from
+  // any rule (where-absent, L148), not a literal `none`.
+  @include where-absent {
+    box-shadow: edge(sunken, revert-layer);
+  }
 
   &__bar {
     block-size: 100%;

@@ -31,7 +31,7 @@
     border-radius: radius(full);
     background-color: seam(slider-track);
 
-    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), none);
+    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), revert-layer);
   }
 
   &::-webkit-slider-thumb {
@@ -55,7 +55,7 @@
     border-radius: radius(full);
     background-color: seam(slider-track);
 
-    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), none);
+    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), revert-layer);
   }
 
   &::-moz-range-thumb {

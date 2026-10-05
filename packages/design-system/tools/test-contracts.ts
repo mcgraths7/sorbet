@@ -78,10 +78,15 @@ import { stripVTControlCharacters, styleText } from "node:util";
 
 // Namespaces, not named imports: a name that is not exported yet is then one
 // failing test that says so, not a module that will not load.
+// stateDefinition is L153's one definition of a state and of the composed form, shared with the source stylelint
+// rule and the e24df74 recorder (audit of 7a683fd, guards F9: there were four literal copies).
+import * as stateDefinition from "../../../tools/stylelint/state-definition.js";
 import * as color from "../src/tokens/color.ts";
+import * as edgeTokens from "../src/tokens/edges.ts";
 import * as tokens from "../src/tokens/index.ts";
 
 import * as chartGate from "./check-cvd.ts";
+import * as goldenGate from "./check-golden.ts";
 
 import type { Contract, ContractName, Measurement, Mode, Preset, Rule, SemanticColors, Tier } from "../src/tokens/index.ts";
 
@@ -3549,13 +3554,25 @@ try {
   });
   const colourLines = (record: ColorRecord) => Object.entries(record).map(([name, value]) => `--sb-${name}: ${value};`);
   /**
+   * How far each halo element rises while hovered, in px: the filled buttons 1 (`pressable(1px)`), the interactive card
+   * 2 (`translate: 0 -2px`), the quiet button 0. This file's own copy; "2.4 L151 (lift)" reads both rises off the
+   * compiled stylesheet and holds this copy and edges.ts's HOVER_LIFT to them.
+   */
+  const HOVER_RISE = { container: 2, quiet: 0, filled: 1 };
+  /**
    * L151: the largest outward reach, max(|x|, |y|) + blur + spread, of any all-round outset layer in the rest, hover and
-   * press of container, quiet and the four filled-* elements, rounded up to a whole px.
+   * press of container, quiet and the four filled-* elements, plus the element's rise wherever it is hovered — a filled
+   * element's hover recipe, the container's rest recipe (which is also its hover) — rounded up to a whole px. The rise
+   * is the repair of 7a683fd (frozen lens F5): a hovered filled button reached 8 + 1 = 9px and a hovered interactive
+   * card 7 + 2 = 9px, against a room of 8px that counted no rise.
    */
   const haloRoomOf = (edges: Partial<Edges>) => Math.ceil(Math.max(...["container", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger"]
-    .flatMap((element) => [...(edges[element]?.rest ?? []), ...(edges[element]?.hover ?? []), ...(edges[element]?.press ?? [])])
-    .filter((layer) => allRound(layer) && !layer.inset)
-    .map((layer) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread)));
+    .flatMap((element) => {
+      const rise = element === "container" ? HOVER_RISE.container : element === "quiet" ? HOVER_RISE.quiet : HOVER_RISE.filled;
+      return [...(edges[element]?.rest ?? []).map((layer) => [layer, element === "container" ? rise : 0] as const), ...(edges[element]?.hover ?? []).map((layer) => [layer, rise] as const), ...(edges[element]?.press ?? []).map((layer) => [layer, 0] as const)];
+    })
+    .filter(([layer]) => allRound(layer) && !layer.inset)
+    .map(([layer, rise]) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread + rise)));
   const haloLine = (edges: Partial<Edges>) => `--sb-halo-room: ${haloRoomOf(edges)}px;`;
   const afterShadows = (lines: string[]) => {
     const at = lines.findIndex((line) => line.startsWith("--sb-shadow-xl:"));
@@ -4521,7 +4538,10 @@ try {
     selectors: string[];
     decls: [property: string, value: string][];
     conditional: boolean;
+    /** The full cascade layer path: "sb.atoms", or "sb.atoms.where-defined" for a rule in a nested layer. */
     layer: string | null;
+    /** The conditional at-rules round it, outermost first ("@media (hover: hover)"), as one string: part of a rule's identity. */
+    context: string;
   }
   /** Split at commas outside parentheses and quotes. */
   const splitTop = (text: string) => {
@@ -4548,13 +4568,21 @@ try {
     parts.push(current.trim());
     return parts.filter((part) => part !== "");
   };
-  /** A compiled stylesheet read back: every style rule in source order, with whether a conditional at-rule (@media, @supports, @container) encloses it, and the @layer order. */
-  function readCss(text: string): { rules: CssRule[]; declaredLayers: string[]; layerBlocks: string[]; atRules: string[] } {
+  /**
+   * A compiled stylesheet read back: every style rule in source order, with whether a conditional at-rule encloses it,
+   * its layer path and conditional context, and the @layer order. `@starting-style` and `@scope` are read INTO, as
+   * conditional (their rules apply only at an element's first style, or only inside a scope): the library uses
+   * @starting-style eleven times, and an opaque one hid a state shadow, an accessor and a `none` from every check
+   * here (audit of 7a683fd, guards F5). Declarations inside the at-rules that hold no style rules (@keyframes stops,
+   * @font-face, @property) are kept apart, in `otherDecls`, so L161 can still read them (guards F4).
+   */
+  function readCss(text: string): { rules: CssRule[]; declaredLayers: string[]; layerBlocks: string[]; atRules: string[]; otherDecls: [where: string, property: string, value: string][] } {
     const rules: CssRule[] = [];
     const layerBlocks: string[] = [];
     const atRules: string[] = [];
+    const otherDecls: [where: string, property: string, value: string][] = [];
     let declaredLayers: string[] = [];
-    type Frame = { rule: CssRule } | { conditional: boolean; layer: string | null; opaque: boolean };
+    type Frame = { rule: CssRule } | { conditional: boolean; layer: string | null; opaque: boolean; prelude: string };
     const stack: Frame[] = [];
     let buffer = "";
     let quote = "";
@@ -4571,6 +4599,9 @@ try {
         if (colon > 0) {
           top.rule.decls.push([text.slice(0, colon).trim().toLowerCase(), text.slice(colon + 1).replace(/\s*!important\s*$/i, "").replace(/\s+/g, " ").trim()]);
         }
+      } else if (top !== undefined && top.opaque && text.indexOf(":") > 0) {
+        const colon = text.indexOf(":");
+        otherDecls.push([stack.filter((frame): frame is Exclude<Frame, { rule: CssRule }> => !("rule" in frame)).map((frame) => frame.prelude).join(" "), text.slice(0, colon).trim().toLowerCase(), text.slice(colon + 1).replace(/\s*!important\s*$/i, "").replace(/\s+/g, " ").trim()]);
       } else if (stack.length === 0 && /^@layer\s/.test(text) && declaredLayers.length === 0) {
         declaredLayers = splitTop(text.slice("@layer".length));
       }
@@ -4600,7 +4631,7 @@ try {
       } else {
         const prelude = buffer.trim().replace(/\s+/g, " ");
         buffer = "";
-        const frames = stack.filter((frame): frame is { conditional: boolean; layer: string | null; opaque: boolean } => !("rule" in frame));
+        const frames = stack.filter((frame): frame is Exclude<Frame, { rule: CssRule }> => !("rule" in frame));
         if (prelude.startsWith("@")) {
           atRules.push(prelude);
           const name = /^@([\w-]+)/.exec(prelude)![1]!.toLowerCase();
@@ -4608,22 +4639,24 @@ try {
           if (layer !== null && stack.length === 0) {
             layerBlocks.push(layer);
           }
-          stack.push({ conditional: ["media", "supports", "container"].includes(name), layer, opaque: !["media", "supports", "container", "layer"].includes(name) });
+          const seenInto = ["media", "supports", "container", "layer", "starting-style", "scope"];
+          stack.push({ conditional: ["media", "supports", "container", "starting-style", "scope"].includes(name), layer, opaque: frames.some((frame) => frame.opaque) || !seenInto.includes(name), prelude });
         } else if (frames.some((frame) => frame.opaque)) {
-          stack.push({ conditional: false, layer: null, opaque: true }); // a keyframe stop, a font-face: not a style rule
+          stack.push({ conditional: false, layer: null, opaque: true, prelude }); // a keyframe stop, a font-face: not a style rule
         } else {
           const rule: CssRule = {
             selectors: splitTop(prelude).map((item) => item.replace(/\s+/g, " ")),
             decls: [],
             conditional: frames.some((frame) => frame.conditional),
-            layer: [...frames].reverse().find((frame) => frame.layer !== null)?.layer ?? null,
+            layer: frames.some((frame) => frame.layer !== null) ? frames.filter((frame) => frame.layer !== null).map((frame) => frame.layer).join(".") : null,
+            context: frames.filter((frame) => frame.conditional).map((frame) => frame.prelude).join(" "),
           };
           rules.push(rule);
           stack.push({ rule });
         }
       }
     }
-    return { rules, declaredLayers, layerBlocks, atRules };
+    return { rules, declaredLayers, layerBlocks, atRules, otherDecls };
   }
   let compiledStylesheet: ReturnType<typeof readCss> | undefined;
   /** The library's stylesheet, compiled now from src/styles/index.scss as build:css compiles it. */
@@ -4831,29 +4864,32 @@ try {
         }
       }
     }
+    // Every custom property a member's value reads, anywhere in it, not only as its whole value: a member whose
+    // value is `var(--sb-edge-quiet, var(--flat))`, in a theme without the edge, resolves through `--flat`, and a
+    // whole-value-only closure stopped one var() short (audit of 7a683fd, guards F10).
     for (let grew = true; grew;) {
       grew = false;
       for (const rule of sheet.rules) {
         for (const [property, value] of rule.decls) {
-          const whole = /^var\(\s*(--[\w-]+)\s*(?:,[\s\S]*)?\)$/.exec(value.trim());
-          if (set.has(property) && whole && !set.has(whole[1]!)) {
-            set.add(whole[1]!);
-            grew = true;
+          if (set.has(property)) {
+            for (const name of readsOf(value).filter((name) => !set.has(name))) {
+              set.add(name);
+              grew = true;
+            }
           }
         }
       }
     }
     return set;
   }
-  /** `none`, or a var() whose fallbacks end in none. */
-  const resolvesToNone = (value: string): boolean => {
-    const text = value.trim();
-    if (text === "none") {
+  /** `none` as the value, as an item of a list (`0 0 1px red, none`, guards F10), or at the end of a var()'s fallbacks. */
+  const resolvesToNone = (value: string): boolean => splitTop(value.trim()).some((item) => {
+    if (item === "none") {
       return true;
     }
-    const v = /^var\(\s*--[\w-]+\s*,([\s\S]*)\)$/.exec(text);
+    const v = /^var\(\s*--[\w-]+\s*,([\s\S]*)\)$/.exec(item);
     return v !== null && resolvesToNone(v[1]!);
-  };
+  });
   /** L150: every declaration of a property in the closure that resolves to none. */
   const noneInClosure = (sheet: ReturnType<typeof readCss>) => {
     const closure = composedClosure(sheet);
@@ -4925,8 +4961,11 @@ try {
     const locals = whereDefinedLocals(sheet);
     for (const rule of sheet.rules) {
       for (const [property, value] of rule.decls) {
-        for (const local of readsOf(value).filter((name) => locals.has(name))) {
-          if (!new RegExp(`var\\(\\s*${local}\\s*,\\s*\\S`).test(value)) {
+        for (const local of new Set(readsOf(value).filter((name) => locals.has(name)))) {
+          // EVERY read, not the first: `var(--l, none), var(--l)` has one read with a fallback and one without, and
+          // a test of "some read has one" passed it (audit of 7a683fd, guards F15).
+          const reads = [...value.matchAll(new RegExp(`var\\(\\s*${local}\\s*(,\\s*\\S)?`, "g"))];
+          if (reads.some((read) => read[1] === undefined)) {
             wrong.push(`${rule.selectors.join(", ")} { ${property}: ${value} }: reads ${local} with no fallback`);
           }
           if (!rule.decls.some(([declared]) => declared === local)) {
@@ -4946,30 +4985,6 @@ try {
     assert.ok((sites["selected-bar"] ?? 0) >= 4, `the tab, pagination, navbar and sidebar bars read selected-bar through where-defined (L148): ${sites["selected-bar"] ?? 0} sites`);
   });
 
-  test("2.4 L148 a frozen preset gains no new rendered layer: each where-defined read falls back to the element's old value exactly — its box-shadow or border-color at e24df74, or none where it had none", () => {
-    const sheet = stylesheet();
-    const locals = whereDefinedLocals(sheet);
-    const wrong: string[] = [];
-    let reads = 0;
-    for (const rule of sheet.rules.filter((each) => !each.conditional)) {
-      for (const [property, value] of rule.decls.filter(([name]) => SHADOW_PROPERTIES.includes(name) || name === "border-color")) {
-        const read = /^var\(\s*(--[\w-]+)\s*,([\s\S]*)\)$/.exec(value);
-        if (read === null || !locals.has(read[1]!)) {
-          continue;
-        }
-        reads++;
-        for (const selector of rule.selectors) {
-          const old = lastIn(oldStylesheet(), selector, [property]) ?? "none";
-          if (read[2]!.trim() !== old) {
-            wrong.push(`${selector} { ${property}: ${value} } falls back to ${read[2]!.trim()}, and its old value is ${old}`);
-          }
-        }
-      }
-    }
-    assert.ok(reads >= 9, `${reads} where-defined reads: the switch, thumb, two slider tracks, four bars and the card hover's line (L148, L152)`);
-    assert.deepEqual(wrong, []);
-  });
-
   test("2.4 L150 (checker) the closure resolves a fallback-less var() through its declarations: flat-elevation's --shadow-rest: none under soft-edge's --edge-layer is caught, 0 0 #0000 is not", () => {
     const sheetOf = (rest: string) => readCss(`.b { --shadow-rest: ${rest}; --edge-layer: var(--shadow-rest); box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); }`);
     assert.equal(noneInClosure(sheetOf("none")).length, 1, "the planted flat-elevation");
@@ -4981,16 +4996,16 @@ try {
     assert.deepEqual(noneInClosure(stylesheet()), []);
   });
 
-  test("2.4 L151 the halo room: max(|x|, |y|) + blur + spread over the all-round outset layers of container, quiet and the filled-* elements' rest, hover and press, rounded up — 8px in light and 1px in dark for §3's edges, and nothing else counts", () => {
-    assert.deepEqual([haloRoomOf(VALUES.edges.light), haloRoomOf(VALUES.edges.dark)], [8, 1], "L151's figures");
+  test("2.4 L151 the halo room: max(|x|, |y|) + blur + spread over the all-round outset layers of container, quiet and the filled-* elements' rest, hover and press, plus the element's rise where it is hovered, rounded up — 9px in light and 3px in dark for §3's edges (8 and 1 before the rise counted: frozen lens F5), and nothing else counts", () => {
+    assert.deepEqual([haloRoomOf(VALUES.edges.light), haloRoomOf(VALUES.edges.dark)], [9, 3], "L151's figures, with the rise (repair proposal for L151)");
     const grown = freshEdges();
     grown.light.container!.rest.find(allRound)!.blur = 12.5;
-    assert.equal(haloRoomOf(grown.light), 14, "12.5 + 1, rounded up");
+    assert.equal(haloRoomOf(grown.light), 16, "12.5 + 1 + the card's rise of 2, rounded up (14 before the rise counted)");
     const ignored = freshEdges();
     ignored.light.field!.rest.push({ inset: false, x: 0, y: 0, blur: 40, spread: 4, color: "#000000", alpha: 0.5 });
     ignored.light["status-info"]!.rest.push({ inset: false, x: 0, y: 0, blur: 40, spread: 4, color: "#000000", alpha: 0.5 });
     ignored.light["filled-accent"]!.rest.push({ inset: true, x: 0, y: 0, blur: 40, spread: 4, color: "#000000", alpha: 0.5 }, { inset: false, x: 0, y: 30, blur: 40, spread: 0, color: "#000000", alpha: 0.5 });
-    assert.equal(haloRoomOf(ignored.light), 8, "a field's, a status box's, an inset and an offset layer do not count");
+    assert.equal(haloRoomOf(ignored.light), 9, "a field's, a status box's, an inset and an offset layer do not count (8 before the rise counted)");
     for (const [edges, mode] of [[grown, "light"], [ignored, "light"]] as const) {
       assert.ok(blocksOf(themeCss(legiblePreset({ edges }))).light.includes(haloLine(edges[mode])), `the emitted room follows the edge data: ${haloLine(edges[mode])}`);
     }
@@ -5011,23 +5026,118 @@ try {
     assert.deepEqual([lastOf(".sb-marquee", ["padding"]), lastOf(".sb-marquee", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", undefined], ".sb-marquee");
   });
 
-  test("2.4 L152 the interactive card's hover is never weaker than rest: its box-shadow is edge(container, shadow(lg)) and its line comes through where-defined from container-line, falling back to clr(border)", () => {
+  test("2.4 L151 (lift) the rises the halo room counts are the stylesheet's: the filled buttons' --lift, the quiet button's, and the interactive card's hover translate, read off the compiled CSS, equal this file's HOVER_RISE and edges.ts's HOVER_LIFT (frozen lens F5: a rise the room did not count cut the hovered halo)", () => {
+    const px = (value: string | undefined) => (value === undefined ? undefined : Math.abs(Number.parseFloat(/-?[\d.]+(?=px)|^0$/.exec(value.trim().split(/\s+/).at(-1)!)?.[0] ?? "NaN")));
+    const card = stylesheet().rules.filter((rule) => rule.context === "@media (hover: hover)" && rule.selectors.includes(".sb-card--interactive:hover")).flatMap((rule) => rule.decls).filter(([property]) => property === "translate").at(-1)?.[1];
+    const fromCss = { container: px(card), quiet: px(lastOf(".sb-button--outline", ["--lift"])), filled: px(lastOf(".sb-button", ["--lift"])) };
+    assert.deepEqual(fromCss, HOVER_RISE, "this file's copy");
+    assert.deepEqual(fromCss, { ...edgeTokens.HOVER_LIFT }, "edges.ts's HOVER_LIFT, which the emitter counts");
+    assert.equal(edgeTokens.haloRoom(VALUES.edges.light as never), haloRoomOf(VALUES.edges.light), "the emitter's room is this file's");
+  });
+
+  /**
+   * Every clipping or scrolling parent in the compiled stylesheet, with what it does about the all-round edge layer of
+   * what it holds (L151). L151's table listed proposal §7's six; the audit of 7a683fd found a seventh it missed, the
+   * accordion, whose `::details-content` clips its block axis while the body began with no padding at all, so a card
+   * or a button first in the body lost the top of its halo (frozen lens F2). Derived from the stylesheet, so an eighth
+   * fails here until someone decides it. "pads" is checked: the parent (or the named child that holds its content)
+   * reads halo-room() on that side.
+   */
+  const CLIPPING_PARENTS: Record<string, string> = {
+    ".sb-carousel__viewport": "pads: padding and scroll-padding",
+    ".sb-marquee": "pads: padding (and its reduced-motion scroller is the same box)",
+    ".sb-accordion::details-content": "pads: .sb-accordion__body's top (its sides and bottom are space(4))",
+    ".sb-table-wrap": "no room: cells pad space(3) by space(4), more than the room; the compact table's space(2) block padding is under it (open: the owner's question, repair report)",
+    ".sb-tabs__list": "no room: the tabs carry no all-round outset layer (an inset bar; the pills' shadow(sm) sits in the list's padding)",
+    ".sb-combobox__panel": "no room: options carry no edge",
+    ".sb-command__list": "no room: options carry no edge",
+    ".sb-card": "no room: children sit in its body's space(4)",
+    ".sb-modal__body": "no room: space(4) by space(6) of padding",
+    ".sb-drawer__body": "no room: space(4) of padding",
+    ".sb-layer": "no room: its content pads space(6) (--pad)",
+    ".sb-frame": "no room: it frames media, no edge element",
+    ".sb-app-shell__sidebar": "no room: sidebar items carry no all-round layer (their bar is inset)",
+    ".sb-token-studio__failures": "no room: a list of text",
+    ".sb-prose pre": "no room: code text",
+    ".sb-number-input": "no room: its step buttons and field carry no halo of their own; the control's edge is on the box itself, inset",
+    ".sb-avatar": "no room: an image or initials",
+    ".sb-progress": "no room: its bar, flush by design",
+    ".sb-rating__row--fill": "no room: star glyphs",
+    ".sb-dropzone__input": "no room: visually hidden",
+    ".sb-dropzone__name": "no room: text, truncated",
+    ".sb-marquee__toggle": "no room: visually hidden until focused",
+    ".sb-command-trigger__label": "no room: text, truncated",
+    ".u-visually-hidden": "no room: hidden",
+    ".u-truncate": "no room: text, truncated",
+    ".sb-marquee--fade": "no room, on purpose: a mask that fades the items at both ends",
+    ".sb-rating__star": "no room: a glyph mask",
+    ".sb-combobox__chevron": "no room: a glyph mask",
+  };
+  const clippingParents = (sheet: ReturnType<typeof readCss>) => new Set(sheet.rules.flatMap((rule) => rule.decls
+    .filter(([property, value]) => (/^overflow(?:-[xy]|-block|-inline)?$/.test(property) && !/^(?:visible|initial|unset)$/.test(value)) || (/^(?:mask|mask-image|-webkit-mask|-webkit-mask-image|clip-path)$/.test(property) && value !== "none"))
+    .flatMap(() => rule.selectors.map((selector) => selector.replace(/["']/g, "").replace(/\s+/g, " ").trim()).filter((selector) => !/::(?:before|after)$/.test(selector) && !/^\[aria-sort/.test(selector) && !/^\.sb-stat__delta/.test(selector) && !/^\.sb-checkbox/.test(selector)))));
+
+  test("2.4 L151 every clipping or scrolling parent in the stylesheet has a decision about the halo, and each that pads reads halo-room() (frozen lens F2: the accordion clipped a halo L151's table never listed)", () => {
+    assert.deepEqual([...clippingParents(stylesheet())].sort(), Object.keys(CLIPPING_PARENTS).sort(), "a clipping parent with no decision, or a decision for one that no longer clips");
+    assert.equal(lastOf(".sb-accordion__body", ["padding"]), "var(--sb-halo-room, 0px) var(--sb-space-4) var(--sb-space-4)", ".sb-accordion__body: its top is the room, its sides and bottom space(4) as before");
+    assert.equal(lastIn(oldStylesheet(), ".sb-accordion__body", ["padding"]), "0 var(--sb-space-4) var(--sb-space-4)", "at e24df74 the top was 0, which halo-room() gives a frozen preset");
+  });
+
+  test("2.4 L72 L110 inside a scrim, every ink seam is re-pointed as the role it falls back to is: a theme with the seam (sorbet) paints the scrim's ink, not the page's, and a theme without it computes what it did (the audit of 7a683fd, 'outside this lens': a heading, a label and subtle text painted cocoa #472400 on the dark scrim, about 1.1:1)", () => {
+    const content = ".sb-layer--scrim .sb-layer__content";
+    const repointed = Object.fromEntries(rulesOf(content).flatMap((rule) => rule.decls).filter(([property]) => property.startsWith("--sb-")));
+    for (const seam of VALUES.seams) {
+      const fallback = (seam.fallback as { fallback?: string; css?: string });
+      const role = fallback.fallback;
+      if (role !== undefined && repointed[`--sb-${role}`] !== undefined) {
+        assert.equal(repointed[`--sb-${seam.name}`], repointed[`--sb-${role}`], `${seam.name} falls back to ${role}, which the scrim re-points: it must be re-pointed to the same`);
+      } else if (fallback.css === "inherit") {
+        assert.equal(repointed[`--sb-${seam.name}`], "currentColor", `${seam.name} falls back to inherit: inside the scrim it must be currentColor, which a colour property reads as inherit`);
+      } else {
+        assert.equal(repointed[`--sb-${seam.name}`], undefined, `${seam.name} is not ink: the scrim leaves it alone`);
+      }
+    }
+  });
+
+  // L165 (c) changed this value on purpose (CORRECTION 2026-10-05): the hover reads the variant's --card-hover-edge,
+  // falling back to the container edge, so a sunken interactive card keeps its own edge on hover (frozen lens F3).
+  test("2.4 L152 L165 (c) the interactive card's hover is never weaker than rest: its box-shadow is var(--card-hover-edge, edge(container, shadow(lg))) and its line comes through where-defined from container-line, falling back to clr(border)", () => {
     const selector = ".sb-card--interactive:hover";
     const shadowLg = compiled("  box-shadow: shadow(lg);", "shadow(lg)")["box-shadow"];
-    assert.equal(lastOf(selector, ["box-shadow"]), `var(--sb-edge-container, ${shadowLg})`, "box-shadow");
+    assert.equal(lastOf(selector, ["box-shadow"]), `var(--card-hover-edge, var(--sb-edge-container, ${shadowLg}))`, "box-shadow");
     const line = lastOf(selector, ["border-color"]);
     const local = /^var\(\s*(--[\w-]+)\s*,\s*var\(--sb-border\)\s*\)$/.exec(line ?? "");
     assert.ok(local, `border-color is ${line}, not var(--<local>, var(--sb-border))`);
     assert.ok(rulesOf(selector).some((rule) => rule.decls.some(([property, value]) => property === local[1] && value === "var(--sb-container-line)")), `${local[1]} is not set from seam-only(container-line) on the hover rule`);
   });
 
-  /** L153's state compound, in a compiled selector item. */
-  const STATE = new RegExp([
-    ":(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\\w-])",
-    "\\[aria-",
-    "\\[data-state",
-    "--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\\w-])",
-  ].join("|"));
+  /**
+   * L165 (c): only the sunken variant sets --card-hover-edge, to its own edge with shadow(lg) as the fallback, so a
+   * sunken interactive card's hover keeps the sunken edge (it dropped 11.21 -> 10.26 inside a card when the hover
+   * swapped to the container edge), and every frozen preset still lifts to shadow(lg) on hover.
+   */
+  test("L165 (c) the sunken card sets --card-hover-edge to edge(sunken, shadow(lg)), and no other rule sets it", () => {
+    const shadowLg = compiled("  box-shadow: shadow(lg);", "shadow(lg)")["box-shadow"];
+    assert.equal(lastOf(".sb-card--sunken", ["--card-hover-edge"]), `var(--sb-edge-sunken, ${shadowLg})`, "--card-hover-edge");
+    const setters = [...new Set(stylesheet().rules.filter((rule) => rule.decls.some(([property]) => property === "--card-hover-edge")).flatMap((rule) => rule.selectors))];
+    assert.deepEqual(setters, [".sb-card--sunken"], "the rules that set --card-hover-edge");
+  });
+
+  /**
+   * L165 (b), DECISIONS row 35: the raised card draws the container edge in a theme with edge data (2.64 on the page
+   * and 0.28 in a card before), and shadow(md), its e24df74 value, everywhere else.
+   */
+  test("L165 (b) the raised card's box-shadow is edge(container, shadow(md))", () => {
+    const shadowMd = compiled("  box-shadow: shadow(md);", "shadow(md)")["box-shadow"];
+    assert.equal(lastOf(".sb-card--raised", ["box-shadow"]), `var(--sb-edge-container, ${shadowMd})`, "box-shadow");
+  });
+
+  /**
+   * L153: whether a compiled selector item carries a state. The shared definition (tools/stylelint/state-definition.js),
+   * which the source rule and the e24df74 recorder import too (audit of 7a683fd, guards F9: four literal copies, and
+   * the test's own could lose half its terms with every check green; F6: `[data-*]` unless a fact, and `[open]`).
+   */
+  const isState = (selector: string): boolean => stateDefinition.isStateSelector(selector);
   const normalSelector = (selector: string) => selector.replace(/["']/g, "").replace(/\s+/g, " ").trim();
   /**
    * An allowlist entry's source path (".sb-card | &--interactive | &:hover") as the compiled selectors it becomes: each
@@ -5036,16 +5146,14 @@ try {
   const compiledPaths = (path: string) => path.split(" | ").reduce<string[]>((done, part) => (done.length === 0
     ? splitTop(part)
     : done.flatMap((outer) => splitTop(part).map((inner) => (inner.includes("&") ? inner.replaceAll("&", outer) : `${outer} ${inner}`)))), []).map(normalSelector);
-  /** One state in a selector, whole: a state pseudo-class, an [aria-…] or [data-state…] attribute, or a state modifier. */
-  const STATE_PART = /:(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\w-])|\[(?:aria-|data-state)[^\]]*\]|--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\w-])/g;
   /** A state selector with its states taken off: the element it is a state of. */
   const elementOf = (selector: string) => {
     let text = normalSelector(selector);
     for (let before = ""; before !== text;) {
       before = text;
-      text = text.replace(/:(?:not|is|where|has)\(([^()]*)\)/g, (whole, inner: string) => (STATE.test(inner) ? "" : whole));
+      text = text.replace(/:(?:not|is|where|has)\(([^()]*)\)/gi, (whole, inner: string) => (isState(inner) ? "" : whole));
     }
-    return text.replace(STATE_PART, "").trim();
+    return stateDefinition.stripStates(text).trim();
   };
   /** Whether the element a selector names carries an edge layer: some rule for it sets or reads --edge-layer, or reads an --sb-edge-* property. */
   const carriesEdge = (sheet: ReturnType<typeof readCss>, selector: string) => {
@@ -5057,41 +5165,333 @@ try {
     const local = /^var\(\s*(--[\w-]+)\s*,[\s\S]+\)$/.exec(value)?.[1];
     return local !== undefined && rule.decls.some(([property, declared]) => property === local && new RegExp(`var\\(\\s*--sb-(${SEAM_NAMES.join("|")})\\s*\\)`).test(declared));
   };
-  /** L153: state rules that write a box-shadow neither composed, nor where-defined on an element with no edge layer (L162 (a)), nor at an allowed site. */
+  /**
+   * L162 (a)'s six selected-bar selectors, by name: the only state selectors whose where-defined box-shadow is exempt.
+   * "The element carries no edge layer", decided from selector text alone, exempted a descendant- or variant-qualified
+   * selector of an element that does carry one (`.x .sb-button[aria-pressed=true]`, `.sb-button--soft[aria-pressed]`),
+   * whose bar then replaced the button's edge and state layers (audit of 7a683fd, guards F2). A seventh needs a spec
+   * line (repair proposal for L162 (a)).
+   */
+  const SELECTED_BARS = new Set([".sb-tabs__tab[aria-selected=true]", ".sb-pagination a[aria-current=page]", ".sb-pagination button[aria-current=page]", ".sb-navbar__nav a[aria-current=page]", ".sb-sidebar__item[aria-current=page]", ".sb-sidebar__item[aria-current=true]"]);
+  /**
+   * L153: state rules that write a box-shadow neither in the composed form (read whole by the shared definition: two
+   * items, the two layers by name, no fallback but the placeholder; guards F3), nor where-defined at one of L162 (a)'s
+   * six on an element with no edge layer, nor at an allowed site.
+   */
   const stateShadows = (sheet: ReturnType<typeof readCss>, allowed: Set<string>) => sheet.rules.flatMap((rule) => rule.decls
-    .filter(([property, value]) => SHADOW_PROPERTIES.includes(property) && !/^var\(--state-layer\b[\s\S]*\),\s*var\(--edge-layer\b/.test(value))
+    .filter(([property, value]) => SHADOW_PROPERTIES.includes(property) && !stateDefinition.isComposed(value))
     .flatMap(([property, value]) => rule.selectors
-      .filter((selector) => STATE.test(selector) && !allowed.has(normalSelector(selector)) && !(isWhereDefined(rule, value) && !carriesEdge(sheet, selector)))
+      .filter((selector) => isState(selector) && !allowed.has(normalSelector(selector)) && !(SELECTED_BARS.has(normalSelector(selector)) && isWhereDefined(rule, value) && !carriesEdge(sheet, selector)))
       .map((selector) => `${selector} { ${property}: ${value} }`)));
   const allowlistEntries = () => (JSON.parse(readFileSync(join(repoRoot, "tools", "stylelint", "state-box-shadow-allowlist.json"), "utf8")) as { entries: { file: string; selector: string; line?: number }[] }).entries;
   const allowedSelectors = () => new Set(allowlistEntries().flatMap((entry) => compiledPaths(entry.selector)));
 
-  test("2.4 L153 (checker) a state rule is one with a state pseudo-class (inside :is, :where, :not and :has too), an [aria-*] or [data-state] attribute, or a named BEM state modifier; a variant modifier or a @media condition is not", () => {
+  test("2.4 L153 (checker) a state rule is one with a state pseudo-class (inside :is, :where, :not and :has too), an [aria-*] attribute, a [data-*] attribute that is not a named fact, an [open], or a named BEM state modifier; a variant modifier or a @media condition is not", () => {
     const flagged = (css: string) => stateShadows(readCss(css), new Set()).length;
     for (const css of [".x:hover { box-shadow: 0 0 0 1px red; }", ".x:hover { -webkit-box-shadow: 0 0 0 1px red; }", ".x:is(:focus-visible) { box-shadow: none; }", ".x:has(:checked) { -moz-box-shadow: 0 0 1px red; }", ".x[aria-expanded=true] { box-shadow: none; }", ".x[data-state=open] { box-shadow: none; }", ".x--selected { box-shadow: 0 0 1px red; }", ".x__y--pressed { box-shadow: none; }", "@media (hover: hover) { .x:hover { box-shadow: none; } }"]) {
       assert.equal(flagged(css), 1, css);
     }
-    for (const css of [".x--raised { box-shadow: 0 0 1px red; }", ".x--flat { box-shadow: none; }", "@media (hover: hover) { .x { box-shadow: none; } }", ".x:hover { box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer, 0 0 #0000); }", ".x:hover { --state-layer: 0 0 0 2px red; }", ".x:focus-visibles { box-shadow: none; }"]) {
+    for (const css of [".x--raised { box-shadow: 0 0 1px red; }", ".x--flat { box-shadow: none; }", "@media (hover: hover) { .x { box-shadow: none; } }", ".x:hover { box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer, 0 0 #0000); }", ".x:hover { box-shadow: var(--state-layer), var(--edge-layer); }", ".x:hover { --state-layer: 0 0 0 2px red; }", ".x:focus-visibles { box-shadow: none; }"]) {
       assert.equal(flagged(css), 0, css);
     }
+    // Guards F9: every term of the definition, one case each, so a term dropped from it fails here; pseudo-classes
+    // and attribute names in any case (`:HOVER` passed), a modifier only as written (a class name is case-sensitive).
+    for (const pseudo of stateDefinition.STATE_PSEUDO_CLASSES as string[]) {
+      for (const spelt of [pseudo, pseudo.toUpperCase()]) {
+        assert.equal(flagged(`.x:${spelt} { box-shadow: 0 0 1px red; }`), 1, `:${spelt}`);
+        assert.equal(flagged(`.x:not(:${spelt}) { box-shadow: 0 0 1px red; }`), 1, `:not(:${spelt})`);
+      }
+    }
+    for (const modifier of stateDefinition.STATE_MODIFIERS as string[]) {
+      assert.equal(flagged(`.x--${modifier} { box-shadow: 0 0 1px red; }`), 1, `--${modifier}`);
+      assert.equal(flagged(`.x--${modifier}-ish { box-shadow: 0 0 1px red; }`), 0, `--${modifier}-ish is a variant`);
+    }
+    assert.equal(flagged(".x--Selected { box-shadow: 0 0 1px red; }"), 0, "--Selected is another class");
+    // Guards F6: the library's own state attributes, which L153's [data-state] missed, and [open]; the facts are not.
+    for (const attribute of ["aria-pressed", "ARIA-pressed", "data-invalid", "data-highlighted", "data-selected", "data-disabled", "data-loading", "data-in-range", "data-range-start", "data-dragover", "open", "checked", "selected", "disabled"]) {
+      assert.equal(flagged(`.x[${attribute}] { box-shadow: 0 0 1px red; }`), 1, `[${attribute}]`);
+      assert.equal(flagged(`.x[${attribute}="true"] { box-shadow: 0 0 1px red; }`), 1, `[${attribute}="true"]`);
+    }
+    for (const fact of stateDefinition.FACT_ATTRIBUTES as string[]) {
+      assert.equal(flagged(`.x[${fact}] { box-shadow: 0 0 1px red; }`), 0, `[${fact}] is a fact`);
+    }
+    // Guards F3: the composed form is read whole — exactly the two layers, by name, with no fallback but the placeholder.
+    for (const value of ["var(--state-layer, 0 0 #0000), var(--edge-layer, 0 0 #0000), 0 0 0 6px red", "var(--state-layer, 0 0 0 6px red), var(--edge-layer, 0 0 #0000)", "var(--state-layer, 0 0 #0000), var(--edge-layer, 0 0 0 6px red)", "var(--state-layer-x, 0 0 0 6px red), var(--edge-layer-x, 0 0 0 6px blue)", "var(--edge-layer), var(--state-layer)", "var(--state-layer)"]) {
+      assert.equal(flagged(`.x:hover { box-shadow: ${value}; }`), 1, value);
+    }
+    // Guards F5: a state shadow inside @starting-style is a state shadow.
+    assert.equal(flagged(".x:hover { color: red; } @starting-style { .x:hover { box-shadow: 0 0 0 6px red; } }"), 1, "@starting-style");
     assert.deepEqual(stateShadows(readCss(".sb-card--interactive:hover { box-shadow: none; }"), new Set(compiledPaths(".sb-card | &--interactive | &:hover"))), [], "an allowlisted site");
     assert.deepEqual(compiledPaths(".sb-input, .sb-textarea | &:focus-visible"), [".sb-input:focus-visible", ".sb-textarea:focus-visible"], "a path whose parts are lists");
-    // L162 (a): where-defined on a state selector is exempt where the element carries no edge layer — and only there.
-    const bar = ".x[aria-current=page] { --bar: inset 3px 0 0 0 var(--sb-selected-bar); box-shadow: var(--bar, none); }";
-    assert.equal(flagged(`.x { color: red; } ${bar}`), 0, "a where-defined bar on an element with no edge layer");
-    assert.equal(flagged(`.x { --edge-layer: var(--sb-edge-container, 0 0 #0000); box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); } ${bar}`), 1, "a where-defined bar on an element WITH an edge layer still fails: it would clobber the edge");
-    assert.equal(flagged(`.x { box-shadow: var(--sb-edge-quiet, none); } ${bar}`), 1, "an element whose edge is read through --sb-edge-* directly");
+    // L162 (a): where-defined on a state selector is exempt at the six selected-bar selectors, where the element
+    // carries no edge layer — and only there (guards F2: deciding "no edge layer" from selector text exempted
+    // `.x .sb-button[aria-pressed=true]`).
+    const bar = (selector: string) => `${selector} { --bar: inset 3px 0 0 0 var(--sb-selected-bar); box-shadow: var(--bar, revert-layer); }`;
+    assert.equal(flagged(`.sb-sidebar__item { color: red; } ${bar(".sb-sidebar__item[aria-current=page]")}`), 0, "a where-defined bar at one of the six, on an element with no edge layer");
+    assert.equal(flagged(`.x { color: red; } ${bar(".x[aria-current=page]")}`), 1, "a where-defined bar on any other selector, even with no edge layer: guards F2 (was 0 before the repair)");
+    assert.equal(flagged(`.sb-button { --edge-layer: 0 0 #0000; } ${bar(".pl .sb-button[aria-pressed=true]")}`), 1, "guards F2's B13: a descendant-qualified button");
+    assert.equal(flagged(`.sb-sidebar__item { --edge-layer: var(--sb-edge-container, 0 0 #0000); box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); } ${bar(".sb-sidebar__item[aria-current=page]")}`), 1, "a where-defined bar on an element WITH an edge layer still fails: it would clobber the edge");
+    assert.equal(flagged(`.sb-sidebar__item { box-shadow: var(--sb-edge-quiet, none); } ${bar(".sb-sidebar__item[aria-current=page]")}`), 1, "an element whose edge is read through --sb-edge-* directly");
     assert.equal(flagged(".x:hover:not(:disabled) { --l: 0 0 0 1px var(--sb-switch-ring); box-shadow: var(--l, none); } .x { --edge-layer: 0 0 #0000; }"), 1, "the element under its :not() guard is the same element");
-    assert.equal(flagged(".x[aria-current=page] { --bar: inset 3px 0 0 0 var(--sb-selected-bar, transparent); box-shadow: var(--bar, none); }"), 1, "a local set from a seam WITH a fallback is not where-defined");
+    assert.equal(flagged(".sb-sidebar__item[aria-current=page] { --bar: inset 3px 0 0 0 var(--sb-selected-bar, transparent); box-shadow: var(--bar, revert-layer); }"), 1, "a local set from a seam WITH a fallback is not where-defined");
   });
 
   test("2.4 L153 L162 no state rule in the compiled stylesheet writes box-shadow, -webkit-box-shadow or -moz-box-shadow except in the composed form, in the where-defined form on an element with no edge layer, or at an allowlisted site", () => {
     assert.deepEqual(stateShadows(stylesheet(), allowedSelectors()), []);
   });
 
+  // The source rule, run as stylelint runs it (the repo's config), on a probe partial: it must flag what the shared
+  // definition calls a state shadow, and its state test must BE the shared one — a copy is what drifted (guards F9).
+  const sourceRule = (await import(join(repoRoot, "tools", "stylelint", "no-state-box-shadow.js"))) as { isStateSelector: unknown };
+  const stylelintApi = createRequire(join(repoRoot, "package.json"))("stylelint") as { lint: (options: object) => Promise<{ results: { warnings: { rule: string; text: string }[] }[] }> };
+  const SOURCE_PROBE = {
+    flagged: ["&[data-invalid]", "&[data-highlighted]", "&[open]", "&:HOVER", "&:is(:Focus-Visible)", "&[ARIA-pressed=\"true\"]", "&--loading"],
+    composedNot: ["var(--state-layer, 0 0 #0000), var(--edge-layer, 0 0 #0000), 0 0 0 6px red", "var(--state-layer, 0 0 0 6px red), var(--edge-layer, 0 0 #0000)", "var(--state-layer-x, 0 0 0 6px red), var(--edge-layer-x, 0 0 0 6px blue)"],
+    passed: ["&[data-today]", "&[data-align=\"center\"]", "&--raised"],
+  };
+  const sourceProbe = [
+    ...SOURCE_PROBE.flagged.map((selector, i) => `.zz-f${i} { ${selector} { box-shadow: 0 0 0 3px red; } }`),
+    ...SOURCE_PROBE.composedNot.map((value, i) => `.zz-c${i} { &:hover { box-shadow: ${value}; } }`),
+    ".zz-ok { &:hover { box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); } }",
+    ...SOURCE_PROBE.passed.map((selector, i) => `.zz-p${i} { ${selector} { box-shadow: 0 0 0 3px red; } }`),
+  ].join("\n");
+  const sourceLint = await stylelintApi.lint({ code: sourceProbe, codeFilename: join(pkgRoot, "src", "styles", "molecules", "_zz-probe.scss"), configFile: join(repoRoot, "stylelint.config.js"), configBasedir: repoRoot });
+  const sourceFlags = sourceLint.results.flatMap((result) => result.warnings).filter((warning) => warning.rule === "sorbet/no-state-box-shadow").map((warning) => /\((\.zz-[a-z]\d+)[^)]*\)/.exec(warning.text)?.[1] ?? warning.text);
+
+  test("2.4 L153 (source rule) the stylelint rule's state test is the shared definition itself, and run on a partial it flags the library's own state attributes, [open], any letter case, and a composed form that is not exactly the two layers — and passes the facts, the variants and the true composed form (guards F3, F6, F9)", () => {
+    assert.equal(sourceRule.isStateSelector, stateDefinition.isStateSelector, "no-state-box-shadow.js carries its own state test: one definition (tools/stylelint/state-definition.js)");
+    const expected = [...SOURCE_PROBE.flagged.map((_, i) => `.zz-f${i}`), ...SOURCE_PROBE.composedNot.map((_, i) => `.zz-c${i}`)];
+    assert.deepEqual([...sourceFlags].sort(), [...expected].sort());
+  });
+
+  // ══ the frozen presets' cascade, held as a cascade (audit of 7a683fd: frozen lens F1, F4; guards F1, F2, F12) ═════
+  // L148 promises "the element's old value exactly". The audit found it held only per selector TEXT: a selected tab
+  // that is also an `.sb-button` lost the button's shadow in every frozen preset (the tab's `none` fallback, in a
+  // higher layer, beat the button's rule), and `.sb-button.sb-fab` took the fab's hover shadow (the button's hover
+  // shadow had moved from its 0,3,0 state rule to its 0,1,0 base rule). Neither is visible to a check that compares
+  // a selector's old declaration with its new one. These checks compare the CASCADE: for every selector, in its layer
+  // and its conditional context, what a frozen preset computes from it, and whether a selector that declared the
+  // property still does, and whether a selector that did not now does — which can only be harmless from inside the
+  // where-defined sublayer, falling back to revert-layer.
+  /** The --sb-* names a frozen preset defines: the frozen goldens' declarations (check-golden.ts's FROZEN_PRESETS), and the stylesheet's own :root. */
+  const definedIn = (sheet: ReturnType<typeof readCss>) => new Set([
+    ...goldenGate.FROZEN_PRESETS.flatMap((preset) => [...readFileSync(join(pkgRoot, "tools", "golden", `${preset}.css`), "utf8").matchAll(/(--sb-[\w-]+)\s*:/g)].map((m) => m[1]!)),
+    ...sheet.rules.filter((rule) => rule.selectors.includes(":root")).flatMap((rule) => rule.decls.map(([property]) => property).filter((property) => property.startsWith("--sb-"))),
+  ]);
+  const UNSET = "<unset>";
+  /** The var() calls of a value, outermost only: where each is, its name, and its fallback. */
+  const varCalls = (value: string) => {
+    const calls: { start: number; end: number; name: string; fallback?: string }[] = [];
+    for (let at = value.indexOf("var("); at !== -1; at = value.indexOf("var(", at)) {
+      let depth = 0;
+      let comma = -1;
+      let end = at + 3;
+      for (; end < value.length; end++) {
+        const ch = value[end];
+        if (ch === "(") {
+          depth++;
+        } else if (ch === ")" && --depth === 0) {
+          break;
+        } else if (ch === "," && depth === 1 && comma === -1) {
+          comma = end;
+        }
+      }
+      calls.push({ start: at, end: end + 1, name: value.slice(at + 4, comma === -1 ? end : comma).trim(), fallback: comma === -1 ? undefined : value.slice(comma + 1, end).trim() });
+      at = end + 1;
+    }
+    return calls;
+  };
+  /**
+   * A value as a frozen preset computes it, written out: a var() of a --sb-* name the frozen presets define stays; one
+   * they do not define takes its fallback; a local takes its declaration at the element (`lookup`), or its fallback
+   * where that is unset or invalid; UNSET where nothing is left, which is the declaration invalid at computed-value time.
+   */
+  function frozenText(value: string, lookup: (name: string) => string | undefined, defined: Set<string>, depth = 0): string {
+    if (depth > 16) {
+      return UNSET;
+    }
+    let out = "";
+    let last = 0;
+    for (const call of varCalls(value)) {
+      out += value.slice(last, call.start);
+      last = call.end;
+      let got: string;
+      if (call.name.startsWith("--sb-") && defined.has(call.name)) {
+        got = `var(${call.name})`;
+      } else {
+        const declared = call.name.startsWith("--sb-") ? undefined : lookup(call.name);
+        const resolved = declared === undefined ? UNSET : frozenText(declared, lookup, defined, depth + 1);
+        got = resolved !== UNSET ? resolved : call.fallback === undefined ? UNSET : frozenText(call.fallback, lookup, defined, depth + 1);
+      }
+      if (got === UNSET) {
+        return UNSET;
+      }
+      out += got;
+    }
+    return (out + value.slice(last)).replace(/\s+/g, " ").trim();
+  }
+  const SUBLAYER = ".where-defined";
+  const inSublayer = (rule: CssRule) => rule.layer?.endsWith(SUBLAYER) ?? false;
+  /** A selector's identity in the cascade: its layer (a where-defined rule counts as its parent's), its conditional context, the selector. */
+  const cascadeKey = (rule: CssRule, selector: string) => `${(rule.layer ?? "").replace(SUBLAYER, "")} | ${rule.context} | ${normalSelector(selector)}`;
+  /** A custom property's value at an element in a state: the selector's own rules (direct ones win over the sublayer), then the element's. */
+  const lookupAt = (sheet: ReturnType<typeof readCss>, rule: CssRule, selector: string) => (name: string) => {
+    const layer = (rule.layer ?? "").replace(SUBLAYER, "");
+    for (const at of [normalSelector(selector), elementOf(selector)]) {
+      const candidates = sheet.rules.filter((each) => (each.layer ?? "").replace(SUBLAYER, "") === layer && [rule.context, ""].includes(each.context) && each.selectors.some((item) => normalSelector(item) === at));
+      const found = [...candidates.filter(inSublayer), ...candidates.filter((each) => !inSublayer(each))].flatMap((each) => each.decls).filter(([property]) => property === name).at(-1)?.[1];
+      if (found !== undefined) {
+        return found;
+      }
+    }
+    return undefined;
+  };
+  /** A shadow as a frozen preset paints it: its layers less the placeholders, `none` for nothing, for an invalid declaration, or a list holding none. */
+  const paintedShadow = (text: string) => {
+    if (text === UNSET) {
+      return "none";
+    }
+    if (text === "revert-layer") {
+      return text;
+    }
+    const items = splitTop(text);
+    return items.includes("none") ? "none" : items.filter((item) => !stateDefinition.PLACEHOLDER.test(item)).join(", ") || "none";
+  };
+  /** The last declaration of each (cascade key, property) in a sheet, direct and in the sublayer apart. */
+  const lastDeclarations = (sheet: ReturnType<typeof readCss>, properties: string[], sublayer: boolean) => {
+    const found = new Map<string, { rule: CssRule; selector: string; property: string; value: string }>();
+    for (const rule of sheet.rules.filter((each) => inSublayer(each) === sublayer)) {
+      for (const [property, value] of rule.decls.filter(([name]) => properties.includes(name))) {
+        for (const selector of rule.selectors) {
+          found.set(`${cascadeKey(rule, selector)} | ${property}`, { rule, selector, property, value });
+        }
+      }
+    }
+    return found;
+  };
+  /**
+   * The cascade of `properties` in a frozen preset, now against e24df74, as findings. (a) A selector that declared the
+   * property declares it still, outside the sublayer, and a frozen preset computes the same from it. (b) A selector
+   * that did not declares it only from the where-defined sublayer, falling back to revert-layer, or is one of
+   * `residual` and paints nothing. (c) No selector that declared it has stopped: an element that composes another
+   * class would then take that class's value.
+   */
+  function frozenCascade(now: ReturnType<typeof readCss>, was: ReturnType<typeof readCss>, properties: string[], paint: (text: string) => string, residual: Set<string> = new Set()): string[] {
+    const [definedNow, definedWas] = [definedIn(now), definedIn(was)];
+    const [direct, sub, old] = [lastDeclarations(now, properties, false), lastDeclarations(now, properties, true), lastDeclarations(was, properties, false)];
+    const painted = (sheet: ReturnType<typeof readCss>, defined: Set<string>, d: { rule: CssRule; selector: string; value: string }) => paint(frozenText(d.value, lookupAt(sheet, d.rule, d.selector), defined));
+    const wrong: string[] = [];
+    for (const [key, d] of direct) {
+      const before = old.get(key);
+      const nowPaints = painted(now, definedNow, d);
+      if (before !== undefined) {
+        const wasPaints = painted(was, definedWas, before);
+        if (nowPaints !== wasPaints) {
+          wrong.push(`${key}: a frozen preset computes ${nowPaints}; at e24df74, ${wasPaints}`);
+        }
+      } else if (!(residual.has(key.slice(0, key.lastIndexOf(" | "))) && nowPaints === "none")) {
+        wrong.push(`${key}: declared where e24df74 declared nothing, outside the where-defined sublayer, so in a frozen preset it outranks whatever reached the element before (it computes ${nowPaints}); write it through where-defined or where-absent, falling back to revert-layer`);
+      }
+    }
+    for (const [key, d] of sub) {
+      const nowPaints = painted(now, definedNow, d);
+      if (old.has(key)) {
+        wrong.push(`${key}: moved into the where-defined sublayer, below the declarations it used to beat`);
+      } else if (nowPaints !== "revert-layer") {
+        wrong.push(`${key}: in the where-defined sublayer, but a frozen preset computes ${nowPaints} from it, not revert-layer`);
+      }
+    }
+    for (const key of old.keys()) {
+      if (!direct.has(key)) {
+        wrong.push(`${key}: declared at e24df74 and not now, so an element that composes another class whose rule declares it in the same layer, or a lower one, now takes that class's value (frozen lens F1 (b): .sb-button.sb-fab)`);
+      }
+    }
+    return wrong;
+  }
+  /**
+   * The residual: six field selectors whose composed edge list (soft-edge) is new at a selector that declared no
+   * box-shadow at e24df74, and which a frozen preset computes as placeholders only. They paint nothing on their own
+   * element; what they could still change is an element that ALSO carries a class from a lower cascade position that
+   * paints a shadow (an `.sb-input` that is also an `.sb-button`), which the library's markup never does. Recorded by
+   * the repair of 7a683fd as open, not fixed: a seventh is a finding.
+   */
+  const FIELD_RESIDUAL = new Set(["sb.atoms |  | .sb-input", "sb.atoms |  | .sb-textarea", "sb.atoms |  | .sb-number-input", "sb.atoms |  | .sb-select select", "sb.molecules |  | .sb-combobox__field", "sb.molecules |  | .sb-date-range__control"]);
+  const TRANSITION_PROPERTIES = ["transition", "transition-property", "transition-duration", "transition-timing-function", "transition-delay", "transition-behavior"];
+
+  test("2.4 L148 (checker) the frozen cascade check finds the audit's composition defects: a literal fallback at a selector that declared nothing, a state shadow moved to the base rule, a box-shadow added to a shared transition, and a plain new layer", () => {
+    const was = readCss("@layer sb.atoms { .btn { --r: 0 1px 2px red; box-shadow: var(--r); } .btn:hover:not(:disabled) { box-shadow: 0 2px 4px red; } .day { transition: color 1s; } .card { box-shadow: var(--sb-shadow-sm); } } @layer sb.molecules { .tab[aria-selected=true] { color: red; } }");
+    const shadows = (css: string) => frozenCascade(readCss(css), was, SHADOW_PROPERTIES, paintedShadow);
+    const good = "@layer sb.atoms { .btn { --r: var(--sb-edge-x, 0 1px 2px red); --edge-layer: var(--r); box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); } .btn:hover:not(:disabled) { --edge-layer: 0 2px 4px red; box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); } .day { transition: color 1s; } .card { box-shadow: var(--sb-edge-container, var(--sb-shadow-sm)); } }";
+    assert.deepEqual(shadows(`${good} @layer sb.molecules { @layer where-defined { .tab[aria-selected=true] { --bar: inset 0 -3px 0 0 var(--sb-selected-bar); box-shadow: var(--bar, revert-layer); } } }`), [], "the repaired shapes");
+    assert.equal(shadows(`${good} @layer sb.molecules { .tab[aria-selected=true] { --bar: inset 0 -3px 0 0 var(--sb-selected-bar); box-shadow: var(--bar, none); } }`).length, 1, "frozen lens F1 (a): a literal none where the tab declared nothing");
+    assert.equal(shadows(good.replace(".btn:hover:not(:disabled) { --edge-layer: 0 2px 4px red; box-shadow: var(--state-layer, 0 0 #0000), var(--edge-layer); }", ".btn:hover:not(:disabled) { --edge-layer: 0 2px 4px red; }")).length, 1, "frozen lens F1 (b): the hover shadow moved to the base rule");
+    assert.equal(shadows(good.replace("var(--sb-edge-container, var(--sb-shadow-sm))", "var(--sb-edge-container, var(--sb-shadow-sm)), inset 0 0 0 1px var(--sb-container-line, var(--sb-border-subtle))")).length, 1, "guards F12's E2: a new layer at a selector that had a shadow");
+    assert.equal(shadows(`${good} @layer sb.atoms { .sw { box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0); } }`).length, 1, "guards F12's E3: a transparent ring at a selector that had none");
+    assert.equal(shadows(`${good} @layer sb.atoms { @media (min-width: 1px) { .sl { box-shadow: 0 0 0 9px red; } } }`).length, 1, "guards F1's plant E: inside a conditional rule");
+    assert.equal(frozenCascade(readCss(good.replace("transition: color 1s", "transition: color 1s, box-shadow 1s")), was, TRANSITION_PROPERTIES, (text) => text).length, 1, "frozen lens F4: box-shadow added to a shared transition");
+  });
+
+  test("2.4 L148 a frozen preset's box-shadow cascade is e24df74's: every selector computes what it did, none stopped declaring one, and a new one is invisible there (where-defined sublayer, revert-layer), but for the six recorded field edges", () => {
+    assert.deepEqual(frozenCascade(stylesheet(), oldStylesheet(), SHADOW_PROPERTIES, paintedShadow, FIELD_RESIDUAL), []);
+  });
+
+  test("2.4 L148 a frozen preset's transitions are e24df74's: no transition anywhere changed, and none is new (frozen lens F4: box-shadow in color-transition faded the calendar's today ring where it vanished)", () => {
+    assert.deepEqual(frozenCascade(stylesheet(), oldStylesheet(), TRANSITION_PROPERTIES, (text) => text), []);
+  });
+
+  test("2.4 L148 the where-defined sublayer holds nothing a frozen preset can see: every declaration in it is a custom property or computes to revert-layer there, so C11's source-order reading of fills is not disturbed by it", () => {
+    const sheet = stylesheet();
+    const defined = definedIn(sheet);
+    const wrong = sheet.rules.filter(inSublayer).flatMap((rule) => rule.decls.filter(([property]) => !property.startsWith("--")).flatMap(([property, value]) => rule.selectors
+      .filter((selector) => frozenText(value, lookupAt(sheet, rule, selector), defined) !== "revert-layer")
+      .map((selector) => `${selector} { ${property}: ${value} }`)));
+    assert.ok(sheet.rules.some(inSublayer), "no rule is in a where-defined sublayer: the selected bars, the switch, the slider tracks and the progress track are");
+    assert.deepEqual(wrong, []);
+  });
+
+  test("2.4 L148 each where-defined read falls back to the element's old value exactly: at a selector that declared the property, that value, in the same rule's place; at one that declared none, revert-layer from the where-defined sublayer (never a literal none, frozen lens F1 (a)) — conditional rules included (guards F1)", () => {
+    const sheet = stylesheet();
+    const locals = whereDefinedLocals(sheet);
+    const old = lastDeclarations(oldStylesheet(), [...SHADOW_PROPERTIES, "border-color"], false);
+    const [definedNow, definedWas] = [definedIn(sheet), definedIn(oldStylesheet())];
+    const wrong: string[] = [];
+    let reads = 0;
+    for (const rule of sheet.rules) {
+      for (const [property, value] of rule.decls.filter(([name]) => SHADOW_PROPERTIES.includes(name) || name === "border-color")) {
+        const read = /^var\(\s*(--[\w-]+)\s*,([\s\S]*)\)$/.exec(value);
+        if (read === null || !locals.has(read[1]!)) {
+          continue;
+        }
+        reads++;
+        const fallback = read[2]!.trim();
+        for (const selector of rule.selectors) {
+          const key = `${cascadeKey(rule, selector)} | ${property}`;
+          const before = old.get(key);
+          if (inSublayer(rule)) {
+            if (fallback !== "revert-layer" || before !== undefined) {
+              wrong.push(`${selector} { ${property}: ${value} } is in the where-defined sublayer: its fallback must be revert-layer, at a selector that declared no ${property} (it ${before === undefined ? "declared none" : `declared ${before.value}`})`);
+            }
+          } else if (before === undefined) {
+            wrong.push(`${selector} { ${property}: ${value} } falls back to ${fallback} where e24df74 declared no ${property}: that outranks whatever reached the element before; write it through where-defined with revert-layer`);
+          } else if (frozenText(fallback, lookupAt(sheet, rule, selector), definedNow) !== frozenText(before.value, lookupAt(oldStylesheet(), before.rule, before.selector), definedWas)) {
+            wrong.push(`${selector} { ${property}: ${value} } falls back to ${fallback}, and its old value is ${before.value}`);
+          }
+        }
+      }
+    }
+    assert.ok(reads >= 9, `${reads} where-defined reads: the switch, thumb, two slider tracks, four bars and the card hover's line (L148, L152)`);
+    assert.deepEqual(wrong, []);
+  });
+
   /** L154 (1), as L162 (b) rules: e24df74's sites are the state selectors the COMPILED check finds there, allowing nothing. */
   const STATE_SITES = json("state-box-shadow-sites.at-e24df74.json") as { recordedFrom: string; sites: { selector: string; property: string; value: string }[] };
   const siteSelector = (finding: string) => normalSelector(finding.slice(0, finding.indexOf(" { ")));
+
+  test("2.4 L154 L162 (fixture) the two e24df74 fixtures are byte for byte what record-e24df74-styles.mts.txt records from `git archive e24df74`: pinned by sha256, so a site appended to both the stylesheet and the site list (and then to the allowlist) fails here (audit of 7a683fd, guards F8)", () => {
+    const sha = (name: string) => createHash("sha256").update(readFileSync(join(fixtures, name))).digest("hex");
+    assert.equal(sha("compiled.at-e24df74.css"), "b7539bdfe409baeafa5c5cfb40237e66e0c2f89ba6cb27de1cc79897e0d7b017", "compiled.at-e24df74.css");
+    assert.equal(sha("state-box-shadow-sites.at-e24df74.json"), "2bc974e8e289f72c07e8d9847aa7e122531b0f32573c63897bdb880e65db808f", "state-box-shadow-sites.at-e24df74.json");
+  });
 
   test("2.4 L154 L162 (fixture) the e24df74 sites are exactly what this file's compiled check finds in e24df74's stylesheet, allowing nothing", () => {
     assert.equal(STATE_SITES.recordedFrom, "e24df74");
@@ -5113,27 +5513,122 @@ try {
     assert.deepEqual(allow.flatMap((entry) => compiledPaths(entry.selector)).filter((selector) => !still.has(selector)), [], "an allowlisted site that is no longer one: move it to the removed list");
   });
 
-  test("2.4 L154 (3) a CI step, tools/check-allowlist-base.ts, holds the removed list to its base branch's, beside check-golden-base.ts", () => {
+  test("2.4 L154 (3) a CI step, tools/check-allowlist-base.ts, holds the removed list to its base branch's, beside check-golden-base.ts: a `run:` line of build.yml runs it against the pull request's base (a comment naming the file is not a step, guards F7)", () => {
     assert.ok(existsSync(join(repoRoot, "tools", "check-allowlist-base.ts")), "tools/check-allowlist-base.ts does not exist");
     const workflow = readFileSync(join(repoRoot, ".github", "workflows", "build.yml"), "utf8");
-    assert.match(workflow, /check-allowlist-base\.ts/, "build.yml does not run it");
+    assert.match(workflow, /^\s+run: node tools\/check-allowlist-base\.ts "origin\/\$\{BASE_REF\}"\s*$/m, "build.yml has no step whose run: line is the base check against origin/${BASE_REF}");
   });
 
-  test("2.4 L156 every start bar (inset 3px 0 0 0) is mirrored under :dir(rtl) to inset -3px 0 0 0, on the same element and property", () => {
-    const sheet = stylesheet();
-    const wrong: string[] = [];
-    let bars = 0;
-    for (const rule of sheet.rules) {
-      for (const [property, value] of rule.decls.filter(([, value]) => /(^|,\s*)inset 3px 0 0 0\b/.test(value))) {
-        for (const selector of rule.selectors.filter((item) => !item.includes(":dir("))) {
-          bars++;
-          const mirror = sheet.rules.some((other) => other.selectors.some((item) => normalSelector(item) === normalSelector(`${selector}:dir(rtl)`)) && other.decls.some(([name, mirrored]) => name === property && /(^|,\s*)inset -3px 0 0 0\b/.test(mirrored)));
-          if (!mirror) {
-            wrong.push(`${selector} { ${property}: ${value} } has no :dir(rtl) mirror`);
+  /** tools/check-allowlist-base.ts, loaded as a module: its main block runs only as a script (import.meta.main). */
+  const allowlistBase = (await import(join(repoRoot, "tools", "check-allowlist-base.ts"))) as { droppedFromBase: (base: { file: string; selector: string }[] | undefined, now: { file: string; selector: string }[]) => { file: string; selector: string }[]; removedAt: (ref: string, cwd: string) => { file: string; selector: string }[] | undefined; parseRemoved: (text: string, where: string) => unknown; PATH: string };
+
+  test("2.4 L154 (3) (checker) droppedFromBase names each base entry missing here, and only those; parseRemoved refuses what is not an array of { file, selector } (guards F7: replacing its body with `return []` left pnpm test green)", () => {
+    const a = { file: "atoms/_button.scss", selector: ".sb-button | &:hover" };
+    const b = { file: "atoms/_chip.scss", selector: ".sb-chip | &:hover" };
+    assert.deepEqual(allowlistBase.droppedFromBase([a, b], [b]), [a], "an entry the base has and this tree lacks");
+    assert.deepEqual(allowlistBase.droppedFromBase([a], [a, b]), [], "an entry appended here");
+    assert.deepEqual(allowlistBase.droppedFromBase([{ ...a, selector: `${a.selector} ` }], [a]).length, 1, "a selector edited by a space is a different entry");
+    assert.deepEqual(allowlistBase.droppedFromBase(undefined, [a]), [], "a base with no list yet");
+    for (const text of ["{", "{}", "[{\"file\": 1}]", "[1]"]) {
+      assert.throws(() => allowlistBase.parseRemoved(text, "probe"), /probe/, text);
+    }
+  });
+
+  test("2.4 L154 (3) the base check still bites, run as CI runs it, against a throwaway repository: a dropped entry fails; an unknown ref, an unparsable list at the base and an unparsable list here each fail; a base with no list yet passes; and from a path with a space and through a symlink it still runs (guards F7: an unknown ref passed as \"has no list yet\", and such paths printed nothing)", () => {
+    const repo = join(tmp, "allowlist base");
+    mkdirSync(join(repo, "tools", "stylelint"), { recursive: true });
+    cpSync(join(repoRoot, "tools", "check-allowlist-base.ts"), join(repo, "tools", "check-allowlist-base.ts"));
+    const listPath = join(repo, allowlistBase.PATH);
+    const git = (...args: string[]) => {
+      const done = spawnSync("git", ["-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false", ...args], { cwd: repo, encoding: "utf8" });
+      assert.equal(done.status, 0, `git ${args.join(" ")}: ${done.stderr}`);
+    };
+    git("init", "-q", "-b", "main");
+    git("add", "-A");
+    git("commit", "-q", "-m", "no list yet");
+    git("tag", "nolist");
+    const a = { file: "atoms/_button.scss", selector: ".sb-button | &:hover" };
+    const b = { file: "atoms/_chip.scss", selector: ".sb-chip | &:hover" };
+    writeFileSync(listPath, JSON.stringify([a, b]));
+    git("add", "-A");
+    git("commit", "-q", "-m", "two removed");
+    git("tag", "base");
+    writeFileSync(join(repo, "tools", "stylelint", "x.json"), "");
+    git("add", "-A");
+    git("commit", "-q", "-m", "x");
+    writeFileSync(listPath, "not json");
+    git("add", "-A");
+    git("commit", "-q", "-m", "garbled");
+    git("tag", "garbled");
+    const run = (ref: string, script = join(repo, "tools", "check-allowlist-base.ts")) => spawnSync(process.execPath, [script, ref], { cwd: repo, encoding: "utf8" });
+    writeFileSync(listPath, JSON.stringify([b]));
+    const dropped = run("base");
+    assert.equal(dropped.status, 1, `a dropped entry: ${dropped.stdout}${dropped.stderr}`);
+    assert.match(dropped.stderr, /atoms\/_button\.scss: \.sb-button \| &:hover/, `it names the entry: ${dropped.stderr}`);
+    writeFileSync(listPath, JSON.stringify([a, b, { file: "c", selector: "d" }]));
+    assert.equal(run("base").status, 0, "entries appended");
+    assert.equal(run("nolist").status, 0, "a base that exists with no list yet");
+    const unknown = run("origin/nope");
+    assert.equal(unknown.status, 1, `an unknown ref fails closed: ${unknown.stdout}`);
+    assert.match(unknown.stderr, /does not know origin\/nope/);
+    assert.equal(run("garbled").status, 1, "a list at the base that does not parse");
+    writeFileSync(listPath, "[");
+    assert.equal(run("base").status, 1, "a list here that does not parse");
+    writeFileSync(listPath, JSON.stringify([b]));
+    const linked = join(tmp, "linked check.ts");
+    symlinkSync(join(repo, "tools", "check-allowlist-base.ts"), linked);
+    const viaLink = run("base", linked);
+    assert.equal(viaLink.status, 1, `through a symlink, from a path with a space, it still runs and fails: ${viaLink.stdout}${viaLink.stderr}`);
+  });
+
+  /**
+   * A start bar's horizontal offset: an inset layer with a horizontal offset and no vertical one, whatever its
+   * spelling (`inset 3px 0px 0 0`, `inset 3px 0 0`, `inset 0.1875rem 0 0 0` were all unmirrored and green while the
+   * test knew only `inset 3px 0 0 0`: audit of 7a683fd, guards F11). null for any other layer.
+   */
+  const startBarOf = (item: string) => {
+    const words = item.trim().split(/\s+/);
+    const lengths: string[] = [];
+    for (const word of words.slice(1)) {
+      if (!/^-?(?:\d+\.?\d*|\.\d+)(?:[a-z%]+)?$/i.test(word)) {
+        break;
+      }
+      lengths.push(word);
+    }
+    const zero = (word: string) => /^-?(?:0+\.?0*|\.0+)(?:[a-z%]+)?$/i.test(word);
+    return words[0] === "inset" && lengths.length >= 2 && !zero(lengths[0]!) && zero(lengths[1]!) ? lengths[0]! : null;
+  };
+  /** Every layer of a value, inside var() fallbacks too. */
+  const layersOf = (value: string): string[] => splitTop(value).flatMap((item) => {
+    const v = /^var\(\s*--[\w-]+\s*,([\s\S]*)\)$/.exec(item.trim());
+    return v === null ? [item] : layersOf(v[1]!);
+  });
+
+  test("2.4 L156 every start bar (an inset layer with a horizontal offset and no vertical one, any spelling) is mirrored under :dir(rtl) to the negated offset, on the same element and property", () => {
+    const mirrored = (sheet: ReturnType<typeof readCss>) => {
+      const wrong: string[] = [];
+      let bars = 0;
+      for (const rule of sheet.rules) {
+        for (const [property, value] of rule.decls) {
+          for (const x of layersOf(value).map(startBarOf).filter((offset): offset is string => offset !== null && !offset.startsWith("-"))) {
+            for (const selector of rule.selectors.filter((item) => !item.includes(":dir("))) {
+              bars++;
+              const mirror = sheet.rules.some((other) => other.selectors.some((item) => normalSelector(item) === normalSelector(`${selector}:dir(rtl)`)) && other.decls.some(([name, mirroredValue]) => name === property && layersOf(mirroredValue).map(startBarOf).includes(`-${x}`)));
+              if (!mirror) {
+                wrong.push(`${selector} { ${property}: ${value} } has no :dir(rtl) mirror`);
+              }
+            }
           }
         }
       }
+      return { bars, wrong };
+    };
+    for (const bar of ["inset 3px 0px 0 0 red", "inset 3px 0 0 red", "inset 0.1875rem 0 0 0 red", "inset 3px 0 0 0 red, 0 1px 2px blue"]) {
+      assert.equal(mirrored(readCss(`.x[aria-current=page] { --b: ${bar}; }`)).wrong.length, 1, `(checker) ${bar}`);
     }
+    assert.deepEqual(mirrored(readCss(".x[aria-current=page] { --b: inset 3px 0px 0 0 red; } .x[aria-current=page]:dir(rtl) { --b: inset -3px 0 0 0 red; }")).wrong, [], "(checker) a mirror in another spelling");
+    assert.equal(mirrored(readCss(".x { box-shadow: inset 0 -3px 0 0 red; }")).bars, 0, "(checker) the bottom bar is not a start bar");
+    const { bars, wrong } = mirrored(stylesheet());
     assert.ok(bars > 0, "no start bar in the stylesheet: the probe finds nothing to hold");
     assert.deepEqual(wrong, []);
   });
@@ -5144,15 +5639,128 @@ try {
     "url", "translate", "scale", "rotate", "cubic-bezier", "steps", "attr", "env",
     "blur", "inset", "minmax", "polygon", "repeat", "rgba", "translateX", "translateY",
   ]);
-  const unknownFunctions = (sheet: ReturnType<typeof readCss>) => sheet.rules.flatMap((rule) => rule.decls.flatMap(([property, value]) => [...value.matchAll(/(?:^|[^\w-])([a-zA-Z_][\w-]*)\(/g)].map((m) => m[1]!).filter((name) => !CSS_FUNCTIONS.has(name)).map((name) => `${rule.selectors.join(", ")} { ${property}: … ${name}(… }`)));
+  /** What an at-rule's prelude may call besides: `@supports selector(…)`, `@container style(…)`. */
+  const PRELUDE_FUNCTIONS = new Set(["selector", "style", "not", "and", "or"]);
+  /**
+   * The function calls in a value, by name, quoted strings skipped (a `content: "a(b)"` is text, guards F17). A name
+   * with a leading `-` is a call too: `-space(2)` compiles to the literal `-space(2)` and `- space(1)` to `-var(…)`,
+   * both invalid and silent, and the old pattern could not see either (audit of 7a683fd, guards F4). Only a vendor
+   * spelling of a listed function (`-webkit-…`, `-moz-…`) is a CSS function with a leading dash.
+   */
+  const callsIn = (value: string) => [...value.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, "\"\"").matchAll(/(?:^|[^\w:-])(-?[a-zA-Z_][\w-]*)\(/g)].map((m) => m[1]!);
+  const isCssFunction = (name: string, extra: Set<string> = new Set()) => CSS_FUNCTIONS.has(name) || extra.has(name) || /^-(?:webkit|moz)-/.test(name) && CSS_FUNCTIONS.has(name.replace(/^-(?:webkit|moz)-/, ""));
+  /**
+   * Every call that is not a CSS function: in style rules (inside @starting-style too, which readCss now reads into,
+   * guards F5), in the declarations of @keyframes stops, @font-face and @property, and in at-rule preludes
+   * (`@media (min-width: spcae(4))`, guards F4).
+   */
+  const unknownFunctions = (sheet: ReturnType<typeof readCss>) => [
+    ...sheet.rules.flatMap((rule) => rule.decls.flatMap(([property, value]) => callsIn(value).filter((name) => !isCssFunction(name)).map((name) => `${rule.selectors.join(", ")} { ${property}: … ${name}(… }`))),
+    ...sheet.otherDecls.flatMap(([where, property, value]) => callsIn(value).filter((name) => !isCssFunction(name)).map((name) => `${where} { ${property}: … ${name}(… }`)),
+    ...sheet.atRules.flatMap((prelude) => callsIn(prelude.replace(/^@[\w-]+/, "")).filter((name) => !isCssFunction(name, PRELUDE_FUNCTIONS)).map((name) => `${prelude}: … ${name}(…`)),
+  ];
 
-  test("2.4 L161 (checker) a misspelt accessor, which Sass passes through as text, is a function call not on the list", () => {
+  test("2.4 L161 (checker) a misspelt accessor, which Sass passes through as text, is a function call not on the list — negated, inside @starting-style or @keyframes, or in an at-rule's prelude too; a quoted string is text", () => {
     assert.deepEqual(unknownFunctions(readCss(".p { color: seem(field-fill); box-shadow: egde(container, none); font-size: button-lable(md); }")).length, 3);
-    assert.deepEqual(unknownFunctions(readCss(".p { color: var(--a, rgb(0 0 0 / 0.5)); width: calc(100% - min(2px, 1vw)); }")), []);
+    assert.deepEqual(unknownFunctions(readCss(".p { color: var(--a, rgb(0 0 0 / 0.5)); width: calc(100% - min(2px, 1vw)); content: \"seem(x)\"; }")), []);
+    for (const css of [".p { margin-inline-start: -space(2); }", ".p { margin-block-start: -var(--sb-space-1); }", ".p { color: -seem(x); }", ".p:hover { color: red; } @starting-style { .p:hover { color: seem(x); } }", "@keyframes k { from { color: seem(x); } }", "@media (min-width: spcae(4)) { .p { color: red; } }", "@supports (color: seem(x)) { .p { color: red; } }"]) {
+      assert.equal(unknownFunctions(readCss(css)).length, 1, css);
+    }
+    assert.deepEqual(unknownFunctions(readCss("@supports selector(:has(a)) { .p { -webkit-mask-image: -webkit-linear-gradient(red, blue); } } .q { margin: calc(1px - var(--x)); }")), [], "a prelude's selector(), a vendor spelling of a listed function, a subtraction");
   });
 
-  test("2.4 L161 every function call in the compiled stylesheet's declarations is a CSS function: no accessor is left uncompiled", () => {
+  test("2.4 L161 every function call in the compiled stylesheet's declarations, keyframes and at-rule preludes is a CSS function: no accessor is left uncompiled", () => {
     assert.deepEqual(unknownFunctions(stylesheet()), []);
+  });
+
+  // ── tools/shots-provenance.ts: where a screenshot baseline came from (L155) ─────────────────────────────────────────
+  // The audit of the step-2.3/2.4 repair found the hand-run comparer could print "The frozen presets are
+  // pixel-identical" over a baseline of the tree under test (F14, guards lens), and could never give the verdict
+  // against e24df74 at all, because that baseline was e24df74's whole playground, whose own text counts the design
+  // system's checks (F6, frozen lens). shots.ts now swaps only the library stylesheet into this tree's playground and
+  // asks this module whether a compare may use a baseline. It is loaded, not imported, for the reason seams.ts is.
+  let provenance: {
+    baselineRefusal: (manifest: Record<string, unknown>, here: { resolve: (ref: string) => string | undefined; chromium: string; playground?: string }) => string | null;
+    digestPlayground: (dist: string) => string;
+    linkedStylesheet: (html: string) => string;
+  } | undefined;
+  let provenanceMissing = "";
+  try {
+    provenance = await import(new URL("../../../tools/shots-provenance.ts", import.meta.url).href);
+  } catch(error) {
+    provenanceMissing = (error as Error).message;
+  }
+  const shotsProvenance = () => {
+    assert.ok(provenance, `tools/shots-provenance.ts does not load: ${provenanceMissing}`);
+    return provenance;
+  };
+  const HEAD_SHA = "21fdd26691240a1adf594f61034fdb4e03fd829a";
+  const BASE_SHA = "e24df74000000000000000000000000000000000";
+  const here = { resolve: (ref: string) => ({ HEAD: HEAD_SHA, "21fdd26": HEAD_SHA, e24df74: BASE_SHA } as Record<string, string>)[ref], chromium: "153.0.0.0", playground: "p1" };
+  const goodManifest = { libraryCss: "e24df74", playground: "p1", mechanism: "library-css-swap", tree: "21fdd26", chromium: "153.0.0.0", takenAt: "2026-10-05T12:00:00Z", shots: 1000 };
+
+  test("L155 F14 (shots) a compare refuses a baseline of the tree under test: its library stylesheet at this checkout's HEAD, or from a working tree with uncommitted changes", () => {
+    const { baselineRefusal } = shotsProvenance();
+    assert.match(baselineRefusal({ ...goodManifest, libraryCss: "21fdd26" }, here) ?? "", /own HEAD/, "the stylesheet of HEAD itself (the audit's stub S10 printed the success line)");
+    assert.match(baselineRefusal({ ...goodManifest, libraryCss: "21fdd26+dirty" }, here) ?? "", /uncommitted/, "a dirty working tree's stylesheet");
+    assert.match(baselineRefusal({ ...goodManifest, libraryCss: "e24df74+dirty" }, here) ?? "", /uncommitted/, "dirty, even on another commit");
+    assert.match(baselineRefusal({ ...goodManifest, libraryCss: "c0ffee0" }, here) ?? "", /not a commit/, "a stylesheet commit this checkout does not have");
+  });
+
+  test("L155 F14 F6 (shots) a compare refuses a baseline that does not say where it came from, one from another Chromium, and one shot on another playground", () => {
+    const { baselineRefusal } = shotsProvenance();
+    const old = Object.fromEntries(Object.entries(goodManifest).filter(([key]) => key !== "libraryCss" && key !== "playground")) as typeof goodManifest;
+    assert.match(baselineRefusal(old, here) ?? "", /does not record/, "a manifest from before provenance was recorded");
+    assert.match(baselineRefusal({ ...goodManifest, chromium: "152.0.0.0" }, here) ?? "", /Chromium 152/, "another Chromium");
+    assert.match(baselineRefusal({ ...goodManifest, playground: "p0" }, here) ?? "", /another playground/, "another playground: a difference would not be the stylesheet's alone (F6)");
+    assert.equal(baselineRefusal(goodManifest, here), null, "e24df74's stylesheet in this playground, by this Chromium, is accepted");
+    assert.equal(baselineRefusal(goodManifest, { ...here, playground: undefined }), null, "before the build, the playground is not yet asked about");
+  });
+
+  test("L155 F6 (shots) the playground digest is the same for two builds that differ only in the library stylesheet, and differs for any other change", () => {
+    const { digestPlayground, linkedStylesheet } = shotsProvenance();
+    const site = (name: string, css: string, script: string, scriptName: string, theme: string) => {
+      const dist = join(tmp, `shots-digest-${name}`);
+      mkdirSync(join(dist, "assets"), { recursive: true });
+      writeFileSync(join(dist, "index.html"), `<html><head><script type="module" crossorigin src="/assets/${scriptName}"></script><link rel="stylesheet" crossorigin href="/assets/index-${name}.css"></head></html>`);
+      writeFileSync(join(dist, "assets", `index-${name}.css`), css);
+      writeFileSync(join(dist, "assets", scriptName), script);
+      writeFileSync(join(dist, "assets", "ocean-AAAA.css"), theme);
+      return digestPlayground(dist);
+    };
+    const now = site("now", ".sb-card{box-shadow:0 0 1px red}", "render(823)", "index-N.js", ":root{--sb-bg:#fff}");
+    // The bundler names the entry script after the stylesheet it ships with: same bytes, another name (measured).
+    assert.equal(site("base", ".sb-card{box-shadow:none}", "render(823)", "index-B.js", ":root{--sb-bg:#fff}"), now, "another library stylesheet, same script bytes under another name");
+    assert.notEqual(site("text", ".sb-card{box-shadow:none}", "render(700)", "index-B.js", ":root{--sb-bg:#fff}"), now, "the playground's own text (e24df74's whole playground, F6)");
+    assert.notEqual(site("theme", ".sb-card{box-shadow:none}", "render(823)", "index-B.js", ":root{--sb-bg:#000}"), now, "a theme file");
+    assert.throws(() => linkedStylesheet('<link rel="stylesheet" href="/a.css"><link rel="stylesheet" href="/b.css">'), /2 stylesheets/, "two linked stylesheets: which is the library's is not known");
+  });
+
+  const pngTools = (await import(new URL("../../../tools/png.ts", import.meta.url).href)) as { untilStable: (take: () => Promise<Buffer>, settle: () => Promise<void>, tries?: number) => Promise<Buffer> };
+  const takes = (frames: string[]) => {
+    let at = 0;
+    return { take: async() => Buffer.from(frames[Math.min(at++, frames.length - 1)]!), count: () => at };
+  };
+  const unpainted = takes(["half-painted", "painted", "painted"]);
+  const never = takes(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
+  let [settled, unsettled, untilStableMissing] = [Buffer.from(""), Buffer.from(""), ""];
+  try {
+    settled = await pngTools.untilStable(unpainted.take, async() => undefined);
+    unsettled = await pngTools.untilStable(never.take, async() => undefined, 4);
+  } catch(error) {
+    untilStableMissing = (error as Error).message;
+  }
+
+  test("L155 (shots) a shot is kept only once two takes in a row agree, and every screenshot shots.ts keeps goes through untilStable (the slider's forced :active was not always painted on the first frame: 2 of 6 fresh pages differed by up to 49 levels, read as unstable, which blocks the frozen verdict)", () => {
+    assert.equal(untilStableMissing, "", "tools/png.ts has no untilStable");
+    assert.equal(settled.toString(), "painted", "the first, half-painted take is not kept");
+    assert.equal(unpainted.count(), 3, "it stops as soon as two takes agree");
+    assert.equal([unsettled.toString(), never.count()].join(" "), "d 4", "a shot that never settles: the last of `tries` takes");
+    const source = readFileSync(join(repoRoot, "tools", "shots.ts"), "utf8");
+    const screenshots = [...source.matchAll(/(?:page|this\.page)\.screenshot\(/g)].length;
+    const wrapped = [...source.matchAll(/untilStable\(\(\) => \(?(?:box === null \? )?(?:page|this\.page)\.screenshot\(/g)].length;
+    assert.ok(screenshots > 0 && wrapped >= 2, `shots.ts takes ${screenshots} screenshot call(s), ${wrapped} of the kept ones through untilStable`);
+    assert.equal(source.split("\n").filter((line) => /(?:page|this\.page)\.screenshot\(/.test(line) && !/untilStable/.test(line)).length, 0, "a screenshot taken outside untilStable");
   });
 
   legibilityCount = ran - legibilityFrom;

@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import stylelint from "stylelint";
 
+import { isComposed, isStateSelector } from "./state-definition.js";
+
 const { createPlugin, utils } = stylelint;
 const ruleName = "sorbet/no-state-box-shadow";
 const messages = utils.ruleMessages(ruleName, {
@@ -13,16 +15,13 @@ const messages = utils.ruleMessages(ruleName, {
 
 const ALLOWLIST = new URL("./state-box-shadow-allowlist.json", import.meta.url);
 
-// What a state is: legibility-spec.md L153, the one definition, which the
-// compiled check in test-contracts.ts shares. A user-action or form
-// pseudo-class (also inside :is, :where, :not and :has), an [aria-*] or
-// [data-state] attribute, or a BEM modifier from the named list. A modifier not
-// on the list is a style variant (--raised, --flat, --sm), and another [data-*]
-// attribute is a fact about the element (L163: [data-today]), not a state.
-const STATE_PSEUDO = /:(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\w-])/;
-const STATE_ATTRIBUTE = /\[\s*(?:aria-[\w-]+|data-state)\s*[\]=~|^$*]/;
-const STATE_MODIFIER = /--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\w-])/;
-
+// What a state is, and the composed form: tools/stylelint/state-definition.js,
+// the one definition, which the compiled check in test-contracts.ts and the
+// e24df74 recorder import too (legibility-spec.md L153; audit of 7a683fd,
+// guards F3, F6, F9). A modifier not on its list is a style variant (--raised,
+// --flat, --sm), and a data-* attribute on its list of facts (L163:
+// [data-today]) is not a state.
+//
 // What writes a shadow: the property, its vendor spellings, and the abstracts'
 // mixins that write one outright. A list composed of the two layers is the
 // allowed form (L153), as is any other mixin (control-glow composes; where-defined
@@ -30,14 +29,10 @@ const STATE_MODIFIER = /--(?:selected|active|current|open|checked|pressed|expand
 // left to the compiled check, which sees it once Sass has resolved it.
 const SHADOW_PROPERTY = /^(?:-webkit-|-moz-)?box-shadow$/i;
 const SHADOW_MIXIN = /^(?:elevate|popover-surface)\b/;
-const COMPOSED = /^var\(--state-layer\b[\s\S]*\),\s*var\(--edge-layer\b/;
 
 const tidy = (text) => text.replace(/\s+/g, " ").trim();
 
-/** Whether one selector (as written, nesting `&` and all) names a state. */
-export function isStateSelector(selector) {
-  return STATE_PSEUDO.test(selector) || STATE_ATTRIBUTE.test(selector) || STATE_MODIFIER.test(selector);
-}
+export { isStateSelector };
 
 /** The partial's path under src/styles/, or undefined for a file that is not one. */
 export function partialOf(file) {
@@ -70,7 +65,7 @@ export function stateBoxShadows(root) {
     }
   };
   root.walkDecls(SHADOW_PROPERTY, (decl) => {
-    if (!COMPOSED.test(decl.value.trim())) {
+    if (!isComposed(decl.value.trim())) {
       visit(decl);
     }
   });

@@ -171,3 +171,27 @@ export function pixelDiff(a: Buffer, b: Buffer): PixelDiff {
     image: n > 0 || !sameSize ? { width: w, height: h, rgba: out } : null,
   };
 }
+
+/**
+ * A screenshot taken until two in a row are byte-identical (at most `tries`
+ * takes, `settle` between them), so a state the browser has not finished
+ * painting is never the one kept. Measured on the staged slider (audit of
+ * 7a683fd, frozen lens F6 note; repair): a forced `:active` shot taken on the
+ * first frame differed from one taken a frame later in 2 of 6 fresh pages, by
+ * up to 49 levels, and the comparer could only report those shots unstable,
+ * which blocks the frozen verdict; taken until stable, 6 of 6 agreed, after
+ * one extra take at most. A shot that never settles returns the last take,
+ * and the comparer's same-commit control is still what reports it.
+ */
+export async function untilStable(take: () => Promise<Buffer>, settle: () => Promise<void>, tries = 8): Promise<Buffer> {
+  let shot = await take();
+  for (let i = 1; i < tries; i++) {
+    await settle();
+    const next = await take();
+    if (next.equals(shot)) {
+      return next;
+    }
+    shot = next;
+  }
+  return shot;
+}

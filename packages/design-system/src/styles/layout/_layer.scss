@@ -48,6 +48,16 @@
     --sb-text-muted: #{clr(on-scrim-muted)};
     --sb-text-subtle: #{clr(on-scrim-muted)};
     --sb-bg-subtle: #{color-mix(in oklab, clr(on-scrim) 15%, transparent)};
+    // The ink seams too, each as the role it falls back to (L72): a theme
+    // that defines them (sorbet: cocoa inks at :root) would otherwise paint
+    // headings, labels and captions in the page's ink on the dark scrim,
+    // about 1.1:1 (audit of 7a683fd). A theme without them computes exactly
+    // what it did: text-strong and text-caption fell back to the two roles
+    // re-pointed above, and heading-ink to `inherit`, which currentColor is
+    // for a colour property.
+    --sb-text-strong: #{clr(on-scrim)};
+    --sb-text-caption: #{clr(on-scrim-muted)};
+    --sb-heading-ink: currentColor;
 
     color: clr(on-scrim);
   }

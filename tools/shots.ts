@@ -32,21 +32,68 @@
  * to about a thousand small files; it would not see a state of one element
  * that paints somewhere far from it, which nothing in the library does.
  *
+ * A crop is never quietly something else (audit finding F13, guards lens).
+ * An element whose crop does not fit in the viewport is scrolled to the
+ * middle of it first. The margin may stop only where nothing lies beyond:
+ * the document's edge, or the viewport's for an element in a fixed layer (a
+ * drawer, a toast). A missing element, one with no size, or one whose crop
+ * still does not fit though the element would, is an `-error`, which fails
+ * the run; an element larger than the viewport is shot as the part in view,
+ * and its description says so. Before, a fixture staged below the 900px fold
+ * was shot as whatever the viewport held, one ending at the fold lost its
+ * margin, and a selector that matched nothing was shot as the viewport, all
+ * without a word. The whole fixture grid, taller than the viewport, is a
+ * full-page shot (`staged-all`), and an overlay recipe after which no
+ * overlay is open says so in its description ("no overlay open: the
+ * viewport"). A description that differs between the baseline and the run
+ * is a misaligned shot, never a compared one.
+ *
  * Every shot is taken in a fresh document (see `Session`): a first pass only
  * lists what to shoot, as CSS paths, and each shot then reloads, sets its
  * state up from nothing and shoots. Long sessions drift by a level or two at
  * antialiased edges and are not comparable with each other.
  *
- *   pnpm shots baseline [--at <ref>]   shoot a tree and keep it as the baseline. `--at` exports
- *                                      the commit (`git archive`) into a temporary directory,
- *                                      installs offline and builds there; this checkout is untouched
+ *   pnpm shots baseline [--at <ref>]   shoot THIS tree's playground and keep it as the baseline.
+ *                                      With `--at`, the playground is built with <ref>'s LIBRARY
+ *                                      STYLESHEET in place of this tree's (see below); this
+ *                                      checkout's own build is untouched
  *   pnpm shots compare                 shoot this tree TWICE: the first run is the control. A shot
  *                                      that differs between the two is UNSTABLE and is reported, and
  *                                      blocks the success line. Then every shot is compared with the
  *                                      baseline
  *
+ * What `--at <ref>` swaps, and why only that (audit finding F6, frozen lens).
+ * The promise is about the library stylesheet: the frozen presets' theme
+ * files are byte-identical to e24df74's (the golden gate, check-golden.ts),
+ * and the playground is a demo, not the library. But the playground's own
+ * text counts the checks the design system's tokens make ("700 checks" at
+ * e24df74, "823" after step 2.1), so a baseline of <ref>'s whole playground
+ * differs from this one in every frozen full-page shot, and the verdict L4
+ * asks for, identical to e24df74, could never be given. So `--at` compiles
+ * <ref>'s `packages/design-system/src/styles/index.scss` (from `git archive`,
+ * with this repo's sass, expanded, as `build:css` does) and builds THIS
+ * tree's playground with Vite resolving `@sorbet/design-system/css` to it
+ * (`SORBET_LIBRARY_CSS`, apps/playground/vite.config.ts), into a temporary
+ * directory. The two runs then differ in the library stylesheet and nothing
+ * else: the theme files are this tree's in both, which for the frozen four
+ * are e24df74's bytes.
+ *
+ * Where a baseline came from, and when a compare refuses it (F14, guards
+ * lens; `tools/shots-provenance.ts`). `baseline.json` records the commit the
+ * library stylesheet came from (`libraryCss`), a digest of the playground
+ * that was shot (`playground`: every built file but the library stylesheet),
+ * the tree, the Chromium and the shot count. A compare refuses, with exit 1,
+ * a baseline that does not record them; one whose stylesheet came from a
+ * working tree with uncommitted changes; one whose stylesheet is this
+ * checkout's own HEAD (the tree compared with itself, which printed the
+ * success line before); one taken by another Chromium; and one shot on a
+ * different playground. The success line names the baseline's commit, so a
+ * quoted summary shows what the frozen presets were compared with.
+ *
  * Options: `--no-build`, `--only <preset>`, `--variant ltr|rtl|coarse`,
- * `--workers <n>` (default 8), `--with-sorbet`.
+ * `--workers <n>` (default 8), `--with-sorbet`. `--no-build` uses this
+ * tree's packages and playground as they are built; `--at` still builds its
+ * own copy of the playground with the other stylesheet (seconds, not minutes).
  *
  * When it may say "identical" (L155): only when every frozen preset was
  * compared, in both modes and all three runs, with no difference, no missing
@@ -61,8 +108,7 @@
  * or `SORBET_SHOTS_DIR`. It is outside git on purpose — reproducible from a
  * commit (`--at`), and only valid for the Chromium build that took it — and
  * inside `node_modules/` because that is ignored and belongs to one checkout.
- * `baseline.json` records the commit, the Chromium version and the shot count;
- * a compare refuses a baseline taken by a different Chromium.
+ * `baseline.json` records where the baseline came from (above).
  *
  * Exit code: 0 only on the success line; 1 otherwise; 2 on a usage error.
  */
@@ -73,8 +119,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { styleText } from "node:util";
 
+import { compile } from "sass";
+
 import { ALL_PRESETS, buildPlayground, describeTree, FROZEN_PRESETS, launch, MODES, openPlayground, ROOT, servePlayground, type Mode, type PresetName } from "./playground-browser.ts";
-import { encodePng, pixelDiff } from "./png.ts";
+import { encodePng, pixelDiff, untilStable } from "./png.ts";
+import { baselineRefusal, digestPlayground, type Manifest } from "./shots-provenance.ts";
 
 import type { Browser, CDPSession, Page } from "playwright";
 
@@ -201,21 +250,69 @@ class Session {
     await this.page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   }
 
-  /** The crop round an element (24px of margin, whole pixels, inside the viewport), or the viewport. */
-  async shoot(file: string, crop: string | null) {
+  /**
+   * The crop round an element: 24px of margin, whole pixels, and a note for the shot's description when the crop is
+   * not the whole of that ("" when it is). Where the margin may stop: the document's edge, or the viewport's for an
+   * element in a fixed layer (a drawer, a toast, a popover), since nothing exists beyond either. An element whose
+   * crop does not fit in the viewport is scrolled to the middle of it first. Then (F13), never a silent stand-in:
+   * an element that is missing or has no size, or whose crop still does not fit though the element would, throws,
+   * and the recipe becomes an `-error` that fails the run; an element larger than the viewport is shot as the part
+   * of it in view, and the note says so. An element that fits is shot where it is, as before. `"viewport"` shoots
+   * the viewport as it is.
+   */
+  async shoot(file: string, crop: string): Promise<string> {
     await this.settle();
-    const box = crop === null ? null : await this.page.evaluate((selector) => {
+    type Measured = { box: { x: number; y: number; width: number; height: number }; note: string } | { error: string } | { scroll: true };
+    const measure = (scroll: boolean) => this.page.evaluate(({ selector, scroll }): Measured => {
       const element = document.querySelector(selector);
       if (!element) {
-        return null;
+        return { error: `no element matches ${selector}` };
+      }
+      if (scroll) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
       }
       const r = element.getBoundingClientRect();
-      const [x0, y0] = [Math.max(0, Math.floor(r.left) - 24), Math.max(0, Math.floor(r.top) - 24)];
-      const [x1, y1] = [Math.min(innerWidth, Math.ceil(r.right) + 24), Math.min(innerHeight, Math.ceil(r.bottom) + 24)];
-      return x1 > x0 && y1 > y0 ? { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } : null;
-    }, crop);
-    const png = box === null ? await this.page.screenshot({ animations: "disabled", caret: "hide" }) : await this.page.screenshot({ clip: box, animations: "disabled", caret: "hide" });
+      if (r.width === 0 || r.height === 0) {
+        return { error: `${selector} has no size` };
+      }
+      let fixed = false;
+      for (let e: Element | null = element; e && !fixed; e = e.parentElement) {
+        fixed = getComputedStyle(e).position === "fixed";
+      }
+      const page = document.scrollingElement ?? document.documentElement;
+      // The edges nothing lies beyond, in viewport coordinates: the margin may stop there, and nowhere else.
+      const [left, top, right, bottom] = fixed ? [0, 0, innerWidth, innerHeight] : [-scrollX, -scrollY, page.scrollWidth - scrollX, page.scrollHeight - scrollY];
+      const [x0, y0] = [Math.max(left, Math.floor(r.left) - 24), Math.max(top, Math.floor(r.top) - 24)];
+      const [x1, y1] = [Math.min(right, Math.ceil(r.right) + 24), Math.min(bottom, Math.ceil(r.bottom) + 24)];
+      if (x0 >= 0 && y0 >= 0 && x1 <= innerWidth && y1 <= innerHeight) {
+        return { box: { x: x0, y: y0, width: x1 - x0, height: y1 - y0 }, note: "" };
+      }
+      const larger = x1 - x0 > innerWidth || y1 - y0 > innerHeight;
+      if (larger && scroll) {
+        const [cx0, cy0, cx1, cy1] = [Math.max(0, x0), Math.max(0, y0), Math.min(innerWidth, x1), Math.min(innerHeight, y1)];
+        return { box: { x: cx0, y: cy0, width: cx1 - cx0, height: cy1 - cy0 }, note: `larger than the viewport (${x1 - x0}x${y1 - y0}): the part in view` };
+      }
+      return scroll ? { error: `${selector} with its 24px does not fit in the viewport (${x0}, ${y0} to ${x1}, ${y1} in ${innerWidth}x${innerHeight})` } : { scroll: true };
+    }, { selector: crop, scroll });
+    let box: { x: number; y: number; width: number; height: number } | null = null;
+    let note = "";
+    if (crop !== "viewport") {
+      let measured = await measure(false);
+      if ("scroll" in measured) {
+        measured = await measure(true);
+        await this.settle();
+      }
+      if ("error" in measured) {
+        throw new Error(measured.error);
+      }
+      if ("box" in measured) {
+        ({ box, note } = measured);
+      }
+    }
+    // Taken until two in a row agree: a forced state is not always painted on the first frame (untilStable, png.ts).
+    const png = await untilStable(() => (box === null ? this.page.screenshot({ animations: "disabled", caret: "hide" }) : this.page.screenshot({ clip: box, animations: "disabled", caret: "hide" })), () => this.settle());
     writeFileSync(file, png);
+    return note;
   }
 
   async force(selector: string, states: string[]) {
@@ -309,13 +406,15 @@ const OVERLAYS: { label: string; open: (s: Session) => Promise<void>; keys: stri
 const OVERLAY_ITEMS = "[role=menuitem], [role=option], .sb-menu__item, .sb-combobox__option, .sb-command__option, [popover]:popover-open button, [popover]:popover-open a[href], .sb-toast button, dialog[open] button";
 const OPEN = "[popover]:popover-open, dialog[open], .sb-toast";
 
-/** Mark the last open overlay for the crop; null when none is open. */
-const markOverlay = (page: Page) => page.evaluate((open) => {
+/** What an overlay recipe crops to when no overlay is open after it: the viewport, said in the shot's description. */
+const NO_OVERLAY = "no overlay open";
+/** Mark the last open overlay for the crop; NO_OVERLAY when none is open. */
+const markOverlay = (page: Page) => page.evaluate(({ open, none }) => {
   document.querySelectorAll("[data-shots-ov]").forEach((e) => e.removeAttribute("data-shots-ov"));
   const all = [...document.querySelectorAll(open)].filter((e) => e.getBoundingClientRect().width > 0);
   all.at(-1)?.setAttribute("data-shots-ov", "");
-  return all.length > 0 ? "[data-shots-ov]" : null;
-}, OPEN);
+  return all.length > 0 ? "[data-shots-ov]" : none;
+}, { open: OPEN, none: NO_OVERLAY });
 
 /** What one job shoots: each shot a recipe run in a fresh document. */
 interface Recipe {
@@ -442,7 +541,8 @@ async function discover(s: Session): Promise<Recipe[]> {
 
   // The staged fixtures, each under each forced state.
   await s.fresh(true);
-  recipes.push({ name: "staged-all", what: "every fixture at rest", fixtures: true, run: async() => "#shots-fixtures" });
+  // The whole grid is taller than the viewport, so it is a full-page shot, not a crop the viewport would cut (F13).
+  recipes.push({ name: "staged-all", what: "every fixture at rest", fixtures: true, run: async() => "full" });
   const ids = await page.evaluate(() => [...document.querySelectorAll("#shots-fixtures [id]")].map((e) => e.id));
   for (const id of ids) {
     for (const states of FORCED) {
@@ -469,25 +569,34 @@ async function shootJob(browser: Browser, url: string, job: Job, dir: string): P
     await page.mouse.up().catch(() => undefined);
     await s.fresh(recipe.fixtures ?? false);
     await page.mouse.move(VIEWPORT.width - 1, VIEWPORT.height - 1);
-    let crop: string | null;
-    try {
-      crop = await recipe.run(s);
-    } catch(error) {
-      shots.push({ name: `${recipe.name}-error`, what: String(error).split("\n")[0]! });
-      continue;
-    }
     if (recipe.name.endsWith("-error")) {
       shots.push({ name: recipe.name, what: recipe.what });
       continue;
     }
     const file = join(dir, `${recipe.name}.png`);
-    if (crop === "full") {
-      await s.settle();
-      writeFileSync(file, await page.screenshot({ fullPage: true, animations: "disabled", caret: "hide" }));
-    } else {
-      await s.shoot(file, crop);
+    let what = recipe.what;
+    try {
+      const crop = await recipe.run(s);
+      if (crop === null) {
+        throw new Error("the recipe named nothing to shoot");
+      }
+      if (crop === "full") {
+        await s.settle();
+        writeFileSync(file, await untilStable(() => page.screenshot({ fullPage: true, animations: "disabled", caret: "hide" }), () => s.settle()));
+      } else if (crop === NO_OVERLAY) {
+        what = `${what} (${NO_OVERLAY}: the viewport)`;
+        await s.settle();
+        await s.shoot(file, "viewport");
+      } else {
+        const note = await s.shoot(file, crop);
+        what = note === "" ? what : `${what} (${note})`;
+      }
+    } catch(error) {
+      // A failed setup or a crop that cannot be taken (F13) fails the run; it is never shot as something else.
+      shots.push({ name: `${recipe.name}-error`, what: String(error).split("\n")[0]! });
+      continue;
     }
-    shots.push({ name: recipe.name, what: recipe.what });
+    shots.push({ name: recipe.name, what });
   }
   await page.context().close();
   writeFileSync(join(dir, "shots.json"), `${JSON.stringify(shots, null, 1)}\n`);
@@ -513,23 +622,43 @@ async function shootAll(browser: Browser, root: string, into: string): Promise<n
   return total;
 }
 
-function exportTree(ref: string): string {
-  const dir = mkdtempSync(join(tmpdir(), "sorbet-shots-"));
-  const archive = execFileSync("git", ["archive", "--format=tar", ref], { cwd: ROOT, maxBuffer: 1 << 30 });
+/**
+ * `<ref>`'s library stylesheet, compiled as `build:css` compiles it (this repo's sass, expanded), into a file in a
+ * temporary directory. Only `packages/design-system/src/styles` is exported; `_generated.scss` is tracked there.
+ */
+function stylesheetAt(ref: string, dir: string): string {
+  const archive = execFileSync("git", ["archive", "--format=tar", ref, "packages/design-system/src/styles"], { cwd: ROOT, maxBuffer: 1 << 30 });
   execFileSync("tar", ["-x", "-C", dir], { input: archive });
-  execFileSync("pnpm", ["install", "--offline", "--frozen-lockfile"], { cwd: dir, stdio: ["ignore", "inherit", "inherit"] });
-  return dir;
+  const styles = join(dir, "packages", "design-system", "src", "styles");
+  const file = join(dir, "library.css");
+  writeFileSync(file, compile(join(styles, "index.scss"), { loadPaths: [styles], style: "expanded" }).css);
+  return file;
 }
+
+/**
+ * This tree's playground, built with `stylesheet` as `@sorbet/design-system/css` (F6), into `<site>/apps/playground/
+ * dist`, the layout `servePlayground` serves. This tree's packages must be built already: their dist/ is what the
+ * playground's JavaScript and theme files come from.
+ */
+function buildWithStylesheet(stylesheet: string, site: string): void {
+  execFileSync("pnpm", ["--filter", "playground", "exec", "vite", "build", "--outDir", join(site, "apps", "playground", "dist"), "--emptyOutDir"], {
+    cwd: ROOT,
+    env: { ...process.env, SORBET_LIBRARY_CSS: stylesheet },
+    stdio: ["ignore", "inherit", "inherit"],
+  });
+}
+
+/** A ref as a full sha in this checkout, or undefined when it names no commit. */
+const resolveCommit = (ref: string) => {
+  try {
+    return execFileSync("git", ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Comparing
-
-interface Manifest {
-  tree: string;
-  chromium: string;
-  takenAt: string;
-  shots: number;
-}
 
 const readShots = (dir: string): Shot[] => (existsSync(join(dir, "shots.json")) ? JSON.parse(readFileSync(join(dir, "shots.json"), "utf8")) : []);
 
@@ -584,27 +713,38 @@ try {
   const chromium = browser.version();
   if (command === "baseline") {
     const ref = option("--at");
-    const root = ref === undefined ? ROOT : exportTree(ref);
+    if (ref !== undefined && resolveCommit(ref) === undefined) {
+      console.error(`--at ${ref} names no commit in this checkout.`);
+      process.exit(2);
+    }
+    const temp = mkdtempSync(join(tmpdir(), "sorbet-shots-"));
     try {
-      if (!flag("--no-build") || ref !== undefined) {
-        buildPlayground(root);
+      if (!flag("--no-build")) {
+        buildPlayground(ROOT);
       }
+      // With --at, this tree's playground with <ref>'s library stylesheet (F6); without, this tree as built.
+      const site = ref === undefined ? ROOT : temp;
+      if (ref !== undefined) {
+        buildWithStylesheet(stylesheetAt(ref, temp), temp);
+      }
+      const libraryCss = ref === undefined ? describeTree(ROOT) : execFileSync("git", ["rev-parse", "--short", ref], { cwd: ROOT, encoding: "utf8" }).trim();
       rmSync(BASELINE, { recursive: true, force: true });
       mkdirSync(BASELINE, { recursive: true });
-      console.log(`Baseline of ${ref ?? describeTree(ROOT)} into ${BASELINE}`);
-      const total = await shootAll(browser, root, BASELINE);
+      console.log(`Baseline: ${describeTree(ROOT)}'s playground with ${libraryCss}'s library stylesheet, into ${BASELINE}`);
+      const total = await shootAll(browser, site, BASELINE);
       const manifest: Manifest = {
-        tree: ref === undefined ? describeTree(ROOT) : execFileSync("git", ["rev-parse", "--short", ref], { cwd: ROOT, encoding: "utf8" }).trim(),
+        libraryCss,
+        playground: digestPlayground(join(site, "apps", "playground", "dist")),
+        mechanism: ref === undefined ? "this-tree" : "library-css-swap",
+        tree: describeTree(ROOT),
         chromium,
         takenAt: new Date().toISOString(),
         shots: total,
       };
       writeFileSync(join(BASELINE, "baseline.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-      console.log(styleText("green", `✓ ${total} shots in ${jobs.length} runs, taken at ${manifest.tree} by Chromium ${chromium}`));
+      console.log(styleText("green", `✓ ${total} shots in ${jobs.length} runs, of ${libraryCss}'s library stylesheet in ${manifest.tree}'s playground, by Chromium ${chromium}`));
     } finally {
-      if (ref !== undefined) {
-        rmSync(root, { recursive: true, force: true });
-      }
+      rmSync(temp, { recursive: true, force: true });
     }
   } else {
     const manifestPath = join(BASELINE, "baseline.json");
@@ -613,13 +753,20 @@ try {
       process.exit(1);
     }
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Manifest;
-    if (manifest.chromium !== chromium) {
-      console.error(`The baseline was taken by Chromium ${manifest.chromium}; this is ${chromium}. Retake it: \`pnpm shots baseline --at ${manifest.tree.replace("+dirty", "")}\`.`);
-      process.exit(1);
-    }
+    // Where the baseline came from (F14): refused before the build where that can be told, and again after it, when
+    // this tree's playground can be compared with the one the baseline was shot on (F6).
+    const refuse = (playground?: string) => {
+      const why = baselineRefusal(manifest, { resolve: resolveCommit, chromium, playground });
+      if (why !== null) {
+        console.error(styleText("red", `✗ ${why}`));
+        process.exit(1);
+      }
+    };
+    refuse();
     if (!flag("--no-build")) {
       buildPlayground(ROOT);
     }
+    refuse(digestPlayground(join(ROOT, "apps", "playground", "dist")));
     const [control, latest, diffs] = [join(STORE, "control"), join(STORE, "latest"), join(STORE, "diffs")];
     for (const dir of [control, latest, diffs]) {
       rmSync(dir, { recursive: true, force: true });
@@ -629,7 +776,7 @@ try {
     await shootAll(browser, ROOT, control);
     console.log(`Shooting ${describeTree(ROOT)}:`);
     const total = await shootAll(browser, ROOT, latest);
-    console.log(`\nAgainst the baseline taken at ${manifest.tree} (${manifest.takenAt}), ${total} shots:`);
+    console.log(`\nAgainst the baseline of ${manifest.libraryCss}'s library stylesheet (${manifest.mechanism}, taken ${manifest.takenAt}), ${total} shots:`);
     const results = jobs.map((job) => compareJob(job, BASELINE, latest, control, diffs));
     let frozenBad = 0;
     for (const r of results) {
@@ -664,7 +811,7 @@ try {
       console.log(styleText("yellow", "\n✗ not every frozen preset compared in both modes and all three runs: no verdict on the frozen presets."));
       process.exit(1);
     }
-    console.log(styleText("green", `\n✓ The frozen presets are pixel-identical in both modes, in ${VARIANTS.join(", ")} (${frozenJobs.reduce((n, r) => n + r.compared, 0)} shots, control stable).`));
+    console.log(styleText("green", `\n✓ The frozen presets are pixel-identical to ${manifest.libraryCss}'s library stylesheet in both modes, in ${VARIANTS.join(", ")} (${frozenJobs.reduce((n, r) => n + r.compared, 0)} shots, control stable).`));
   }
 } finally {
   await browser.close();

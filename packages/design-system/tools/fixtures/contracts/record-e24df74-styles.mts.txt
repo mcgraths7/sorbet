@@ -39,10 +39,11 @@ const styles = join(designSystem, "src", "styles");
 const css = sass.compile(join(styles, "index.scss"), { loadPaths: [styles], style: "expanded" }).css;
 writeFileSync(join(outDir, "compiled.at-e24df74.css"), css);
 
-// L153's state rule and allowed forms.
-const STATE = /:(?:hover|active|focus|focus-visible|focus-within|checked|indeterminate|disabled|enabled|invalid|user-invalid|open|popover-open|target)(?![\w-])|\[aria-|\[data-state|--(?:selected|active|current|open|checked|pressed|expanded|invalid|disabled|loading)(?![\w-])/;
+// L153's state rule and allowed form: the one definition, tools/stylelint/state-definition.js, which the compiled
+// check in test-contracts.ts and the source stylelint rule import too (audit of 7a683fd, guards F9: this file used to
+// carry a fourth literal copy).
+const { isComposed, isStateSelector } = (await import(join(repoRoot, "tools", "stylelint", "state-definition.js"))) as { isComposed: (value: string) => boolean; isStateSelector: (selector: string) => boolean };
 const SHADOW = new Set(["box-shadow", "-webkit-box-shadow", "-moz-box-shadow"]);
-const COMPOSED = /^var\(--state-layer\b[\s\S]*\),\s*var\(--edge-layer\b/;
 const normal = (text: string) => text.replace(/["']/g, "").replace(/\s+/g, " ").trim();
 
 const seen = new Map<string, { selector: string; property: string; value: string }>();
@@ -53,10 +54,10 @@ postcss.parse(css).walkRules((rule) => {
       continue;
     }
     const value = normal(decl.value ?? "").replace(/\s*!important$/i, "");
-    if (COMPOSED.test(value)) {
+    if (isComposed(value)) {
       continue;
     }
-    for (const selector of rule.selectors.map(normal).filter((item) => STATE.test(item))) {
+    for (const selector of rule.selectors.map(normal).filter((item) => isStateSelector(item))) {
       seen.set(`${selector}\n${property}\n${value}`, { selector, property, value });
     }
   }

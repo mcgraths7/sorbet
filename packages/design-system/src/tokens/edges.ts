@@ -256,20 +256,40 @@ export function shadowText(layers: readonly ShadowLayer[]): string {
 const HALO_ELEMENTS: readonly EdgeElement[] = ["container", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger"];
 
 /**
+ * How far each halo element rises off the page while hovered, in px: the
+ * filled buttons by `pressable(1px)` (`atoms/_button.scss`), the interactive
+ * card by `translate: 0 -2px` (`molecules/_card.scss`); the quiet button sits
+ * it out (`--lift: 0`), and a press drops a button back to the page. A rise
+ * carries the element's all-round layer that much further past the side it
+ * rises toward, so it counts in the room (audit of 7a683fd, frozen lens F5: a
+ * hovered filled button reached 8 + 1 = 9px and a hovered interactive card
+ * 7 + 2 = 9px, against 8px of room). These are copies of the Sass, which is
+ * why `test-contracts.ts` reads both rises off the compiled stylesheet and
+ * fails when either copy changes alone.
+ */
+export const HOVER_LIFT: Readonly<{ container: number; quiet: number; filled: number }> = { container: 2, quiet: 0, filled: 1 };
+
+/**
  * How far a mode's all-round layers reach past an element's box, in whole px
  * (L151): the largest `max(|x|, |y|) + blur + spread` of any all-round layer
  * drawn outside the box, in the rest, hover and press of the container, the
- * quiet element and the four filled ones, rounded up. A clipping or scrolling
- * parent pads by it, so it never cuts the layer presence measures. 0 when no
- * such layer exists.
+ * quiet element and the four filled ones, plus the element's rise
+ * (`HOVER_LIFT`) wherever it is hovered — the filled elements' hover recipe,
+ * and the container's rest recipe, which is also its hover (`edge()` allows a
+ * state only on `filled-*`) — rounded up. A clipping or scrolling parent pads
+ * by it, so it never cuts that layer, hovered or not. 0 when no such layer
+ * exists.
  */
 export function haloRoom(data: EdgeData): number {
+  const reach = (layers: readonly ShadowLayer[], rise: number) => layers.filter((layer) => allRound(layer) && !layer.inset).map((layer) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread + rise);
   const reaches = HALO_ELEMENTS.flatMap((element) => {
     const recipe = data[element];
-    return recipe === undefined ? [] : [...recipe.rest, ...(recipe.hover ?? []), ...(recipe.press ?? [])];
-  })
-    .filter((layer) => allRound(layer) && !layer.inset)
-    .map((layer) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread);
+    if (recipe === undefined) {
+      return [];
+    }
+    const lift = element === "container" ? HOVER_LIFT.container : element === "quiet" ? HOVER_LIFT.quiet : HOVER_LIFT.filled;
+    return [...reach(recipe.rest, element === "container" ? lift : 0), ...reach(recipe.hover ?? [], lift), ...reach(recipe.press ?? [], 0)];
+  });
   return Math.ceil(Math.max(0, ...reaches));
 }
 

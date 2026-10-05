@@ -129,7 +129,7 @@
   --sb-edge-status-warning: 0 0 5px 1px rgb(187 156 18 / 0.6), 0 1px 2px 0 rgb(187 156 18 / 0.5);
   --sb-edge-status-danger: 0 0 5px 1px rgb(232 119 131 / 0.6), 0 1px 2px 0 rgb(232 119 131 / 0.5);
   --sb-edge-status-info: 0 0 5px 1px rgb(175 136 230 / 0.6), 0 1px 2px 0 rgb(175 136 230 / 0.5);
-  --sb-halo-room: 8px;
+  --sb-halo-room: 9px;
 }
 
 /* Explicit opt-in: <html data-theme="dark"> */
