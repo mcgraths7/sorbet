@@ -1,0 +1,4526 @@
+{
+  "transcribedFrom": "docs/pastel-legibility-evidence/legibility-spec.md, revision 3.3 (2026-10-05)",
+  "note": "floors: L61. rules: appendix A, the 191 rules in RULES order (L67), each with the actual and view the spec states per mode (two decimals). edgeDetail: appendix B.",
+  "floors": [
+    {
+      "tier": "scrim",
+      "kind": "text",
+      "metric": "ratio",
+      "rules": 2,
+      "light": 4.5,
+      "dark": 4.5
+    },
+    {
+      "tier": "body",
+      "kind": "text",
+      "metric": "lc",
+      "rules": 15,
+      "light": 82.8,
+      "dark": 83.2
+    },
+    {
+      "tier": "secondary",
+      "kind": "text",
+      "metric": "lc",
+      "rules": 26,
+      "light": 74.2,
+      "dark": 64.7
+    },
+    {
+      "tier": "on-wash",
+      "kind": "text",
+      "metric": "lc",
+      "rules": 8,
+      "light": 73.3,
+      "dark": 76.2
+    },
+    {
+      "tier": "tinted",
+      "kind": "text",
+      "metric": "lc",
+      "rules": 17,
+      "light": 64.4,
+      "dark": 57.7
+    },
+    {
+      "tier": "label",
+      "kind": "text",
+      "metric": "lc",
+      "rules": 19,
+      "light": 68.9,
+      "dark": 68.9
+    },
+    {
+      "tier": "placeholder",
+      "kind": "text",
+      "metric": "lc",
+      "rules": 6,
+      "light": 62.1,
+      "dark": 45
+    },
+    {
+      "tier": "mark-area",
+      "kind": "shape",
+      "metric": "sep",
+      "rules": 9,
+      "light": 12.4,
+      "dark": 45.7
+    },
+    {
+      "tier": "mark-line",
+      "kind": "shape",
+      "metric": "sep",
+      "rules": 21,
+      "light": 19.5,
+      "dark": 22
+    },
+    {
+      "tier": "divider",
+      "kind": "shape",
+      "metric": "sep",
+      "rules": 2,
+      "light": 11.3,
+      "dark": 10.5
+    },
+    {
+      "tier": "focus-visible",
+      "kind": "focus",
+      "metric": "sep",
+      "rules": 20,
+      "light": 24.8,
+      "dark": 17
+    },
+    {
+      "tier": "tell-apart",
+      "kind": "distinction",
+      "metric": "sep",
+      "rules": 4,
+      "light": 11.5,
+      "dark": 11.5
+    },
+    {
+      "tier": "palette",
+      "kind": "distinction",
+      "metric": "sep",
+      "rules": 6,
+      "light": 4.8,
+      "dark": 4.8
+    },
+    {
+      "tier": "chart-mark",
+      "kind": "chart",
+      "metric": "sep",
+      "rules": 16,
+      "light": 28.4,
+      "dark": 41.9
+    },
+    {
+      "tier": "edge-container",
+      "kind": "edge",
+      "metric": "presence",
+      "rules": 2,
+      "light": 15.8,
+      "dark": 15.2
+    },
+    {
+      "tier": "edge-floating",
+      "kind": "edge",
+      "metric": "presence",
+      "rules": 2,
+      "light": 16.8,
+      "dark": 20.4
+    },
+    {
+      "tier": "edge-field",
+      "kind": "edge",
+      "metric": "presence",
+      "rules": 3,
+      "light": 10.4,
+      "dark": 30.1
+    },
+    {
+      "tier": "edge-sunken",
+      "kind": "edge",
+      "metric": "presence",
+      "rules": 1,
+      "light": 8.1,
+      "dark": 13.3
+    },
+    {
+      "tier": "edge-quiet",
+      "kind": "edge",
+      "metric": "presence",
+      "rules": 2,
+      "light": 16,
+      "dark": 16.3
+    },
+    {
+      "tier": "edge-filled",
+      "kind": "edge",
+      "metric": "presence",
+      "rules": 8,
+      "light": 17.7,
+      "dark": 54.7
+    },
+    {
+      "tier": "edge-status",
+      "kind": "edge",
+      "metric": "presence",
+      "rules": 4,
+      "light": 14.6,
+      "dark": 20.3
+    }
+  ],
+  "rules": [
+    {
+      "n": "R087",
+      "fg": "text",
+      "bg": "bg",
+      "tier": "body",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fef4dc",
+        "actual": 84.86,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R088",
+      "fg": "text",
+      "bg": "surface",
+      "tier": "body",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R089",
+      "fg": "text",
+      "bg": "surface-raised",
+      "tier": "body",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#463425",
+        "actual": 85.24,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R090",
+      "fg": "text",
+      "bg": "field-fill",
+      "tier": "body",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#140903",
+        "actual": 91.55,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R091",
+      "fg": "text-strong",
+      "bg": "bg",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fef4dc",
+        "actual": 92.9,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "strong text: field labels"
+    },
+    {
+      "n": "R092",
+      "fg": "text-strong",
+      "bg": "surface",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fffbf1",
+        "actual": 97.14,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "strong text: field labels"
+    },
+    {
+      "n": "R093",
+      "fg": "text-strong",
+      "bg": "surface-raised",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fffbf1",
+        "actual": 97.14,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#463425",
+        "actual": 85.24,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "strong text: field labels"
+    },
+    {
+      "n": "R094",
+      "fg": "heading-ink",
+      "bg": "bg",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fef4dc",
+        "actual": 92.9,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "headings"
+    },
+    {
+      "n": "R095",
+      "fg": "heading-ink",
+      "bg": "surface",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fffbf1",
+        "actual": 97.14,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "headings"
+    },
+    {
+      "n": "R096",
+      "fg": "heading-ink",
+      "bg": "surface-raised",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fffbf1",
+        "actual": 97.14,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#463425",
+        "actual": 85.24,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "headings"
+    },
+    {
+      "n": "R097",
+      "fg": "text-caption",
+      "bg": "bg",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fef4dc",
+        "actual": 92.9,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "12px captions"
+    },
+    {
+      "n": "R098",
+      "fg": "text-caption",
+      "bg": "surface",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fffbf1",
+        "actual": 97.14,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "12px captions"
+    },
+    {
+      "n": "R099",
+      "fg": "text-caption",
+      "bg": "surface-raised",
+      "tier": "body",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fffbf1",
+        "actual": 97.14,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#463425",
+        "actual": 85.24,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "12px captions"
+    },
+    {
+      "n": "R100",
+      "fg": "bg",
+      "bg": "text",
+      "tier": "body",
+      "light": {
+        "fg": "#fef4dc",
+        "bg": "#693800",
+        "actual": 88.39,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#211409",
+        "bg": "#f3e7ce",
+        "actual": 90.21,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "tooltip"
+    },
+    {
+      "n": "R101",
+      "fg": "text-inverse",
+      "bg": "text",
+      "tier": "body",
+      "light": {
+        "fg": "#fef4dc",
+        "bg": "#693800",
+        "actual": 88.39,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#211409",
+        "bg": "#f3e7ce",
+        "actual": 90.21,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R102",
+      "fg": "text-muted",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#fef4dc",
+        "actual": 76.3,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#211409",
+        "actual": 72.42,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R103",
+      "fg": "text-muted",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#fffbf1",
+        "actual": 79.89,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#342417",
+        "actual": 70.32,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R104",
+      "fg": "text-muted",
+      "bg": "surface-raised",
+      "tier": "secondary",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#fffbf1",
+        "actual": 79.89,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#463425",
+        "actual": 66.79,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R105",
+      "fg": "text-muted",
+      "bg": "field-fill",
+      "tier": "secondary",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#fffbf1",
+        "actual": 79.89,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#140903",
+        "actual": 73.1,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R106",
+      "fg": "text",
+      "bg": "bg-subtle",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#f7ecd1",
+        "actual": 80.49,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#140903",
+        "actual": 91.55,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R107",
+      "fg": "text",
+      "bg": "surface-sunken",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#f7ecd1",
+        "actual": 80.49,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#140903",
+        "actual": 91.55,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R108",
+      "fg": "link",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fef4dc",
+        "actual": 78.39,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#211409",
+        "actual": 75.99,
+        "view": "typical"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R109",
+      "fg": "link",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fffbf1",
+        "actual": 82.63,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#342417",
+        "actual": 73.5,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R110",
+      "fg": "link",
+      "bg": "surface-raised",
+      "tier": "secondary",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fffbf1",
+        "actual": 82.63,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#463425",
+        "actual": 69.53,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R111",
+      "fg": "link-hover",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fef4dc",
+        "actual": 78.39,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#211409",
+        "actual": 75.99,
+        "view": "typical"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R112",
+      "fg": "link-hover",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fffbf1",
+        "actual": 82.63,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#342417",
+        "actual": 73.5,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R113",
+      "fg": "link-hover",
+      "bg": "surface-raised",
+      "tier": "secondary",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fffbf1",
+        "actual": 82.63,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#463425",
+        "actual": 69.53,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R114",
+      "fg": "primary-text",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fef4dc",
+        "actual": 92.9,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R115",
+      "fg": "primary-text",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#472400",
+        "bg": "#fffbf1",
+        "actual": 97.14,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R116",
+      "fg": "secondary-text",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fef4dc",
+        "actual": 84.86,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R117",
+      "fg": "secondary-text",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R118",
+      "fg": "accent-text",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fef4dc",
+        "actual": 84.86,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R119",
+      "fg": "accent-text",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R120",
+      "fg": "success-text",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fef4dc",
+        "actual": 84.86,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R121",
+      "fg": "success-text",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R122",
+      "fg": "warning-text",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fef4dc",
+        "actual": 84.86,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R123",
+      "fg": "warning-text",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R124",
+      "fg": "danger-text",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fef4dc",
+        "actual": 84.86,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R125",
+      "fg": "danger-text",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R126",
+      "fg": "info-text",
+      "bg": "bg",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fef4dc",
+        "actual": 84.86,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#211409",
+        "actual": 90.87,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R127",
+      "fg": "info-text",
+      "bg": "surface",
+      "tier": "secondary",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fffbf1",
+        "actual": 88.78,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#342417",
+        "actual": 88.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R128",
+      "fg": "primary-text",
+      "bg": "primary-subtle",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#472400",
+        "bg": "#ede0f7",
+        "actual": 84.18,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#554445",
+        "actual": 79.9,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R129",
+      "fg": "secondary-text",
+      "bg": "secondary-subtle",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fcdfdc",
+        "actual": 76.17,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#5b443a",
+        "actual": 79.93,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R130",
+      "fg": "accent-text",
+      "bg": "accent-subtle",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#693800",
+        "bg": "#faefca",
+        "actual": 81.66,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#5b4a33",
+        "actual": 78.59,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R131",
+      "fg": "success-text",
+      "bg": "success-subtle",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#693800",
+        "bg": "#d3f4f0",
+        "actual": 78.89,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#4b4c42",
+        "actual": 78.22,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R132",
+      "fg": "warning-text",
+      "bg": "warning-subtle",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#693800",
+        "bg": "#faefca",
+        "actual": 81.66,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#5b4a33",
+        "actual": 78.59,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R133",
+      "fg": "danger-text",
+      "bg": "danger-subtle",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#693800",
+        "bg": "#fcdfdc",
+        "actual": 76.17,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#5b443a",
+        "actual": 79.93,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R134",
+      "fg": "info-text",
+      "bg": "info-subtle",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#693800",
+        "bg": "#ede0f7",
+        "actual": 75.33,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#554445",
+        "actual": 79.9,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R135",
+      "fg": "primary-text",
+      "bg": "selected-wash",
+      "tier": "on-wash",
+      "light": {
+        "fg": "#472400",
+        "bg": "#ede0f7",
+        "actual": 84.18,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f3e7ce",
+        "bg": "#554445",
+        "actual": 79.9,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "selected tab or row text on its wash"
+    },
+    {
+      "n": "R136",
+      "fg": "text-muted",
+      "bg": "bg-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#f7ecd1",
+        "actual": 71.6,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#140903",
+        "actual": 73.1,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R137",
+      "fg": "text-muted",
+      "bg": "surface-sunken",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#f7ecd1",
+        "actual": 71.6,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#140903",
+        "actual": 73.1,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R138",
+      "fg": "text-muted",
+      "bg": "selected-wash",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#ede0f7",
+        "actual": 66.45,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#554445",
+        "actual": 61.45,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "secondary text in a selected row"
+    },
+    {
+      "n": "R139",
+      "fg": "text-muted",
+      "bg": "primary-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#ede0f7",
+        "actual": 66.45,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#554445",
+        "actual": 61.45,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R140",
+      "fg": "text-muted",
+      "bg": "secondary-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#fcdfdc",
+        "actual": 67.62,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#5b443a",
+        "actual": 61.48,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R141",
+      "fg": "text-muted",
+      "bg": "accent-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#faefca",
+        "actual": 73.1,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#5b4a33",
+        "actual": 60.14,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R142",
+      "fg": "text-muted",
+      "bg": "success-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#d3f4f0",
+        "actual": 70,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#4b4c42",
+        "actual": 59.77,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R143",
+      "fg": "text-muted",
+      "bg": "warning-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#faefca",
+        "actual": 73.1,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#5b4a33",
+        "actual": 60.14,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R144",
+      "fg": "text-muted",
+      "bg": "danger-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#fcdfdc",
+        "actual": 67.62,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#5b443a",
+        "actual": 61.48,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R145",
+      "fg": "text-muted",
+      "bg": "info-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#844d16",
+        "bg": "#ede0f7",
+        "actual": 66.45,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d7c9ae",
+        "bg": "#554445",
+        "actual": 61.45,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R146",
+      "fg": "link",
+      "bg": "primary-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#654199",
+        "bg": "#ede0f7",
+        "actual": 69.81,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#554445",
+        "actual": 64.3,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R147",
+      "fg": "link",
+      "bg": "secondary-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fcdfdc",
+        "actual": 68.61,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#5b443a",
+        "actual": 63.71,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R148",
+      "fg": "link",
+      "bg": "accent-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#654199",
+        "bg": "#faefca",
+        "actual": 74.89,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#5b4a33",
+        "actual": 62.55,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R149",
+      "fg": "link",
+      "bg": "success-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#654199",
+        "bg": "#d3f4f0",
+        "actual": 74.25,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#4b4c42",
+        "actual": 63.51,
+        "view": "typical"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R150",
+      "fg": "link",
+      "bg": "warning-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#654199",
+        "bg": "#faefca",
+        "actual": 74.89,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#5b4a33",
+        "actual": 62.55,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R151",
+      "fg": "link",
+      "bg": "danger-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#654199",
+        "bg": "#fcdfdc",
+        "actual": 68.61,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#5b443a",
+        "actual": 63.71,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R152",
+      "fg": "link",
+      "bg": "info-subtle",
+      "tier": "tinted",
+      "light": {
+        "fg": "#654199",
+        "bg": "#ede0f7",
+        "actual": 69.81,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#554445",
+        "actual": 64.3,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R153",
+      "fg": "on-primary",
+      "bg": "primary",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R154",
+      "fg": "on-secondary",
+      "bg": "secondary",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R155",
+      "fg": "on-accent",
+      "bg": "accent",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R156",
+      "fg": "on-success",
+      "bg": "success",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#a6edee",
+        "actual": 79.1,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#a6edee",
+        "actual": 79.1,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R157",
+      "fg": "on-warning",
+      "bg": "warning",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R158",
+      "fg": "on-danger",
+      "bg": "danger",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R159",
+      "fg": "on-info",
+      "bg": "info",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R160",
+      "fg": "on-primary",
+      "bg": "primary-hover",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R161",
+      "fg": "on-secondary",
+      "bg": "secondary-hover",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R162",
+      "fg": "on-accent",
+      "bg": "accent-hover",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R163",
+      "fg": "on-success",
+      "bg": "success-hover",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#a6edee",
+        "actual": 79.1,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#a6edee",
+        "actual": 79.1,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R164",
+      "fg": "on-warning",
+      "bg": "warning-hover",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R165",
+      "fg": "on-danger",
+      "bg": "danger-hover",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R166",
+      "fg": "on-info",
+      "bg": "info-hover",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R167",
+      "fg": "on-primary",
+      "bg": "primary-active",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R168",
+      "fg": "on-secondary",
+      "bg": "secondary-active",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R169",
+      "fg": "on-accent",
+      "bg": "accent-active",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f5e3a2",
+        "actual": 82.57,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R170",
+      "fg": "on-danger",
+      "bg": "danger-active",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#f9c3c6",
+        "actual": 70.92,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R171",
+      "fg": "on-primary",
+      "bg": "control-checked",
+      "tier": "label",
+      "light": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#472400",
+        "bg": "#dac5fc",
+        "actual": 71.32,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": "the tick and the radio dot"
+    },
+    {
+      "n": "R172",
+      "fg": "text-subtle",
+      "bg": "bg",
+      "tier": "placeholder",
+      "light": {
+        "fg": "#975e2a",
+        "bg": "#fef4dc",
+        "actual": 68.87,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#b3a58d",
+        "bg": "#211409",
+        "actual": 52.65,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R173",
+      "fg": "text-subtle",
+      "bg": "surface",
+      "tier": "placeholder",
+      "light": {
+        "fg": "#975e2a",
+        "bg": "#fffbf1",
+        "actual": 72.46,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#b3a58d",
+        "bg": "#342417",
+        "actual": 50.55,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R174",
+      "fg": "text-subtle",
+      "bg": "surface-raised",
+      "tier": "placeholder",
+      "light": {
+        "fg": "#975e2a",
+        "bg": "#fffbf1",
+        "actual": 72.46,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#b3a58d",
+        "bg": "#463425",
+        "actual": 47.02,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R175",
+      "fg": "text-subtle",
+      "bg": "field-fill",
+      "tier": "placeholder",
+      "light": {
+        "fg": "#975e2a",
+        "bg": "#fffbf1",
+        "actual": 72.46,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#b3a58d",
+        "bg": "#140903",
+        "actual": 53.33,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R176",
+      "fg": "text-subtle",
+      "bg": "bg-subtle",
+      "tier": "placeholder",
+      "light": {
+        "fg": "#975e2a",
+        "bg": "#f7ecd1",
+        "actual": 64.17,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#b3a58d",
+        "bg": "#140903",
+        "actual": 53.33,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R177",
+      "fg": "text-subtle",
+      "bg": "surface-sunken",
+      "tier": "placeholder",
+      "light": {
+        "fg": "#975e2a",
+        "bg": "#f7ecd1",
+        "actual": 64.17,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#b3a58d",
+        "bg": "#140903",
+        "actual": 53.33,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R178",
+      "fg": "primary-solid",
+      "bg": "bg-subtle",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#f7ecd1",
+        "actual": 23.04,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#140903",
+        "actual": 56.33,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "progress bar on its track"
+    },
+    {
+      "n": "R179",
+      "fg": "primary-solid",
+      "bg": "switch-off",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#f7ecd1",
+        "actual": 23.04,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#140903",
+        "actual": 56.33,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "switch on against off"
+    },
+    {
+      "n": "R180",
+      "fg": "primary-solid",
+      "bg": "slider-track",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#f7ecd1",
+        "actual": 23.04,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#140903",
+        "actual": 56.33,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "slider thumb on its track"
+    },
+    {
+      "n": "R181",
+      "fg": "control-checked",
+      "bg": "field-fill",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#dac5fc",
+        "bg": "#fffbf1",
+        "actual": 13.1,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#140903",
+        "actual": 70.27,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "checked against unchecked"
+    },
+    {
+      "n": "R182",
+      "fg": "success-mark",
+      "bg": "bg-subtle",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#00b5b8",
+        "bg": "#f7ecd1",
+        "actual": 20.25,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#00b5b8",
+        "bg": "#140903",
+        "actual": 54.34,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": "toned progress bar"
+    },
+    {
+      "n": "R183",
+      "fg": "warning-mark",
+      "bg": "bg-subtle",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#bb9c12",
+        "bg": "#f7ecd1",
+        "actual": 24.67,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#bb9c12",
+        "bg": "#140903",
+        "actual": 55.02,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "toned progress bar"
+    },
+    {
+      "n": "R184",
+      "fg": "danger-mark",
+      "bg": "bg-subtle",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#d77784",
+        "bg": "#f7ecd1",
+        "actual": 26.12,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d77784",
+        "bg": "#140903",
+        "actual": 48.2,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "toned progress bar"
+    },
+    {
+      "n": "R185",
+      "fg": "secondary-mark",
+      "bg": "bg-subtle",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#d29397",
+        "bg": "#f7ecd1",
+        "actual": 21.75,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d29397",
+        "bg": "#140903",
+        "actual": 54.93,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "toned progress bar"
+    },
+    {
+      "n": "R186",
+      "fg": "accent-mark",
+      "bg": "bg-subtle",
+      "tier": "mark-area",
+      "light": {
+        "fg": "#ccb563",
+        "bg": "#f7ecd1",
+        "actual": 17.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#ccb563",
+        "bg": "#140903",
+        "actual": 62.3,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "toned progress bar"
+    },
+    {
+      "n": "R187",
+      "fg": "border-strong",
+      "bg": "surface",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fffbf1",
+        "actual": 27.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#342417",
+        "actual": 44.13,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": "control ring"
+    },
+    {
+      "n": "R188",
+      "fg": "border-strong",
+      "bg": "bg",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fef4dc",
+        "actual": 24.95,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#211409",
+        "actual": 51.17,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": "control ring"
+    },
+    {
+      "n": "R189",
+      "fg": "border-strong",
+      "bg": "surface-raised",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fffbf1",
+        "actual": 27.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#463425",
+        "actual": 37.65,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "control ring"
+    },
+    {
+      "n": "R190",
+      "fg": "border-strong",
+      "bg": "field-fill",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fffbf1",
+        "actual": 27.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#140903",
+        "actual": 56.33,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "control ring"
+    },
+    {
+      "n": "R191",
+      "fg": "switch-ring",
+      "bg": "switch-off",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#f7ecd1",
+        "actual": 23.04,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#140903",
+        "actual": 56.33,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "switch ring on its off track"
+    },
+    {
+      "n": "R192",
+      "fg": "primary-solid",
+      "bg": "surface",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fffbf1",
+        "actual": 27.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#342417",
+        "actual": 44.13,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": "tab indicator"
+    },
+    {
+      "n": "R193",
+      "fg": "primary-solid",
+      "bg": "bg",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fef4dc",
+        "actual": 24.95,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#211409",
+        "actual": 51.17,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": "tab indicator"
+    },
+    {
+      "n": "R194",
+      "fg": "primary-solid",
+      "bg": "selected-wash",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#ede0f7",
+        "actual": 20.63,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#554445",
+        "actual": 31.29,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "tab indicator on the selected tab's wash"
+    },
+    {
+      "n": "R195",
+      "fg": "selected-bar",
+      "bg": "selected-wash",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#ede0f7",
+        "actual": 20.63,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#554445",
+        "actual": 31.29,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "selected row's bar on its wash"
+    },
+    {
+      "n": "R196",
+      "fg": "success-mark",
+      "bg": "surface",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#00b5b8",
+        "bg": "#fffbf1",
+        "actual": 24.45,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#00b5b8",
+        "bg": "#342417",
+        "actual": 42.3,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": "status mark on a card"
+    },
+    {
+      "n": "R197",
+      "fg": "success-mark",
+      "bg": "success-subtle",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#00b5b8",
+        "bg": "#d3f4f0",
+        "actual": 21.24,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#00b5b8",
+        "bg": "#4b4c42",
+        "actual": 28.79,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": "status mark on its own wash"
+    },
+    {
+      "n": "R198",
+      "fg": "warning-mark",
+      "bg": "surface",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#bb9c12",
+        "bg": "#fffbf1",
+        "actual": 29.05,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#bb9c12",
+        "bg": "#342417",
+        "actual": 42.93,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "status mark on a card"
+    },
+    {
+      "n": "R199",
+      "fg": "warning-mark",
+      "bg": "warning-subtle",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#bb9c12",
+        "bg": "#faefca",
+        "actual": 25.11,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#bb9c12",
+        "bg": "#5b4a33",
+        "actual": 28.51,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "status mark on its own wash"
+    },
+    {
+      "n": "R200",
+      "fg": "danger-mark",
+      "bg": "surface",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#d77784",
+        "bg": "#fffbf1",
+        "actual": 30.38,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d77784",
+        "bg": "#342417",
+        "actual": 36.22,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "status mark on a card"
+    },
+    {
+      "n": "R201",
+      "fg": "danger-mark",
+      "bg": "danger-subtle",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#d77784",
+        "bg": "#fcdfdc",
+        "actual": 24.31,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d77784",
+        "bg": "#5b443a",
+        "actual": 23.23,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "status mark on its own wash"
+    },
+    {
+      "n": "R202",
+      "fg": "info-mark",
+      "bg": "surface",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fffbf1",
+        "actual": 27.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#342417",
+        "actual": 44.13,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "status mark on a card"
+    },
+    {
+      "n": "R203",
+      "fg": "info-mark",
+      "bg": "info-subtle",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#ede0f7",
+        "actual": 20.63,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#554445",
+        "actual": 31.29,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "status mark on its own wash"
+    },
+    {
+      "n": "R204",
+      "fg": "focus-ring",
+      "bg": "bg",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#fef4dc",
+        "actual": 37.13,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#211409",
+        "actual": 39.15,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R205",
+      "fg": "focus-ring",
+      "bg": "bg-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#f7ecd1",
+        "actual": 35.21,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#140903",
+        "actual": 44.29,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R206",
+      "fg": "focus-ring",
+      "bg": "surface",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#fffbf1",
+        "actual": 39.21,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#342417",
+        "actual": 32.16,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R207",
+      "fg": "focus-ring",
+      "bg": "surface-raised",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#fffbf1",
+        "actual": 39.21,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#463425",
+        "actual": 25.74,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R208",
+      "fg": "focus-ring",
+      "bg": "surface-sunken",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#f7ecd1",
+        "actual": 35.21,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#140903",
+        "actual": 44.29,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R209",
+      "fg": "focus-ring",
+      "bg": "field-fill",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#fffbf1",
+        "actual": 39.21,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#140903",
+        "actual": 44.29,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R210",
+      "fg": "focus-ring",
+      "bg": "primary",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#dac5fc",
+        "actual": 26.13,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#dac5fc",
+        "actual": 26.13,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "touching: the selected calendar day and the current page (offset 0, L68)"
+    },
+    {
+      "n": "R211",
+      "fg": "focus-ring",
+      "bg": "secondary",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#f9c3c6",
+        "actual": 27.58,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#f9c3c6",
+        "actual": 27.58,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R212",
+      "fg": "focus-ring",
+      "bg": "accent",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#f5e3a2",
+        "actual": 32.42,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#f5e3a2",
+        "actual": 32.42,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R213",
+      "fg": "focus-ring",
+      "bg": "success",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#a6edee",
+        "actual": 32.01,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#a6edee",
+        "actual": 32.01,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R214",
+      "fg": "focus-ring",
+      "bg": "warning",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#f5e3a2",
+        "actual": 32.42,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#f5e3a2",
+        "actual": 32.42,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R215",
+      "fg": "focus-ring",
+      "bg": "danger",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#f9c3c6",
+        "actual": 27.58,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#f9c3c6",
+        "actual": 27.58,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R216",
+      "fg": "focus-ring",
+      "bg": "info",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#dac5fc",
+        "actual": 26.13,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#dac5fc",
+        "actual": 26.13,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "the same hexes as R210; no site paints the ring touching `info`"
+    },
+    {
+      "n": "R217",
+      "fg": "focus-ring",
+      "bg": "primary-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#ede0f7",
+        "actual": 32.81,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#554445",
+        "actual": 19.38,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R218",
+      "fg": "focus-ring",
+      "bg": "secondary-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#fcdfdc",
+        "actual": 33.07,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#5b443a",
+        "actual": 19.2,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R219",
+      "fg": "focus-ring",
+      "bg": "accent-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#faefca",
+        "actual": 35.67,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#5b4a33",
+        "actual": 17.96,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R220",
+      "fg": "focus-ring",
+      "bg": "success-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#d3f4f0",
+        "actual": 35.09,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#4b4c42",
+        "actual": 18.64,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R221",
+      "fg": "focus-ring",
+      "bg": "warning-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#faefca",
+        "actual": 35.67,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#5b4a33",
+        "actual": 17.96,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R222",
+      "fg": "focus-ring",
+      "bg": "danger-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#fcdfdc",
+        "actual": 33.07,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#5b443a",
+        "actual": 19.2,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R223",
+      "fg": "focus-ring",
+      "bg": "info-subtle",
+      "tier": "focus-visible",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#ede0f7",
+        "actual": 32.81,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#554445",
+        "actual": 19.38,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R224",
+      "fg": "danger-mark",
+      "bg": "edge:field",
+      "tier": "tell-apart",
+      "light": {
+        "fg": "#d77784",
+        "bg": "#e1d5bf",
+        "actual": 19.3,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d77784",
+        "bg": "#64594d",
+        "actual": 16.25,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "invalid rim against the resting field edge"
+    },
+    {
+      "n": "R225",
+      "fg": "danger-mark",
+      "bg": "focus-ring",
+      "tier": "tell-apart",
+      "light": {
+        "fg": "#d77784",
+        "bg": "#8e6ac7",
+        "actual": 14.13,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#d77784",
+        "bg": "#8e6ac7",
+        "actual": 14.13,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "invalid rim against the focus ring"
+    },
+    {
+      "n": "R226",
+      "fg": "focus-ring",
+      "bg": "border-strong",
+      "tier": "tell-apart",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#b096d7",
+        "actual": 12.18,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#b096d7",
+        "actual": 12.18,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "focus ring against the control ring"
+    },
+    {
+      "n": "R227",
+      "fg": "focus-ring",
+      "bg": "edge:field",
+      "tier": "tell-apart",
+      "light": {
+        "fg": "#8e6ac7",
+        "bg": "#e1d5bf",
+        "actual": 28.45,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#8e6ac7",
+        "bg": "#64594d",
+        "actual": 12.89,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "focus ring against the resting field edge"
+    },
+    {
+      "n": "R228",
+      "fg": "primary",
+      "bg": "secondary",
+      "tier": "palette",
+      "light": {
+        "fg": "#dac5fc",
+        "bg": "#f9c3c6",
+        "actual": 6.69,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#f9c3c6",
+        "actual": 6.69,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R229",
+      "fg": "primary",
+      "bg": "accent",
+      "tier": "palette",
+      "light": {
+        "fg": "#dac5fc",
+        "bg": "#f5e3a2",
+        "actual": 7.25,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#f5e3a2",
+        "actual": 7.25,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R230",
+      "fg": "primary",
+      "bg": "success",
+      "tier": "palette",
+      "light": {
+        "fg": "#dac5fc",
+        "bg": "#a6edee",
+        "actual": 5.64,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#dac5fc",
+        "bg": "#a6edee",
+        "actual": 5.64,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R231",
+      "fg": "secondary",
+      "bg": "accent",
+      "tier": "palette",
+      "light": {
+        "fg": "#f9c3c6",
+        "bg": "#f5e3a2",
+        "actual": 6.43,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#f9c3c6",
+        "bg": "#f5e3a2",
+        "actual": 6.43,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R232",
+      "fg": "secondary",
+      "bg": "success",
+      "tier": "palette",
+      "light": {
+        "fg": "#f9c3c6",
+        "bg": "#a6edee",
+        "actual": 5.38,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#f9c3c6",
+        "bg": "#a6edee",
+        "actual": 5.38,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R233",
+      "fg": "accent",
+      "bg": "success",
+      "tier": "palette",
+      "light": {
+        "fg": "#f5e3a2",
+        "bg": "#a6edee",
+        "actual": 9.98,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#f5e3a2",
+        "bg": "#a6edee",
+        "actual": 9.98,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R234",
+      "fg": "border",
+      "bg": "surface",
+      "tier": "divider",
+      "light": {
+        "fg": "#e3d2b0",
+        "bg": "#fffbf1",
+        "actual": 11.97,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#504133",
+        "bg": "#342417",
+        "actual": 11.08,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R235",
+      "fg": "border-subtle",
+      "bg": "surface",
+      "tier": "divider",
+      "light": {
+        "fg": "#e3d2b0",
+        "bg": "#fffbf1",
+        "actual": 11.97,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#504133",
+        "bg": "#342417",
+        "actual": 11.08,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R236",
+      "fg": "chart-1",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#008289",
+        "bg": "#fffbf1",
+        "actual": 40.21,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#4cc7d1",
+        "bg": "#342417",
+        "actual": 48.74,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R237",
+      "fg": "chart-1",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#008289",
+        "bg": "#fef4dc",
+        "actual": 38.14,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#4cc7d1",
+        "bg": "#211409",
+        "actual": 55.69,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R238",
+      "fg": "chart-2",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#9e6400",
+        "bg": "#fffbf1",
+        "actual": 43.87,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#efa024",
+        "bg": "#342417",
+        "actual": 47.12,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R239",
+      "fg": "chart-2",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#9e6400",
+        "bg": "#fef4dc",
+        "actual": 41.67,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#efa024",
+        "bg": "#211409",
+        "actual": 53.9,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R240",
+      "fg": "chart-3",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#ec5198",
+        "bg": "#fffbf1",
+        "actual": 31.66,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#ff85b6",
+        "bg": "#342417",
+        "actual": 44.28,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R241",
+      "fg": "chart-3",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#ec5198",
+        "bg": "#fef4dc",
+        "actual": 29.98,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#ff85b6",
+        "bg": "#211409",
+        "actual": 51.11,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R242",
+      "fg": "chart-4",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#8a6f00",
+        "bg": "#fffbf1",
+        "actual": 43.54,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#d4b000",
+        "bg": "#342417",
+        "actual": 49.65,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R243",
+      "fg": "chart-4",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#8a6f00",
+        "bg": "#fef4dc",
+        "actual": 41.31,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#d4b000",
+        "bg": "#211409",
+        "actual": 56.5,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R244",
+      "fg": "chart-5",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#0f70d5",
+        "bg": "#fffbf1",
+        "actual": 42.47,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#7db6ff",
+        "bg": "#342417",
+        "actual": 49.93,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R245",
+      "fg": "chart-5",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#0f70d5",
+        "bg": "#fef4dc",
+        "actual": 40.72,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#7db6ff",
+        "bg": "#211409",
+        "actual": 56.63,
+        "view": "deutan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R246",
+      "fg": "chart-6",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#e8672e",
+        "bg": "#fffbf1",
+        "actual": 33.03,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#ff9164",
+        "bg": "#342417",
+        "actual": 44.2,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R247",
+      "fg": "chart-6",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#e8672e",
+        "bg": "#fef4dc",
+        "actual": 30.68,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#ff9164",
+        "bg": "#211409",
+        "actual": 51.11,
+        "view": "protan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R248",
+      "fg": "chart-7",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#5761db",
+        "bg": "#fffbf1",
+        "actual": 45.27,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#9dacff",
+        "bg": "#342417",
+        "actual": 49.28,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R249",
+      "fg": "chart-7",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#5761db",
+        "bg": "#fef4dc",
+        "actual": 43.48,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#9dacff",
+        "bg": "#211409",
+        "actual": 56.14,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R250",
+      "fg": "chart-8",
+      "bg": "surface",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#598100",
+        "bg": "#fffbf1",
+        "actual": 43.16,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#92c73c",
+        "bg": "#342417",
+        "actual": 49.75,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R251",
+      "fg": "chart-8",
+      "bg": "bg",
+      "tier": "chart-mark",
+      "light": {
+        "fg": "#598100",
+        "bg": "#fef4dc",
+        "actual": 40.48,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#92c73c",
+        "bg": "#211409",
+        "actual": 56.68,
+        "view": "tritan"
+      },
+      "pair": "today",
+      "for": ""
+    },
+    {
+      "n": "R252",
+      "fg": "edge:container",
+      "bg": "bg",
+      "tier": "edge-container",
+      "light": {
+        "actual": 16.7,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 16.06,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": "card on the page"
+    },
+    {
+      "n": "R253",
+      "fg": "edge:container",
+      "bg": "surface-sunken",
+      "tier": "edge-container",
+      "light": {
+        "actual": 18.23,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 17.62,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": "card in a well"
+    },
+    {
+      "n": "R254",
+      "fg": "edge:floating",
+      "bg": "surface",
+      "tier": "edge-floating",
+      "light": {
+        "actual": 17.77,
+        "view": "deutan"
+      },
+      "dark": {
+        "actual": 21.58,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R255",
+      "fg": "edge:floating",
+      "bg": "bg",
+      "tier": "edge-floating",
+      "light": {
+        "actual": 19.06,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 24.42,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R256",
+      "fg": "edge:field",
+      "bg": "surface",
+      "tier": "edge-field",
+      "light": {
+        "actual": 11.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 31.71,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R257",
+      "fg": "edge:field",
+      "bg": "bg",
+      "tier": "edge-field",
+      "light": {
+        "actual": 11.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 31.71,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R258",
+      "fg": "edge:field",
+      "bg": "surface-raised",
+      "tier": "edge-field",
+      "light": {
+        "actual": 11.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 31.71,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R259",
+      "fg": "edge:sunken",
+      "bg": "surface",
+      "tier": "edge-sunken",
+      "light": {
+        "actual": 8.69,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 14.06,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R260",
+      "fg": "edge:quiet",
+      "bg": "surface",
+      "tier": "edge-quiet",
+      "light": {
+        "actual": 16.9,
+        "view": "deutan"
+      },
+      "dark": {
+        "actual": 17.18,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R261",
+      "fg": "edge:quiet",
+      "bg": "bg",
+      "tier": "edge-quiet",
+      "light": {
+        "actual": 18.18,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 19.42,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R262",
+      "fg": "edge:filled-primary",
+      "bg": "surface",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 20.32,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 58.06,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R263",
+      "fg": "edge:filled-primary",
+      "bg": "bg",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 18.99,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 65.1,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R264",
+      "fg": "edge:filled-secondary",
+      "bg": "surface",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 20.19,
+        "view": "deutan"
+      },
+      "dark": {
+        "actual": 57.6,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R265",
+      "fg": "edge:filled-secondary",
+      "bg": "bg",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 18.73,
+        "view": "deutan"
+      },
+      "dark": {
+        "actual": 64.52,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R266",
+      "fg": "edge:filled-accent",
+      "bg": "surface",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 20.52,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 63.88,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R267",
+      "fg": "edge:filled-accent",
+      "bg": "bg",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 18.98,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 70.95,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R272",
+      "fg": "edge:filled-danger",
+      "bg": "surface",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 20.19,
+        "view": "deutan"
+      },
+      "dark": {
+        "actual": 57.6,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R273",
+      "fg": "edge:filled-danger",
+      "bg": "bg",
+      "tier": "edge-filled",
+      "light": {
+        "actual": 18.73,
+        "view": "deutan"
+      },
+      "dark": {
+        "actual": 64.52,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R276",
+      "fg": "edge:status-success",
+      "bg": "surface",
+      "tier": "edge-status",
+      "light": {
+        "actual": 15.46,
+        "view": "protan"
+      },
+      "dark": {
+        "actual": 22.62,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R277",
+      "fg": "edge:status-warning",
+      "bg": "surface",
+      "tier": "edge-status",
+      "light": {
+        "actual": 17.74,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 23.97,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R278",
+      "fg": "edge:status-danger",
+      "bg": "surface",
+      "tier": "edge-status",
+      "light": {
+        "actual": 17.49,
+        "view": "deutan"
+      },
+      "dark": {
+        "actual": 21.45,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R279",
+      "fg": "edge:status-info",
+      "bg": "surface",
+      "tier": "edge-status",
+      "light": {
+        "actual": 17.48,
+        "view": "tritan"
+      },
+      "dark": {
+        "actual": 21.46,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": ""
+    },
+    {
+      "n": "R280",
+      "fg": "success-mark",
+      "bg": "surface-raised",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#00b5b8",
+        "bg": "#fffbf1",
+        "actual": 24.45,
+        "view": "protan"
+      },
+      "dark": {
+        "fg": "#00b5b8",
+        "bg": "#463425",
+        "actual": 35.94,
+        "view": "deutan"
+      },
+      "pair": "new",
+      "for": "status mark on a raised surface: the toast's stripe"
+    },
+    {
+      "n": "R281",
+      "fg": "warning-mark",
+      "bg": "surface-raised",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#bb9c12",
+        "bg": "#fffbf1",
+        "actual": 29.05,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#bb9c12",
+        "bg": "#463425",
+        "actual": 36.41,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "status mark on a raised surface: the toast's stripe"
+    },
+    {
+      "n": "R282",
+      "fg": "danger-mark",
+      "bg": "surface-raised",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#d77784",
+        "bg": "#fffbf1",
+        "actual": 30.38,
+        "view": "deutan"
+      },
+      "dark": {
+        "fg": "#d77784",
+        "bg": "#463425",
+        "actual": 29.81,
+        "view": "protan"
+      },
+      "pair": "new",
+      "for": "status mark on a raised surface: the toast's stripe"
+    },
+    {
+      "n": "R283",
+      "fg": "info-mark",
+      "bg": "surface-raised",
+      "tier": "mark-line",
+      "light": {
+        "fg": "#b096d7",
+        "bg": "#fffbf1",
+        "actual": 27.03,
+        "view": "tritan"
+      },
+      "dark": {
+        "fg": "#b096d7",
+        "bg": "#463425",
+        "actual": 37.65,
+        "view": "tritan"
+      },
+      "pair": "new",
+      "for": "status mark on a raised surface: the toast's stripe"
+    }
+  ],
+  "edgeDetail": [
+    {
+      "n": "R252",
+      "fg": "edge:container",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fef4dc",
+      "fillStep": 2.36,
+      "pixel": "#dbc19b",
+      "pixelFromBackdrop": 14.4,
+      "pixelFromFill": 16.7,
+      "presence": 16.7,
+      "view": "tritan"
+    },
+    {
+      "n": "R252",
+      "fg": "edge:container",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#342417",
+      "backdrop": "#211409",
+      "fillStep": 6.93,
+      "pixel": "#493c2f",
+      "pixelFromBackdrop": 16.06,
+      "pixelFromFill": 8.98,
+      "presence": 16.06,
+      "view": "deutan"
+    },
+    {
+      "n": "R253",
+      "fg": "edge:container",
+      "bg": "surface-sunken",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#f7ecd1",
+      "fillStep": 4.47,
+      "pixel": "#d6bc95",
+      "pixelFromBackdrop": 13.69,
+      "pixelFromFill": 18.23,
+      "presence": 18.23,
+      "view": "tritan"
+    },
+    {
+      "n": "R253",
+      "fg": "edge:container",
+      "bg": "surface-sunken",
+      "mode": "dark",
+      "fill": "#342417",
+      "backdrop": "#140903",
+      "fillStep": 12.04,
+      "pixel": "#3e332a",
+      "pixelFromBackdrop": 17.62,
+      "pixelFromFill": 5.42,
+      "presence": 17.62,
+      "view": "deutan"
+    },
+    {
+      "n": "R254",
+      "fg": "edge:floating",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fffbf1",
+      "fillStep": 0,
+      "pixel": "#d6bd9d",
+      "pixelFromBackdrop": 17.77,
+      "pixelFromFill": 17.77,
+      "presence": 17.77,
+      "view": "deutan"
+    },
+    {
+      "n": "R254",
+      "fg": "edge:floating",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#463425",
+      "backdrop": "#342417",
+      "fillStep": 6.45,
+      "pixel": "#6d5e4e",
+      "pixelFromBackdrop": 21.58,
+      "pixelFromFill": 15.05,
+      "presence": 21.58,
+      "view": "deutan"
+    },
+    {
+      "n": "R255",
+      "fg": "edge:floating",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fef4dc",
+      "fillStep": 2.36,
+      "pixel": "#d5b991",
+      "pixelFromBackdrop": 16.76,
+      "pixelFromFill": 19.06,
+      "presence": 19.06,
+      "view": "tritan"
+    },
+    {
+      "n": "R255",
+      "fg": "edge:floating",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#463425",
+      "backdrop": "#211409",
+      "fillStep": 13.38,
+      "pixel": "#5f5344",
+      "pixelFromBackdrop": 24.42,
+      "pixelFromFill": 10.81,
+      "presence": 24.42,
+      "view": "deutan"
+    },
+    {
+      "n": "R256",
+      "fg": "edge:field",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fffbf1",
+      "fillStep": 0,
+      "pixel": "#e1d5bf",
+      "pixelFromBackdrop": 11.03,
+      "pixelFromFill": 11.03,
+      "presence": 11.03,
+      "view": "tritan"
+    },
+    {
+      "n": "R256",
+      "fg": "edge:field",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#140903",
+      "backdrop": "#342417",
+      "fillStep": 12.04,
+      "pixel": "#64594d",
+      "pixelFromBackdrop": 19.44,
+      "pixelFromFill": 31.71,
+      "presence": 31.71,
+      "view": "deutan"
+    },
+    {
+      "n": "R257",
+      "fg": "edge:field",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fef4dc",
+      "fillStep": 2.36,
+      "pixel": "#e1d5bf",
+      "pixelFromBackdrop": 8.8,
+      "pixelFromFill": 11.03,
+      "presence": 11.03,
+      "view": "tritan"
+    },
+    {
+      "n": "R257",
+      "fg": "edge:field",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#140903",
+      "backdrop": "#211409",
+      "fillStep": 5.11,
+      "pixel": "#64594d",
+      "pixelFromBackdrop": 26.52,
+      "pixelFromFill": 31.71,
+      "presence": 31.71,
+      "view": "deutan"
+    },
+    {
+      "n": "R258",
+      "fg": "edge:field",
+      "bg": "surface-raised",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fffbf1",
+      "fillStep": 0,
+      "pixel": "#e1d5bf",
+      "pixelFromBackdrop": 11.03,
+      "pixelFromFill": 11.03,
+      "presence": 11.03,
+      "view": "tritan"
+    },
+    {
+      "n": "R258",
+      "fg": "edge:field",
+      "bg": "surface-raised",
+      "mode": "dark",
+      "fill": "#140903",
+      "backdrop": "#463425",
+      "fillStep": 18.49,
+      "pixel": "#64594d",
+      "pixelFromBackdrop": 12.93,
+      "pixelFromFill": 31.71,
+      "presence": 31.71,
+      "view": "deutan"
+    },
+    {
+      "n": "R259",
+      "fg": "edge:sunken",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#f7ecd1",
+      "backdrop": "#fffbf1",
+      "fillStep": 4.47,
+      "pixel": "#edddbe",
+      "pixelFromBackdrop": 8.69,
+      "pixelFromFill": 4.22,
+      "presence": 8.69,
+      "view": "tritan"
+    },
+    {
+      "n": "R259",
+      "fg": "edge:sunken",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#140903",
+      "backdrop": "#342417",
+      "fillStep": 12.04,
+      "pixel": "#352a21",
+      "pixelFromBackdrop": 2.01,
+      "pixelFromFill": 14.06,
+      "presence": 14.06,
+      "view": "deutan"
+    },
+    {
+      "n": "R260",
+      "fg": "edge:quiet",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fffbf1",
+      "fillStep": 0,
+      "pixel": "#d8c0a1",
+      "pixelFromBackdrop": 16.9,
+      "pixelFromFill": 16.9,
+      "presence": 16.9,
+      "view": "deutan"
+    },
+    {
+      "n": "R260",
+      "fg": "edge:quiet",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#463425",
+      "backdrop": "#342417",
+      "fillStep": 6.45,
+      "pixel": "#605242",
+      "pixelFromBackdrop": 17.18,
+      "pixelFromFill": 10.65,
+      "presence": 17.18,
+      "view": "deutan"
+    },
+    {
+      "n": "R261",
+      "fg": "edge:quiet",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#fffbf1",
+      "backdrop": "#fef4dc",
+      "fillStep": 2.36,
+      "pixel": "#d7bc95",
+      "pixelFromBackdrop": 15.88,
+      "pixelFromFill": 18.18,
+      "presence": 18.18,
+      "view": "tritan"
+    },
+    {
+      "n": "R261",
+      "fg": "edge:quiet",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#463425",
+      "backdrop": "#211409",
+      "fillStep": 13.38,
+      "pixel": "#524537",
+      "pixelFromBackdrop": 19.42,
+      "pixelFromFill": 5.82,
+      "presence": 19.42,
+      "view": "deutan"
+    },
+    {
+      "n": "R262",
+      "fg": "edge:filled-primary",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#dac5fc",
+      "backdrop": "#fffbf1",
+      "fillStep": 13.1,
+      "pixel": "#c7abe9",
+      "pixelFromBackdrop": 20.32,
+      "pixelFromFill": 7.26,
+      "presence": 20.32,
+      "view": "tritan"
+    },
+    {
+      "n": "R262",
+      "fg": "edge:filled-primary",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#dac5fc",
+      "backdrop": "#342417",
+      "fillStep": 58.06,
+      "pixel": "#6e5c67",
+      "pixelFromBackdrop": 21.94,
+      "pixelFromFill": 36.12,
+      "presence": 58.06,
+      "view": "tritan"
+    },
+    {
+      "n": "R263",
+      "fg": "edge:filled-primary",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#dac5fc",
+      "backdrop": "#fef4dc",
+      "fillStep": 11.07,
+      "pixel": "#c7a8e3",
+      "pixelFromBackdrop": 18.99,
+      "pixelFromFill": 7.99,
+      "presence": 18.99,
+      "view": "tritan"
+    },
+    {
+      "n": "R263",
+      "fg": "edge:filled-primary",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#dac5fc",
+      "backdrop": "#211409",
+      "fillStep": 65.1,
+      "pixel": "#62525e",
+      "pixelFromBackdrop": 25.25,
+      "pixelFromFill": 39.85,
+      "presence": 65.1,
+      "view": "tritan"
+    },
+    {
+      "n": "R264",
+      "fg": "edge:filled-secondary",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#f9c3c6",
+      "backdrop": "#fffbf1",
+      "fillStep": 12.02,
+      "pixel": "#ef9fa4",
+      "pixelFromBackdrop": 20.19,
+      "pixelFromFill": 8.19,
+      "presence": 20.19,
+      "view": "deutan"
+    },
+    {
+      "n": "R264",
+      "fg": "edge:filled-secondary",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#f9c3c6",
+      "backdrop": "#342417",
+      "fillStep": 57.6,
+      "pixel": "#795c54",
+      "pixelFromBackdrop": 22.11,
+      "pixelFromFill": 35.49,
+      "presence": 57.6,
+      "view": "protan"
+    },
+    {
+      "n": "R265",
+      "fg": "edge:filled-secondary",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#f9c3c6",
+      "backdrop": "#fef4dc",
+      "fillStep": 10.27,
+      "pixel": "#ef9d9e",
+      "pixelFromBackdrop": 18.73,
+      "pixelFromFill": 8.74,
+      "presence": 18.73,
+      "view": "deutan"
+    },
+    {
+      "n": "R265",
+      "fg": "edge:filled-secondary",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#f9c3c6",
+      "backdrop": "#211409",
+      "fillStep": 64.52,
+      "pixel": "#6d514b",
+      "pixelFromBackdrop": 25.12,
+      "pixelFromFill": 39.4,
+      "presence": 64.52,
+      "view": "protan"
+    },
+    {
+      "n": "R266",
+      "fg": "edge:filled-accent",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#f5e3a2",
+      "backdrop": "#fffbf1",
+      "fillStep": 7.99,
+      "pixel": "#cfb955",
+      "pixelFromBackdrop": 20.52,
+      "pixelFromFill": 12.83,
+      "presence": 20.52,
+      "view": "tritan"
+    },
+    {
+      "n": "R266",
+      "fg": "edge:filled-accent",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#f5e3a2",
+      "backdrop": "#342417",
+      "fillStep": 63.88,
+      "pixel": "#786748",
+      "pixelFromBackdrop": 24.67,
+      "pixelFromFill": 39.21,
+      "presence": 63.88,
+      "view": "tritan"
+    },
+    {
+      "n": "R267",
+      "fg": "edge:filled-accent",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#f5e3a2",
+      "backdrop": "#fef4dc",
+      "fillStep": 5.63,
+      "pixel": "#cfb64f",
+      "pixelFromBackdrop": 18.98,
+      "pixelFromFill": 13.57,
+      "presence": 18.98,
+      "view": "tritan"
+    },
+    {
+      "n": "R267",
+      "fg": "edge:filled-accent",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#f5e3a2",
+      "backdrop": "#211409",
+      "fillStep": 70.95,
+      "pixel": "#6b5c3f",
+      "pixelFromBackdrop": 27.7,
+      "pixelFromFill": 43.25,
+      "presence": 70.95,
+      "view": "tritan"
+    },
+    {
+      "n": "R272",
+      "fg": "edge:filled-danger",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#f9c3c6",
+      "backdrop": "#fffbf1",
+      "fillStep": 12.02,
+      "pixel": "#ef9fa4",
+      "pixelFromBackdrop": 20.19,
+      "pixelFromFill": 8.19,
+      "presence": 20.19,
+      "view": "deutan"
+    },
+    {
+      "n": "R272",
+      "fg": "edge:filled-danger",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#f9c3c6",
+      "backdrop": "#342417",
+      "fillStep": 57.6,
+      "pixel": "#795c54",
+      "pixelFromBackdrop": 22.11,
+      "pixelFromFill": 35.49,
+      "presence": 57.6,
+      "view": "protan"
+    },
+    {
+      "n": "R273",
+      "fg": "edge:filled-danger",
+      "bg": "bg",
+      "mode": "light",
+      "fill": "#f9c3c6",
+      "backdrop": "#fef4dc",
+      "fillStep": 10.27,
+      "pixel": "#ef9d9e",
+      "pixelFromBackdrop": 18.73,
+      "pixelFromFill": 8.74,
+      "presence": 18.73,
+      "view": "deutan"
+    },
+    {
+      "n": "R273",
+      "fg": "edge:filled-danger",
+      "bg": "bg",
+      "mode": "dark",
+      "fill": "#f9c3c6",
+      "backdrop": "#211409",
+      "fillStep": 64.52,
+      "pixel": "#6d514b",
+      "pixelFromBackdrop": 25.12,
+      "pixelFromFill": 39.4,
+      "presence": 64.52,
+      "view": "protan"
+    },
+    {
+      "n": "R276",
+      "fg": "edge:status-success",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#d3f4f0",
+      "backdrop": "#fffbf1",
+      "fillStep": 3.35,
+      "pixel": "#66d1cf",
+      "pixelFromBackdrop": 15.46,
+      "pixelFromFill": 12.25,
+      "presence": 15.46,
+      "view": "protan"
+    },
+    {
+      "n": "R276",
+      "fg": "edge:status-success",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#4b4c42",
+      "backdrop": "#342417",
+      "fillStep": 13.55,
+      "pixel": "#5b6860",
+      "pixelFromBackdrop": 22.62,
+      "pixelFromFill": 9.08,
+      "presence": 22.62,
+      "view": "deutan"
+    },
+    {
+      "n": "R277",
+      "fg": "edge:status-warning",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#faefca",
+      "backdrop": "#fffbf1",
+      "fillStep": 4.06,
+      "pixel": "#d6c26b",
+      "pixelFromBackdrop": 17.74,
+      "pixelFromFill": 13.77,
+      "presence": 17.74,
+      "view": "tritan"
+    },
+    {
+      "n": "R277",
+      "fg": "edge:status-warning",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#5b4a33",
+      "backdrop": "#342417",
+      "fillStep": 14.49,
+      "pixel": "#766546",
+      "pixelFromBackdrop": 23.97,
+      "pixelFromFill": 9.49,
+      "presence": 23.97,
+      "view": "tritan"
+    },
+    {
+      "n": "R278",
+      "fg": "edge:status-danger",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#fcdfdc",
+      "backdrop": "#fffbf1",
+      "fillStep": 6.08,
+      "pixel": "#f1acaf",
+      "pixelFromBackdrop": 17.49,
+      "pixelFromFill": 11.42,
+      "presence": 17.49,
+      "view": "deutan"
+    },
+    {
+      "n": "R278",
+      "fg": "edge:status-danger",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#5b443a",
+      "backdrop": "#342417",
+      "fillStep": 13,
+      "pixel": "#775a53",
+      "pixelFromBackdrop": 21.45,
+      "pixelFromFill": 8.45,
+      "presence": 21.45,
+      "view": "protan"
+    },
+    {
+      "n": "R279",
+      "fg": "edge:status-info",
+      "bg": "surface",
+      "mode": "light",
+      "fill": "#ede0f7",
+      "backdrop": "#fffbf1",
+      "fillStep": 6.42,
+      "pixel": "#cfb6ea",
+      "pixelFromBackdrop": 17.48,
+      "pixelFromFill": 11.06,
+      "presence": 17.48,
+      "view": "tritan"
+    },
+    {
+      "n": "R279",
+      "fg": "edge:status-info",
+      "bg": "surface",
+      "mode": "dark",
+      "fill": "#554445",
+      "backdrop": "#342417",
+      "fillStep": 12.85,
+      "pixel": "#6c5b65",
+      "pixelFromBackdrop": 21.46,
+      "pixelFromFill": 8.61,
+      "presence": 21.46,
+      "view": "tritan"
+    }
+  ]
+}

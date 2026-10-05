@@ -6,7 +6,7 @@
  *   sorbet theme <preset> [--out file]     emit one preset's theme CSS
  *   sorbet component <Name> --level atom   add a component stub
  *   sorbet presets                         list presets with swatches
- *   sorbet contrast                        run the WCAG AA report
+ *   sorbet contrast                        run the contrast report
  *
  * No dependencies: parseArgs + styleText from node:util.
  */
@@ -17,7 +17,7 @@ import { createRequire } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
 
-import { contractOf, DEFAULT_PRESET, hexToRgb, measureColors, PRESET_NAMES, presets, ratioText, tally, themeCss, type Mode, type PresetName } from "@sorbet/design-system/tokens";
+import { applyingCount, checkStructure, contractOf, contracts, declaredContracts, DEFAULT_PRESET, hexToRgb, measurePreset, METRIC_WORD, PRESET_NAMES, presets, ratioText, tally, themeCss, type Measurement, type Mode, type PresetName } from "@sorbet/design-system/tokens";
 
 import { behaviorTs, componentScss, starterIndexHtml, starterPackageJson, starterReadme } from "./templates.ts";
 
@@ -215,45 +215,70 @@ async function cmdComponent(): Promise<void> {
   }
 }
 
-// Measures nothing of its own: `measureColors` is the list the build gate
+// Measures nothing of its own: `measurePreset` is the list the build gate
 // fails on, and the counts printed are counted from it. This was a hand copy
 // of the report's loop — it skipped the scrim pairs and printed RULES.length.
 // It names no contract either: each preset and mode is measured against the
-// one the preset declares (`contractOf`), and a bad declaration ends the run
-// before anything is printed.
+// one the preset declares (`contractOf`, inside `measurePreset`), each mode's
+// line says which and how many rules it leaves unheld, and a bad declaration
+// ends the run before anything is printed. The contract's true-or-false checks
+// (`checkStructure`) are printed beside the measurement and fail the run too.
 async function cmdContrast(): Promise<void> {
   const modes: Mode[] = ["light", "dark"];
-  // Every declaration is read before a line is printed: a preset that does not
-  // say which contract it is held to ends the run here, with no verdict above
-  // the error for a reader to stop at.
+  // Every declaration is read, and everything is measured, before a line is
+  // printed: a preset that does not say which contract it is held to ends the
+  // run here, with no verdict above the error for a reader to stop at.
   for (const preset of Object.values(presets)) {
     for (const mode of modes) {
       contractOf(preset, mode);
     }
   }
+  const results = Object.values(presets).map((preset) => ({
+    preset,
+    structure: checkStructure(preset),
+    modes: modes.map((mode) => ({ mode, contract: contractOf(preset, mode), pairs: measurePreset(preset, mode) })),
+  }));
+  const row = (pair: Measurement): string => {
+    const word = METRIC_WORD[pair.metric] === "" ? "" : `${METRIC_WORD[pair.metric]} `;
+    if (pair.actual === null) {
+      return `could not be measured (needs ${word}${pair.min})`;
+    }
+    return `${word}${ratioText(pair.actual, pair.min)} < ${pair.min}${pair.metric === "ratio" ? "" : ` (${pair.view} view)`}`;
+  };
   let failures = 0;
+  let structural = 0;
   let measured = 0;
-  for (const preset of Object.values(presets)) {
+  for (const { preset, structure, modes: measuredModes } of results) {
     console.log(styleText("bold", `\n${preset.label} — ${preset.tagline}`));
-    for (const mode of modes) {
-      const result = tally(measureColors(mode, preset.colors[mode], contractOf(preset, mode)));
+    for (const { mode, contract, pairs } of measuredModes) {
+      const result = tally(pairs);
       failures += result.failures.length;
       measured += result.measured;
-      const rows = result.failures.map((pair) => {
-        const found = pair.actual === null ? `could not be measured (needs ${pair.min})` : `${ratioText(pair.actual, pair.min)} < ${pair.min}`;
-        return styleText("red", `    ✗ ${pair.fg} on ${pair.bg}: ${found}`);
-      });
       const unmeasurable = result.unmeasurable > 0 ? `, ${result.unmeasurable} could not be measured` : "";
-      console.log(
-        `  ${mode.padEnd(5)} ${rows.length === 0 ? styleText("green", `all ${result.measured} pairings pass`) : styleText("red", `${rows.length} failing (${result.measured} measured${unmeasurable})`)}`,
-      );
-      for (const row of rows) {
-        console.log(row);
+      const summary = result.failures.length === 0 ? styleText("green", `all ${result.measured} pairings pass`) : styleText("red", `${result.failures.length} failing (${result.measured} measured${unmeasurable})`);
+      console.log(`  ${mode.padEnd(5)} ${summary} — ${contract}; ${applyingCount(mode) - pairs.length} rules not held`);
+      for (const pair of result.failures) {
+        console.log(styleText("red", `    ✗ ${pair.fg} on ${pair.bg}: ${row(pair)}`));
+      }
+      // Each failing tier's reasons, once: a floor's reason is in front of whoever is tempted to lower it.
+      for (const tier of new Set(result.failures.map((pair) => pair.tier))) {
+        const { why, retire } = contracts[contract].tiers[tier]!;
+        console.log(styleText("dim", `      why (${tier}): ${why}`));
+        console.log(styleText("dim", `      retire (${tier}): ${retire}`));
+      }
+      for (const failure of structure.filter((each) => each.mode === mode)) {
+        structural++;
+        console.log(styleText("red", `    ✗ ${failure.check}: ${failure.detail}`));
       }
     }
   }
   if (failures > 0) {
     console.error(styleText("red", `\n✗ ${failures} contrast failure(s)`));
+  }
+  if (structural > 0) {
+    console.error(styleText("red", `${failures > 0 ? "" : "\n"}✗ ${structural} structure failure(s)`));
+  }
+  if (failures > 0 || structural > 0) {
     process.exit(1);
   }
   // No presets, so no pairs: "holds for every preset" would be true of nothing.
@@ -261,7 +286,7 @@ async function cmdContrast(): Promise<void> {
     console.error(styleText("red", "\n✗ nothing was measured: there are no presets"));
     process.exit(1);
   }
-  console.log(styleText("green", `\n✓ WCAG AA contract holds for every preset in both modes (${measured} pairings measured)`));
+  console.log(styleText("green", `\n✓ every declared contract holds for every preset in both modes (${measured} pairings measured): ${declaredContracts(Object.values(presets))}`));
 }
 
 if (values.help || !command) {

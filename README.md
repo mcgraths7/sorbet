@@ -414,24 +414,32 @@ ships the equivalent `getTheme()` manager.
 ## The accessibility contract
 
 `@sorbet/design-system/tokens` declares what is measured as one list of contrast
-pairings, `RULES`, each naming the tier it belongs to. The floor a tier owes
-comes from a contract (`contracts`, today one: `wcag-aa`), and every preset
-declares its contract per mode. The pairings — text on every surface, `on-*` on every solid (including
+pairings, `RULES`, each naming the tier it belongs to. The floor a tier owes,
+and the ruler it is measured with, come from a contract (`contracts`: `wcag-aa`
+and `legibility`), and every preset declares its contract per mode. The
+pairings — text on every surface, `on-*` on every solid (including
 hover/active), `-text` on page + subtle fills, links, strong borders, focus
-rings, text over the translucent scrim, and the eight chart marks. The list has
-86 entries, and 70 apply in each mode: 54 hold in both modes, and the 32
-chart-mark entries are split by mode — 16 in light and 16 in dark, because dark
-mode owes chart marks a lower floor. Every build measures all 70 for **every
-preset in both modes** and fails on any regression — and on any pair it could
-not measure, which is a failure rather than a skip:
+rings, text over the translucent scrim, the eight chart marks, and, for
+`legibility`, the marks, washes, rings and element edges of a pastel theme. The
+list has 277 entries, and 261 apply in each mode: 245 apply in both modes, and
+the 32 mode-restricted chart entries are split by mode — 16 in light and 16 in
+dark, because `wcag-aa` owes dark-mode chart marks a lower floor. A contract
+measures only the rules of the tiers it lists: in each mode `wcag-aa` measures
+70 of the 261 and `legibility` 193, and each report says how many it leaves
+unheld. Every build
+measures **every preset in both modes** against the contract it declares and
+fails on any regression — and on any pair it could not measure, which is a
+failure rather than a skip:
 
 ```sh
 pnpm check:contrast       # per-preset, per-mode report with tightest margins
 ```
 
-The gate, that report, `sorbet contrast`, a scaffolded project's own report and
-Token Studio's live check all read one measurement (`measureColors` in
-`src/tokens/rules.ts`), so the count a report prints is the count it measured.
+The gate, that report, `sorbet contrast` and a scaffolded project's own report
+all measure a preset through one function (`measurePreset` in
+`src/tokens/rules.ts`), and Token Studio's live check reads the same
+measurement (`checkColors`), so the count a report prints is the count it
+measured.
 The colours are read in one place as well (`parseColor` in `src/tokens/color.ts`):
 Token Studio measures what is on the page, where a production build's minifier
 has respelled the theme (`#ffffff` as `#fff`, the scrim as `#0009`, `#808080` as

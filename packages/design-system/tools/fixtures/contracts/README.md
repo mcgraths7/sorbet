@@ -58,3 +58,31 @@ values has a channel above 1 after the simulation matrix, so a simulation that
 lost its upper clamp reproduced all twelve. Each row carries the answer
 (`separation`) and what an unclamped simulation would say (`unclamped`); the
 script refuses a pair where the two are closer than 0.01.
+
+## The legibility fixtures (PR 2, step 2.1)
+
+`docs/pastel-legibility-evidence/legibility-spec.md` (revision 3.1) is the
+specification; these hold `tools/test-contracts.ts`'s step-2.1 tests to it. None
+was produced by the code under test.
+
+| File | What it is | Made by |
+| --- | --- | --- |
+| `legibility-values.json` | §3: the 69 roles (L12) and 20 optional tokens (L15) per mode, in L14's order; L15's fallbacks; §5.2's edges per mode (L45); `buttonLabel` (L19) | transcribed from the spec by `transcribe-legibility-spec.mjs.txt` |
+| `legibility-appendix-a.json` | L61's floors; appendix A's 191 rules with what each measures per mode; appendix B's breakdown of the 22 edge rules | the same |
+| `sorbet-as-shipped.json` | §10's known-bad fixture (L81): sorbet's colours as `e24df74` ships them, and L81's container edge | recorded from `e24df74` by `record-legibility-fixtures.mts.txt` (the edge typed in from L81) |
+| `wcag-aa.at-e24df74.json` | L1, L2: `contracts["wcag-aa"]` and the first 86 rules (fg, bg, tier, why, mode) as `e24df74` has them | recorded the same way |
+
+**The two transcribed files follow the spec, not the code.** If the spec is
+revised, re-run the transcriber (`node --input-type=module - <repo root> <
+transcribe-legibility-spec.mjs.txt`); the test runs it with `--check` and fails
+while the two disagree. The transcriber also checks the spec against itself
+(L45's all-round marks against L47's rule, appendix A's headings against L61,
+the rule numbers against L67), and holds `sorbet-as-shipped.json`'s edge to
+L81's table. Every figure transcribed is then recomputed by the test's own
+arithmetic, written from the spec's words.
+
+**The two recorded files are today's behaviour** and, like the five above, are
+never re-recorded from a later tree: `sorbet-as-shipped.json` is not edited
+after recording (L85). The recorder's header says how to run it on a checkout
+of `e24df74`.
+

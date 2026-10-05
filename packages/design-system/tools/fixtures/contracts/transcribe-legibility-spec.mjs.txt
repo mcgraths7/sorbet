@@ -1,0 +1,258 @@
+// Transcribes legibility-spec.md's tables into two step-2.1 fixtures (2.1 #2: "The fixture is transcribed from this
+// document by the test author, not produced by the new code"):
+//
+//   legibility-values.json      — §3: L12's 69 roles and L15's 20 optional tokens per mode, in L14's order; L15's
+//                                 fallbacks; §5.2: L45's edges per mode; L19's buttonLabel.
+//   legibility-appendix-a.json  — L61's floors; appendix A's 191 rules (fg, bg, tier, and what each measures per
+//                                 mode); appendix B's breakdown of the 22 edge rules.
+//
+// It also holds sorbet-as-shipped.json's container edges to L81's table (that file's recorder typed them in).
+//
+// It reads ONLY docs/pastel-legibility-evidence/legibility-spec.md and imports nothing from the product. On the way it
+// checks the spec against itself: L45's hand-marked all-round layers against the computed rule (L47), appendix A's
+// headings against L61, and the rule numbers against L67. tools/test-contracts.ts measures every figure it
+// transcribes against the spec's own arithmetic.
+//
+// Committed as .txt, as record-fixtures.mts.txt is: lint and every scan the tests make pass it by.
+//   node --input-type=module - <repo root> [--check] < transcribe-legibility-spec.mjs.txt
+// writes the two files (or, with --check, exits 1 if either differs from what the spec says). The test runs --check.
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import assert from "node:assert/strict";
+
+const repo = process.argv[2];
+const check = process.argv.includes("--check");
+const specPath = join(repo, "docs/pastel-legibility-evidence/legibility-spec.md");
+const spec = readFileSync(specPath, "utf8");
+const lines = spec.split("\n");
+const revision = /Revision ([\d.]+), (\d{4}-\d{2}-\d{2})/.exec(spec);
+const source = `docs/pastel-legibility-evidence/legibility-spec.md, revision ${revision[1]} (${revision[2]})`;
+
+const cells = (line) => line.split("|").slice(1, -1).map((c) => c.trim());
+const tick = (cell) => {
+  const m = /`([^`]+)`/.exec(cell);
+  assert.ok(m, `no backticked value in "${cell}"`);
+  return m[1];
+};
+/** The table rows (not header, not rule) that start at the first line matching `header`. */
+function table(header, from = 0) {
+  const start = lines.findIndex((line, i) => i >= from && line.startsWith(header));
+  assert.ok(start >= 0, `no table "${header}"`);
+  const rows = [];
+  for (let i = start + 2; i < lines.length && lines[i].startsWith("|"); i++) {
+    rows.push({ line: i + 1, cells: cells(lines[i]) });
+  }
+  return { start: start + 1, rows };
+}
+
+// ── L12: the 69 roles ──────────────────────────────────────────────────────
+const roles = table("| # | Role | Light | From | Dark | From |");
+assert.equal(roles.rows.length, 69, "L12 has 69 rows");
+const colors = { light: {}, dark: {} };
+roles.rows.forEach(({ cells: c }, i) => {
+  assert.equal(Number(c[0]), i + 1);
+  const name = tick(c[1]);
+  colors.light[name] = tick(c[2]);
+  colors.dark[name] = tick(c[4]);
+});
+
+// ── L15: the 20 optional colour tokens ─────────────────────────────────────
+const seamRows = table("| Optional token | Light | Dark | Fallback | From |");
+assert.equal(seamRows.rows.length, 20, "L15 has 20 rows");
+const seams = seamRows.rows.map(({ cells: c }) => {
+  const name = tick(c[0]);
+  colors.light[name] = tick(c[1]);
+  colors.dark[name] = tick(c[2]);
+  const fb = /^(role|css) `([^`]+)`$/.exec(c[3]);
+  assert.ok(fb, `L15 fallback "${c[3]}"`);
+  return { name, fallback: fb[1] === "role" ? { fallback: fb[2] } : { css: fb[2] } };
+});
+
+// ── L45: the edges, both modes ─────────────────────────────────────────────
+const LAYER = /^(inset )?(-?\d+(?:px)?) (-?\d+(?:px)?) (-?\d+(?:px)?) (-?\d+(?:px)?) (#[0-9a-f]{6}) @ ([\d.]+)( \*\*\(all-round\)\*\*)?$/;
+const len = (s) => Number(s.replace(/px$/, ""));
+function layers(cell) {
+  if (cell === "—") {
+    return undefined;
+  }
+  return cell.split("; ").map((text) => {
+    const m = LAYER.exec(text.trim());
+    assert.ok(m, `L45 layer "${text}"`);
+    const layer = { inset: Boolean(m[1]), x: len(m[2]), y: len(m[3]), blur: len(m[4]), spread: len(m[5]), color: m[6], alpha: Number(m[7]) };
+    // S2/L47: all-round is computed. The spec marks it by hand; the two must agree, or the transcription is wrong.
+    const computed = layer.x === 0 && layer.y === 0 && layer.spread > 0;
+    assert.equal(computed, Boolean(m[8]), `L45 layer "${text}": marked all-round ${Boolean(m[8])}, computed ${computed}`);
+    return layer;
+  });
+}
+const edges = {};
+for (const mode of ["light", "dark"]) {
+  const at = lines.findIndex((line) => line === `**${mode}**`);
+  assert.ok(at > 0 && at < 900, `L45 **${mode}**`);
+  const { rows } = table("| Element | `fill` | `rest` layers, in order | `hover` | `press` |", at);
+  edges[mode] = {};
+  for (const { cells: c } of rows) {
+    const element = tick(c[0]);
+    if (c[1].includes("withdrawn")) {
+      continue;
+    }
+    const recipe = { fill: tick(c[1]), rest: layers(c[2]) };
+    const hover = layers(c[3]);
+    const press = layers(c[4]);
+    if (hover) {
+      recipe.hover = hover;
+    }
+    if (press) {
+      recipe.press = press;
+    }
+    edges[mode][element] = recipe;
+  }
+  assert.equal(Object.keys(edges[mode]).length, 13, `L45 ${mode}: 13 elements`);
+}
+
+// ── L61: the floors ────────────────────────────────────────────────────────
+const floorRows = table("| Tier | Kind | Metric | Rules | Light: weakest → floor (margin) | Dark: weakest → floor (margin) |");
+const floors = floorRows.rows.map(({ cells: c }) => {
+  const tier = tick(c[0]);
+  const bold = (cell) => {
+    const m = /\*\*([\d.]+)\*\*/.exec(cell);
+    return m ? Number(m[1]) : null;
+  };
+  let light = bold(c[4]);
+  let dark = bold(c[5]);
+  if (tier === "scrim") {
+    assert.match(c[4], /^4\.5, as `wcag-aa`/);
+    assert.equal(c[5], "the same");
+    light = 4.5;
+    dark = 4.5;
+  }
+  assert.ok(light !== null && dark !== null, `L61 ${tier}`);
+  return { tier, kind: c[1], metric: c[2], rules: Number(c[3]), light, dark };
+});
+assert.equal(floors.length, 21, "L61 has 21 tiers");
+
+// ── Appendix A: the 191 rules ──────────────────────────────────────────────
+const VIEW = "(typical|protan|deutan|tritan)";
+const PAIR = new RegExp(`^(#[0-9a-f]{6}) on (#[0-9a-f]{6}) = ([\\d.]+) \\(${VIEW}\\)$`);
+const EDGE = new RegExp(`^([\\d.]+) \\(${VIEW}\\)$`);
+const appendixA = lines.findIndex((line) => line.startsWith("## Appendix A."));
+const appendixB = lines.findIndex((line) => line.startsWith("## Appendix B."));
+const rules = [];
+const headings = [];
+for (let i = appendixA; i < appendixB; i++) {
+  const h = /^\*\*Tier `([a-z-]+)`\*\* — (lc|sep|presence); (\d+) rules?.*; floor light ([\d.]+)(?: \([^)]*\))?, dark ([\d.]+)$/.exec(lines[i]);
+  if (h) {
+    headings.push({ tier: h[1], metric: h[2], rules: Number(h[3]), light: Number(h[4]), dark: Number(h[5]) });
+    continue;
+  }
+  if (!/^\| R\d{3} \|/.test(lines[i])) {
+    continue;
+  }
+  const c = cells(lines[i]);
+  if (c[3].includes("withdrawn")) {
+    continue;
+  }
+  const measured = (cell) => {
+    const p = PAIR.exec(cell);
+    if (p) {
+      return { fg: p[1], bg: p[2], actual: Number(p[3]), view: p[4] };
+    }
+    const e = EDGE.exec(cell);
+    assert.ok(e, `appendix A cell "${cell}" (line ${i + 1})`);
+    return { actual: Number(e[1]), view: e[2] };
+  };
+  rules.push({ n: c[0], fg: tick(c[1]), bg: tick(c[2]), tier: headings.at(-1).tier, light: measured(c[3]), dark: measured(c[4]), pair: c[5], for: c[6] });
+}
+// L67: R087 … R279 without the six withdrawn, then R280 … R283 — appendix A prints R280-R283 inside mark-line.
+const byNumber = (a, b) => Number(a.n.slice(1)) - Number(b.n.slice(1));
+rules.sort(byNumber);
+assert.equal(rules.length, 191, "appendix A holds 191 rules");
+const withdrawn = ["R268", "R269", "R270", "R271", "R274", "R275"];
+const expectNumbers = [];
+for (let n = 87; n <= 283; n++) {
+  const id = `R${String(n).padStart(3, "0")}`;
+  if (!withdrawn.includes(id)) {
+    expectNumbers.push(id);
+  }
+}
+assert.deepEqual(rules.map((r) => r.n), expectNumbers);
+// The headings and L61 agree.
+for (const h of headings) {
+  const f = floors.find((row) => row.tier === h.tier);
+  assert.ok(f, h.tier);
+  assert.deepEqual([h.metric, h.rules, h.light, h.dark], [f.metric, f.rules, f.light, f.dark], `appendix A heading ${h.tier} vs L61`);
+  assert.equal(rules.filter((r) => r.tier === h.tier).length, h.rules, `appendix A ${h.tier} count`);
+}
+
+// ── Appendix B: the 22 edge rules, broken down ─────────────────────────────
+const detailRows = table("| Rule | Mode | Fill on backdrop | Fill step | Edge pixel | Pixel from backdrop | Pixel from fill | Presence (view) |");
+const edgeDetail = [];
+for (const { cells: c } of detailRows.rows) {
+  if (c[2].includes("withdrawn")) {
+    continue;
+  }
+  const r = /^(R\d{3}) `(edge:[a-z-]+)` on `([a-z-]+)`$/.exec(c[0]);
+  const fb = /^`(#[0-9a-f]{6})` on `(#[0-9a-f]{6})`$/.exec(c[2]);
+  const pr = new RegExp(`^\\*\\*([\\d.]+)\\*\\* \\(${VIEW}\\)$`).exec(c[7]);
+  assert.ok(r && fb && pr, `appendix B row ${c.join(" | ")}`);
+  edgeDetail.push({ n: r[1], fg: r[2], bg: r[3], mode: c[1], fill: fb[1], backdrop: fb[2], fillStep: Number(c[3]), pixel: tick(c[4]), pixelFromBackdrop: Number(c[5]), pixelFromFill: Number(c[6]), presence: Number(pr[1]), view: pr[2] });
+}
+assert.equal(edgeDetail.length, 44, "appendix B: 22 rules × 2 modes");
+
+// ── L81: the known-bad fixture's container edges ───────────────────────────
+const shipped = table("| Mode | `container.fill` | `container.rest` |");
+const shippedEdges = {};
+for (const { cells: c } of shipped.rows) {
+  const rest = c[2].split("; ").map((part) => {
+    const m = /^`(inset )?(-?\d+(?:px)?) (-?\d+(?:px)?) (-?\d+(?:px)?) (-?\d+(?:px)?) (#[0-9a-f]{6}) @ ([\d.]+)`$/.exec(part.trim());
+    assert.ok(m, `L81 layer "${part}"`);
+    return { inset: Boolean(m[1]), x: len(m[2]), y: len(m[3]), blur: len(m[4]), spread: len(m[5]), color: m[6], alpha: Number(m[7]) };
+  });
+  shippedEdges[c[0]] = { container: { fill: tick(c[1]), rest } };
+}
+assert.deepEqual(Object.keys(shippedEdges), ["light", "dark"]);
+
+const out = {
+  "legibility-values.json": {
+    transcribedFrom: source,
+    note: "Transcribed by hand-written parsing of the spec's tables (transcribe-legibility-spec.mjs.txt beside this file), never produced by the code under test. colors: L12's 69 roles in table order, then L15's 20 optional tokens in table order (L14). edges: L45. buttonLabel: L19.",
+    colors,
+    seams,
+    edges,
+    buttonLabel: { px: 16, smallPx: 14, weight: 600 },
+  },
+  "legibility-appendix-a.json": {
+    transcribedFrom: source,
+    note: "floors: L61. rules: appendix A, the 191 rules in RULES order (L67), each with the actual and view the spec states per mode (two decimals). edgeDetail: appendix B.",
+    floors,
+    rules,
+    edgeDetail,
+  },
+};
+const fixtures = join(repo, "packages/design-system/tools/fixtures/contracts");
+let differs = 0;
+for (const [file, data] of Object.entries(out)) {
+  const text = `${JSON.stringify(data, null, 2)}\n`;
+  if (check) {
+    let have = "";
+    try {
+      have = readFileSync(join(fixtures, file), "utf8");
+    } catch {}
+    if (have !== text) {
+      differs++;
+      console.log(`${file} is not what the spec says`);
+    }
+  } else {
+    writeFileSync(join(fixtures, file), text);
+    console.log(`wrote ${file}`);
+  }
+}
+// L81's table against the known-bad fixture, whose recorder typed it in separately (record-legibility-fixtures.mts.txt).
+try {
+  const recorded = JSON.parse(readFileSync(join(fixtures, "sorbet-as-shipped.json"), "utf8")).edges;
+  assert.deepEqual(recorded, shippedEdges);
+} catch (error) {
+  differs++;
+  console.log(`sorbet-as-shipped.json's edges are not L81's table: ${error.message}`);
+}
+process.exit(differs ? 1 : 0);

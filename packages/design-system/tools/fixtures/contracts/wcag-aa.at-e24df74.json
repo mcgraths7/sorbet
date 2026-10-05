@@ -1,0 +1,659 @@
+{
+  "recordedFrom": "e24df74",
+  "note": "legibility-spec.md L1 and L2: contracts['wcag-aa'] key for key, and RULES[0..85] with fg, bg, tier, why and mode, as e24df74 has them.",
+  "contract": {
+    "name": "wcag-aa",
+    "calibratedFor": "Anyone: WCAG 2.x level AA is a published standard, calibrated for no one person's eyes, screen or room.",
+    "tiers": {
+      "text": {
+        "metric": "ratio",
+        "min": 4.5,
+        "why": "WCAG 2.x SC 1.4.3 (level AA) asks 4.5:1 of text at normal size, and these pairs are body copy, links and the labels on fills, read at any size.",
+        "retire": "Wrong once the standard a product is judged by stops measuring body text with this ratio, or if every one of these pairs were only ever set large and bold, which owes 3:1."
+      },
+      "text-subtle": {
+        "metric": "ratio",
+        "min": 3,
+        "why": "`text-subtle` paints what is not body copy — placeholders, separators, icons and the hints beside a control — and is held to the 3:1 WCAG 2.x AA asks of large text and of non-text marks (SC 1.4.3, SC 1.4.11).",
+        "retire": "Wrong the day `text-subtle` is the colour of text a reader needs at normal size, which WCAG holds to 4.5:1; input placeholders are the closest it comes today."
+      },
+      "scrim": {
+        "metric": "ratio",
+        "min": 4.5,
+        "why": "Text over the scrim is text at normal size (SC 1.4.3) and a promise about ANY image behind it, so the ratio held to 4.5:1 is the worst the translucent scrim can come to, anywhere between its composite over white and its composite over black.",
+        "retire": "Wrong if the scrim becomes opaque (its pairs are then ordinary `text`), or if nothing set over it is ever text."
+      },
+      "control-border": {
+        "metric": "ratio",
+        "min": 3,
+        "why": "WCAG 2.x SC 1.4.11 (level AA) asks 3:1 of the visual information needed to identify a control, and `border-strong` is the edge that says where an input is.",
+        "retire": "Wrong if inputs gain another boundary that clears 3:1 by itself (a fill, say), which leaves the border decorative and outside SC 1.4.11."
+      },
+      "shape": {
+        "metric": "ratio",
+        "min": 3,
+        "why": "WCAG 2.x SC 1.4.11 (level AA) asks 3:1 of a graphic that carries meaning with no label beside it, and the `-solid` colours paint exactly those: checkbox fills, slider tracks, tab indicators, switch tracks, spinners and the edge of a pastel button.",
+        "retire": "Wrong if a `-solid` colour stops being the whole of the shape: every such affordance labelled, or outlined in a colour that clears the floor itself."
+      },
+      "focus": {
+        "metric": "ratio",
+        "min": 3,
+        "why": "The focus ring is the only sign of where the keyboard is (SC 2.4.7), and as a non-text indicator it owes 3:1 to what it is drawn against (SC 1.4.11).",
+        "retire": "Wrong if the ring is drawn against anything but `bg` and `surface`, or becomes a two-colour ring that shows on any background, which one ratio no longer describes."
+      },
+      "chart": {
+        "metric": "ratio",
+        "min": {
+          "light": 3,
+          "dark": 2.25
+        },
+        "why": "Chart marks are non-text UI and owe 3:1 (SC 1.4.11), which light mode meets; dark mode's usable lightness band (about 0.48–0.67 OKLCH L) cannot always reach it on the dark surfaces, so the floor there is 2.25 and every Chart ships a legend, tooltips and a table view as the relief.",
+        "retire": "The dark 2.25 is wrong the day a dark palette can reach 3:1 inside the band the colour-vision gate needs (raise it to 3), or the day a Chart ships without its legend, tooltips and table view."
+      }
+    }
+  },
+  "rules": [
+    {
+      "fg": "text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "Body copy is set on the page and on every surface laid over it, so it has to read on all five.",
+      "mode": null
+    },
+    {
+      "fg": "text",
+      "bg": "bg-subtle",
+      "tier": "text",
+      "why": "Body copy is set on the page and on every surface laid over it, so it has to read on all five.",
+      "mode": null
+    },
+    {
+      "fg": "text",
+      "bg": "surface",
+      "tier": "text",
+      "why": "Body copy is set on the page and on every surface laid over it, so it has to read on all five.",
+      "mode": null
+    },
+    {
+      "fg": "text",
+      "bg": "surface-raised",
+      "tier": "text",
+      "why": "Body copy is set on the page and on every surface laid over it, so it has to read on all five.",
+      "mode": null
+    },
+    {
+      "fg": "text",
+      "bg": "surface-sunken",
+      "tier": "text",
+      "why": "Body copy is set on the page and on every surface laid over it, so it has to read on all five.",
+      "mode": null
+    },
+    {
+      "fg": "text-muted",
+      "bg": "bg",
+      "tier": "text",
+      "why": "Secondary copy — captions, help text, metadata — is still read, on the page and on every surface laid over it.",
+      "mode": null
+    },
+    {
+      "fg": "text-muted",
+      "bg": "bg-subtle",
+      "tier": "text",
+      "why": "Secondary copy — captions, help text, metadata — is still read, on the page and on every surface laid over it.",
+      "mode": null
+    },
+    {
+      "fg": "text-muted",
+      "bg": "surface",
+      "tier": "text",
+      "why": "Secondary copy — captions, help text, metadata — is still read, on the page and on every surface laid over it.",
+      "mode": null
+    },
+    {
+      "fg": "text-muted",
+      "bg": "surface-raised",
+      "tier": "text",
+      "why": "Secondary copy — captions, help text, metadata — is still read, on the page and on every surface laid over it.",
+      "mode": null
+    },
+    {
+      "fg": "text-muted",
+      "bg": "surface-sunken",
+      "tier": "text",
+      "why": "Secondary copy — captions, help text, metadata — is still read, on the page and on every surface laid over it.",
+      "mode": null
+    },
+    {
+      "fg": "text-subtle",
+      "bg": "bg",
+      "tier": "text-subtle",
+      "why": "Placeholders, separators and icon-weight hints sit on the page and on a surface, and have to be seen there.",
+      "mode": null
+    },
+    {
+      "fg": "text-subtle",
+      "bg": "surface",
+      "tier": "text-subtle",
+      "why": "Placeholders, separators and icon-weight hints sit on the page and on a surface, and have to be seen there.",
+      "mode": null
+    },
+    {
+      "fg": "border-strong",
+      "bg": "bg",
+      "tier": "control-border",
+      "why": "`border-strong` is the edge that says where an input is, against the page and against a surface (WCAG 1.4.11).",
+      "mode": null
+    },
+    {
+      "fg": "border-strong",
+      "bg": "surface",
+      "tier": "control-border",
+      "why": "`border-strong` is the edge that says where an input is, against the page and against a surface (WCAG 1.4.11).",
+      "mode": null
+    },
+    {
+      "fg": "focus-ring",
+      "bg": "bg",
+      "tier": "focus",
+      "why": "The focus ring is the only sign of where the keyboard is, and it is drawn against the page or a surface.",
+      "mode": null
+    },
+    {
+      "fg": "focus-ring",
+      "bg": "surface",
+      "tier": "focus",
+      "why": "The focus ring is the only sign of where the keyboard is, and it is drawn against the page or a surface.",
+      "mode": null
+    },
+    {
+      "fg": "link",
+      "bg": "bg",
+      "tier": "text",
+      "why": "A link is text in the middle of body copy, on the page or on a surface.",
+      "mode": null
+    },
+    {
+      "fg": "link",
+      "bg": "surface",
+      "tier": "text",
+      "why": "A link is text in the middle of body copy, on the page or on a surface.",
+      "mode": null
+    },
+    {
+      "fg": "link-hover",
+      "bg": "bg",
+      "tier": "text",
+      "why": "A link is still being read while the pointer is over it.",
+      "mode": null
+    },
+    {
+      "fg": "on-scrim",
+      "bg": "scrim",
+      "tier": "scrim",
+      "why": "Text over the scrim has to read over ANY image behind it, so the pair is measured at the scrim's worst composite, between pure white and pure black.",
+      "mode": null
+    },
+    {
+      "fg": "on-scrim-muted",
+      "bg": "scrim",
+      "tier": "scrim",
+      "why": "Text over the scrim has to read over ANY image behind it, so the pair is measured at the scrim's worst composite, between pure white and pure black.",
+      "mode": null
+    },
+    {
+      "fg": "on-primary",
+      "bg": "primary",
+      "tier": "text",
+      "why": "A primary button's label is read on its fill in every state the fill takes: at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "on-primary",
+      "bg": "primary-hover",
+      "tier": "text",
+      "why": "A primary button's label is read on its fill in every state the fill takes: at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "on-primary",
+      "bg": "primary-active",
+      "tier": "text",
+      "why": "A primary button's label is read on its fill in every state the fill takes: at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "primary-text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "`primary-text` is brand-coloured text: on the page, on a surface, and on its own subtle tint (badges, alerts).",
+      "mode": null
+    },
+    {
+      "fg": "primary-text",
+      "bg": "surface",
+      "tier": "text",
+      "why": "`primary-text` is brand-coloured text: on the page, on a surface, and on its own subtle tint (badges, alerts).",
+      "mode": null
+    },
+    {
+      "fg": "primary-text",
+      "bg": "primary-subtle",
+      "tier": "text",
+      "why": "`primary-text` is brand-coloured text: on the page, on a surface, and on its own subtle tint (badges, alerts).",
+      "mode": null
+    },
+    {
+      "fg": "primary-solid",
+      "bg": "bg",
+      "tier": "shape",
+      "why": "`primary-solid` paints affordances that have no label to carry them — checkbox fills, slider tracks, tab indicators, switch tracks, spinners — so the fill itself has to stand out from the page and from a surface (WCAG 1.4.11).",
+      "mode": null
+    },
+    {
+      "fg": "primary-solid",
+      "bg": "surface",
+      "tier": "shape",
+      "why": "`primary-solid` paints affordances that have no label to carry them — checkbox fills, slider tracks, tab indicators, switch tracks, spinners — so the fill itself has to stand out from the page and from a surface (WCAG 1.4.11).",
+      "mode": null
+    },
+    {
+      "fg": "secondary-solid",
+      "bg": "bg",
+      "tier": "shape",
+      "why": "Secondary and accent paint no affordances, but a pastel fill still needs an edge that can be seen against the page: its `-solid` is the button's border.",
+      "mode": null
+    },
+    {
+      "fg": "accent-solid",
+      "bg": "bg",
+      "tier": "shape",
+      "why": "Secondary and accent paint no affordances, but a pastel fill still needs an edge that can be seen against the page: its `-solid` is the button's border.",
+      "mode": null
+    },
+    {
+      "fg": "on-secondary",
+      "bg": "secondary",
+      "tier": "text",
+      "why": "A secondary button's label is read on its fill at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "on-secondary",
+      "bg": "secondary-hover",
+      "tier": "text",
+      "why": "A secondary button's label is read on its fill at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "on-secondary",
+      "bg": "secondary-active",
+      "tier": "text",
+      "why": "A secondary button's label is read on its fill at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "secondary-text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "`secondary-text` is brand-coloured text, on the page and on its own subtle tint.",
+      "mode": null
+    },
+    {
+      "fg": "secondary-text",
+      "bg": "secondary-subtle",
+      "tier": "text",
+      "why": "`secondary-text` is brand-coloured text, on the page and on its own subtle tint.",
+      "mode": null
+    },
+    {
+      "fg": "on-accent",
+      "bg": "accent",
+      "tier": "text",
+      "why": "An accent button's label is read on its fill at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "on-accent",
+      "bg": "accent-hover",
+      "tier": "text",
+      "why": "An accent button's label is read on its fill at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "on-accent",
+      "bg": "accent-active",
+      "tier": "text",
+      "why": "An accent button's label is read on its fill at rest, hovered and pressed.",
+      "mode": null
+    },
+    {
+      "fg": "accent-text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "`accent-text` is brand-coloured text, on the page and on its own subtle tint.",
+      "mode": null
+    },
+    {
+      "fg": "accent-text",
+      "bg": "accent-subtle",
+      "tier": "text",
+      "why": "`accent-text` is brand-coloured text, on the page and on its own subtle tint.",
+      "mode": null
+    },
+    {
+      "fg": "on-success",
+      "bg": "success",
+      "tier": "text",
+      "why": "The label on a success fill (a button, a badge) is read on it.",
+      "mode": null
+    },
+    {
+      "fg": "success-text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "`success-text` is the status said in words, on the page and on its own subtle tint (alerts, badges).",
+      "mode": null
+    },
+    {
+      "fg": "success-text",
+      "bg": "success-subtle",
+      "tier": "text",
+      "why": "`success-text` is the status said in words, on the page and on its own subtle tint (alerts, badges).",
+      "mode": null
+    },
+    {
+      "fg": "on-warning",
+      "bg": "warning",
+      "tier": "text",
+      "why": "The label on a warning fill (a button, a badge) is read on it.",
+      "mode": null
+    },
+    {
+      "fg": "warning-text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "`warning-text` is the status said in words, on the page and on its own subtle tint (alerts, badges).",
+      "mode": null
+    },
+    {
+      "fg": "warning-text",
+      "bg": "warning-subtle",
+      "tier": "text",
+      "why": "`warning-text` is the status said in words, on the page and on its own subtle tint (alerts, badges).",
+      "mode": null
+    },
+    {
+      "fg": "on-danger",
+      "bg": "danger",
+      "tier": "text",
+      "why": "A destructive button's label is read on its fill at rest and hovered.",
+      "mode": null
+    },
+    {
+      "fg": "on-danger",
+      "bg": "danger-hover",
+      "tier": "text",
+      "why": "A destructive button's label is read on its fill at rest and hovered.",
+      "mode": null
+    },
+    {
+      "fg": "danger-text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "`danger-text` is the status said in words, on the page and on its own subtle tint (alerts, badges, field errors).",
+      "mode": null
+    },
+    {
+      "fg": "danger-text",
+      "bg": "danger-subtle",
+      "tier": "text",
+      "why": "`danger-text` is the status said in words, on the page and on its own subtle tint (alerts, badges, field errors).",
+      "mode": null
+    },
+    {
+      "fg": "on-info",
+      "bg": "info",
+      "tier": "text",
+      "why": "The label on an info fill (a button, a badge) is read on it.",
+      "mode": null
+    },
+    {
+      "fg": "info-text",
+      "bg": "bg",
+      "tier": "text",
+      "why": "`info-text` is the status said in words, on the page and on its own subtle tint (alerts, badges).",
+      "mode": null
+    },
+    {
+      "fg": "info-text",
+      "bg": "info-subtle",
+      "tier": "text",
+      "why": "`info-text` is the status said in words, on the page and on its own subtle tint (alerts, badges).",
+      "mode": null
+    },
+    {
+      "fg": "chart-1",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-1",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-1",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-1",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-2",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-2",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-2",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-2",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-3",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-3",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-3",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-3",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-4",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-4",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-4",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-4",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-5",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-5",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-5",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-5",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-6",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-6",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-6",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-6",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-7",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-7",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-7",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-7",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-8",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-8",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "light"
+    },
+    {
+      "fg": "chart-8",
+      "bg": "surface",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    },
+    {
+      "fg": "chart-8",
+      "bg": "bg",
+      "tier": "chart",
+      "why": "A chart mark — a bar, a line, a point — is non-text UI that has to be told from the surface or the page it is drawn on, in the palette of the mode it is drawn in.",
+      "mode": "dark"
+    }
+  ]
+}

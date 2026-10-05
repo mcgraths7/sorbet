@@ -2,12 +2,21 @@
  * Emitters: turn token data into CSS custom properties and Sass.
  *
  * - One theme file per preset (`dist/themes/<name>.css`): colors, fonts,
- *   radius, shadows for light + dark. Swapping themes = swapping one file.
+ *   radius, shadows for light + dark — and, for a preset that has the data,
+ *   its optional colour tokens, its button label size and its edges.
+ *   Swapping themes = swapping one file.
  * - One generated Sass partial: breakpoint maps (media queries can't read
- *   custom properties) and the preset-independent scales.
+ *   custom properties), the preset-independent scales, and the names the
+ *   accessors validate against — the seams with their fallbacks, and the
+ *   edge elements.
+ *
+ * A preset with no optional data emits exactly the lines it always has: no
+ * code path asks "is this a WCAG preset"; the absence of the data is the whole
+ * switch, and the frozen golden files hold it to that.
  */
 
 import { withAlpha, type Hex } from "./color.ts";
+import { EDGE_ELEMENTS, edgeProperties, presetEdgesOf, shadowText, type EdgeData } from "./edges.ts";
 import { contractOf } from "./rules.ts";
 import {
   breakpoints,
@@ -22,14 +31,16 @@ import {
   tracking,
   zIndex,
 } from "./scales.ts";
-import { SEMANTIC_COLOR_NAMES, type Mode, type SemanticColors } from "./semantics.ts";
+import { isSeam, presetColorsOf, SEAMS } from "./seams.ts";
+import { SEMANTIC_COLOR_NAMES, type Mode } from "./semantics.ts";
 
 import type { Preset } from "./presets.ts";
 
 const decl = (name: string, value: string) => `  --sb-${name}: ${value};`;
 
-function colorDecls(colors: SemanticColors): string[] {
-  return Object.entries(colors).map(([name, value]) => decl(name, value));
+/** The present colours of a record, in record order: an own key holding `undefined` is absent and writes nothing. */
+function colorDecls(colors: Preset["colors"][Mode]): string[] {
+  return Object.entries(colors).flatMap(([name, value]) => (value === undefined ? [] : [decl(name, value)]));
 }
 
 function shadowDecls(mode: Mode, tint: Hex): string[] {
@@ -43,13 +54,67 @@ function shadowDecls(mode: Mode, tint: Hex): string[] {
   ];
 }
 
-function modeBlock(preset: Preset, mode: Mode): string[] {
-  return [`  color-scheme: ${mode};`, ...colorDecls(preset.colors[mode]), ...shadowDecls(mode, preset.shadowTint)];
+const MODES: readonly Mode[] = ["light", "dark"];
+const shown = (value: unknown): string => (typeof value === "number" ? String(value) : JSON.stringify(value) ?? String(value));
+
+/** A preset's edge data for each mode, checked whole before a line is written: malformed data is a TypeError naming the preset and the element, never a quietly weaker edge. */
+const edgesOf = (preset: Preset): Partial<Record<Mode, EdgeData>> => Object.fromEntries(MODES.map((mode) => [mode, presetEdgesOf(preset, mode)]));
+
+/** `--sb-button-font-size` and `-sm`, px / 16 in rem: written once, in the light block, because the size is the same in both modes. */
+function buttonLabelDecls(preset: Preset): string[] {
+  const label: unknown = preset.buttonLabel;
+  if (label === undefined) {
+    return [];
+  }
+  const { px, smallPx } = (label ?? {}) as Record<string, unknown>;
+  for (const [key, value] of [["px", px], ["smallPx", smallPx]] as const) {
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+      throw new TypeError(`the preset ${shown(preset.name)}: its buttonLabel.${key} is ${shown(value)}, and it must be a finite number of px greater than 0`);
+    }
+  }
+  return [decl("button-font-size", `${(px as number) / 16}rem`), decl("button-font-size-sm", `${(smallPx as number) / 16}rem`)];
+}
+
+/** The custom properties a mode's optional data emits, in the order the block writes them: the present optional colour tokens of its record, then its edge properties. */
+const optionalNames = (preset: Preset, mode: Mode, edges: EdgeData | undefined): string[] => [
+  ...Object.entries(preset.colors[mode]).filter(([name, value]) => isSeam(name) && value !== undefined).map(([name]) => name),
+  ...(edges === undefined ? [] : edgeProperties(edges).map(([property]) => property)),
+];
+
+/**
+ * One mode's declarations: the colour scheme, the colours (roles and optional
+ * tokens, in record order), the shadows, then — light only — the button
+ * label's size, then the mode's edges. A dark block ends by resetting, with
+ * `initial`, every property the light block emits from optional data and the
+ * dark block does not, one property at a time: `initial` makes a custom
+ * property count as not set, so the stylesheet's fallback paints in dark
+ * instead of the light value the dark block would otherwise inherit from
+ * `:root`.
+ */
+function modeBlock(preset: Preset, mode: Mode, edges: Partial<Record<Mode, EdgeData>>): string[] {
+  const own = edges[mode];
+  const lines = [
+    `  color-scheme: ${mode};`,
+    ...colorDecls(preset.colors[mode]),
+    ...shadowDecls(mode, preset.shadowTint),
+    ...(mode === "light" ? buttonLabelDecls(preset) : []),
+    ...(own === undefined ? [] : edgeProperties(own).map(([property, layers]) => decl(property, shadowText(layers)))),
+  ];
+  if (mode === "dark") {
+    const defined = new Set(optionalNames(preset, "dark", own));
+    lines.push(...optionalNames(preset, "light", edges.light).filter((name) => !defined.has(name)).map((name) => decl(name, "initial")));
+  }
+  return lines;
 }
 
 export function themeCss(preset: Preset): string {
   const radius = radiusStyles[preset.radiusStyle];
-  const dark = modeBlock(preset, "dark").join("\n");
+  for (const mode of MODES) {
+    presetColorsOf(preset, mode);
+  }
+  const edges = edgesOf(preset);
+  const light = modeBlock(preset, "light", edges).join("\n");
+  const dark = modeBlock(preset, "dark", edges).join("\n");
 
   return `/* Sorbet DS theme: ${preset.name} — ${preset.tagline}
  * GENERATED by \`npm run build:tokens\` — edit src/tokens/, not this file. */
@@ -62,7 +127,7 @@ ${Object.entries(radius)
   .map(([k, v]) => decl(`radius-${k}`, v))
   .join("\n")}
 ${decl("radius-full", "999px")}
-${modeBlock(preset, "light").join("\n")}
+${light}
 }
 
 /* Explicit opt-in: <html data-theme="dark"> */
@@ -92,7 +157,7 @@ export function generatedScss(): string {
   const strip = (obj: Record<string, string>, prefix: string) =>
     Object.keys(obj).map((k) => k.replace(`${prefix}-`, ""));
 
-  return `// GENERATED by \`npm run build:tokens\` — edit src/tokens/scales.ts, not this file.
+  return `// GENERATED by \`npm run build:tokens\` — edit src/tokens/ (scales.ts, seams.ts, edges.ts), not this file.
 // Breakpoints live in Sass because media queries cannot read custom properties.
 
 $breakpoints: (
@@ -106,6 +171,20 @@ ${mapEntries(containers)}
 // Known token names — the abstracts validate against these at compile time,
 // so a typo'd token is a build error instead of a silently-broken var().
 $semantic-colors: (${list(SEMANTIC_COLOR_NAMES)});
+
+// The optional colour tokens (src/tokens/seams.ts), each with its fallback —
+// a role, or CSS written as it is — for the stylesheet to take a seam's
+// fallback from the same definition the checker reads, so the two cannot
+// disagree about what an undefined token paints.
+$seams: (
+${Object.entries(SEAMS)
+  .map(([name, fallback]) => `  ${JSON.stringify(name)}: (${"fallback" in fallback ? `"fallback": ${JSON.stringify(fallback.fallback)}` : `"css": ${JSON.stringify(fallback.css)}`}),`)
+  .join("\n")}
+);
+
+// The elements a theme may give an edge (src/tokens/edges.ts), emitted as
+// --sb-edge-<element>, -hover and -press.
+$edge-elements: (${list(EDGE_ELEMENTS)});
 
 $scale-keys: (
   "space": (${list(Object.keys(space))}),

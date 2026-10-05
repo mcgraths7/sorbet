@@ -10,7 +10,9 @@ import { buildMode, type Mode, type SemanticColors, type SemanticRecipe } from "
 
 import type { Hex } from "./color.ts";
 import type { ContractName } from "./contracts.ts";
+import type { EdgeData } from "./edges.ts";
 import type { RadiusStyle } from "./scales.ts";
+import type { SeamName } from "./seams.ts";
 
 export interface Preset {
   name: string;
@@ -20,7 +22,31 @@ export interface Preset {
   radiusStyle: RadiusStyle;
   fonts: { sans: string; display: string; mono: string };
   shadowTint: Hex;
-  colors: Record<Mode, SemanticColors>;
+  /**
+   * The roles, and beside them any optional colour tokens the theme defines
+   * (seams.ts). Both are emitted as `--sb-<name>`, and both reach the
+   * measurement in the one record, so a caller cannot hand it the roles and
+   * forget the rest. No other key is allowed, and an optional token that is
+   * present must be a colour `parseColor` reads (`presetColorsOf`); one held
+   * as `undefined` is absent.
+   */
+  colors: Record<Mode, SemanticColors & Partial<Record<SeamName, string>>>;
+  /**
+   * The edges of the elements this theme describes, per mode, as data
+   * (edges.ts), read through own keys of plain objects only
+   * (`presetEdgesOf`): emitted as `--sb-edge-<element>` and measured by the
+   * edge tiers. A theme without it emits no edge line, and an edge rule its
+   * contract holds cannot be measured.
+   */
+  edges?: Record<Mode, EdgeData>;
+  /**
+   * The type of a button's label at the default and the small size, and its
+   * weight. Emitted once, in the light block, as `--sb-button-font-size` and
+   * `--sb-button-font-size-sm` (px / 16, in rem); the `label-type` check holds
+   * it to what the contract's label tier requires. A theme without it emits
+   * neither line.
+   */
+  buttonLabel?: { px: number; smallPx: number; weight: number };
   /**
    * The contract this preset is held to, one per mode (contracts.ts). Required,
    * and with no default anywhere: a preset that does not say is refused by

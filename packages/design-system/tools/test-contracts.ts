@@ -43,8 +43,23 @@
  * another language (simulate_cvd.py) from the specification's text alone, and
  * so was the clamp's (separation-clamp.json).
  *
+ * And, for PR 2's second contract (docs/pastel-legibility-evidence/legibility-spec.md, step 2.1, tests first):
+ *
+ *   - a measurement that reads plausibly and is wrong: Lc with its sign, text and background swapped, the
+ *     simulated hex not used, the largest view taken, a see-through background composited over white, an inset
+ *     edge blended over the backdrop, a term of edge presence left out, a fallback read as a colour;
+ *   - a rule that cannot be measured turning into a skip, a pass, a 0 or a throw;
+ *   - a floor, a tier, a view or a check of the member mistyped, rounded up or left out;
+ *   - a report or a gate that names the wrong contract, miscounts what it leaves unheld, or loses a failure.
+ *
+ *   Its expected values are the spec's: transcribed into legibility-values.json and legibility-appendix-a.json
+ *   by a script that reads only the spec, recorded from e24df74 where they are today's behaviour, or typed in.
+ *   Where a test needs arithmetic, it is this file's own, written from the spec's words and first held to every
+ *   figure the spec prints.
+ *
  * Each test's name starts with the statement of the specification it holds
- * ("M6.4 …" is section M6, item 4, of the contract-mechanism spec).
+ * ("M6.4 …" is section M6, item 4, of the contract-mechanism spec; "L61 …" is statement 61 of the legibility spec,
+ * "2.1 #4 …" item 4 of its step 2.1's acceptance list).
  *
  * The exported RULES and contracts are mutated in process to prove the checks
  * bite, and put back; the last test proves they were. Planted copies of the
@@ -68,8 +83,18 @@ import * as chartGate from "./check-cvd.ts";
 
 import type { Contract, ContractName, Measurement, Mode, Preset, Rule, SemanticColors, Tier } from "../src/tokens/index.ts";
 
-const { checkColors, checkPreset, contractOf, CONTRACT_NAMES, contracts, floorFor, manifest, measureColors, presets, RULES, themeCss, TIER_KIND, TIERS } = tokens;
-const { apcaLc, oklabOf, separation, simulateCvd } = color;
+const { checkColors, checkPreset, contractOf, CONTRACT_NAMES, contracts, floorFor, generatedScss, manifest, measureColors, presets, ratioText, RULES, SEMANTIC_COLOR_NAMES, themeCss, TIER_KIND, TIERS } = tokens;
+const { apcaLc, oklabOf, separation, simulateCvd, worstCaseContrast } = color;
+
+// src/tokens/seams.ts is new in PR 2, step 2.1 (legibility-spec.md L15). It is loaded here rather than imported
+// above: a file that does not exist yet is then one failing test that says so, not a module that will not load.
+let seamsModule: Record<string, unknown> | undefined;
+let seamsMissing = "";
+try {
+  seamsModule = (await import("../src/tokens/seams.ts")) as Record<string, unknown>;
+} catch(error) {
+  seamsMissing = (error as Error).message;
+}
 
 const pkgRoot = join(import.meta.dirname, "..");
 const repoRoot = join(pkgRoot, "..", "..");
@@ -83,6 +108,8 @@ const WCAG: ContractName = "wcag-aa";
 const shipped: Record<string, Preset> = presets;
 
 let ran = 0;
+/** How many tests the legibility section (PR 2, step 2.1) ran: a section that tested nothing must not read as a pass. */
+let legibilityCount: number | undefined;
 const failed: string[] = [];
 function test(name: string, fn: () => void) {
   ran++;
@@ -162,6 +189,282 @@ const EXPECTED_TIERS: Record<Mode, Tier[]> = {
   light: TRIPLES.light.map(([fg, bg, floor]) => tierOfPair(fg, bg, floor)),
   dark: TRIPLES.dark.map(([fg, bg, floor]) => tierOfPair(fg, bg, floor)),
 };
+
+// ── PR 2, step 2.1: the legibility spec, typed in or transcribed from it (never read from the code) ──
+//
+// docs/pastel-legibility-evidence/legibility-spec.md, revision 3.1. "L61" below is its statement 61, "R087" its
+// rule 87 (appendix A), "2.1 #4" item 4 of step 2.1's acceptance list (L101), "L105 #12" entry 12 of the list
+// of PR-1 assertions it makes false.
+
+const SPEC = "legibility-spec.md";
+const LEG = "legibility" as ContractName;
+const VIEWS = ["typical", "protan", "deutan", "tritan"] as const;
+type View = (typeof VIEWS)[number];
+type Metric = "ratio" | "lc" | "sep" | "presence";
+type ColorRecord = Record<string, string>;
+interface Layer {
+  inset: boolean;
+  x: number;
+  y: number;
+  blur: number;
+  spread: number;
+  color: string;
+  alpha: number;
+}
+interface Recipe {
+  fill: string;
+  rest: Layer[];
+  hover?: Layer[];
+  press?: Layer[];
+}
+type Edges = Record<string, Recipe>;
+type Fallback = { fallback: string } | { css: string };
+interface SpecFloor {
+  tier: Tier;
+  kind: string;
+  metric: Metric;
+  rules: number;
+  light: number;
+  dark: number;
+}
+interface SpecCell {
+  actual: number;
+  view: View;
+  fg?: string;
+  bg?: string;
+}
+interface SpecRule {
+  n: string;
+  fg: string;
+  bg: string;
+  tier: Tier;
+  light: SpecCell;
+  dark: SpecCell;
+  pair: string;
+  for: string;
+}
+interface SpecEdgeRow {
+  n: string;
+  fg: string;
+  bg: string;
+  mode: Mode;
+  fill: string;
+  backdrop: string;
+  fillStep: number;
+  pixel: string;
+  pixelFromBackdrop: number;
+  pixelFromFill: number;
+  presence: number;
+  view: View;
+}
+interface ButtonLabel {
+  px: number;
+  smallPx: number;
+  weight: number;
+}
+
+/** §3 (L12, L15, L19) and §5.2 (L45), transcribed from the spec by transcribe-legibility-spec.mjs.txt. */
+const VALUES = json("legibility-values.json") as { colors: Record<Mode, ColorRecord>; seams: { name: string; fallback: Fallback }[]; edges: Record<Mode, Edges>; buttonLabel: ButtonLabel };
+/** L61's floors, appendix A's 191 rules with what each measures, appendix B's breakdown. Transcribed the same way. */
+const APPENDIX = json("legibility-appendix-a.json") as { floors: SpecFloor[]; rules: SpecRule[]; edgeDetail: SpecEdgeRow[] };
+/** L81: sorbet as main ships it (recorded from e24df74), with the container edge of L81's table. */
+const KNOWN_BAD = json("sorbet-as-shipped.json") as { recordedFrom: string; colors: Record<Mode, ColorRecord>; edges: Record<Mode, Edges> };
+/** L1, L2: wcag-aa and the first 86 rules as e24df74 has them, recorded by running it. */
+const AT_E24DF74 = json("wcag-aa.at-e24df74.json") as { recordedFrom: string; contract: Contract; rules: { fg: string; bg: string; tier: string; why: string; mode: Mode | null }[] };
+
+/** L22, L23: the 20 tiers the legibility member adds, in order, with the kind L23 gives each. */
+const NEW_TIERS: [tier: Tier, kind: string][] = [
+  ["body", "text"], ["secondary", "text"], ["on-wash", "text"], ["tinted", "text"], ["label", "text"], ["placeholder", "text"],
+  ["mark-area", "shape"], ["mark-line", "shape"], ["divider", "shape"],
+  ["focus-visible", "focus"],
+  ["tell-apart", "distinction"], ["palette", "distinction"],
+  ["chart-mark", "chart"],
+  ["edge-container", "edge"], ["edge-floating", "edge"], ["edge-field", "edge"], ["edge-sunken", "edge"], ["edge-quiet", "edge"], ["edge-filled", "edge"], ["edge-status", "edge"],
+].map(([tier, kind]) => [tier as Tier, kind!]);
+/** L22's CheckName, in the order L57 lists them. */
+const CHECKS = ["roles-complete", "hierarchy", "edge-not-fill", "fills-steady", "edge-direction", "label-type"];
+/** L24's EdgeElement, in the order §4.1 writes it (L53 emits in this order). */
+const ELEMENTS = ["container", "floating", "field", "sunken", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger", "status-success", "status-warning", "status-danger", "status-info"];
+/** L61. */
+const LEG_FLOOR = new Map(APPENDIX.floors.map((row) => [row.tier, row]));
+const floorIn = (tier: Tier, mode: Mode) => LEG_FLOOR.get(tier)![mode];
+/** L62: the four floors written as one number; every other is { light, dark }. */
+const ONE_NUMBER = new Set(["scrim", "label", "tell-apart", "palette"]);
+/** L88: the word each metric prints before its value. The ratio prints none, as today. */
+const WORD: Record<Metric, string> = { ratio: "", lc: "Lc", sep: "separation", presence: "edge presence" };
+/** 2.1 #2: the two scrim rules, as ratios at the worst case, to 1e-4. */
+const SCRIM_RATIO: Record<string, number> = { "on-scrim": 5.5562, "on-scrim-muted": 4.6844 };
+/** L58 and §11: the counts, as the spec states them (each is also counted below, never only typed). */
+const APPLYING = 261;
+const HELD_BY_LEGIBILITY = 193;
+
+// What step 2.1 must expose, read off the namespace: a name that is not exported yet is one failing test.
+type Fn = (...args: unknown[]) => unknown;
+const lib = tokens as unknown as Record<string, unknown>;
+function api(name: string): Fn {
+  const fn = lib[name];
+  assert.equal(typeof fn, "function", `src/tokens/index.ts does not export ${name}() (${SPEC})`);
+  return fn as Fn;
+}
+interface Measured {
+  fg: string;
+  bg: string;
+  tier: string;
+  kind: string;
+  metric: string;
+  min: number;
+  actual: number | null;
+  view: string | null;
+  holds: boolean;
+}
+interface Failed {
+  preset: string;
+  mode: Mode;
+  fg: string;
+  bg: string;
+  min: number;
+  actual: number | null;
+  tier: string;
+  metric: string;
+  view: string | null;
+}
+interface StructureFailure {
+  preset: string;
+  mode: Mode;
+  check: string;
+  detail: string;
+}
+/** L24: measureColors(mode, colors, contract, edges?). */
+const measure = (mode: Mode, colors: unknown, contract: string, edges?: unknown) => (measureColors as unknown as Fn)(mode, colors, contract, edges) as Measured[];
+/** L24: checkColors(preset, mode, colors, contract, edges?). */
+const failuresOf = (preset: string, mode: Mode, colors: unknown, contract: string, edges?: unknown) => (checkColors as unknown as Fn)(preset, mode, colors, contract, edges) as Failed[];
+/** contracts.legibility, or a failing assertion that says it is not there. */
+function legibility(): Contract & { views?: unknown; checks?: unknown } {
+  const member = (contracts as unknown as Record<string, Contract>)[LEG];
+  assert.ok(member !== undefined, "contracts has no \"legibility\" member (L57)");
+  return member;
+}
+
+// ── the arithmetic of §4.2 to §5.4, written again from the spec's words ────
+// It calls only the four instruments PR 1 already holds to published values (M7) and the scrim's worst case
+// (PR 1's), and is checked below against every figure appendices A and B print. Its own functions are not named
+// after the instruments: the M7 caller scan matches a call by its name (L105 #43).
+
+const SEAM_FALLBACK = new Map(VALUES.seams.map((seam) => [seam.name, seam.fallback]));
+const bytesOf = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+const hexOf = (bytes: number[]) => `#${bytes.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+/** L48: straight alpha compositing, channel by channel, rounded to a whole number. */
+const blendOver = (hex: string, alpha: number, under: string) => {
+  const below = bytesOf(under);
+  return hexOf(bytesOf(hex).map((c, i) => Math.round(c * alpha + below[i]! * (1 - alpha))));
+};
+/** The spellings the fixtures use: #rrggbb, withAlpha()'s rgb(r g b / a), and `transparent`. Anything else is unreadable here. */
+function rgbaOf(value: string | null): { hex: string; alpha: number } | null {
+  if (value === null) {
+    return null;
+  }
+  if (/^#[0-9a-f]{6}$/.test(value)) {
+    return { hex: value, alpha: 1 };
+  }
+  const fn = /^rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)$/.exec(value);
+  if (fn) {
+    return { hex: hexOf([Number(fn[1]), Number(fn[2]), Number(fn[3])]), alpha: Number(fn[4]) };
+  }
+  return value === "transparent" ? { hex: "#000000", alpha: 0 } : null;
+}
+/** L37: what var(--sb-N, var(--sb-fallback)) computes. A css fallback is no value. */
+function valueOf(name: string, record: ColorRecord): string | null {
+  const own = Object.hasOwn(record, name) ? record[name] : undefined;
+  if (typeof own === "string" && own.trim() !== "") {
+    return own.trim();
+  }
+  const fallback = SEAM_FALLBACK.get(name);
+  if (fallback !== undefined && "fallback" in fallback) {
+    const role = Object.hasOwn(record, fallback.fallback) ? record[fallback.fallback] : undefined;
+    return typeof role === "string" && role.trim() !== "" ? role.trim() : null;
+  }
+  return null;
+}
+/** L47: reaches every side alike — no offset, a positive spread. */
+const allRound = (layer: Layer) => layer.x === 0 && layer.y === 0 && layer.spread > 0;
+/** L27, L29, L30: the size of Lc; under a simulation, of the two 8-bit hexes simulateCvd returns. */
+const lcIn = (view: View, text: string, ground: string) => Math.abs((view === "typical" ? apcaLc(text, ground) : apcaLc(simulateCvd(text, view), simulateCvd(ground, view)))!);
+/** L27: separation in a view. */
+const sepIn = (view: View, a: string, b: string) => (view === "typical" ? separation(a, b) : separation(a, b, view))!;
+/** L31: the smallest value among the views, and the FIRST view in the contract's order that reaches it. */
+function worstOf(views: readonly View[], at: (view: View) => number): { actual: number; view: View } {
+  let worst = { actual: Infinity, view: views[0]! as View };
+  for (const view of views) {
+    const value = at(view);
+    if (value < worst.actual) {
+      worst = { actual: value, view };
+    }
+  }
+  return worst;
+}
+/** L52: an edge used as a colour — only an element with exactly one all-round layer, and that one inset. */
+function edgePixelOf(recipe: Recipe | undefined, record: ColorRecord): string | null {
+  const layers = recipe?.rest.filter(allRound) ?? [];
+  const fill = rgbaOf(recipe === undefined ? null : valueOf(recipe.fill, record));
+  if (layers.length !== 1 || !layers[0]!.inset || fill === null || fill.alpha !== 1) {
+    return null;
+  }
+  return blendOver(layers[0]!.color, layers[0]!.alpha, fill.hex);
+}
+/** L49, L107: an element's presence on a backdrop. */
+function presenceOf(recipe: Recipe | undefined, backdrop: string, record: ColorRecord, views: readonly View[]): { actual: number; view: View } | null {
+  const k = rgbaOf(valueOf(backdrop, record));
+  if (recipe === undefined || k === null || k.alpha !== 1) {
+    return null;
+  }
+  const f = recipe.fill === "backdrop" ? k : rgbaOf(valueOf(recipe.fill, record));
+  if (f === null || f.alpha !== 1) {
+    return null;
+  }
+  const pixels = recipe.rest.filter(allRound).map((layer) => blendOver(layer.color, layer.alpha, layer.inset ? f.hex : k.hex));
+  return worstOf(views, (view) => Math.max(sepIn(view, f.hex, k.hex), ...pixels.map((p) => sepIn(view, p, k.hex)), ...pixels.map((p) => sepIn(view, p, f.hex))));
+}
+/** L37, L38, L52: the two opaque colours an lc or sep rule compares — a see-through fg blended over the bg — or null where it cannot be measured. */
+function sidesOf(rule: { fg: string; bg: string }, record: ColorRecord, edges: Partial<Edges> | undefined): { fg: string; bg: string } | null {
+  const side = (name: string) => (name.startsWith("edge:") ? edgePixelOf(edges?.[name.slice("edge:".length)], record) : valueOf(name, record));
+  const b = rgbaOf(side(rule.bg));
+  const f = rgbaOf(side(rule.fg));
+  if (b === null || b.alpha !== 1 || f === null) {
+    return null;
+  }
+  return { fg: f.alpha === 1 ? f.hex : blendOver(f.hex, f.alpha, b.hex), bg: b.hex };
+}
+/** What a rule measures under a metric (L27, L37, L38, L49, L52), or null where the spec says it cannot be measured (L39). */
+function expectedOf(rule: { fg: string; bg: string }, metric: Metric, record: ColorRecord, edges: Partial<Edges> | undefined, views: readonly View[] = VIEWS): { actual: number; view: View } | null {
+  if (metric === "presence") {
+    return presenceOf(edges?.[rule.fg.slice("edge:".length)], rule.bg, record, views);
+  }
+  if (metric === "ratio") {
+    const actual = worstCaseContrast(valueOf(rule.fg, record) ?? "", valueOf(rule.bg, record) ?? "");
+    return actual === null ? null : { actual, view: "typical" };
+  }
+  const sides = sidesOf(rule, record, edges);
+  if (sides === null) {
+    return null;
+  }
+  return worstOf(views, (view) => (metric === "lc" ? lcIn(view, sides.fg, sides.bg) : sepIn(view, sides.fg, sides.bg)));
+}
+const metricOfTier = (tier: Tier) => LEG_FLOOR.get(tier)!.metric;
+/** 2.1 #2: the 193 a legibility mode measures, in RULES order — the two scrim rules (among the first 86), then appendix A's 191. */
+const LEGIBILITY_ORDER: { fg: string; bg: string; tier: Tier }[] = [
+  ...AT_E24DF74.rules.filter((rule) => rule.tier === "scrim").map(({ fg, bg }) => ({ fg, bg, tier: "scrim" as Tier })),
+  ...APPENDIX.rules.map(({ fg, bg, tier }) => ({ fg, bg, tier })),
+];
+/** The rules a planted legibility preset without `edges` cannot measure (L39, 2.1 #8): the 22 edge rules, and R224 and R227. */
+const NEEDS_EDGES = APPENDIX.rules.filter((rule) => rule.tier.startsWith("edge-") || rule.bg.startsWith("edge:"));
+const ruleNamed = (n: string) => APPENDIX.rules.find((rule) => rule.n === n)!;
+const pick = (pairs: Measured[], rule: { fg: string; bg: string }) => {
+  const found = pairs.filter((pair) => pair.fg === rule.fg && pair.bg === rule.bg);
+  assert.equal(found.length, 1, `${rule.fg} on ${rule.bg}: ${found.length} measurements`);
+  return found[0]!;
+};
+const fresh = () => structuredClone(VALUES.colors);
+const freshEdges = () => structuredClone(VALUES.edges);
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -271,6 +574,22 @@ function declaring(contract: unknown, name = "probe-preset"): Preset {
     delete copy.contract;
   } else {
     copy.contract = contract;
+  }
+  return copy as unknown as Preset;
+}
+/**
+ * A preset for the legibility tests: ocean's fonts, radii and shadow, with these colours, edges, button label and
+ * declaration. Pass `null` to leave edges or buttonLabel out altogether.
+ */
+function legiblePreset(parts: { name?: string; colors?: Record<Mode, ColorRecord>; edges?: Partial<Record<Mode, Partial<Edges>>> | null; buttonLabel?: ButtonLabel | null; contract?: Record<Mode, string> }): Preset {
+  const copy = { ...structuredClone(shipped.ocean!), name: parts.name ?? "probe-legible" } as unknown as Record<string, unknown>;
+  copy.colors = parts.colors ?? fresh();
+  copy.contract = parts.contract ?? { light: LEG, dark: LEG };
+  if (parts.edges !== null) {
+    copy.edges = parts.edges ?? freshEdges();
+  }
+  if (parts.buttonLabel !== null) {
+    copy.buttonLabel = parts.buttonLabel ?? { ...VALUES.buttonLabel };
   }
   return copy as unknown as Preset;
 }
@@ -399,7 +718,10 @@ try {
   });
 
   test("M9.1 check 5 fails when a pair is removed from RULES", () => {
-    for (const at of [0, 12, 21, 53, 54, RULES.length - 1]) {
+    // legibility-spec.md L105 #1 (L2): the last index removed is the last of the first 86, which was
+    // `RULES.length - 1`. RULES now ends with R283, which wcag-aa does not hold, so removing it changes nothing
+    // check 5 sees.
+    for (const at of [0, 12, 21, 53, 54, 85]) {
       withRules((rules) => rules.splice(at, 1), () => assert.throws(check5, `RULES[${at}] removed, and nothing noticed`));
     }
     check5();
@@ -422,12 +744,14 @@ try {
   test("M4 the 700 measurements of the shipped presets are the ones 2d3b765 took: floor, verdict and order exactly, each ratio to 1e-9", check700);
 
   // ── M9.3: the tiers, the rules, the contract's words ────────────────────
-  test("M3 TIERS is every tier, in the order of the M4 table", () => {
-    assert.deepEqual([...TIERS], M4_TIERS);
+  // legibility-spec.md L105 #2 (L8, L23): TIERS was the seven; it is the seven, then the 20 of L23, in that order.
+  test("M3 L8 L23 TIERS is every tier: the seven of the M4 table in their order, then the 20 of L22 in theirs", () => {
+    assert.deepEqual([...TIERS], [...M4_TIERS, ...NEW_TIERS.map(([tier]) => tier)]);
   });
 
-  test("M4 every tier has the kind the table states, and TIER_KIND names no other tier", () => {
-    assert.deepEqual({ ...TIER_KIND }, Object.fromEntries(M4.map((row) => [row.tier, row.kind])));
+  // L105 #3 (L8, L23): TIER_KIND was the seven kinds; it is the seven, plus the 20 with the kinds L23 gives.
+  test("M4 L23 every tier has the kind the tables state — M4's seven, and L23's 20 — and TIER_KIND names no other tier", () => {
+    assert.deepEqual({ ...TIER_KIND }, Object.fromEntries([...M4.map((row) => [row.tier, row.kind]), ...NEW_TIERS]));
   });
 
   test("M4 every tier has the floor the table states, in both modes (M6.7: one number is that number in both; chart is 3 light, 2.25 dark)", () => {
@@ -455,26 +779,32 @@ try {
     }
   });
 
-  test("M4 every rule is in the tier the table puts its pair in, and every tier has the table's count in each mode", () => {
-    for (const rule of RULES) {
+  // legibility-spec.md L105 #4 (L2, L67): "every rule of RULES is a pair of the 2d3b765 fixture, in the tier M4
+  // puts it" holds for RULES.slice(0, 86); every later rule equals appendix A's row (fg, bg, tier), in R order.
+  // L105 #5 (L2, L58): "70 apply in each mode" is counted over RULES.slice(0, 86); over all of RULES, 261 apply.
+  test("M4 L2 L67 every rule is in the tier its table puts it in — the first 86 by M4, the rest by appendix A in R order — and every tier has its table's count in each mode", () => {
+    for (const rule of RULES.slice(0, 86)) {
       const at = pairKey(rule.fg, rule.bg);
       assert.ok(FLOOR_AT_2D3B765.has(at), `${at} was not a rule at 2d3b765`);
       assert.equal(rule.tier, tierOfPair(rule.fg, rule.bg, FLOOR_AT_2D3B765.get(at)!), at);
     }
+    assert.deepEqual(RULES.slice(86).map((rule) => [rule.fg, rule.bg, rule.tier]), APPENDIX.rules.map((rule) => [rule.fg, rule.bg, rule.tier]), "RULES after the first 86 is not appendix A's 191 rules, in R order (R280 to R283 last)");
     for (const mode of MODES) {
-      const applying = RULES.filter((rule) => rule.mode === undefined || rule.mode === mode);
-      assert.equal(applying.length, 70, `${mode}: rules that apply`);
+      const applying = RULES.slice(0, 86).filter((rule) => rule.mode === undefined || rule.mode === mode);
+      assert.equal(applying.length, 70, `${mode}: rules of the first 86 that apply`);
       for (const row of M4) {
         assert.equal(applying.filter((rule) => rule.tier === row.tier).length, row.perMode, `${mode}: rules in ${row.tier}`);
       }
+      assert.equal(RULES.filter((rule) => rule.mode === undefined || rule.mode === mode).length, APPLYING, `${mode}: rules that apply, over all of RULES`);
     }
   });
 
-  test("M4 RULES keeps its 86 entries in the order of 2d3b765, with the same fg, bg and mode on each: 54 with no mode, 16 light-only, 16 dark-only", () => {
-    assert.deepEqual(RULES.map((rule) => [rule.fg, rule.bg, rule.mode ?? null]), RULE_ORDER);
-    assert.equal(RULES.length, 86);
+  // L105 #6 (L2, L67): RULES.slice(0, 86) equals the fixture; the length is 277; 245 / 16 / 16 by mode.
+  test("M4 L2 L67 RULES keeps its first 86 entries in the order of 2d3b765, with the same fg, bg and mode on each, and is 277 long: 245 with no mode, 16 light-only, 16 dark-only", () => {
+    assert.deepEqual(RULES.slice(0, 86).map((rule) => [rule.fg, rule.bg, rule.mode ?? null]), RULE_ORDER);
+    assert.equal(RULES.length, 277);
     const count = (mode: Mode | undefined) => RULES.filter((rule) => rule.mode === mode).length;
-    assert.deepEqual([count(undefined), count("light"), count("dark")], [54, 16, 16]);
+    assert.deepEqual([count(undefined), count("light"), count("dark")], [245, 16, 16]);
   });
 
   test("M3 no rule carries a number or a kind: no `min` and no `kind` on any entry of RULES", () => {
@@ -502,9 +832,10 @@ try {
     }
   });
 
-  test("M9.3 CONTRACT_NAMES equals the keys of contracts; M8 there is one contract, and it is wcag-aa", () => {
+  // legibility-spec.md L105 #7 (L8, L57): the contracts were ["wcag-aa"]; they are ["wcag-aa", "legibility"].
+  test("M9.3 CONTRACT_NAMES equals the keys of contracts; L8 L57 there are two contracts, wcag-aa and then legibility", () => {
     assert.deepEqual([...CONTRACT_NAMES], Object.keys(contracts));
-    assert.deepEqual(Object.keys(contracts), ["wcag-aa"]);
+    assert.deepEqual(Object.keys(contracts), ["wcag-aa", "legibility"]);
   });
 
   test("M3 contracts is a plain, mutable object, as RULES is", () => {
@@ -526,11 +857,14 @@ try {
     }
   });
 
-  test("M3 a measurement carries its tier, its tier's kind and the contract's floor — and nothing else new; a failure gains neither", () => {
+  // legibility-spec.md L105 #8 (L7): a measurement's keys were the seven of PR 1; they are those seven plus
+  // `metric` and `view`. L105 #9 (L7): a failure's keys were the six of PR 1; they are those six plus `tier`,
+  // `metric` and `view`.
+  test("M3 L7 a measurement carries its tier, its tier's kind, the contract's floor, its metric and its view — and nothing else; a failure gains tier, metric and view", () => {
     for (const mode of MODES) {
       const pairs = measureColors(mode, colorsOf(mode), WCAG);
       pairs.forEach((pair, i) => {
-        assert.deepEqual(Object.keys(pair).sort(), ["actual", "bg", "fg", "holds", "kind", "min", "tier"], `${mode} #${i}`);
+        assert.deepEqual(Object.keys(pair).sort(), ["actual", "bg", "fg", "holds", "kind", "metric", "min", "tier", "view"], `${mode} #${i}`);
         const tier = EXPECTED_TIERS[mode][i]!;
         assert.equal(pair.tier, tier, `${mode}: ${pairKey(pair.fg, pair.bg)}`);
         assert.equal(pair.kind, rowOf(tier).kind, `${mode}: ${pairKey(pair.fg, pair.bg)}`);
@@ -541,7 +875,7 @@ try {
     const failures = checkColors("probe", "light", { ...colorsOf("light"), text: "#ffffff" }, WCAG);
     assert.ok(failures.length > 0, "white text should fail on a light page");
     for (const failure of failures) {
-      assert.deepEqual(Object.keys(failure).sort(), ["actual", "bg", "fg", "min", "mode", "preset"]);
+      assert.deepEqual(Object.keys(failure).sort(), ["actual", "bg", "fg", "metric", "min", "mode", "preset", "tier", "view"]);
     }
   });
 
@@ -643,9 +977,11 @@ try {
   }
 
   // ── M9.5: M6.1 to M6.7 ──────────────────────────────────────────────────
-  test("M6.1 wcag-aa measures every rule that applies in the mode — all 70 — in RULES order", () => {
+  // legibility-spec.md L105 #10 (L2, L58): wcag-aa's 70 were "every rule that applies in the mode"; they are every
+  // rule that applies in the mode whose tier wcag-aa lists, in RULES order.
+  test("M6.1 L58 wcag-aa measures every rule that applies in the mode and whose tier it lists — all 70 — in RULES order", () => {
     for (const mode of MODES) {
-      const applying = RULES.filter((rule) => rule.mode === undefined || rule.mode === mode);
+      const applying = RULES.filter((rule) => (rule.mode === undefined || rule.mode === mode) && M4_TIERS.includes(rule.tier));
       const pairs = measureColors(mode, colorsOf(mode), WCAG);
       assert.equal(pairs.length, 70, mode);
       assert.deepEqual(pairs.map((pair) => [pair.fg, pair.bg, pair.tier]), applying.map((rule) => [rule.fg, rule.bg, rule.tier]), mode);
@@ -975,14 +1311,24 @@ try {
   });
 
   // ── M6.8: the callers ───────────────────────────────────────────────────
-  test("M6.8 the report prints exactly what it printed at 2d3b765", () => {
+  // legibility-spec.md L105 #11 (L86, L91): the fixture is NOT re-recorded (its README forbids it). The expected
+  // text is the fixture transformed as L86 and L91 say, written here from the spec's sentences: each mode line
+  // gains " — wcag-aa; 191 rules not held", and the last line names every declared contract.
+  test("M6.8 L86 L91 the report prints what it printed at 2d3b765, with each mode line naming its contract and the rules it leaves unheld, and a last line that lists the declared contracts", () => {
     const run = node(["tools/check-contrast.ts"], pkgRoot);
     assert.equal(run.stderr, "");
     assert.equal(run.status, 0);
-    assert.equal(run.stdout, readFileSync(join(fixtures, "check-contrast.report.txt"), "utf8"));
+    const recorded = readFileSync(join(fixtures, "check-contrast.report.txt"), "utf8");
+    const expected = recorded
+      .replace(/^( {2}(?:light|dark) +all 70 pairings pass.*)$/gm, "$1 — wcag-aa; 191 rules not held")
+      .replace(/^✓ WCAG AA contract holds for every preset in both modes \(700 pairings measured\)$/m, "✓ every declared contract holds for every preset in both modes (700 pairings measured): wcag-aa × 10");
+    assert.notEqual(expected, recorded, "the transformation changed nothing: the fixture is not the one it was written against");
+    assert.equal(run.stdout, expected);
   });
 
-  test("M6.8 the reports, check-cli and the playground module pass contractOf(preset, mode); no file but Token Studio names a contract to the measurement", () => {
+  // L105 #12 (L25): each of the five measuring surfaces matched `measureColors(`/`checkColors(` and `contractOf(`;
+  // each now matches `measurePreset(` and matches neither `measureColors(` nor `checkColors(`.
+  test("M6.8 L25 the reports, check-cli and the playground module measure a preset with measurePreset() and nothing else; no file but Token Studio names a contract to the measurement", () => {
     for (const file of [
       "packages/design-system/tools/check-contrast.ts",
       "packages/cli/src/index.ts",
@@ -991,8 +1337,8 @@ try {
       "apps/playground/src/contrast-checks.ts",
     ]) {
       const text = body(join(repoRoot, file));
-      assert.match(text, /\b(?:measureColors|checkColors)\(/, `${file} no longer measures: take it out of this list`);
-      assert.match(text, /\bcontractOf\(/, `${file} measures a preset without asking contractOf() which contract it declares`);
+      assert.match(text, /\bmeasurePreset\(/, `${file} does not measure through measurePreset(preset, mode) (L25)`);
+      assert.doesNotMatch(text, /\b(?:measureColors|checkColors)\(/, `${file} measures a preset itself: a surface that calls measureColors on a preset can forget the edges (L25)`);
     }
     const ALLOWED = new Set([
       "packages/component-library/src/organisms/token-studio.tsx", // M6.8: it does not yet know which preset is loaded
@@ -1209,9 +1555,14 @@ try {
     }
   });
 
-  test("M7 in this increment the instruments are called only by this file and by the chart gate", () => {
+  // legibility-spec.md L105 #43 (L24, L27, L101): MAY_CALL gains rules.ts and edges.ts, the two files step 2.1 makes
+  // measure with the instruments, and the name loses "in this increment". This file's own arithmetic (the
+  // legibility section) calls them too; it was already on the list.
+  test("M7 L105 #43 the instruments are called only by this file, the chart gate, and the legibility measurement (rules.ts, edges.ts)", () => {
     const MAY_CALL = new Set([
       "packages/design-system/src/tokens/color.ts", // defines them (separation simulates through its own code)
+      "packages/design-system/src/tokens/rules.ts", // L27: lc and sep
+      "packages/design-system/src/tokens/edges.ts", // §5.3: the edge pixel and presence
       "packages/design-system/tools/check-cvd.ts",
       "packages/design-system/tools/test-contracts.ts",
     ]);
@@ -1789,15 +2140,15 @@ try {
     }
   });
 
+  // legibility-spec.md L105 #13 (L25): these two made at least one measureColors(/checkColors( call, each passing a
+  // contractOf result; each now calls measurePreset( and makes no measureColors(/checkColors( call —
+  // measurePreset takes the preset itself, so there is no contract argument left to check.
   for (const file of ["tools/check-cli.ts", "apps/playground/src/contrast-checks.ts"]) {
-    test(`M10.7 ${file}: the contract argument of every measuring call is the contractOf(…) call itself or a name assigned from one`, () => {
+    test(`M10.7 L25 ${file}: it measures through measurePreset(preset, mode), and makes no measureColors( or checkColors( call of its own`, () => {
       const text = body(join(repoRoot, file));
+      assert.match(text, /\bmeasurePreset\(/, `${file} no longer measures through measurePreset(preset, mode) (L25)`);
       const calls = measuringCalls(text);
-      assert.ok(calls.length > 0, `${file} no longer measures: take it out of this list`);
-      for (const { fn, args } of calls) {
-        const said = decidedByDeclaration(args[fn === "measureColors" ? 2 : 3], text);
-        assert.equal(said, null, `${file} calls ${fn}(${args.join(", ")}): ${said}. A preset's declaration must be what decides the contract; a constant, however it is spelled, is not`);
-      }
+      assert.deepEqual(calls.map(({ fn, args }) => `${fn}(${args.join(", ")})`), [], `${file} still measures a preset itself (L25): it can forget the edges`);
     });
   }
 
@@ -1919,11 +2270,13 @@ try {
   });
 
   // ── M10.11: CONTRACT_NAMES decides nothing ──────────────────────────────
+  // legibility-spec.md L105 #14 (L8): CONTRACT_NAMES was ["wcag-aa"] at the three places this test reads it; it is
+  // ["wcag-aa", "legibility"].
   test("M10.11 CONTRACT_NAMES is the list of names at module load; what decides is `contracts` itself — a contract added later is honoured, a name only on the list is not", () => {
-    assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa"]);
+    assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa", "legibility"]);
     // In `contracts` and not on the list: honoured everywhere a contract is decided.
     withContract("probe-late", wcagTiers(), (name) => {
-      assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa"], "CONTRACT_NAMES follows `contracts`: it is the list at module load");
+      assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa", "legibility"], "CONTRACT_NAMES follows `contracts`: it is the list at module load");
       const preset = declaring({ light: name, dark: name });
       for (const mode of MODES) {
         assert.equal(contractOf(preset, mode), name, `contractOf, ${mode}`);
@@ -1976,7 +2329,7 @@ try {
         list.push(...saved);
       }
     }
-    assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa"]);
+    assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa", "legibility"]);
   });
 
   test("M10.11 nothing decides by CONTRACT_NAMES: no source asks whether a name is on the list", () => {
@@ -2003,13 +2356,1838 @@ try {
     assert.ok(readme.includes("record-fixtures.mts.txt"), "the fixtures' README does not say how to use the recorder");
   });
 
+  // ══ PR 2, step 2.1: the legibility member — legibility-spec.md, revision 3.1 ═════════════════════════════
+  //
+  // Tests first (the spec's §12, L101): written from the spec before any of it was built. Every expected number
+  // is the spec's — transcribed into legibility-values.json and legibility-appendix-a.json, recorded from e24df74
+  // where it is today's behaviour, or typed in here — or this file's own arithmetic from the spec's words, which
+  // the first tests below hold to every figure the spec prints.
+  const legibilityFrom = ran;
+
+  // ── the fixtures, against the spec and against themselves (no product code is measured here) ──
+  /** D6: the 11 roles that move a fill, each with the fill it must equal. */
+  const FILL_ROLES: [moving: string, rest: string][] = [
+    ["primary-hover", "primary"], ["primary-active", "primary"], ["secondary-hover", "secondary"], ["secondary-active", "secondary"],
+    ["accent-hover", "accent"], ["accent-active", "accent"], ["success-hover", "success"], ["warning-hover", "warning"],
+    ["danger-hover", "danger"], ["danger-active", "danger"], ["info-hover", "info"],
+  ];
+  const HUES = ["primary", "secondary", "accent", "success", "warning", "danger", "info"];
+  const ROLE_NAMES = SEMANTIC_COLOR_NAMES as readonly string[];
+
+  test("2.1 #2 (fixture) L12 L14 L15 the §3 fixture holds the 69 roles in SEMANTIC_COLOR_NAMES order, then the 20 optional tokens in L15's order, in both modes — and D1 to D12 hold of it", () => {
+    assert.equal(ROLE_NAMES.length, 69, "the builder no longer names 69 roles (L11)");
+    assert.equal(VALUES.seams.length, 20, "L15 has 20 optional tokens");
+    const names = [...ROLE_NAMES, ...VALUES.seams.map((seam) => seam.name)];
+    for (const mode of MODES) {
+      const c = VALUES.colors[mode];
+      assert.deepEqual(Object.keys(c), names, `${mode}: not L14's order`);
+      for (const [name, value] of Object.entries(c)) {
+        assert.ok(rgbaOf(value) !== null, `${mode}: ${name} is ${value}`);
+      }
+      assert.equal(c["bg-subtle"], c["surface-sunken"], `${mode}: D1`);
+      assert.equal(c["on-scrim"], VALUES.colors.light.surface, `${mode}: D2`);
+      assert.equal(c["on-scrim-muted"], VALUES.colors.dark.text, `${mode}: D3`);
+      assert.equal(c["text-inverse"], c.bg, `${mode}: D4`);
+      assert.equal(c["border-subtle"], c.border, `${mode}: D5`);
+      for (const [moving, rest] of FILL_ROLES) {
+        assert.equal(c[moving], c[rest], `${mode}: D6, ${moving}`);
+      }
+      for (const hue of HUES) {
+        assert.equal(c[`${hue}-subtle`], blendOver(c[hue]!, mode === "light" ? 0.5 : 0.2, c.surface!), `${mode}: D7, ${hue}-subtle`);
+      }
+      assert.equal(c["primary-text"], mode === "light" ? "#472400" : c.text, `${mode}: D8`);
+      for (const hue of HUES.slice(1)) {
+        assert.equal(c[`${hue}-text`], c.text, `${mode}: D9, ${hue}-text`);
+      }
+      assert.equal(c["link-hover"], c.link, `${mode}: D12`);
+      assert.equal(c["selected-wash"], c["primary-subtle"], `${mode}: L15, selected-wash equals primary-subtle`);
+    }
+    assert.equal(VALUES.colors.dark.link, VALUES.colors.dark.primary, "D11");
+    assert.deepEqual(VALUES.buttonLabel, { px: 16, smallPx: 14, weight: 600 }, "L19");
+  });
+
+  test("2.1 #2 (fixture) L42 L45 L46 L52 the §5.2 fixture: 13 elements a mode in EdgeElement order, each layer well formed and one all-round, hover and press on the four filled elements only, danger sharing secondary's recipe", () => {
+    for (const mode of MODES) {
+      const edges = VALUES.edges[mode];
+      assert.deepEqual(Object.keys(edges), ELEMENTS, mode);
+      for (const [element, recipe] of Object.entries(edges)) {
+        assert.ok(ROLE_NAMES.includes(recipe.fill) || SEAM_FALLBACK.has(recipe.fill), `${mode} ${element}: fill ${recipe.fill}`);
+        for (const layer of [...recipe.rest, ...(recipe.hover ?? []), ...(recipe.press ?? [])]) {
+          assert.ok(/^#[0-9a-f]{6}$/.test(layer.color) && layer.alpha > 0 && layer.alpha <= 1 && layer.blur >= 0 && [layer.x, layer.y, layer.spread].every(Number.isFinite), `${mode} ${element}: ${shown(layer)}`);
+        }
+        assert.equal(recipe.hover !== undefined && recipe.press !== undefined, element.startsWith("filled-"), `${mode} ${element}: hover and press`);
+        assert.equal(recipe.rest.filter(allRound).length, 1, `${mode} ${element}: L45 marks one all-round layer`);
+      }
+      const { fill: _danger, ...danger } = edges["filled-danger"]!;
+      const { fill: _secondary, ...secondary } = edges["filled-secondary"]!;
+      assert.deepEqual(danger, secondary, `${mode}: L46, danger uses the recipe of secondary`);
+      assert.equal(edges.quiet!.fill, "quiet-fill", `${mode}: L46, L106`);
+    }
+    assert.equal(edgePixelOf(VALUES.edges.light.field, VALUES.colors.light), "#e1d5bf", "L52, light");
+    assert.equal(edgePixelOf(VALUES.edges.dark.field, VALUES.colors.dark), "#64594d", "L52, dark");
+  });
+
+  test("2.1 #2 (fixture) appendix A, appendix B: every figure the spec prints for the 191 rules in both modes is this file's arithmetic on the §3 and §5.2 fixture — to the two decimals printed, in the view printed, every one at or over its floor", () => {
+    let cells = 0;
+    for (const mode of MODES) {
+      for (const rule of APPENDIX.rules) {
+        const cell = rule[mode];
+        const metric = metricOfTier(rule.tier);
+        const got = expectedOf(rule, metric, VALUES.colors[mode], VALUES.edges[mode]);
+        const where = `${rule.n} ${mode}, ${rule.fg} on ${rule.bg}`;
+        assert.ok(got !== null, `${where}: cannot be measured from the fixture`);
+        assert.ok(Math.abs(got.actual - cell.actual) <= 0.005 + 1e-9 && got.view === cell.view, `${where}: ${got.actual} (${got.view}), and the spec prints ${cell.actual} (${cell.view})`);
+        assert.ok(got.actual >= floorIn(rule.tier, mode), `${where}: under its own floor`);
+        if (cell.fg !== undefined) {
+          assert.deepEqual(sidesOf(rule, VALUES.colors[mode], VALUES.edges[mode]), { fg: cell.fg, bg: cell.bg }, `${where}: the colours measured`);
+        }
+        cells++;
+      }
+    }
+    assert.equal(cells, 382);
+    assert.equal(APPENDIX.edgeDetail.length, 44, "appendix B: 22 rules × 2 modes");
+    for (const row of APPENDIX.edgeDetail) {
+      const recipe = VALUES.edges[row.mode][row.fg.slice("edge:".length)]!;
+      const colors = VALUES.colors[row.mode];
+      const k = valueOf(row.bg, colors)!;
+      const f = valueOf(recipe.fill, colors)!;
+      const layer = recipe.rest.find(allRound)!;
+      const p = blendOver(layer.color, layer.alpha, layer.inset ? f : k);
+      const where = `appendix B, ${row.n} ${row.mode}`;
+      assert.deepEqual([f, k, p], [row.fill, row.backdrop, row.pixel], `${where}: fill, backdrop, edge pixel`);
+      for (const [got, printed, what] of [[worstOf(VIEWS, (v) => sepIn(v, f, k)).actual, row.fillStep, "fill step"], [worstOf(VIEWS, (v) => sepIn(v, p, k)).actual, row.pixelFromBackdrop, "pixel from backdrop"], [worstOf(VIEWS, (v) => sepIn(v, p, f)).actual, row.pixelFromFill, "pixel from fill"]] as const) {
+        assert.ok(Math.abs(got - printed) <= 0.005 + 1e-9, `${where}: ${what} ${got}, printed ${printed}`);
+      }
+      const presence = presenceOf(recipe, row.bg, colors, VIEWS)!;
+      assert.ok(Math.abs(presence.actual - row.presence) <= 0.005 + 1e-9 && presence.view === row.view, `${where}: presence ${presence.actual} (${presence.view}), printed ${row.presence} (${row.view})`);
+    }
+  });
+
+  /** L50's table, typed in: per view, typical / protan / deutan / tritan. */
+  const WORKED: { n: string; mode: Mode; what: string; pixel: string; fillStep: number[]; fromBackdrop: number[]; fromFill: number[]; presence: number; view: View }[] = [
+    { n: "R252", mode: "light", what: "the light card on the page", pixel: "#dbc19b", fillStep: [2.77, 3.00, 2.68, 2.36], fromBackdrop: [14.76, 15.54, 14.52, 14.40], fromFill: [17.10, 18.17, 16.73, 16.70], presence: 16.70, view: "tritan" },
+    { n: "R256", mode: "light", what: "the light field on a card", pixel: "#e1d5bf", fillStep: [0, 0, 0, 0], fromBackdrop: [11.32, 11.72, 11.17, 11.03], fromFill: [11.32, 11.72, 11.17, 11.03], presence: 11.03, view: "tritan" },
+    { n: "R252", mode: "dark", what: "the dark card on the page", pixel: "#493c2f", fillStep: [7.06, 6.93, 7.09, 7.09], fromBackdrop: [16.07, 16.23, 16.06, 16.07], fromFill: [9.03, 9.31, 8.98, 9.03], presence: 16.06, view: "deutan" },
+    { n: "R256", mode: "dark", what: "the dark field on a card", pixel: "#64594d", fillStep: [12.24, 12.04, 12.31, 12.28], fromBackdrop: [19.53, 19.99, 19.44, 19.51], fromFill: [31.73, 32.00, 31.71, 31.73], presence: 31.71, view: "deutan" },
+  ];
+
+  test("2.1 #6 (fixture) L48 L49 L50 the four worked examples' every column, view by view, is this file's arithmetic on the fixture: the edge pixel, and the three steps whose largest is presence", () => {
+    for (const row of WORKED) {
+      const rule = ruleNamed(row.n);
+      const recipe = VALUES.edges[row.mode][rule.fg.slice("edge:".length)]!;
+      const colors = VALUES.colors[row.mode];
+      const k = valueOf(rule.bg, colors)!;
+      const f = valueOf(recipe.fill, colors)!;
+      const layer = recipe.rest.find(allRound)!;
+      const p = blendOver(layer.color, layer.alpha, layer.inset ? f : k);
+      assert.equal(p, row.pixel, `${row.what}: P`);
+      VIEWS.forEach((view, i) => {
+        for (const [got, printed, what] of [[sepIn(view, f, k), row.fillStep[i]!, "backdrop to fill"], [sepIn(view, p, k), row.fromBackdrop[i]!, "edge pixel to backdrop"], [sepIn(view, p, f), row.fromFill[i]!, "edge pixel to fill"]] as const) {
+          assert.ok(Math.abs(got - printed) <= 0.005 + 1e-9, `${row.what}, ${view}: ${what} ${got}, printed ${printed}`);
+        }
+      });
+      assert.deepEqual(presenceOf(recipe, rule.bg, colors, VIEWS)?.view, row.view);
+    }
+  });
+
+  test("2.1 #6 (fixture) L29 L30 the two worked examples of §4.2 are the instruments' answers: Lc is signed and not symmetric, and under a simulation it is taken on simulateCvd's 8-bit hexes", () => {
+    assert.ok(near(apcaLc("#693800", "#fef4dc"), 85.84, 0.005) && near(apcaLc("#fef4dc", "#693800"), -89.44, 0.005), "L29: 85.84 and −89.44");
+    const dark = VIEWS.map((view) => (view === "typical" ? apcaLc("#f3e7ce", "#211409")! : apcaLc(simulateCvd("#f3e7ce", view), simulateCvd("#211409", view))!));
+    [-91.87, -90.87, -92.45, -91.84].forEach((lc, i) => assert.ok(near(dark[i], lc, 0.005), `L29: ${VIEWS[i]} is ${lc}, and it is ${dark[i]}`));
+    assert.deepEqual(worstOf(VIEWS, (view) => lcIn(view, "#f3e7ce", "#211409")).view, "protan");
+    assert.deepEqual([simulateCvd("#693800", "tritan"), simulateCvd("#fef4dc", "tritan")], ["#742d2f", "#fff0ed"], "L30");
+    [85.84, 87.79, 85.18, 84.86].forEach((lc, i) => assert.ok(near(lcIn(VIEWS[i]!, "#693800", "#fef4dc"), lc, 0.005), `L30: ${VIEWS[i]}`));
+  });
+
+  /** L81's table, typed in. */
+  const L81_CONTAINER: Record<Mode, Recipe> = {
+    light: { fill: "surface", rest: [{ inset: true, x: 0, y: 0, blur: 0, spread: 1, color: "#f1eeeb", alpha: 1 }, { inset: false, x: 0, y: 1, blur: 3, spread: 0, color: "#26231f", alpha: 0.09 }, { inset: false, x: 0, y: 1, blur: 2, spread: 0, color: "#26231f", alpha: 0.05 }] },
+    dark: { fill: "surface", rest: [{ inset: true, x: 0, y: 0, blur: 0, spread: 1, color: "#38342f", alpha: 1 }, { inset: false, x: 0, y: 1, blur: 3, spread: 0, color: "#000000", alpha: 0.216 }, { inset: false, x: 0, y: 1, blur: 2, spread: 0, color: "#000000", alpha: 0.12 }] },
+  };
+
+  test("2.1 #4 (fixture) L81 L82 the known-bad fixture is sorbet as e24df74 ships it — 68 roles a mode, no danger-active, no optional token — with L81's container edge; L82's figures in all four views are this file's arithmetic on it, to 1e-4", () => {
+    assert.equal(KNOWN_BAD.recordedFrom, "e24df74");
+    for (const mode of MODES) {
+      assert.deepEqual(Object.keys(KNOWN_BAD.colors[mode]).sort(), ROLE_NAMES.filter((name) => name !== "danger-active").sort(), `${mode}: the 68 roles main emits (in main's own order)`);
+      assert.deepEqual(KNOWN_BAD.edges[mode], { container: L81_CONTAINER[mode] }, `${mode}: L81's container`);
+    }
+    const four = (at: (view: View) => number) => VIEWS.map(at);
+    const close4 = (got: number[], printed: number[], what: string) => printed.forEach((value, i) => assert.ok(near(got[i], value, 1e-4), `${what}, ${VIEWS[i]}: ${got[i]}, printed ${value}`));
+    const d = KNOWN_BAD.colors.dark;
+    const l = KNOWN_BAD.colors.light;
+    assert.deepEqual([d.surface, d.bg], ["#38342f", "#26231f"], "L82: the dark card's fill and backdrop");
+    close4(four((v) => presenceOf(KNOWN_BAD.edges.dark.container, "bg", d, [v])!.actual), [6.9482, 6.8958, 6.9633, 6.9571], "R252 dark");
+    assert.deepEqual([l["primary-solid"], valueOf("switch-off", l)], ["#008289", "#777168"], "L82: the light switch reads border-strong for switch-off");
+    close4(four((v) => sepIn(v, "#008289", "#777168")), [10.3232, 5.2781, 5.7253, 11.1071], "R179 light");
+    assert.deepEqual([l["on-primary"], valueOf("control-checked", l)], ["#26231f", "#008289"], "L82: the light tick reads primary-solid for control-checked");
+    close4(four((v) => lcIn(v, "#26231f", "#008289")), [29.1918, 31.9755, 26.3547, 31.3363], "R171 light");
+    assert.deepEqual([simulateCvd("#26231f", "deutan"), simulateCvd("#008289", "deutan")], ["#25241f", "#677089"], "L82: the tick under deutan");
+  });
+
+  test("2.1 #2 (fixture) the two transcribed fixtures are still what legibility-spec.md says (transcribe-legibility-spec.mjs.txt --check)", () => {
+    const script = readFileSync(join(fixtures, "transcribe-legibility-spec.mjs.txt"), "utf8");
+    const run = spawnSync(process.execPath, ["--input-type=module", "-", repoRoot, "--check"], { input: script, encoding: "utf8" });
+    assert.equal(run.status, 0, `the spec and its transcription differ:\n${run.stdout}${run.stderr}`);
+  });
+
+  // ── the member (§4.1, §6) ─────────────────────────────────────────────
+  test("L57 contracts.legibility: its name, a calibratedFor that says it was calibrated for one reader on 2026-10-03, the four views in order, the six checks in order, and exactly the 21 tiers of L61", () => {
+    const member = legibility();
+    assert.equal(member.name, "legibility");
+    assert.ok(typeof member.calibratedFor === "string" && member.calibratedFor.includes("one reader") && member.calibratedFor.includes("2026-10-03"), `calibratedFor reads: ${shown(member.calibratedFor)}`);
+    assert.deepEqual(member.views, [...VIEWS]);
+    assert.deepEqual(member.checks, CHECKS);
+    assert.deepEqual(Object.keys(member.tiers).sort(), APPENDIX.floors.map((row) => row.tier).sort(), "a mistyped tier, or one too many or too few");
+  });
+
+  test("L61 L62 L63 L26 every legibility floor is L61's number per mode — written { light, dark } except scrim, label, tell-apart and palette, which are one number — and floorFor answers it; none is rounded up", () => {
+    const member = legibility();
+    assert.equal(APPENDIX.floors.length, 21);
+    for (const row of APPENDIX.floors) {
+      const entry = member.tiers[row.tier] as unknown as { min: unknown };
+      assert.ok(entry !== undefined, `legibility does not list ${row.tier}`);
+      if (ONE_NUMBER.has(row.tier)) {
+        assert.equal(row.light, row.dark);
+        assert.equal(entry.min, row.light, `${row.tier}: one number (L62)`);
+      } else {
+        assert.deepEqual(entry.min, { light: row.light, dark: row.dark }, `${row.tier}: { light, dark } (L62)`);
+      }
+      for (const mode of MODES) {
+        assert.equal(floorFor(LEG, row.tier, mode), row[mode], `floorFor(legibility, ${row.tier}, ${mode})`);
+      }
+    }
+    // L63: the two cells where the unrounded weakest pair matters.
+    assert.deepEqual([floorFor(LEG, "secondary", "light"), floorFor(LEG, "edge-floating", "dark")], [74.2, 20.4]);
+  });
+
+  test("L61 L23 L34 each legibility tier has the kind and the metric L61 states, and TIER_KIND agrees", () => {
+    const member = legibility();
+    const kinds = new Map<string, string>([...M4.map((row) => [row.tier, row.kind] as [string, string]), ...NEW_TIERS]);
+    for (const row of APPENDIX.floors) {
+      assert.equal(kinds.get(row.tier), row.kind, `${row.tier}: L61 and L23 disagree (the fixture)`);
+      assert.equal((member.tiers[row.tier] as unknown as { metric: string }).metric, row.metric, `${row.tier}: metric`);
+      assert.equal(TIER_KIND[row.tier], row.kind, `${row.tier}: TIER_KIND`);
+    }
+  });
+
+  test("L58 L66 legibility's scrim tier is wcag-aa's, copied: the same metric, floor, why and retire", () => {
+    assert.deepEqual(legibility().tiers.scrim, contracts[WCAG].tiers.scrim);
+  });
+
+  test("L65 L115 the label tier requires { buttonLabelPx: 16, buttonLabelSmallPx: 14, buttonLabelWeight: 600 }; no other tier of either contract carries `requires`", () => {
+    for (const [name, contract] of Object.entries(contracts)) {
+      for (const [tier, entry] of Object.entries(contract.tiers)) {
+        const requires = (entry as unknown as { requires?: unknown }).requires;
+        if (name === LEG && tier === "label") {
+          assert.deepEqual(requires, { buttonLabelPx: 16, buttonLabelSmallPx: 14, buttonLabelWeight: 600 });
+        } else {
+          assert.equal(requires, undefined, `${name}, ${tier} carries requires`);
+        }
+      }
+    }
+    assert.ok(Object.hasOwn(legibility().tiers, "label"));
+  });
+
+  test("L66 every legibility tier has a why and a retire that are not empty after trimming", () => {
+    for (const [tier, entry] of Object.entries(legibility().tiers)) {
+      assert.ok(typeof entry.why === "string" && entry.why.trim() !== "", `${tier}: why is ${shown(entry.why)}`);
+      assert.ok(typeof entry.retire === "string" && entry.retire.trim() !== "", `${tier}: retire is ${shown(entry.retire)}`);
+    }
+    assert.equal(Object.keys(legibility().tiers).length, 21);
+  });
+
+  test("L1 wcag-aa is unchanged from e24df74, key for key and character for character: its name, calibratedFor and seven tiers — and it gains no views and no checks", () => {
+    assert.equal(AT_E24DF74.recordedFrom, "e24df74");
+    assert.deepEqual(JSON.parse(JSON.stringify(contracts[WCAG])), AT_E24DF74.contract);
+    assert.ok(!Object.hasOwn(contracts[WCAG], "views") && !Object.hasOwn(contracts[WCAG], "checks"), "wcag-aa gained views or checks");
+  });
+
+  test("L2 the first 86 rules keep the fg, bg, tier, why and mode they have at e24df74, in order", () => {
+    assert.deepEqual(RULES.slice(0, 86).map((rule) => ({ fg: rule.fg, bg: rule.bg, tier: rule.tier, why: rule.why, mode: rule.mode ?? null })), AT_E24DF74.rules);
+  });
+
+  test("L67 L68 the 191 rules after them apply in both modes (no `mode`) and each says why it is in the contract; R280 to R283 come last", () => {
+    const added = RULES.slice(86);
+    assert.equal(added.length, 191);
+    for (const [i, rule] of added.entries()) {
+      const n = APPENDIX.rules[i]?.n;
+      assert.ok(!Object.hasOwn(rule, "mode") || rule.mode === undefined, `${n}: restricted to ${rule.mode}`);
+      assert.ok(typeof rule.why === "string" && rule.why.trim() !== "", `${n}: why is ${shown(rule.why)}`);
+    }
+    assert.deepEqual(added.slice(-4).map((rule) => [rule.fg, rule.bg]), [["success-mark", "surface-raised"], ["warning-mark", "surface-raised"], ["danger-mark", "surface-raised"], ["info-mark", "surface-raised"]]);
+  });
+
+  test("L24 L108 applyingCount(mode) is how many rules apply in a mode, whatever any contract holds: 261 in each; counted from RULES as it stands; a mode that is not a mode is refused", () => {
+    const applyingCount = api("applyingCount");
+    for (const mode of MODES) {
+      assert.equal(applyingCount(mode), APPLYING, mode);
+      assert.equal(applyingCount(mode), RULES.filter((rule) => rule.mode === undefined || rule.mode === mode).length);
+    }
+    withRules((rules) => rules.push({ fg: "chart-1", bg: "surface", tier: "chart", mode: "dark", why: "A rule planted by test-contracts.ts." }), () => {
+      assert.deepEqual([applyingCount("light"), applyingCount("dark")], [APPLYING, APPLYING + 1], "one dark-only rule more");
+    });
+    for (const mode of ["system", "Light", "", undefined, null]) {
+      throwsTypeError(() => applyingCount(mode), [], `applyingCount(${shown(mode)})`);
+    }
+  });
+
+  test("L24 L36 metricFor(contract, tier) is the metric a contract measures a tier with — undefined for a known tier it does not list — and refuses what floorFor refuses", () => {
+    const metricFor = api("metricFor");
+    for (const row of APPENDIX.floors) {
+      assert.equal(metricFor(LEG, row.tier), row.metric, `legibility, ${row.tier}`);
+    }
+    for (const tier of M4_TIERS) {
+      assert.equal(metricFor(WCAG, tier), "ratio", `wcag-aa, ${tier}`);
+      if (tier !== "scrim") {
+        assert.equal(metricFor(LEG, tier), undefined, `legibility does not list ${tier}`);
+      }
+    }
+    for (const [tier] of NEW_TIERS) {
+      assert.equal(metricFor(WCAG, tier), undefined, `wcag-aa does not list ${tier}`);
+    }
+    for (const tier of ["txet", "Body", "edge", "toString", "", undefined, null]) {
+      throwsTypeError(() => metricFor(LEG, tier), [], `metricFor(legibility, ${shown(tier)})`);
+      throwsTypeError(() => floorFor(LEG, tier as Tier, "light"), [], `floorFor(legibility, ${shown(tier)}, light)`);
+    }
+    for (const name of ["wcag-aaa", "Legibility", "apca", "toString", "__proto__"]) {
+      throwsTypeError(() => metricFor(name, "body"), [name], `metricFor(${name}, body)`);
+    }
+    // The same contracts as floorFor: one with a key that is not a tier (M10.1) …
+    const stray = { ...wcagTiers(), txet: floor(4.5) };
+    withContract("probe-stray-key", stray, (name) => {
+      throwsTypeError(() => metricFor(name, "text"), [name, "txet"], "metricFor, a stray key");
+      throwsTypeError(() => floorFor(name, "text", "light"), [name, "txet"], "floorFor, a stray key");
+    });
+    // … and one whose floor is unusable (M10.2).
+    withContract("probe-one", { text: floor(1) }, (name) => {
+      throwsTypeError(() => metricFor(name, "text"), [name], "metricFor, a floor of 1");
+    });
+  });
+
+  test("M3 L24 L79 L15 L119 the public barrel exports what step 2.1 adds: measurePreset, metricFor, applyingCount, checkStructure and SEAMS", () => {
+    for (const name of ["measurePreset", "metricFor", "applyingCount", "checkStructure"]) {
+      assert.equal(typeof lib[name], "function", `src/tokens/index.ts does not export ${name}()`);
+    }
+    assert.ok(lib.SEAMS !== undefined, "src/tokens/index.ts does not export SEAMS");
+    assert.equal(lib.SEAMS, seamsModule?.SEAMS, "the barrel's SEAMS is not seams.ts's");
+  });
+
+  test("L15 SEAMS, a new export of src/tokens/seams.ts, is exactly L15's 20 optional tokens, in order, each with its fallback: a role, or css text", () => {
+    assert.ok(seamsModule !== undefined, `src/tokens/seams.ts does not load: ${seamsMissing}`);
+    const seams = seamsModule.SEAMS as Record<string, unknown> | undefined;
+    assert.ok(seams !== undefined && typeof seams === "object", "src/tokens/seams.ts does not export SEAMS");
+    assert.deepEqual(Object.entries(seams).map(([name, fallback]) => [name, JSON.parse(JSON.stringify(fallback)) as unknown]), VALUES.seams.map((seam) => [seam.name, seam.fallback]));
+    for (const seam of VALUES.seams) {
+      if ("fallback" in seam.fallback) {
+        assert.ok(ROLE_NAMES.includes(seam.fallback.fallback), `${seam.name}: a role fallback is always a role (L37)`);
+      }
+    }
+  });
+
+  // ── what a contract may say (§4.3) ────────────────────────────────────
+  const tierFloor = (metric: unknown, min: unknown, more: object = {}) => ({ metric, min, why: "A probe floor.", retire: "When the test that planted it ends.", ...more });
+  /** A legibility-shaped probe registered under `key`: views and checks as given (absent when undefined), and the tiers. */
+  function shaped(key: string, tiers: Record<string, unknown>, extra: { views?: unknown; checks?: unknown } = { views: [...VIEWS] }) {
+    return { name: key, calibratedFor: "Nobody: a probe planted by test-contracts.ts.", ...extra, tiers } as unknown as Contract;
+  }
+  /** Accepted: floorFor, metricFor and measureColors answer, and the measurement is the rules of the listed tiers. */
+  function accepted(key: string, tiers: Record<string, unknown>, extra: { views?: unknown; checks?: unknown } | undefined, what: string) {
+    withRaw(key, shaped(key, tiers, extra), (name) => {
+      for (const [tier, entry] of Object.entries(tiers)) {
+        const min = (entry as { min: unknown }).min;
+        assert.equal(api("metricFor")(name, tier), (entry as { metric: unknown }).metric, `${what}: metricFor(${tier})`);
+        for (const mode of MODES) {
+          assert.equal(floorFor(name, tier as Tier, mode), typeof min === "number" ? min : (min as Record<Mode, number>)[mode], `${what}: floorFor(${tier}, ${mode})`);
+        }
+      }
+      for (const mode of MODES) {
+        const pairs = measure(mode, VALUES.colors[mode], name, VALUES.edges[mode]);
+        const listed = RULES.filter((rule) => (rule.mode === undefined || rule.mode === mode) && Object.hasOwn(tiers, rule.tier));
+        assert.deepEqual(pairs.map((pair) => [pair.fg, pair.bg]), listed.map((rule) => [rule.fg, rule.bg]), `${what}: measureColors(${mode})`);
+      }
+    });
+  }
+  /** Refused by every way in, with a TypeError naming the key it was reached by (L33 to L36; M10.1, M10.13). */
+  function refused(key: string, tiers: Record<string, unknown>, extra: { views?: unknown; checks?: unknown } | undefined, words: string[], what: string) {
+    withRaw(key, shaped(key, tiers, extra), (name) => {
+      refusedEverywhere(name, words, what);
+      for (const tier of ["body", "text", "scrim", ...Object.keys(tiers)]) {
+        throwsTypeError(() => api("metricFor")(name, tier), [key, ...words], `${what}: metricFor(${tier}) (L36)`);
+      }
+      for (const mode of MODES) {
+        throwsTypeError(() => measure(mode, VALUES.colors[mode], name, VALUES.edges[mode]), [key, ...words], `${what}: measureColors(${mode}) with the §3 colours and edges`);
+      }
+    });
+  }
+  const SOUND = { body: tierFloor("lc", 50) };
+
+  test("L33 L34 L35 a contract may use any of the four metrics, each on a tier of a kind it suits, with views, checks and requires well formed: floorFor, metricFor and measureColors answer it", () => {
+    accepted("probe-sound", {
+      scrim: tierFloor("ratio", 4.5),
+      body: tierFloor("lc", 50),
+      secondary: tierFloor("ratio", 3), // ratio on a text tier
+      label: tierFloor("lc", { light: 0.5, dark: 60 }, { requires: { buttonLabelPx: 16, buttonLabelSmallPx: 14, buttonLabelWeight: 600 } }),
+      "mark-area": tierFloor("sep", 5), // sep on a shape tier
+      "mark-line": tierFloor("ratio", 1.5), // ratio on a shape tier
+      "focus-visible": tierFloor("sep", 0.01), // sep on a focus tier: anything greater than 0
+      focus: tierFloor("sep", 3),
+      palette: tierFloor("sep", 1), // sep on a distinction tier
+      "chart-mark": tierFloor("ratio", 1.2), // ratio on a chart tier
+      chart: tierFloor("sep", { light: 5, dark: 6 }), // sep on a chart tier
+      "edge-status": tierFloor("presence", 1), // presence on an edge tier
+    }, { views: [...VIEWS], checks: [...CHECKS] }, "one tier of every kind");
+    accepted("probe-no-views", SOUND, {}, "no views and no checks (L22: typical only; none)");
+    accepted("probe-some-views", SOUND, { views: ["tritan", "typical"], checks: [] }, "two views; an empty checks list");
+    accepted("probe-one-check", SOUND, { views: ["deutan"], checks: ["label-type"] }, "one view; one check");
+  });
+
+  test("L33 a tier's metric must be one of the four: anything else refuses the contract, naming its key", () => {
+    accepted("probe-metric", SOUND, undefined, "the probe, sound");
+    for (const metric of ["apca", "Lc", "LC", "separation", "presence ", "contrast", "", null, undefined, 3]) {
+      refused("probe-metric", { ...SOUND, palette: tierFloor(metric, 5) }, undefined, [], `metric ${shown(metric)}`);
+    }
+  });
+
+  test("L33 L126 an lc, sep or presence floor must be a finite number greater than 0 — in each mode of a per-mode floor; a ratio floor, greater than 1 (unchanged)", () => {
+    const cases: [metric: string, tier: string][] = [["lc", "placeholder"], ["sep", "mark-area"], ["presence", "edge-container"]];
+    for (const [metric, tier] of cases) {
+      accepted("probe-floor", { ...SOUND, [tier]: tierFloor(metric, 0.0001) }, undefined, `${metric} at 0.0001`);
+      accepted("probe-floor", { ...SOUND, [tier]: tierFloor(metric, { light: 0.5, dark: 200 }) }, undefined, `${metric} per mode`);
+      for (const min of [0, -0, -1, -0.0001, NaN, Infinity, -Infinity, null, undefined, "50", "", true, [50], {}, { light: 50 }, { dark: 50 }, { light: 50, dark: 0 }, { light: -1, dark: 50 }, { light: 50, dark: "50" }]) {
+        refused("probe-floor", { ...SOUND, [tier]: tierFloor(metric, min) }, undefined, [], `${metric} on ${tier}, a floor of ${shown(min)}`);
+      }
+    }
+    accepted("probe-floor", { ...SOUND, scrim: tierFloor("ratio", 1.0001) }, undefined, "ratio at 1.0001");
+    for (const min of [1, 0.5, 0, { light: 4.5, dark: 1 }]) {
+      refused("probe-floor", { ...SOUND, scrim: tierFloor("ratio", min) }, undefined, [], `ratio on scrim, a floor of ${shown(min)}`);
+    }
+  });
+
+  test("L34 the metric must suit the tier's kind: lc on text only; presence only on an edge tier, and an edge tier only presence; sep on shape, focus, chart, distinction; ratio on text, shape, focus, chart", () => {
+    const KIND_TIER: Record<string, string[]> = {
+      text: ["body", "placeholder", "text"], shape: ["mark-area", "divider", "shape"], focus: ["focus-visible", "focus"], chart: ["chart-mark", "chart"],
+      distinction: ["tell-apart", "palette"], edge: ["edge-container", "edge-filled"],
+    };
+    const SUITS: Record<Metric, string[]> = { lc: ["text"], presence: ["edge"], sep: ["shape", "focus", "chart", "distinction"], ratio: ["text", "shape", "focus", "chart"] };
+    const MIN: Record<Metric, number> = { lc: 50, presence: 5, sep: 5, ratio: 3 };
+    for (const [metric, kinds] of Object.entries(SUITS) as [Metric, string[]][]) {
+      for (const [kind, tiers] of Object.entries(KIND_TIER)) {
+        for (const tier of tiers) {
+          const entry = { [tier]: tierFloor(metric, MIN[metric]) };
+          if (kinds.includes(kind)) {
+            accepted("probe-kind", tier === "body" ? entry : { ...SOUND, ...entry }, undefined, `${metric} on ${tier} (${kind})`);
+          } else {
+            refused("probe-kind", tier === "body" ? entry : { ...SOUND, ...entry }, undefined, [], `${metric} on ${tier} (${kind})`);
+          }
+        }
+      }
+    }
+  });
+
+  test("L35 `views`, when present, is a non-empty array of distinct View names; a wrong name is refused, not ignored", () => {
+    for (const views of [[], ["typical", "typical"], ["protan", "deutan", "protan"], ["protanopia"], ["Typical"], ["typical", "normal"], ["typical", null], "typical", { 0: "typical" }, 4]) {
+      refused("probe-views", SOUND, { views }, [], `views ${shown(views)}`);
+    }
+  });
+
+  test("L35 `checks`, when present, is an array of distinct CheckNames; a wrong name is refused, not ignored", () => {
+    for (const checks of [["roles-complete", "roles-complete"], ["role-complete"], ["Hierarchy"], ["hierarchy", "edge-not-fill", "hierarchy"], ["label-type", null], ["C1"], "hierarchy", { 0: "hierarchy" }]) {
+      refused("probe-checks", SOUND, { views: [...VIEWS], checks }, [], `checks ${shown(checks)}`);
+    }
+  });
+
+  test("L35 `requires`, when present, has three finite positive numbers: buttonLabelPx, buttonLabelSmallPx, buttonLabelWeight", () => {
+    const good = { buttonLabelPx: 16, buttonLabelSmallPx: 14, buttonLabelWeight: 600 };
+    for (const requires of [{ ...good, buttonLabelPx: 0 }, { ...good, buttonLabelSmallPx: -14 }, { ...good, buttonLabelWeight: NaN }, { ...good, buttonLabelPx: Infinity }, { ...good, buttonLabelPx: "16" }, { buttonLabelPx: 16, buttonLabelSmallPx: 14 }, { buttonLabelPx: 16, buttonLabelWeight: 600 }, {}, null, 16, [16, 14, 600]]) {
+      // checks list label-type, so the refusal is L35's and not L137's.
+      refused("probe-requires", { ...SOUND, label: tierFloor("lc", 60, { requires }) }, { views: [...VIEWS], checks: [...CHECKS] }, [], `requires ${shown(requires)}`);
+    }
+  });
+
+  test("L125 L35 `views`, `checks` and `requires` are present when an own key holds anything but undefined: null is present, and refused as malformed; an own key holding undefined is absent", () => {
+    const requires = { buttonLabelPx: 16, buttonLabelSmallPx: 14, buttonLabelWeight: 600 };
+    // Absent: an own key holding undefined is no key at all (views absent means typical only; no checks; no requirement).
+    accepted("probe-undefined", { ...SOUND, label: tierFloor("lc", 60, { requires: undefined }) }, { views: undefined, checks: undefined }, "views, checks and requires each an own key holding undefined");
+    accepted("probe-present", { ...SOUND, label: tierFloor("lc", 60, { requires }) }, { views: [...VIEWS], checks: [...CHECKS] }, "the same three, well formed");
+    refused("probe-null", SOUND, { views: null }, [], "views: null");
+    refused("probe-null", SOUND, { views: [...VIEWS], checks: null }, [], "checks: null");
+    refused("probe-null", { ...SOUND, label: tierFloor("lc", 60, { requires: null }) }, { views: [...VIEWS], checks: [...CHECKS] }, [], "requires: null (label-type listed, so this is L125's refusal and not L137's)");
+  });
+
+  test("L41 M6.4 stands: a legibility-shaped contract that yields no measurement in a mode throws, naming it — and one whose every measurement cannot be measured does not", () => {
+    withRaw("probe-status-only", shaped("probe-status-only", { "edge-status": tierFloor("presence", 5) }), (name) => {
+      const pairs = measure("light", VALUES.colors.light, name, undefined);
+      assert.equal(pairs.length, 4, "four status edges, none measurable without edges (L39): that is a result, not nothing");
+      assert.ok(pairs.every((pair) => pair.actual === null && pair.holds === false));
+      withRules((rules) => {
+        const kept = rules.filter((rule) => rule.tier !== "edge-status");
+        rules.length = 0;
+        rules.push(...kept);
+      }, () => {
+        for (const mode of MODES) {
+          throwsTypeError(() => measure(mode, VALUES.colors[mode], name, VALUES.edges[mode]), ["probe-status-only"], `no rule of its one tier, ${mode}`);
+        }
+      });
+    });
+  });
+
+  // ── the measurement (§4.2, §4.4, §5.3, §5.4) ──────────────────────────
+  test("2.1 #2 L27 L58 the §3 fixture passes legibility: 193 measurements a mode in RULES order — on-scrim and on-scrim-muted on scrim, ratios at the worst case, 5.5562 and 4.6844 to 1e-4 (typical), then appendix A's 191, each to 0.01 in the view it states — and every one holds", () => {
+    for (const mode of MODES) {
+      const pairs = measure(mode, VALUES.colors[mode], LEG, VALUES.edges[mode]);
+      assert.deepEqual(pairs.map((pair) => [pair.fg, pair.bg, pair.tier]), LEGIBILITY_ORDER.map((rule) => [rule.fg, rule.bg, rule.tier]), `${mode}: not the 193, in RULES order`);
+      assert.equal(pairs.length, HELD_BY_LEGIBILITY);
+      pairs.forEach((pair, i) => {
+        const tier = LEGIBILITY_ORDER[i]!.tier;
+        const where = `${mode}: ${i < 2 ? "" : `${APPENDIX.rules[i - 2]!.n} `}${pair.fg} on ${pair.bg}`;
+        assert.deepEqual([pair.kind, pair.metric, pair.min], [LEG_FLOOR.get(tier)!.kind, LEG_FLOOR.get(tier)!.metric, floorIn(tier, mode)], `${where}: kind, metric, floor`);
+        if (i < 2) {
+          assert.ok(near(pair.actual, SCRIM_RATIO[pair.fg]!, 1e-4), `${where}: ${pair.actual}, and the spec says ${SCRIM_RATIO[pair.fg]}`);
+          assert.equal(pair.view, "typical", `${where}: a ratio is typical vision only (L32)`);
+        } else {
+          const cell = APPENDIX.rules[i - 2]![mode];
+          assert.ok(near(pair.actual, cell.actual, 0.01), `${where}: ${pair.actual}, and appendix A says ${cell.actual}`);
+          assert.equal(pair.view, cell.view, `${where}: the view`);
+        }
+        assert.equal(pair.holds, true, `${where}: does not hold`);
+      });
+      assert.deepEqual(failuresOf("probe", mode, VALUES.colors[mode], LEG, VALUES.edges[mode]), [], `${mode}: checkColors`);
+    }
+  });
+
+  test("2.1 #2 L27 L29 L30 L31 L38 L49 L129 each of the 193 is exactly the spec's arithmetic, to 1e-9, in the first view that reaches it: Lc unsigned on simulateCvd's hexes, separation as floats, presence over the all-round layers alone", () => {
+    for (const mode of MODES) {
+      const pairs = measure(mode, VALUES.colors[mode], LEG, VALUES.edges[mode]);
+      for (const [i, pair] of pairs.entries()) {
+        const rule = LEGIBILITY_ORDER[i]!;
+        const want = expectedOf(rule, metricOfTier(rule.tier), VALUES.colors[mode], VALUES.edges[mode])!;
+        assert.ok(near(pair.actual, want.actual, 1e-9) && pair.view === want.view, `${mode}: ${rule.fg} on ${rule.bg} measured ${pair.actual} (${pair.view}); by the spec's arithmetic ${want.actual} (${want.view})`);
+      }
+    }
+  });
+
+  test("2.1 #6 L29 an lc rule's fg is the text and goes first; actual is the SIZE of Lc: dark body text on the dark page is 90.87 (protan) — never −90.87, and never the page measured on the text", () => {
+    const pairs = measure("dark", VALUES.colors.dark, LEG, VALUES.edges.dark);
+    const text = pick(pairs, { fg: "text", bg: "bg" });
+    assert.ok(near(text.actual, 90.87, 0.005) && text.view === "protan", `R087 dark: ${text.actual} (${text.view})`);
+    assert.ok(near(text.actual, Math.abs(apcaLc(simulateCvd("#f3e7ce", "protan"), simulateCvd("#211409", "protan"))!), 1e-9));
+    // The other order is another rule, with another figure (R100: the tooltip, the page colour on the ink).
+    const tooltip = pick(pairs, { fg: "bg", bg: "text" });
+    assert.ok(near(tooltip.actual, 90.21, 0.005) && tooltip.view === "protan", `R100 dark: ${tooltip.actual} (${tooltip.view})`);
+    const light = measure("light", VALUES.colors.light, LEG, VALUES.edges.light);
+    assert.ok(near(pick(light, { fg: "bg", bg: "text" }).actual, 88.39, 0.005), "R100 light: #fef4dc on #693800");
+  });
+
+  test("2.1 #6 L30 Lc under a simulation is taken on the 8-bit hexes simulateCvd returns: the ink on the cream under tritan is #742d2f on #fff0ed, Lc 84.86 — the smallest of 85.84 / 87.79 / 85.18 / 84.86", () => {
+    const ink = pick(measure("light", VALUES.colors.light, LEG, VALUES.edges.light), { fg: "text", bg: "bg" });
+    assert.equal(ink.view, "tritan");
+    assert.ok(near(ink.actual, apcaLc("#742d2f", "#fff0ed")!, 1e-9), `R087 light: ${ink.actual}, and Lc of #742d2f on #fff0ed is ${apcaLc("#742d2f", "#fff0ed")}`);
+    assert.ok(near(ink.actual, 84.86, 0.005));
+  });
+
+  /** A copy of the legibility member under another key, changed by `change`. */
+  function withLegibilityAs(key: string, change: (copy: Record<string, unknown>) => void, fn: (name: ContractName) => void) {
+    const copy = { ...structuredClone(legibility()), name: key } as unknown as Record<string, unknown>;
+    change(copy);
+    withRaw(key, copy, fn);
+  }
+
+  test("L31 `view` is the FIRST view, in the order the contract lists them, at which the smallest value is reached", () => {
+    const colors = fresh();
+    colors.light["switch-ring"] = colors.light["switch-off"]!; // R191: one colour on itself, 0 in every view
+    const ring = { fg: "switch-ring", bg: "switch-off" };
+    const tied = pick(measure("light", colors.light, LEG, VALUES.edges.light), ring);
+    assert.deepEqual([tied.actual, tied.view], [0, "typical"], "a tie in every view: legibility lists typical first");
+    for (const views of [["deutan", "tritan", "typical", "protan"], ["tritan", "protan"]]) {
+      withLegibilityAs("probe-order", (copy) => {
+        copy.views = views;
+      }, (name) => {
+        const reordered = pick(measure("light", colors.light, name, VALUES.edges.light), ring);
+        assert.deepEqual([reordered.actual, reordered.view], [0, views[0]], `views ${shown(views)}: a tie goes to the first listed`);
+        // Not a tie: the smallest is the smallest, whatever the order (R087 light is smallest under tritan).
+        const ink = pick(measure("light", VALUES.colors.light, name, VALUES.edges.light), { fg: "text", bg: "bg" });
+        const want = expectedOf({ fg: "text", bg: "bg" }, "lc", VALUES.colors.light, VALUES.edges.light, views as View[])!;
+        assert.ok(near(ink.actual, want.actual, 1e-9) && ink.view === want.view, `views ${shown(views)}: R087 light ${ink.actual} (${ink.view}), and ${want.actual} (${want.view})`);
+      });
+    }
+  });
+
+  test("L22 L27 a contract with no `views` measures lc, sep and presence in typical vision only; one with views, in those — the worst view is never the largest", () => {
+    const cases: [rule: { fg: string; bg: string }, metric: Metric][] = [[{ fg: "text", bg: "bg" }, "lc"], [{ fg: "border-strong", bg: "surface" }, "sep"], [{ fg: "edge:container", bg: "bg" }, "presence"]];
+    for (const views of [undefined, ["typical"], ["protan"], ["protan", "deutan"]] as (View[] | undefined)[]) {
+      withLegibilityAs("probe-views", (copy) => {
+        if (views === undefined) {
+          delete copy.views;
+        } else {
+          copy.views = views;
+        }
+      }, (name) => {
+        const pairs = measure("light", VALUES.colors.light, name, VALUES.edges.light);
+        for (const [rule, metric] of cases) {
+          const got = pick(pairs, rule);
+          const want = expectedOf(rule, metric, VALUES.colors.light, VALUES.edges.light, views ?? ["typical"])!;
+          assert.ok(near(got.actual, want.actual, 1e-9) && got.view === want.view, `views ${shown(views)}: ${rule.fg} on ${rule.bg} ${got.actual} (${got.view}), and ${want.actual} (${want.view})`);
+        }
+      });
+    }
+    // The four views of legibility: never the largest of them.
+    const pairs = measure("light", VALUES.colors.light, LEG, VALUES.edges.light);
+    for (const [rule, metric] of cases) {
+      const largest = Math.max(...VIEWS.map((view) => expectedOf(rule, metric, VALUES.colors.light, VALUES.edges.light, [view])!.actual));
+      assert.ok(pick(pairs, rule).actual! < largest, `${rule.fg} on ${rule.bg}: the largest view was taken`);
+    }
+  });
+
+  test("L32 S6 ratio rules are measured in typical vision only, under every contract: a coloured scrim pair is its worst case as written, view typical", () => {
+    const colors = fresh();
+    colors.light.scrim = "rgb(200 0 0 / 0.6)";
+    colors.light["on-scrim"] = "#00c000";
+    const want = worstCaseContrast("#00c000", "rgb(200 0 0 / 0.6)")!;
+    for (const views of [[...VIEWS], ["tritan"], ["protan", "deutan"]]) {
+      withLegibilityAs("probe-ratio", (copy) => {
+        copy.views = views;
+      }, (name) => {
+        const pair = pick(measure("light", colors.light, name, VALUES.edges.light), { fg: "on-scrim", bg: "scrim" });
+        assert.ok(near(pair.actual, want, 1e-9) && pair.view === "typical" && pair.metric === "ratio", `views ${shown(views)}: ${pair.actual} (${pair.view}); typical, as written, is ${want}`);
+      });
+    }
+  });
+
+  test("L28 holds is `actual !== null && actual >= min` for every metric: a value exactly on its floor holds, a floor a hair above it does not", () => {
+    const pairs = measure("light", VALUES.colors.light, LEG, VALUES.edges.light);
+    for (const [tier, rule] of [["body", { fg: "text", bg: "bg" }], ["mark-area", { fg: "control-checked", bg: "field-fill" }], ["edge-sunken", { fg: "edge:sunken", bg: "surface" }]] as const) {
+      const actual = pick(pairs, rule).actual!;
+      for (const [min, holds] of [[actual, true], [actual * (1 + 1e-12), false]] as const) {
+        withLegibilityAs("probe-holds", (copy) => {
+          (copy.tiers as Record<string, { min: unknown }>)[tier]!.min = min;
+        }, (name) => {
+          const pair = pick(measure("light", VALUES.colors.light, name, VALUES.edges.light), rule);
+          assert.deepEqual([pair.min, pair.holds], [min, holds], `${tier}: ${actual} against a floor of ${min}`);
+        });
+      }
+    }
+  });
+
+  /** L39: these rules come back null, null, false — and checkColors lists each, with its tier and metric. */
+  function unmeasurable(mode: Mode, colors: unknown, edges: unknown, rules: { fg: string; bg: string; tier?: string }[], what: string, contract = LEG): Measured[] {
+    let pairs: Measured[] = [];
+    assert.doesNotThrow(() => {
+      pairs = measure(mode, colors, contract, edges);
+    }, `${what}: a rule that cannot be measured is a named failure, never a throw (L39)`);
+    if (contract === LEG) {
+      assert.equal(pairs.length, HELD_BY_LEGIBILITY, `${what}: a rule was dropped`);
+    }
+    const failures = failuresOf("probe", mode, colors, contract, edges);
+    for (const rule of rules) {
+      const pair = pick(pairs, rule);
+      assert.deepEqual({ actual: pair.actual, view: pair.view, holds: pair.holds }, { actual: null, view: null, holds: false }, `${what}: ${rule.fg} on ${rule.bg}`);
+      const failed = failures.filter((f) => f.fg === rule.fg && f.bg === rule.bg);
+      assert.equal(failed.length, 1, `${what}: checkColors does not list ${rule.fg} on ${rule.bg}`);
+      assert.deepEqual({ actual: failed[0]!.actual, view: failed[0]!.view, tier: failed[0]!.tier, metric: failed[0]!.metric }, { actual: null, view: null, tier: pair.tier, metric: pair.metric }, `${what}: ${rule.fg} on ${rule.bg}, as a failure`);
+    }
+    return pairs;
+  }
+  const rulesNamed = (...numbers: string[]) => numbers.map(ruleNamed);
+  /** The rules of the §3 fixture that name `token` on either side. */
+  const naming = (token: string) => APPENDIX.rules.filter((rule) => rule.fg === token || rule.bg === token);
+
+  test("L37 an optional token that is absent, empty or blank reads its role fallback, as var(--sb-N, var(--sb-role)) does: text-strong reads text; control-checked reads primary-solid", () => {
+    const base = measure("light", VALUES.colors.light, LEG, VALUES.edges.light);
+    for (const value of [undefined, "", "   ", "\n\t"]) {
+      const colors = fresh();
+      for (const token of ["text-strong", "control-checked"]) {
+        if (value === undefined) {
+          delete colors.light[token];
+        } else {
+          colors.light[token] = value;
+        }
+      }
+      const pairs = measure("light", colors.light, LEG, VALUES.edges.light);
+      const what = `text-strong and control-checked ${value === undefined ? "absent" : shown(value)}`;
+      assert.deepEqual([pick(pairs, { fg: "text-strong", bg: "bg" }).actual, pick(pairs, { fg: "text-strong", bg: "bg" }).view], [pick(base, { fg: "text", bg: "bg" }).actual, pick(base, { fg: "text", bg: "bg" }).view], `${what}: R091 is text on bg`);
+      for (const rule of rulesNamed("R171", "R181")) {
+        const want = expectedOf(rule, metricOfTier(rule.tier), colors.light, VALUES.edges.light)!;
+        const got = pick(pairs, rule);
+        assert.ok(near(got.actual, want.actual, 1e-9) && got.view === want.view, `${what}: ${rule.n} reads primary-solid — ${got.actual} (${got.view}), and ${want.actual}`);
+      }
+    }
+  });
+
+  test("2.1 #5 L37 L39 an optional token whose fallback is css has no value until a theme defines it: without switch-ring R191 cannot be measured, without selected-wash R135 cannot — null and a failure, not 0 and not a pass", () => {
+    for (const [token, numbers] of [["switch-ring", ["R191"]], ["selected-wash", ["R135", "R138", "R194", "R195"]], ["heading-ink", ["R094", "R095", "R096"]], ["slider-track", ["R180"]]] as const) {
+      assert.deepEqual(naming(token).map((rule) => rule.n), numbers, `the rules that read ${token}`);
+      // Absent, empty, or a theme writing the css fallback itself: none is a colour the measurement can read.
+      for (const value of [undefined, "", "inherit", "color-mix(in oklab, currentColor, transparent 80%)"]) {
+        const colors = fresh();
+        if (value === undefined) {
+          delete colors.light[token];
+        } else {
+          colors.light[token] = value;
+        }
+        unmeasurable("light", colors.light, VALUES.edges.light, rulesNamed(...numbers), `${token} ${value === undefined ? "absent" : shown(value)}`);
+      }
+    }
+  });
+
+  test("L37 L39 a ROLE with no value, or an empty one, cannot be measured: a role has no fallback", () => {
+    for (const value of [undefined, "", "  "]) {
+      const colors = fresh();
+      if (value === undefined) {
+        delete colors.dark.text;
+      } else {
+        colors.dark.text = value;
+      }
+      // text-strong, heading-ink and text-caption are defined in the §3 record, so they do not fall back to text here.
+      unmeasurable("dark", colors.dark, VALUES.edges.dark, naming("text"), `dark text ${value === undefined ? "absent" : shown(value)}`);
+    }
+  });
+
+  test("L38 a see-through foreground of an lc or sep rule is blended over the rule's background, rounded per channel; `transparent` included — so it measures, it is not refused", () => {
+    const colors = fresh();
+    colors.light["text-muted"] = "rgb(132 77 22 / 0.5)";
+    colors.light["border-strong"] = "transparent";
+    colors.light["heading-ink"] = "rgb(71 36 0 / 0.75)";
+    const pairs = measure("light", colors.light, LEG, VALUES.edges.light);
+    for (const rule of [...naming("text-muted"), ...naming("border-strong").filter((rule) => rule.fg === "border-strong"), ...naming("heading-ink")]) {
+      const want = expectedOf(rule, metricOfTier(rule.tier), colors.light, VALUES.edges.light)!;
+      const got = pick(pairs, rule);
+      assert.ok(want !== null && near(got.actual, want.actual, 1e-9) && got.view === want.view, `${rule.n} ${rule.fg} on ${rule.bg}: ${got.actual} (${got.view}); blended over its background, ${want?.actual}`);
+    }
+    assert.equal(pick(pairs, { fg: "border-strong", bg: "surface" }).actual, 0, "transparent over the card is the card: 0, and it fails");
+    // The dark divider, as the spec measures it (R234): rgb(254 244 220 / 0.14) over #342417 is #504133.
+    const divider = pick(measure("dark", VALUES.colors.dark, LEG, VALUES.edges.dark), { fg: "border", bg: "surface" });
+    assert.ok(near(divider.actual, sepIn("deutan", "#504133", "#342417"), 1e-9) && divider.view === "deutan", `R234 dark: ${divider.actual}`);
+  });
+
+  test("2.1 #5 L38 L39 a see-through BACKGROUND of an lc or sep rule, or a see-through fill or backdrop of a presence rule, cannot be measured — never composited over white or black", () => {
+    const colors = fresh();
+    colors.light.surface = "rgb(255 251 241 / 0.5)";
+    unmeasurable("light", colors.light, VALUES.edges.light, rulesNamed("R088", "R103", "R187", "R192", "R234", "R252", "R253", "R254", "R256", "R276"), "a see-through surface");
+    const quiet = fresh();
+    quiet.light["quiet-fill"] = "transparent"; // a see-through fill — not "backdrop" (L107)
+    unmeasurable("light", quiet.light, VALUES.edges.light, rulesNamed("R260", "R261"), "a transparent quiet-fill");
+  });
+
+  test("2.1 #5 L38 L39 a value parseColor cannot read is unmeasurable on either side: oklch(), var(), color-mix(), a word", () => {
+    for (const [token, value] of [["link", "oklch(0.5 0.1 300)"], ["focus-ring", "var(--sb-primary)"], ["primary-solid", "color-mix(in oklab, #b096d7, white)"], ["success-subtle", "lilac"], ["surface-sunken", "#fffbf"]] as const) {
+      const colors = fresh();
+      colors.light[token] = value;
+      const rules = naming(token);
+      assert.ok(rules.length > 0, token);
+      unmeasurable("light", colors.light, VALUES.edges.light, rules, `${token} = ${value}`);
+    }
+  });
+
+  test("L38 a ratio rule is measured as PR 1 measures it: a see-through scrim at its worst case, a see-through foreground not at all", () => {
+    const colors = fresh();
+    colors.dark["on-scrim"] = "rgb(255 255 255 / 0.5)";
+    unmeasurable("dark", colors.dark, VALUES.edges.dark, [{ fg: "on-scrim", bg: "scrim" }], "a see-through on-scrim");
+  });
+
+  test("2.1 #5 L39 L44 an element the edge data leaves out — or no edge data at all — makes every rule that reads it a named unmeasurable failure: never a skip, never a throw", () => {
+    for (const element of ["container", "field", "filled-danger"]) {
+      for (const mode of MODES) {
+        const edges = freshEdges()[mode];
+        delete edges[element];
+        const rules = APPENDIX.rules.filter((rule) => rule.fg === `edge:${element}` || rule.bg === `edge:${element}`);
+        const pairs = unmeasurable(mode, VALUES.colors[mode], edges, rules, `${mode} without ${element}`);
+        assert.equal(pairs.filter((pair) => pair.actual === null).length, rules.length, `${mode} without ${element}: only its rules`);
+      }
+    }
+    for (const edges of [undefined, {}]) {
+      for (const mode of MODES) {
+        const pairs = unmeasurable(mode, VALUES.colors[mode], edges, NEEDS_EDGES, `${mode}, edges ${shown(edges) ?? "not passed"}`);
+        assert.equal(NEEDS_EDGES.length, 24);
+        assert.deepEqual(pairs.filter((pair) => pair.actual === null).map((pair) => `${pair.fg} on ${pair.bg}`), NEEDS_EDGES.map((rule) => `${rule.fg} on ${rule.bg}`), "the 22 edge rules and R224 and R227, in RULES order, and nothing else");
+        assert.deepEqual(failuresOf("probe", mode, VALUES.colors[mode], LEG, edges).map((f) => `${f.fg} on ${f.bg}`), NEEDS_EDGES.map((rule) => `${rule.fg} on ${rule.bg}`), "checkColors: exactly those 24");
+      }
+    }
+  });
+
+  test("L40 §17 item 17 a rule that names a colour that is no role, no optional token and no edge element is a TypeError naming it — under either contract — where PR 1 returned actual: null", () => {
+    const planted = (fg: string, bg: string, tier: string) => ({ fg, bg, tier, why: "A rule planted by test-contracts.ts." }) as unknown as Rule;
+    for (const [fg, bg, tier, named] of [["txet", "bg", "body", "txet"], ["text", "surfce", "body", "surfce"], ["edge:filled-success", "surface", "edge-filled", "filled-success"], ["edge:card", "bg", "edge-container", "card"], ["focus-ring", "edge:", "tell-apart", "edge:"]] as const) {
+      withRules((rules) => rules.push(planted(fg, bg, tier)), () => {
+        for (const mode of MODES) {
+          throwsTypeError(() => measure(mode, VALUES.colors[mode], LEG, VALUES.edges[mode]), [named], `${fg} on ${bg} (${tier}), legibility, ${mode}`);
+        }
+      });
+    }
+    withRules((rules) => rules.push(planted("txet", "bg", "text")), () => {
+      for (const mode of MODES) {
+        throwsTypeError(() => measureColors(mode, colorsOf(mode), WCAG), ["txet"], `txet on bg (text), wcag-aa, ${mode}`);
+      }
+    });
+    // The probe is sound: optional tokens and edges are names a rule may use.
+    const sound = [{ fg: "text-strong", bg: "surface-sunken", tier: "body" as Tier }, { fg: "focus-ring", bg: "edge:field", tier: "focus-visible" as Tier }, { fg: "edge:field", bg: "bg", tier: "mark-line" as Tier }];
+    withRules((rules) => rules.push(...sound.map((rule) => planted(rule.fg, rule.bg, rule.tier))), () => {
+      const pairs = measure("light", VALUES.colors.light, LEG, VALUES.edges.light);
+      assert.equal(pairs.length, HELD_BY_LEGIBILITY + 3);
+      pairs.slice(-3).forEach((pair, i) => {
+        const rule = sound[i]!;
+        const want = expectedOf(rule, metricOfTier(rule.tier), VALUES.colors.light, VALUES.edges.light)!;
+        assert.ok(pair.fg === rule.fg && pair.bg === rule.bg && near(pair.actual, want.actual, 1e-9), `${rule.fg} on ${rule.bg}: ${pair.actual}, and ${want.actual}`);
+      });
+    });
+  });
+
+  test("L40 an edge: name where it cannot stand is a TypeError: as the bg of a presence rule, as the fg of an lc rule; and a presence rule whose fg is not an edge:", () => {
+    const planted = (fg: string, bg: string, tier: string) => ({ fg, bg, tier, why: "A rule planted by test-contracts.ts." }) as unknown as Rule;
+    // The probe is sound: where an edge: name may stand — either side of a sep rule (L52), the fg of a presence rule — it is measured.
+    withRules((rules) => rules.push(planted("edge:field", "surface-sunken", "mark-line"), planted("danger-mark", "edge:field", "tell-apart"), planted("edge:quiet", "surface-sunken", "edge-quiet")), () => {
+      for (const mode of MODES) {
+        const pairs = measure(mode, VALUES.colors[mode], LEG, VALUES.edges[mode]);
+        assert.equal(pairs.length, HELD_BY_LEGIBILITY + 3, mode);
+        assert.ok(pairs.slice(-3).every((pair) => pair.actual !== null), `${mode}: ${shown(pairs.slice(-3))}`);
+      }
+    });
+    for (const [fg, bg, tier, what] of [["edge:container", "edge:field", "edge-container", "edge: as a presence rule's bg"], ["edge:field", "bg", "body", "edge: as an lc rule's fg"], ["surface", "bg", "edge-container", "a presence rule whose fg is a role"], ["field-fill", "bg", "edge-field", "a presence rule whose fg is an optional token"]] as const) {
+      withRules((rules) => rules.push(planted(fg, bg, tier)), () => {
+        for (const mode of MODES) {
+          throwsTypeError(() => measure(mode, VALUES.colors[mode], LEG, VALUES.edges[mode]), [], `${what}, ${mode}`);
+        }
+      });
+    }
+  });
+
+  /** Malformed edge data (L43), planted at the third layer of the light container: position 3, counting from 1 in `rest` (L122). */
+  const MALFORMED: [key: keyof Layer, value: unknown][] = [
+    ["x", NaN], ["y", Infinity], ["spread", "-8px"], ["blur", -1], ["blur", -Infinity],
+    ["alpha", 0], ["alpha", 1.01], ["alpha", -0.26], ["alpha", NaN],
+    ["color", "#a63"], ["color", "#a16e3242"], ["color", "rgb(161 110 50)"], ["color", "a16e32"],
+  ];
+  const BAD_FILLS: unknown[] = ["nonsense", "edge:field", "", "transparent", "Surface", null, 3];
+  const BAD_RESTS: unknown[] = ["0 0 6px 1px #a16e32", null, {}, 3];
+
+  test("L43 L122 malformed edge data is a TypeError when it is MEASURED, naming the element and the layer's position counted from 1: a number that is not finite, blur below 0, alpha outside (0, 1], a colour that is not six-digit hex", () => {
+    for (const [key, value] of MALFORMED) {
+      const what = `${key} is ${String(value)}`;
+      const edges = freshEdges();
+      (edges.light.container!.rest[2] as unknown as Record<string, unknown>)[key] = value;
+      // L122 (revision 3.2): the position counts from 1 in the element's rest list, so the third layer is 3. (Revision 3.1 left the base open; this accepted 2 or 3.)
+      const says = (message: string) => message.includes("container") && /\b3(rd)?\b/.test(message);
+      for (const call of [() => measure("light", VALUES.colors.light, LEG, edges.light), () => failuresOf("probe", "light", VALUES.colors.light, LEG, edges.light)]) {
+        throwsTypeError(call, ["container"], `${what}: measured`);
+        try {
+          call();
+        } catch(error) {
+          assert.ok(says((error as Error).message), `${what}: the TypeError does not name the layer's position (the third: 3, counting from 1, L122): ${(error as Error).message}`);
+        }
+      }
+    }
+  });
+
+  test("L43 a fill that is no role, no optional token and not \"backdrop\", or a rest that is not an array, is a TypeError naming the element — never read as a weak edge", () => {
+    for (const fill of BAD_FILLS) {
+      const edges = freshEdges();
+      (edges.dark.quiet as unknown as Record<string, unknown>).fill = fill;
+      throwsTypeError(() => measure("dark", VALUES.colors.dark, LEG, edges.dark), ["quiet"], `fill ${shown(fill)}`);
+    }
+    for (const rest of BAD_RESTS) {
+      const edges = freshEdges();
+      (edges.dark.quiet as unknown as Record<string, unknown>).rest = rest;
+      throwsTypeError(() => measure("dark", VALUES.colors.dark, LEG, edges.dark), ["quiet"], `rest ${shown(rest)}`);
+    }
+    const edges = freshEdges();
+    delete (edges.dark.quiet as unknown as Record<string, unknown>).rest;
+    throwsTypeError(() => measure("dark", VALUES.colors.dark, LEG, edges.dark), ["quiet"], "no rest at all");
+  });
+
+  test("L123 L44 an edge-data key that is not one of the thirteen elements is malformed — the withdrawn filled-success, filled-warning and filled-info included — and refused, naming it, when measured and when emitted", () => {
+    // The probe is sound: the thirteen are accepted, measured and emitted.
+    assert.equal(measure("light", VALUES.colors.light, LEG, VALUES.edges.light).length, HELD_BY_LEGIBILITY);
+    assert.ok(themeCss(legiblePreset({})).includes("--sb-edge-status-info:"));
+    for (const key of ["filled-success", "filled-warning", "filled-info", "card", "Container", "filled-primary-hover", "edge:container", ""]) {
+      for (const mode of MODES) {
+        const edges = freshEdges();
+        (edges[mode] as Record<string, Recipe>)[key] = structuredClone(edges[mode]["filled-secondary"]!);
+        const named = key === "" ? [] : [key];
+        throwsTypeError(() => measure(mode, VALUES.colors[mode], LEG, edges[mode]), named, `${mode} edges with a key ${shown(key)}: measured`);
+        throwsTypeError(() => failuresOf("probe", mode, VALUES.colors[mode], LEG, edges[mode]), named, `${mode} edges with a key ${shown(key)}: checkColors`);
+        throwsTypeError(() => themeCss(legiblePreset({ edges })), ["probe-legible", ...named], `${mode} edges with a key ${shown(key)}: emitted`);
+      }
+    }
+  });
+
+  test("L43 an EMPTY rest is valid — an element with no shadow: its presence is the fill step alone, measured and judged", () => {
+    const edges = freshEdges();
+    edges.light.container!.rest = [];
+    const pair = pick(measure("light", VALUES.colors.light, LEG, edges.light), { fg: "edge:container", bg: "bg" });
+    const want = expectedOf({ fg: "edge:container", bg: "bg" }, "presence", VALUES.colors.light, edges.light)!;
+    assert.ok(near(pair.actual, want.actual, 1e-9) && near(pair.actual, 2.36, 0.005), `R252 light with no shadow: ${pair.actual}, the fill step is ${want.actual}`);
+    assert.equal(pair.holds, false);
+  });
+
+  test("L47 a layer is all-round only with no offset and a positive spread — computed, never flagged: take the spread from the field's inset line and the field has no edge pixel; blur counts for nothing", () => {
+    for (const [key, value] of [["spread", 0], ["spread", -1], ["x", 1], ["y", -1]] as const) {
+      const what = `${key} ${value}`;
+      const edges = freshEdges();
+      edges.light.field!.rest.find(allRound)![key] = value;
+      const pairs = unmeasurable("light", VALUES.colors.light, edges.light, rulesNamed("R224", "R227"), `the field's inset line with ${what}: L52`);
+      const field = pick(pairs, { fg: "edge:field", bg: "surface" });
+      assert.deepEqual([field.actual, field.holds], [0, false], `the field with ${what} on a card: the fill step alone, which is 0`);
+    }
+    for (const blur of [0, 60]) {
+      const edges = freshEdges();
+      edges.light.container!.rest[0]!.blur = blur;
+      assert.ok(near(pick(measure("light", VALUES.colors.light, LEG, edges.light), { fg: "edge:container", bg: "bg" }).actual, 16.70, 0.005), `L48: blur ${blur} is ignored`);
+    }
+  });
+
+  test("L48 an outside layer is blended over the backdrop and an inset one over the element's own fill, each alone: the other layers are not stacked on it", () => {
+    const edges = freshEdges();
+    for (const layer of edges.light.container!.rest.filter((layer) => !allRound(layer))) {
+      Object.assign(layer, { color: "#000000", alpha: 1 });
+    }
+    edges.light.container!.rest.push({ inset: false, x: 0, y: 6, blur: 0, spread: 0, color: "#000000", alpha: 1 });
+    const pair = pick(measure("light", VALUES.colors.light, LEG, edges.light), { fg: "edge:container", bg: "bg" });
+    assert.ok(near(pair.actual, 16.70, 0.005) && pair.view === "tritan", `R252 light with black offset layers: ${pair.actual} — they are not all-round, and not stacked`);
+    const field = pick(measure("dark", VALUES.colors.dark, LEG, VALUES.edges.dark), { fg: "edge:field", bg: "surface" });
+    assert.ok(near(field.actual, 31.71, 0.005) && field.view === "deutan", `R256 dark: the inset line over the field's own fill #140903 — ${field.actual} (${field.view})`);
+  });
+
+  test("L52 edge:field is the field's one inset all-round layer blended over its own fill (#e1d5bf light, #64594d dark); with that layer outside, or a second all-round layer, it cannot be measured", () => {
+    for (const mode of MODES) {
+      const pairs = measure(mode, VALUES.colors[mode], LEG, VALUES.edges[mode]);
+      for (const rule of rulesNamed("R224", "R227")) {
+        const got = pick(pairs, rule);
+        assert.ok(near(got.actual, rule[mode].actual, 0.01) && got.view === rule[mode].view, `${rule.n} ${mode}: ${got.actual}`);
+        assert.equal(rule[mode].bg, mode === "light" ? "#e1d5bf" : "#64594d");
+      }
+    }
+    const outside = freshEdges();
+    outside.light.field!.rest.find(allRound)!.inset = false;
+    unmeasurable("light", VALUES.colors.light, outside.light, rulesNamed("R224", "R227"), "the field's all-round layer drawn outside");
+    const twice = freshEdges();
+    twice.dark.field!.rest.push({ inset: true, x: 0, y: 0, blur: 0, spread: 2, color: "#fef4dc", alpha: 0.1 });
+    unmeasurable("dark", VALUES.colors.dark, twice.dark, rulesNamed("R224", "R227"), "two all-round layers on the field");
+  });
+
+  test("2.1 #6 L107 a recipe whose fill is \"backdrop\" paints no fill of its own: the light quiet button on the page is 15.8798 (tritan), where with quiet-fill it is 18.1794", () => {
+    const quiet = { fg: "edge:quiet", bg: "bg" };
+    const painted = pick(measure("light", VALUES.colors.light, LEG, VALUES.edges.light), quiet);
+    assert.ok(near(painted.actual, 18.1794, 1e-4) && painted.view === "tritan", `with quiet-fill: ${painted.actual} (${painted.view})`);
+    const edges = freshEdges();
+    edges.light.quiet!.fill = "backdrop";
+    const bare = pick(measure("light", VALUES.colors.light, LEG, edges.light), quiet);
+    assert.ok(near(bare.actual, 15.8798, 1e-4) && bare.view === "tritan", `with fill "backdrop": ${bare.actual} (${bare.view}) — read as the backdrop, not as quiet-fill`);
+    // The fill step is 0 and an inset layer is blended over K: on a card, F = K.
+    const dark = freshEdges();
+    dark.dark.quiet!.fill = "backdrop";
+    for (const rule of rulesNamed("R260", "R261")) {
+      const want = expectedOf(rule, "presence", VALUES.colors.dark, dark.dark)!;
+      const got = pick(measure("dark", VALUES.colors.dark, LEG, dark.dark), rule);
+      assert.ok(near(got.actual, want.actual, 1e-9) && got.view === want.view, `${rule.n} dark, backdrop: ${got.actual}, and ${want.actual}`);
+    }
+  });
+
+  test("2.1 #6 L50 the four worked examples of §5.3, measured: the light card on the page 16.70 (tritan), the light field on a card 11.03 (tritan), the dark card on the page 16.06 (deutan), the dark field on a card 31.71 (deutan)", () => {
+    for (const row of WORKED) {
+      const got = pick(measure(row.mode, VALUES.colors[row.mode], LEG, VALUES.edges[row.mode]), ruleNamed(row.n));
+      assert.ok(near(got.actual, row.presence, 0.005) && got.view === row.view, `${row.what}: ${got.actual} (${got.view})`);
+    }
+  });
+
+  // ── the known-bad fixture (§10) ───────────────────────────────────────
+  test("2.1 #4 C6 L82 the known-bad fixture — sorbet as main ships it — fails legibility on the three rules of §10, to 1e-4: the dark card edge 6.8958 (protan), the light switch 5.2781 (protan), the light tick 26.3547 (deutan)", () => {
+    const THREE: { mode: Mode; n: string; actual: number; view: View; min: number }[] = [
+      { mode: "dark", n: "R252", actual: 6.8958, view: "protan", min: 15.2 },
+      { mode: "light", n: "R179", actual: 5.2781, view: "protan", min: 12.4 },
+      { mode: "light", n: "R171", actual: 26.3547, view: "deutan", min: 68.9 },
+    ];
+    for (const { mode, n, actual, view, min } of THREE) {
+      const rule = ruleNamed(n);
+      const pairs = measure(mode, KNOWN_BAD.colors[mode], LEG, KNOWN_BAD.edges[mode]);
+      const got = pick(pairs, rule);
+      assert.ok(near(got.actual, actual, 1e-4) && got.view === view && got.min === min && got.holds === false, `${n} ${mode}: ${got.actual} (${got.view}) against ${got.min}, holds ${got.holds}`);
+      const failed = failuresOf("sorbet", mode, KNOWN_BAD.colors[mode], LEG, KNOWN_BAD.edges[mode]).filter((f) => f.fg === rule.fg && f.bg === rule.bg);
+      assert.equal(failed.length, 1, `${n} ${mode}: not among the failures`);
+      assert.ok(near(failed[0]!.actual, actual, 1e-4) && failed[0]!.view === view && failed[0]!.min === min, `${n} ${mode}, as a failure`);
+    }
+  });
+
+  // ── one way to measure a preset (L24, L25) ────────────────────────────
+  const oceanDark = () => structuredClone(shipped.ocean!.colors.dark) as unknown as ColorRecord;
+  /** The planted preset of 2.1 #8: the §3 light colours and buttonLabel, legibility in light, no edges at all. */
+  const withoutEdges = () => legiblePreset({ edges: null, contract: { light: LEG, dark: WCAG }, colors: { light: fresh().light, dark: oceanDark() } });
+
+  test("L24 L25 measurePreset(preset, mode) is measureColors(mode, preset.colors[mode], contractOf(preset, mode), preset.edges?.[mode]): for the shipped presets, a legibility preset, one per mode, and one without edges", () => {
+    const measurePreset = api("measurePreset");
+    const cases = [
+      ...Object.values(shipped),
+      legiblePreset({}),
+      legiblePreset({ edges: null }),
+      withoutEdges(),
+      legiblePreset({ contract: { light: WCAG, dark: LEG }, colors: { light: structuredClone(shipped.ocean!.colors.light) as unknown as ColorRecord, dark: fresh().dark }, edges: { dark: freshEdges().dark } }),
+    ];
+    for (const preset of cases) {
+      for (const mode of MODES) {
+        const edges = (preset as unknown as { edges?: Partial<Record<Mode, unknown>> }).edges?.[mode];
+        assert.deepEqual(measurePreset(preset, mode), measure(mode, preset.colors[mode], contractOf(preset, mode), edges), `${preset.name}/${mode}`);
+      }
+    }
+    assert.equal((measurePreset(legiblePreset({}), "dark") as Measured[]).length, HELD_BY_LEGIBILITY);
+    throwsTypeError(() => measurePreset(declaring({ light: "wcag-aa", dark: "wcag-aaa" }), "dark"), ["probe-preset", "wcag-aaa"], "a bad declaration, through measurePreset");
+  });
+
+  test("2.1 #8 L117 L25 L39 S17 checkPreset is the failures of measurePreset: a preset declaring legibility with the §3 colours and buttonLabel and NO edges fails by name on 24 rules — the 22 edge rules, and R224 and R227 — and has no structure failure", () => {
+    const preset = withoutEdges();
+    const failures = checkPreset(preset) as unknown as Failed[];
+    assert.deepEqual(
+      failures.map((f) => [f.preset, f.mode, f.fg, f.bg, f.actual, f.view, f.tier, f.metric, f.min]),
+      NEEDS_EDGES.map((rule) => [preset.name, "light", rule.fg, rule.bg, null, null, rule.tier, metricOfTier(rule.tier), floorIn(rule.tier, "light")]),
+    );
+    assert.deepEqual(api("checkStructure")(preset), [], "C3 (b) and C8 read the elements edges defines, and it defines none");
+    for (const each of [legiblePreset({}), ...Object.values(shipped)]) {
+      const fromMeasurement = MODES.flatMap((mode) => (api("measurePreset")(each, mode) as Measured[]).filter((pair) => !pair.holds).map(({ fg, bg, min, actual, tier, metric, view }) => ({ preset: each.name, mode, fg, bg, min, actual, tier, metric, view })));
+      assert.deepEqual(checkPreset(each), fromMeasurement, each.name);
+    }
+  });
+
+  // ── the checks with no number (§9) ─────────────────────────────────────
+  const structureOf = (preset: Preset) => api("checkStructure")(preset) as StructureFailure[];
+  const shapeOf = (failure: StructureFailure, preset: string) => {
+    assert.deepEqual(Object.keys(failure).sort(), ["check", "detail", "mode", "preset"], "a structure failure is { preset, mode, check, detail }");
+    assert.ok(failure.preset === preset && CHECKS.includes(failure.check) && typeof failure.detail === "string" && failure.detail.trim() !== "", shown(failure));
+  };
+
+  test("2.1 #7 L79 L80 checkStructure passes the §3 fixture in both modes, edges and button label included; and it holds no wcag-aa mode to anything: the five shipped presets have no structure failure", () => {
+    assert.deepEqual(structureOf(legiblePreset({})), []);
+    for (const preset of Object.values(shipped)) {
+      assert.deepEqual(structureOf(preset), [], preset.name);
+    }
+  });
+
+  /** 2.1 #7: the one way each check is broken, applied to one mode's copy of the §3 fixture. */
+  const BREAKS: { check: string; what: string; apply: (colors: Record<Mode, ColorRecord>, edges: Record<Mode, Edges>, mode: Mode) => void }[] = [
+    {
+      check: "roles-complete",
+      what: "danger-active is removed (C1)",
+      apply: (colors, _edges, mode) => {
+        delete colors[mode]["danger-active"];
+      },
+    },
+    {
+      check: "hierarchy",
+      what: "text-muted is set to text's hex (C2: text > text-muted is false, in both modes)",
+      apply: (colors, _edges, mode) => {
+        colors[mode]["text-muted"] = colors[mode].text!;
+      },
+    },
+    {
+      check: "edge-not-fill",
+      what: "border is set to surface's hex (C3 (a))",
+      apply: (colors, _edges, mode) => {
+        colors[mode].border = colors[mode].surface!;
+      },
+    },
+    {
+      check: "fills-steady",
+      what: "primary-hover is darkened (C7)",
+      apply: (colors, _edges, mode) => {
+        colors[mode]["primary-hover"] = blendOver("#000000", 0.2, colors[mode].primary!);
+      },
+    },
+    {
+      check: "edge-direction",
+      what: "the card's rim is turned the wrong way — darker than the page in dark, lighter in light (C8)",
+      apply: (_colors, edges, mode) => {
+        edges[mode].container!.rest.find(allRound)!.color = mode === "dark" ? "#05020a" : "#ffffff";
+      },
+    },
+  ];
+  for (const { check, what, apply } of BREAKS) {
+    test(`2.1 #7 L79 L128 ${check} fails when ${what} — by name, in each mode it is broken in — and the mode left alone has no structure failure`, () => {
+      for (const mode of MODES) {
+        const colors = fresh();
+        const edges = freshEdges();
+        apply(colors, edges, mode);
+        const failures = structureOf(legiblePreset({ colors, edges }));
+        const here = failures.filter((failure) => failure.mode === mode);
+        assert.ok(here.some((failure) => failure.check === check), `${mode}: ${check} did not fail: ${shown(failures)}`);
+        here.forEach((failure) => shapeOf(failure, "probe-legible"));
+        assert.deepEqual(failures.filter((failure) => failure.mode !== mode), [], `broken in ${mode}, and the other mode fails`);
+      }
+    });
+  }
+
+  test("2.1 #7 L65 L115 C9 label-type holds the preset's buttonLabel to the label tier's requires: px 14 fails and smallPx 12 fails, each alone — and weight 500, and no buttonLabel at all; in each legibility mode and no wcag-aa one", () => {
+    const at = (failures: StructureFailure[]) => failures.map((failure) => `${failure.mode}:${failure.check}`).sort();
+    for (const [what, label] of [["px 14", { ...VALUES.buttonLabel, px: 14 }], ["smallPx 12", { ...VALUES.buttonLabel, smallPx: 12 }], ["weight 500", { ...VALUES.buttonLabel, weight: 500 }], ["no buttonLabel", null]] as const) {
+      assert.deepEqual(at(structureOf(legiblePreset({ buttonLabel: label }))), ["dark:label-type", "light:label-type"], `${what}, legibility in both modes`);
+      const lightOnly = legiblePreset({ buttonLabel: label, contract: { light: LEG, dark: WCAG }, colors: { light: fresh().light, dark: oceanDark() }, edges: { light: freshEdges().light } });
+      assert.deepEqual(at(structureOf(lightOnly)), ["light:label-type"], `${what}, legibility in light only`);
+    }
+    assert.deepEqual(structureOf(legiblePreset({ buttonLabel: { px: 18, smallPx: 16, weight: 700 } })), [], "larger and heavier than required passes");
+  });
+
+  test("L80 L114 a legibility mode made of a WCAG preset's colours fails C1 (68 roles), C2 (heading-ink has no value) and C3 (switch-ring has no value) by name — a name with no value fails the check that reads it, never a skip and never a pass", () => {
+    const failures = structureOf(legiblePreset({ colors: structuredClone(shipped.ocean!.colors) as unknown as Record<Mode, ColorRecord>, edges: null }));
+    for (const mode of MODES) {
+      const here = failures.filter((failure) => failure.mode === mode);
+      here.forEach((failure) => shapeOf(failure, "probe-legible"));
+      for (const check of ["roles-complete", "hierarchy", "edge-not-fill"]) {
+        assert.ok(here.some((failure) => failure.check === check), `${mode}: ${check} did not fail: ${shown(here)}`);
+      }
+      assert.ok(here.some((failure) => failure.check === "hierarchy" && failure.detail.includes("heading-ink")), `${mode}: C2's detail does not name heading-ink`);
+      assert.ok(here.some((failure) => failure.check === "edge-not-fill" && failure.detail.includes("switch-ring")), `${mode}: C3's detail does not name switch-ring`);
+      assert.ok(!here.some((failure) => failure.check === "label-type"), `${mode}: it has a buttonLabel`);
+    }
+  });
+
+  test("L114 C2 and C3 resolve what they compare as L37 does: a §3 record without heading-ink fails C2, without switch-ring fails C3 — each naming it; without switch-off, C3 reads border-strong, the ring's own hex, and fails", () => {
+    for (const [token, check] of [["heading-ink", "hierarchy"], ["switch-ring", "edge-not-fill"], ["switch-off", "edge-not-fill"]] as const) {
+      for (const mode of MODES) {
+        const colors = fresh();
+        delete colors[mode][token];
+        const failures = structureOf(legiblePreset({ colors })).filter((failure) => failure.mode === mode);
+        assert.ok(failures.some((failure) => failure.check === check && failure.detail.includes(token)), `${mode} without ${token}: ${shown(failures)}`);
+      }
+    }
+  });
+
+  test("L79 C3 (b) every element in a mode's edges has an all-round layer in rest: an empty rest fails edge-not-fill; and C8 says nothing of an element with no data (its rules already fail by name)", () => {
+    const empty = freshEdges();
+    empty.light.container!.rest = [];
+    assert.ok(structureOf(legiblePreset({ edges: empty })).some((failure) => failure.mode === "light" && failure.check === "edge-not-fill"), "an element with no all-round layer");
+    const missing = freshEdges();
+    delete missing.dark.container;
+    assert.deepEqual(structureOf(legiblePreset({ edges: missing })), [], "no container in dark: not a structure failure");
+  });
+
+  test("L79 checkStructure runs the checks the mode's contract lists, and only those", () => {
+    withLegibilityAs("probe-checks", (copy) => {
+      copy.checks = ["label-type"];
+    }, (name) => {
+      const failures = structureOf(legiblePreset({ colors: structuredClone(shipped.ocean!.colors) as unknown as Record<Mode, ColorRecord>, edges: null, buttonLabel: null, contract: { light: name, dark: name } }));
+      assert.deepEqual(failures.map((failure) => `${failure.mode}:${failure.check}`).sort(), ["dark:label-type", "light:label-type"]);
+    });
+  });
+
+  // ── what is emitted (§3.3, §5.5) ──────────────────────────────────────
+  /** The declaration lines of each block of a theme file, trimmed: the light :root block, then the two dark blocks. */
+  function blocksOf(css: string): { light: string[]; dark: string[][] } {
+    const blocks: string[][] = [];
+    let current: string[] | null = null;
+    for (const line of css.split("\n")) {
+      if (/\{\s*$/.test(line) && !line.trimStart().startsWith("@media")) {
+        current = [];
+        blocks.push(current);
+      } else if (line.trim() === "}") {
+        current = null;
+      } else if (current !== null && line.trim() !== "") {
+        current.push(line.trim());
+      }
+    }
+    assert.equal(blocks.length, 3, "a theme file has a light block and two dark blocks");
+    return { light: blocks[0]!, dark: blocks.slice(1) };
+  }
+  /** L53: a layer as `[inset ]<x> <y> <blur> <spread> <colour>`, each length `0` or `<n>px`, the colour as withAlpha writes it. */
+  const lengthOf = (n: number) => (n === 0 ? "0" : `${n}px`);
+  const layerText = (layer: Layer) => `${layer.inset ? "inset " : ""}${[layer.x, layer.y, layer.blur, layer.spread].map(lengthOf).join(" ")} rgb(${bytesOf(layer.color).join(" ")} / ${layer.alpha})`;
+  const layersText = (layers: Layer[]) => (layers.length === 0 ? "none" : layers.map(layerText).join(", "));
+  /** L53, L54: one line per element in EdgeElement order, then its -hover and -press where it has them. */
+  const edgeLines = (edges: Partial<Edges>) => ELEMENTS.filter((element) => edges[element] !== undefined).flatMap((element) => {
+    const recipe = edges[element]!;
+    return [
+      `--sb-edge-${element}: ${layersText(recipe.rest)};`,
+      ...(recipe.hover ? [`--sb-edge-${element}-hover: ${layersText(recipe.hover)};`] : []),
+      ...(recipe.press ? [`--sb-edge-${element}-press: ${layersText(recipe.press)};`] : []),
+    ];
+  });
+  const colourLines = (record: ColorRecord) => Object.entries(record).map(([name, value]) => `--sb-${name}: ${value};`);
+  const afterShadows = (lines: string[]) => {
+    const at = lines.findIndex((line) => line.startsWith("--sb-shadow-xl:"));
+    assert.ok(at >= 0, "no --sb-shadow-xl line");
+    return lines.slice(at + 1);
+  };
+
+  test("L53 (fixture) this file's layer text reproduces L53's two examples exactly", () => {
+    assert.equal(`  --sb-edge-container: ${layersText(VALUES.edges.light.container!.rest)};`, "  --sb-edge-container: 0 0 6px 1px rgb(161 110 50 / 0.38), 0 2px 4px 0 rgb(161 110 50 / 0.18), 0 10px 28px -8px rgb(161 110 50 / 0.26);");
+    assert.equal(`  --sb-edge-field: ${layersText(VALUES.edges.dark.field!.rest)};`, "  --sb-edge-field: inset 0 1px 3px 0 rgb(5 2 10 / 0.7), inset 0 0 0 1px rgb(254 244 220 / 0.34), 0 1px 0 0 rgb(254 244 220 / 0.12);");
+  });
+
+  test("L16 L19 L53 a preset with the §3 colours, edges and buttonLabel emits its 89 colour tokens in record order; after the shadow lines, in light, --sb-button-font-size: 1rem and -sm: 0.875rem, then one line per edge element in EdgeElement order with its -hover and -press; in dark, the dark edges and nothing else", () => {
+    const css = themeCss(legiblePreset({}));
+    assert.ok(css.includes("\n  --sb-edge-container: 0 0 6px 1px rgb(161 110 50 / 0.38), 0 2px 4px 0 rgb(161 110 50 / 0.18), 0 10px 28px -8px rgb(161 110 50 / 0.26);\n"), "L53's first example, as written");
+    assert.ok(css.includes("\n  --sb-edge-field: inset 0 1px 3px 0 rgb(5 2 10 / 0.7), inset 0 0 0 1px rgb(254 244 220 / 0.34), 0 1px 0 0 rgb(254 244 220 / 0.12);\n"), "L53's second example, as written");
+    const { light, dark } = blocksOf(css);
+    const firstColour = (lines: string[]) => lines.findIndex((line) => line.startsWith("--sb-bg:"));
+    assert.deepEqual(light.slice(firstColour(light), firstColour(light) + 89), colourLines(VALUES.colors.light), "light: the 89 colour lines, in record order (L16)");
+    assert.deepEqual(afterShadows(light), ["--sb-button-font-size: 1rem;", "--sb-button-font-size-sm: 0.875rem;", ...edgeLines(VALUES.edges.light)], "light, after the shadow lines (L19, L53)");
+    assert.equal(edgeLines(VALUES.edges.light).length, 21, "13 rest, 4 hover, 4 press");
+    for (const block of dark) {
+      assert.deepEqual(block.slice(firstColour(block), firstColour(block) + 89), colourLines(VALUES.colors.dark), "dark: the 89 colour lines, in record order");
+      assert.deepEqual(afterShadows(block), edgeLines(VALUES.edges.dark), "dark, after the shadow lines: the edges, no button size (L55: it is not reset), and no reset (dark defines everything)");
+    }
+    assert.equal(css.split("--sb-button-font-size:").length - 1, 1, "--sb-button-font-size is emitted once (L19)");
+  });
+
+  test("L19 the button label's sizes are px/16 rem, emitted once, in light, and never reset in dark", () => {
+    const css = themeCss(legiblePreset({ buttonLabel: { px: 18, smallPx: 13, weight: 600 } }));
+    const { light, dark } = blocksOf(css);
+    assert.deepEqual(afterShadows(light).slice(0, 2), ["--sb-button-font-size: 1.125rem;", "--sb-button-font-size-sm: 0.8125rem;"]);
+    for (const block of dark) {
+      assert.ok(!block.some((line) => line.includes("button-font-size")), "a dark block mentions the button label's size");
+    }
+  });
+
+  test("L55 a dark block resets, with `initial`, every property the light block emits from optional data and it does not: the 20 optional tokens and the 21 edge properties — 41 lines, after everything else, in the light block's order", () => {
+    const preset = legiblePreset({ colors: { light: fresh().light, dark: oceanDark() }, edges: { light: freshEdges().light }, contract: { light: LEG, dark: WCAG } });
+    const { dark } = blocksOf(themeCss(preset));
+    const resets = [...VALUES.seams.map((seam) => `--sb-${seam.name}: initial;`), ...edgeLines(VALUES.edges.light).map((line) => `${line.slice(0, line.indexOf(":"))}: initial;`)];
+    assert.equal(resets.length, 41);
+    for (const block of dark) {
+      assert.deepEqual(afterShadows(block), resets, "each dark block ends with the 41 resets (danger-active is a role, not optional data: it is not reset)");
+    }
+  });
+
+  test("L55 the unit is the emitted property, never the element: a dark recipe with rest and no hover still resets the light -hover property", () => {
+    const edges = freshEdges();
+    delete edges.dark["filled-primary"]!.hover;
+    const { dark } = blocksOf(themeCss(legiblePreset({ edges })));
+    for (const block of dark) {
+      assert.deepEqual(afterShadows(block), [...edgeLines(edges.dark), "--sb-edge-filled-primary-hover: initial;"]);
+    }
+    const colors = fresh();
+    delete colors.dark["quiet-fill"];
+    for (const block of blocksOf(themeCss(legiblePreset({ colors }))).dark) {
+      assert.equal(afterShadows(block).at(-1), "--sb-quiet-fill: initial;", "an optional token light defines and dark does not");
+    }
+  });
+
+  test("L54 an element with an empty rest emits --sb-edge-<element>: none;", () => {
+    const edges = freshEdges();
+    edges.light.sunken!.rest = [];
+    assert.ok(blocksOf(themeCss(legiblePreset({ edges }))).light.includes("--sb-edge-sunken: none;"));
+  });
+
+  test("L43 L122 L124 malformed edge data is a TypeError when it is EMITTED too, naming the preset and the element — a hover layer included", () => {
+    const rest = freshEdges();
+    rest.light.container!.rest[2]!.alpha = 2;
+    throwsTypeError(() => themeCss(legiblePreset({ edges: rest })), ["probe-legible", "container"], "a rest layer with alpha 2");
+    const hover = freshEdges();
+    hover.dark["filled-accent"]!.hover![1]!.color = "#f5e3a";
+    throwsTypeError(() => themeCss(legiblePreset({ edges: hover })), ["probe-legible", "filled-accent"], "a hover layer with a five-digit colour");
+  });
+
+  test("L5 L17 L56 the absence of the data is the whole switch: no shipped preset defines an optional token, edges or buttonLabel; a legibility declaration alone changes no byte; a wcag-aa preset WITH the data emits it", () => {
+    const seamNames = VALUES.seams.map((seam) => seam.name);
+    for (const preset of Object.values(shipped)) {
+      for (const mode of MODES) {
+        assert.deepEqual(Object.keys(preset.colors[mode]).filter((name) => seamNames.includes(name)), [], `${preset.name}/${mode}`);
+      }
+      assert.ok(!Object.hasOwn(preset, "edges") && !Object.hasOwn(preset, "buttonLabel"), `${preset.name} has edges or a buttonLabel`);
+    }
+    assert.equal(themeCss(declaring({ light: LEG, dark: LEG })), themeCss(declaring({ light: WCAG, dark: WCAG })), "declaring legibility, with no data, changed the theme file");
+    const css = themeCss(legiblePreset({ contract: { light: WCAG, dark: WCAG } }));
+    for (const line of ["--sb-field-fill: #fffbf1;", "--sb-button-font-size: 1rem;", "--sb-edge-container: 0 0 6px 1px rgb(161 110 50 / 0.38)"]) {
+      assert.ok(css.includes(line), `a wcag-aa preset with the data does not emit ${line}`);
+    }
+  });
+
+  test("L101 L71 generatedScss() writes a $seams map of the 20 optional tokens with their fallbacks and a list of the 13 edge elements; the committed _generated.scss is its output", () => {
+    const scss = generatedScss();
+    assert.equal(readFileSync(join(pkgRoot, "src", "styles", "abstracts", "_generated.scss"), "utf8"), scss, "_generated.scss is not what generatedScss() writes: it is build output, regenerated and committed with the step (L101)");
+    const seams = /^\$seams\s*:([\s\S]*?);[ \t]*$/m.exec(scss)?.[1];
+    assert.ok(seams !== undefined, "no $seams declaration");
+    for (const seam of VALUES.seams) {
+      const fallback = "fallback" in seam.fallback ? seam.fallback.fallback : seam.fallback.css;
+      assert.ok(seams.includes(seam.name) && seams.includes(fallback), `$seams does not carry ${seam.name} with its fallback ${fallback}`);
+    }
+    const word = (text: string, name: string) => new RegExp(`(^|[^\\w-])${name}([^\\w-]|$)`).test(text);
+    const lists = [...scss.matchAll(/^\$[\w-]+\s*:([\s\S]*?);[ \t]*$/gm)].map((m) => m[1]!);
+    assert.ok(lists.some((text) => ELEMENTS.every((element) => word(text, element))), "no declaration lists the 13 edge elements");
+  });
+
+  // ── the reports and the gates (§11.1, §11.2; 2.1 #8, #9) ──────────────
+  /** The source appended to a copy of presets.ts that gives sorbet these fields. */
+  const plantedSorbet = (parts: Record<string, unknown>) => `\n// test-contracts.ts: legibility-spec.md step 2.1, in a temporary copy.\n{\n  const sorbet = presets.sorbet as unknown as Record<string, unknown>;\n${Object.entries(parts).map(([key, value]) => `  sorbet[${JSON.stringify(key)}] = ${JSON.stringify(value)};`).join("\n")}\n}\n`;
+  /** The same preset, in this process. */
+  const twinOf = (parts: Record<string, unknown>) => Object.assign(structuredClone(shipped.sorbet!), structuredClone(parts)) as unknown as Preset;
+  const PLANTED: Record<string, Record<string, unknown>> = {
+    shipped: {},
+    "as-step-2-6": { colors: VALUES.colors, edges: VALUES.edges, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: LEG } },
+    "without-edges": { colors: { light: VALUES.colors.light, dark: shipped.sorbet!.colors.dark }, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: WCAG } },
+    "known-bad": { edges: KNOWN_BAD.edges, contract: { light: LEG, dark: LEG } },
+  };
+  const plantedTrees = new Map(Object.entries(PLANTED).map(([name, parts]) => {
+    const tree = plant(`legibility-${name}`, Object.keys(parts).length === 0 ? "" : plantedSorbet(parts));
+    // A gate that passes goes on to write: the package's _generated.scss beside its partials, the app's into src/styles.
+    cpSync(join(pkgRoot, "src", "styles"), join(tree.ds, "src", "styles"), { recursive: true });
+    mkdirSync(join(tree.app, "src", "styles", "abstracts"), { recursive: true });
+    return [name, tree];
+  }));
+  const plantedRuns = new Map<string, Ran>();
+  const runOn = (tree: string, surface: (typeof RUNS)[number]) => {
+    const key = `${tree} ${surface.name}`;
+    if (!plantedRuns.has(key)) {
+      plantedRuns.set(key, surface.run(plantedTrees.get(tree)!));
+    }
+    return plantedRuns.get(key)!;
+  };
+  /** What check-contrast.report.txt says of each wcag-aa preset-mode at 2d3b765, with L91's suffix. */
+  const RECORDED_LINES = new Map<string, string>();
+  {
+    let preset = "";
+    for (const line of readFileSync(join(fixtures, "check-contrast.report.txt"), "utf8").split("\n")) {
+      const mode = /^ {2}(light|dark) +(.+)$/.exec(line);
+      if (headings.has(line)) {
+        preset = headings.get(line)!;
+      } else if (mode) {
+        RECORDED_LINES.set(`${preset}/${mode[1]}`, `${mode[2]} — wcag-aa; ${APPLYING - 70} rules not held`);
+      }
+    }
+  }
+  const withoutMargin = (text: string) => text.replace(/ \(tightest margin ×[\d.]+\)/, "");
+  interface Reported {
+    preset: string;
+    mode: Mode;
+    summary: string;
+    rows: string[];
+    notes: string[];
+    /** The ✗ rows and why / retire lines under the mode line, in the order printed (L139). */
+    order: { kind: "row" | "note"; text: string }[];
+  }
+  /** A report read back: each mode line, the ✗ rows under it (4 spaces), and the why / retire lines (6 spaces, L89). */
+  function readReport(stdout: string): Reported[] {
+    const out: Reported[] = [];
+    let preset = "";
+    for (const line of stdout.split("\n")) {
+      const mode = /^ {2}(light|dark) +(.+)$/.exec(line);
+      const row = /^ {4}✗ (.+)$/.exec(line);
+      const note = /^ {6}((?:why|retire) \(.+)$/.exec(line);
+      if (headings.has(line)) {
+        preset = headings.get(line)!;
+      } else if (mode) {
+        out.push({ preset, mode: mode[1] as Mode, summary: mode[2]!, rows: [], notes: [], order: [] });
+      } else if (row) {
+        assert.ok(out.length > 0, `a ✗ row before any mode line: ${line}`);
+        out.at(-1)!.rows.push(row[1]!);
+        out.at(-1)!.order.push({ kind: "row", text: row[1]! });
+      } else if (note) {
+        assert.ok(out.length > 0, `a why/retire line before any mode line: ${line}`);
+        out.at(-1)!.notes.push(note[1]!);
+        out.at(-1)!.order.push({ kind: "note", text: note[1]! });
+      }
+    }
+    return out;
+  }
+  /** A gate's stderr read back: its `  <preset>/<mode>: …` rows, and the why / retire lines under the rows of each preset-mode. */
+  function readGate(stderr: string): { rows: { at: string; text: string }[]; notes: { at: string; text: string }[] } {
+    const rows: { at: string; text: string }[] = [];
+    const notes: { at: string; text: string }[] = [];
+    for (const line of stderr.split("\n")) {
+      const row = /^ {2}([a-z][\w-]*\/(?:light|dark)): (.+)$/.exec(line);
+      const note = /^ {6}((?:why|retire) \(.+)$/.exec(line);
+      if (row) {
+        rows.push({ at: row[1]!, text: row[2]! });
+      } else if (note) {
+        assert.ok(rows.length > 0, `a why/retire line before any row: ${line}`);
+        notes.push({ at: rows.at(-1)!.at, text: note[1]! });
+      }
+    }
+    return { rows, notes };
+  }
+  /** L88: a failing measurement as a report prints it. */
+  function reportRowOf(pair: Measured): string {
+    const word = WORD[pair.metric as Metric];
+    if (pair.actual === null) {
+      return `${pair.fg} on ${pair.bg}: could not be measured (needs ${word === "" ? "" : `${word} `}${pair.min})`;
+    }
+    return pair.metric === "ratio"
+      ? `${pair.fg} on ${pair.bg}: ${ratioText(pair.actual, pair.min)} < ${pair.min}`
+      : `${pair.fg} on ${pair.bg}: ${word} ${ratioText(pair.actual, pair.min)} < ${pair.min} (${pair.view} view)`;
+  }
+  /** L88: a failing measurement as a gate prints it — or, for one that could not be measured, whatever its metric, the start of it (L118). */
+  function gateRowOf(pair: Measured): { exact: string } | { starts: string } {
+    const word = WORD[pair.metric as Metric];
+    if (pair.actual === null) {
+      return { starts: `${pair.fg} on ${pair.bg} ` };
+    }
+    return { exact: pair.metric === "ratio" ? `${pair.fg} on ${pair.bg} = ${ratioText(pair.actual, pair.min)} (needs ${pair.min})` : `${pair.fg} on ${pair.bg} = ${word} ${ratioText(pair.actual, pair.min)} (needs ${pair.min}, ${pair.view} view)` };
+  }
+  /** L89: each failing tier's why and retire, once, in the order the tiers first fail. */
+  const notesFor = (failing: { tier: string }[]) => [...new Set(failing.map((pair) => pair.tier))].flatMap((tier) => {
+    const entry = legibility().tiers[tier as Tier]!;
+    return [`why (${tier}): ${entry.why}`, `retire (${tier}): ${entry.retire}`];
+  });
+  const sortedNotes = (notes: string[]) => [...notes].sort();
+  const REPORT_MARGIN = [true, false, true]; // check-contrast.ts, sorbet contrast (no margin, as today), the scaffold's
+
+  RUNS.slice(0, 3).forEach((report, i) => {
+    test(`2.1 #9 L86 L91 ${report.name}, on the shipped presets (all declaring wcag-aa): every mode line ends " — wcag-aa; 191 rules not held", and the last line is "✓ every declared contract holds for every preset in both modes (700 pairings measured): wcag-aa × 10"`, () => {
+      const run = runOn("shipped", report);
+      assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
+      const said = readReport(run.stdout);
+      assert.deepEqual(said.map((p) => `${p.preset}/${p.mode}`), [...RECORDED_LINES.keys()]);
+      for (const p of said) {
+        const want = RECORDED_LINES.get(`${p.preset}/${p.mode}`)!;
+        assert.equal(p.summary, REPORT_MARGIN[i] ? want : withoutMargin(want), `${p.preset}/${p.mode}`);
+        assert.deepEqual([p.rows, p.notes], [[], []]);
+      }
+      assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (700 pairings measured): wcag-aa × 10");
+    });
+
+    test(`2.1 #9 L86 L91 ${report.name}, with sorbet as step 2.6 will make it (the §3 values and edges, legibility in both modes): its lines read "all 193 pairings pass${REPORT_MARGIN[i] ? " (tightest margin ×1.02)" : ""} — legibility; 68 rules not held", and the last "(946 pairings measured): wcag-aa × 8, legibility × 2"`, () => {
+      const run = runOn("as-step-2-6", report);
+      assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
+      for (const p of readReport(run.stdout)) {
+        const want = p.preset === "sorbet" ? `all ${HELD_BY_LEGIBILITY} pairings pass (tightest margin ×1.02) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held` : RECORDED_LINES.get(`${p.preset}/${p.mode}`)!;
+        assert.equal(p.summary, REPORT_MARGIN[i] ? want : withoutMargin(want), `${p.preset}/${p.mode}`);
+        assert.deepEqual([p.rows, p.notes], [[], []], `${p.preset}/${p.mode}`);
+      }
+      assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (946 pairings measured): wcag-aa × 8, legibility × 2");
+      assert.doesNotMatch(`${run.stdout}${run.stderr}`, /structure failure/);
+    });
+
+    test(`2.1 #8 L117 L39 L88 L89 L90 L91 L120 ${report.name}, on a preset declaring legibility in light with the §3 colours and buttonLabel and no edges: it fails by name on the 24 — the 22 edge rules, R224, R227 — with each failing tier's why and retire once, "✗ 24 contrast failure(s)", and no structure failure`, () => {
+      const run = runOn("without-edges", report);
+      assert.ok(run.status !== 0 && run.status !== null, `${report.name} exited ${run.status}`);
+      assert.doesNotMatch(run.stderr, /TypeError|ReferenceError|SyntaxError/, run.stderr);
+      const said = readReport(run.stdout);
+      for (const p of said) {
+        if (p.preset === "sorbet" && p.mode === "light") {
+          assert.equal(p.summary, `24 failing (${HELD_BY_LEGIBILITY - 24} measured, 24 could not be measured) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held`);
+          assert.deepEqual(p.rows, NEEDS_EDGES.map((rule) => `${rule.fg} on ${rule.bg}: could not be measured (needs ${WORD[metricOfTier(rule.tier)]} ${floorIn(rule.tier, "light")})`));
+          const tiers = [...new Set(NEEDS_EDGES.map((rule) => rule.tier))];
+          assert.equal(tiers.length, 8, "the seven edge tiers and tell-apart");
+          assert.deepEqual(p.notes.map((note) => /^(why|retire) \(([^)]+)\)/.exec(note)?.slice(1).join(" ")).sort(), tiers.flatMap((tier) => [`why ${tier}`, `retire ${tier}`]).sort(), "each failing tier's why and retire, once (L89)");
+          assert.deepEqual(sortedNotes(p.notes), sortedNotes(notesFor(NEEDS_EDGES)), "the why and retire are the tier's own sentences");
+        } else {
+          const want = RECORDED_LINES.get(`${p.preset}/${p.mode}`)!;
+          assert.equal(p.summary, REPORT_MARGIN[i] ? want : withoutMargin(want), `${p.preset}/${p.mode}`);
+          assert.deepEqual([p.rows, p.notes], [[], []], `${p.preset}/${p.mode}`);
+        }
+      }
+      assert.ok(run.stderr.includes("✗ 24 contrast failure(s)"), run.stderr);
+      assert.doesNotMatch(`${run.stdout}${run.stderr}`, /structure failure/);
+      assert.doesNotMatch(run.stdout, /holds for every preset/);
+    });
+
+    test(`2.1 #9 L88 L89 L90 L91 L120 L139 ${report.name}, on sorbet as main ships it declaring legibility with its card edge: it prints L88's four example lines as written, every failure in L88's form, each failing tier's why and retire once a mode, its structure failures as "✗ <check>: <detail>", and both counts`, () => {
+      const run = runOn("known-bad", report);
+      assert.ok(run.status !== 0 && run.status !== null, `${report.name} exited ${run.status}`);
+      assert.doesNotMatch(run.stderr, /TypeError|ReferenceError|SyntaxError/, run.stderr);
+      const twin = twinOf(PLANTED["known-bad"]!);
+      const said = readReport(run.stdout).filter((p) => p.preset === "sorbet");
+      assert.deepEqual(said.map((p) => p.mode), MODES);
+      let contrast = 0;
+      const structure = structureOf(twin);
+      for (const p of said) {
+        const pairs = measure(p.mode, twin.colors[p.mode], LEG, KNOWN_BAD.edges[p.mode]);
+        const failing = pairs.filter((pair) => !pair.holds);
+        contrast += failing.length;
+        const measured = pairs.filter((pair) => pair.actual !== null).length;
+        const unmeasured = pairs.length - measured;
+        assert.equal(p.summary, `${failing.length} failing (${measured} measured${unmeasured > 0 ? `, ${unmeasured} could not be measured` : ""}) — legibility; ${APPLYING - pairs.length} rules not held`, `sorbet/${p.mode}`);
+        const isStructure = (row: string) => CHECKS.some((check) => row.startsWith(`${check}: `));
+        assert.deepEqual(p.rows.filter((row) => !isStructure(row)), failing.map(reportRowOf), `sorbet/${p.mode}: the failure rows`);
+        assert.deepEqual(sortedNotes(p.notes), sortedNotes(notesFor(failing)), `sorbet/${p.mode}: each failing tier's why and retire, once (L89)`);
+        // L139 (replaces L121): this mode's structure rows, and only this mode's, follow its failure rows and its why/retire lines.
+        assert.deepEqual(p.rows.filter(isStructure).sort(), structure.filter((f) => f.mode === p.mode).map((f) => `${f.check}: ${f.detail}`).sort(), `sorbet/${p.mode}: its own structure rows, under its own mode line (L139)`);
+        const kinds = p.order.map((item) => (item.kind === "note" ? "note" : isStructure(item.text) ? "structure" : "failure"));
+        const rank = { failure: 0, note: 1, structure: 2 };
+        assert.ok(kinds.every((kind, i) => i === 0 || rank[kinds[i - 1] as keyof typeof rank] <= rank[kind as keyof typeof rank]), `sorbet/${p.mode}: failure rows, then why/retire lines, then structure rows (L139): ${kinds.join(", ")}`);
+      }
+      // L88's examples, as the spec writes them.
+      const rows = (mode: Mode) => said.find((p) => p.mode === mode)!.rows;
+      for (const line of ["on-primary on control-checked: Lc 26.35 < 68.9 (deutan view)", "primary-solid on switch-off: separation 5.28 < 12.4 (protan view)", "heading-ink on bg: could not be measured (needs Lc 82.8)"]) {
+        assert.ok(rows("light").includes(line), `light does not print "    ✗ ${line}"`);
+      }
+      assert.ok(rows("dark").includes("edge:container on bg: edge presence 6.90 < 15.2 (protan view)"), "dark does not print L88's card edge");
+      // L90: the structure failures, by their own line and count.
+      assert.ok(structure.length > 0 && ["roles-complete", "hierarchy", "label-type"].every((check) => MODES.every((mode) => structure.some((f) => f.check === check && f.mode === mode))), `C1, C2 and C9 fail in both modes (L80): ${shown(structure)}`);
+      const all = `${run.stdout}${run.stderr}`;
+      assert.ok(run.stderr.includes(`✗ ${contrast} contrast failure(s)`), `contrast count ${contrast}:\n${run.stderr}`);
+      assert.ok(all.includes(`✗ ${structure.length} structure failure(s)`), `structure count ${structure.length}`);
+    });
+  });
+
+  RUNS.slice(3).forEach((gate) => {
+    test(`2.1 #9 L87 ${gate.name}, on the shipped presets: "✓ every preset holds the contract it declares: wcag-aa × 10"`, () => {
+      const run = runOn("shipped", gate);
+      assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
+      assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 10"), run.stdout);
+    });
+
+    test(`2.1 #9 L87 L79 ${gate.name}, with sorbet as step 2.6 will make it: "✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2", and no contrast or structure failure (the golden may still object: sorbet's file changed)`, () => {
+      const run = runOn("as-step-2-6", gate);
+      assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2"), `${run.stdout}\n${run.stderr}`);
+      assert.doesNotMatch(run.stderr, /contrast failure|structure failure|TypeError/, run.stderr);
+      assert.deepEqual(readGate(run.stderr).rows.filter((row) => /^\w+\/(light|dark)$/.test(row.at)), []);
+    });
+
+    test(`2.1 #8 L117 L118 L88 L89 L90 L120 ${gate.name}, on the preset declaring legibility with no edges: it fails, naming sorbet/light and the 24 in order, each failing tier's why and retire once, "✗ 24 contrast failure(s)", no structure failure — and writes nothing`, () => {
+      const run = runOn("without-edges", gate);
+      assert.ok(run.status !== 0 && run.status !== null, `${gate.name} exited ${run.status}`);
+      assert.doesNotMatch(run.stderr, /TypeError|ReferenceError|SyntaxError/, run.stderr);
+      const { rows, notes } = readGate(run.stderr);
+      assert.deepEqual(rows.map((row) => row.at), new Array(24).fill("sorbet/light"), `the rows:\n${run.stderr}`);
+      rows.forEach((row, i) => {
+        const rule = NEEDS_EDGES[i]!;
+        assert.ok(row.text.startsWith(`${rule.fg} on ${rule.bg} `) && row.text.includes("could not be measured"), `row ${i}: ${row.text}`);
+      });
+      assert.ok(notes.every((note) => note.at === "sorbet/light"));
+      assert.deepEqual(sortedNotes(notes.map((note) => note.text)), sortedNotes(notesFor(NEEDS_EDGES)), "each failing tier's why and retire, once (L89)");
+      assert.ok(run.stderr.includes("✗ 24 contrast failure(s)"), run.stderr);
+      assert.doesNotMatch(`${run.stdout}${run.stderr}`, /structure failure/);
+      assert.ok(!gate.wrote(plantedTrees.get("without-edges")!), `${gate.name} wrote its output`);
+    });
+
+    test(`2.1 #9 L88 L89 L90 L118 L120 L139 ${gate.name}, on sorbet as main ships it declaring legibility: "  sorbet/dark: edge:container on bg = edge presence 6.90 (needs 15.2, protan view)", every failure in that form, the structure failures as "<preset>/<mode>: <check>: <detail>", each failing tier's why and retire once a mode, both counts — and nothing written`, () => {
+      const run = runOn("known-bad", gate);
+      assert.ok(run.status !== 0 && run.status !== null, `${gate.name} exited ${run.status}`);
+      assert.doesNotMatch(run.stderr, /TypeError|ReferenceError|SyntaxError/, run.stderr);
+      assert.ok(run.stderr.split("\n").includes("  sorbet/dark: edge:container on bg = edge presence 6.90 (needs 15.2, protan view)"), `L88's gate line:\n${run.stderr}`);
+      const twin = twinOf(PLANTED["known-bad"]!);
+      const structure = structureOf(twin);
+      const { rows, notes } = readGate(run.stderr);
+      let contrast = 0;
+      for (const mode of MODES) {
+        const at = `sorbet/${mode}`;
+        const failing = measure(mode, twin.colors[mode], LEG, KNOWN_BAD.edges[mode]).filter((pair) => !pair.holds);
+        contrast += failing.length;
+        const isStructure = (text: string) => CHECKS.some((check) => text.startsWith(`${check}: `));
+        const contrastRows = rows.filter((row) => row.at === at && !isStructure(row.text)).map((row) => row.text);
+        assert.equal(contrastRows.length, failing.length, `${at}: the failure rows`);
+        failing.forEach((pair, i) => {
+          const want = gateRowOf(pair);
+          assert.ok("exact" in want ? contrastRows[i] === want.exact : contrastRows[i]!.startsWith(want.starts) && contrastRows[i]!.includes("could not be measured"), `${at} row ${i}: "${contrastRows[i]}", and ${shown(want)}`);
+        });
+        assert.deepEqual(rows.filter((row) => row.at === at && isStructure(row.text)).map((row) => row.text).sort(), structure.filter((f) => f.mode === mode).map((f) => `${f.check}: ${f.detail}`).sort(), `${at}: the structure rows`);
+        assert.deepEqual(sortedNotes(notes.filter((note) => note.at === at).map((note) => note.text)), sortedNotes(notesFor(failing)), `${at}: each failing tier's why and retire, once (L89)`);
+      }
+      assert.ok(run.stderr.includes(`✗ ${contrast} contrast failure(s)`), `contrast count ${contrast}`);
+      assert.ok(run.stderr.includes(`✗ ${structure.length} structure failure(s)`), `structure count ${structure.length}`);
+      assert.ok(!gate.wrote(plantedTrees.get("known-bad")!), `${gate.name} wrote its output`);
+    });
+  });
+
+  test("L100 §11.6 the build checks a partial's --sb- assignments against the names EVERY theme emits, not the first theme's: field-fill defined by ocean alone (the second theme) is legal; defined by none, it is flagged", () => {
+    const tree = (name: string, append: string) => {
+      const root = join(tmp, name);
+      for (const part of [join("src", "tokens"), join("src", "styles"), "tools"]) {
+        cpSync(join(pkgRoot, part), join(root, part), { recursive: true });
+      }
+      writeFileSync(join(root, "package.json"), JSON.stringify({ type: "module" }));
+      appendFileSync(join(root, "src", "styles", "atoms", "_button.scss"), "\n.probe-l100 { --sb-field-fill: red; }\n");
+      appendFileSync(join(root, "src", "tokens", "presets.ts"), append);
+      return root;
+    };
+    // A line that names the property without assigning it: the token-name gate's, not a golden diff's "--sb-field-fill: …".
+    const flagged = (stderr: string) => stderr.split("\n").some((line) => /--sb-field-fill(?!:)/.test(line));
+    const none = node(["tools/build-tokens.ts"], tree("l100-none", ""));
+    assert.ok(flagged(none.stderr), `the probe is unsound: a name no theme emits was not flagged:\n${none.stderr}`);
+    const second = node(["tools/build-tokens.ts"], tree("l100-second", "\n// test-contracts.ts: L100, in a temporary copy.\n(presets.ocean.colors.light as Record<string, string>)[\"field-fill\"] = \"#ffffff\";\n"));
+    assert.ok(!flagged(second.stderr), `the second theme emits --sb-field-fill and the gate still calls it unknown:\n${second.stderr}`);
+  });
+
+  // ══ revision 3.3 (§12.2, L130 to L142): what step 2.1's audits found ═══════════════════════════════════════
+  /** L130's refusals: present, and not a string parseColor reads. */
+  const UNUSABLE: unknown[] = [null, "", "   ", 0, true, {}, "not-a-colour", "red; } body { color: red"];
+
+  test("L130 a present optional-token value in a preset's record must be a string parseColor reads: null, blank, a non-string, unreadable text is a TypeError naming the preset, the mode and the token — when emitted and when measured", () => {
+    // The probe is sound: the §3 values, `transparent` included, are emitted and measured.
+    assert.doesNotThrow(() => themeCss(legiblePreset({})));
+    assert.deepEqual(structureOf(legiblePreset({})), []);
+    for (const value of UNUSABLE) {
+      for (const [mode, token] of [["light", "field-fill"], ["dark", "container-line"], ["light", "text-strong"], ["dark", "switch-ring"]] as const) {
+        const colors = fresh();
+        colors[mode][token] = value as string;
+        const preset = legiblePreset({ colors });
+        const what = `${mode} ${token} = ${shown(value)}`;
+        throwsTypeError(() => themeCss(preset), ["probe-legible", mode, token], `${what}: emitted`);
+        throwsTypeError(() => api("measurePreset")(preset, mode), [mode, token], `${what}: measurePreset`);
+        throwsTypeError(() => checkPreset(preset), [mode, token], `${what}: checkPreset`);
+        throwsTypeError(() => api("checkStructure")(preset), [mode, token], `${what}: checkStructure`);
+      }
+    }
+  });
+
+  test("L130 L55 an own key holding undefined is absent: not emitted, measured as its fallback, and the dark block still resets a token light defines", () => {
+    const colors = fresh();
+    colors.dark["field-fill"] = undefined as unknown as string;
+    colors.light["quiet-fill"] = undefined as unknown as string;
+    const preset = legiblePreset({ colors });
+    const css = themeCss(preset);
+    assert.ok(!css.includes("undefined"), "a value of undefined reached the theme file");
+    const { light, dark } = blocksOf(css);
+    assert.ok(!light.some((line) => line.startsWith("--sb-quiet-fill:")), "light emitted quiet-fill, which it holds as undefined");
+    for (const block of dark) {
+      assert.equal(afterShadows(block).at(-1), "--sb-field-fill: initial;", "light defines field-fill and dark holds it as undefined: dark resets it (L55)");
+      assert.ok(!block.includes("--sb-quiet-fill: initial;") && block.includes("--sb-quiet-fill: #463425;"), "dark defines quiet-fill: no reset");
+    }
+    const absent = fresh();
+    delete absent.dark["field-fill"];
+    const pairs = api("measurePreset")(preset, "dark") as Measured[];
+    for (const rule of naming("field-fill")) {
+      const want = expectedOf(rule, metricOfTier(rule.tier), absent.dark, VALUES.edges.dark);
+      const got = pick(pairs, rule);
+      assert.ok(want === null ? got.actual === null : near(got.actual, want.actual, 1e-9) && got.view === want.view, `${rule.n} dark: ${got.actual}, measured as field-fill's fallback ${want?.actual}`);
+    }
+  });
+
+  test("L131 measureColors keeps L37 for a record handed to it, as Token Studio reads one off a page: a blank optional token is unset — measured as its fallback, never refused", () => {
+    for (const blank of ["", "   "]) {
+      const colors = fresh();
+      colors.light["field-fill"] = blank;
+      const absent = fresh();
+      delete absent.light["field-fill"];
+      let pairs: Measured[] = [];
+      assert.doesNotThrow(() => {
+        pairs = measure("light", colors.light, LEG, VALUES.edges.light);
+      }, `field-fill ${shown(blank)} handed to measureColors`);
+      for (const rule of naming("field-fill")) {
+        const want = expectedOf(rule, metricOfTier(rule.tier), absent.light, VALUES.edges.light)!;
+        assert.ok(near(pick(pairs, rule).actual, want.actual, 1e-9), `${rule.n}: blank field-fill reads surface`);
+      }
+    }
+  });
+
+  /** L132: hostile shapes for edge data, each with where it must be refused. */
+  class Bag {}
+  const strip = (layer: Layer, key: keyof Layer) => Object.fromEntries(Object.entries(layer).filter(([name]) => name !== key));
+  const holeIn = <T>(list: T[], at: number): T[] => {
+    const copy = [...list];
+    delete copy[at];
+    return copy;
+  };
+  const HOSTILE_EDGES: { what: string; mode: Mode; element?: string; measured: boolean; build: (edges: Record<Mode, Edges>) => unknown }[] = [
+    { what: "preset.edges inherits light", mode: "light", measured: true, build: (e) => Object.assign(Object.create({ light: e.light }) as object, { dark: e.dark }) },
+    { what: "edges.light inherits container", mode: "light", element: "container", measured: true, build: (e) => ({ ...e, light: Object.assign(Object.create({ container: e.light.container }) as object, Object.fromEntries(Object.entries(e.light).filter(([name]) => name !== "container"))) }) },
+    { what: "edges.light is a class instance", mode: "light", measured: true, build: (e) => ({ ...e, light: Object.assign(new Bag(), e.light) }) },
+    { what: "edges.dark is a Map", mode: "dark", measured: true, build: (e) => ({ ...e, dark: new Map(Object.entries(e.dark)) }) },
+    { what: "the container's recipe is all inherited", mode: "light", element: "container", measured: true, build: (e) => ({ ...e, light: { ...e.light, container: Object.create(e.light.container!) as Recipe } }) },
+    { what: "a layer is all inherited", mode: "dark", element: "field", measured: true, build: (e) => ({ ...e, dark: { ...e.dark, field: { ...e.dark.field!, rest: [Object.create(e.dark.field!.rest[0]!) as Layer, ...e.dark.field!.rest.slice(1)] } } }) },
+    { what: "a layer inherits blur -6 (the audit's case)", mode: "light", element: "container", measured: true, build: (e) => ({ ...e, light: { ...e.light, container: { ...e.light.container!, rest: [Object.assign(Object.create({ blur: -6 }) as object, strip(e.light.container!.rest[0]!, "blur")) as Layer, ...e.light.container!.rest.slice(1)] } } }) },
+    { what: "a layer is a class instance", mode: "light", element: "sunken", measured: true, build: (e) => ({ ...e, light: { ...e.light, sunken: { ...e.light.sunken!, rest: e.light.sunken!.rest.map((layer) => Object.assign(new Bag(), layer) as unknown as Layer) } } }) },
+    { what: "rest has a hole", mode: "dark", element: "container", measured: true, build: (e) => ({ ...e, dark: { ...e.dark, container: { ...e.dark.container!, rest: holeIn(e.dark.container!.rest, 1) } } }) },
+    { what: "hover has a hole", mode: "light", element: "filled-accent", measured: false, build: (e) => ({ ...e, light: { ...e.light, "filled-accent": { ...e.light["filled-accent"]!, hover: holeIn(e.light["filled-accent"]!.hover!, 1) } } }) },
+    { what: "hover is inherited", mode: "dark", element: "filled-primary", measured: false, build: (e) => ({ ...e, dark: { ...e.dark, "filled-primary": Object.assign(Object.create({ hover: e.dark["filled-primary"]!.hover }) as object, { fill: e.dark["filled-primary"]!.fill, rest: e.dark["filled-primary"]!.rest, press: e.dark["filled-primary"]!.press }) } }) },
+  ];
+
+  test("L132 edge data is read through own keys of plain objects and dense arrays only: an inherited mode, element, recipe or layer field, a class instance, a Map, a hole is a TypeError — at emission, and (L124) at measurement for what is measured", () => {
+    // The probe is sound: a recipe whose prototype is null is plain.
+    const nullProto = freshEdges();
+    nullProto.light.container = Object.assign(Object.create(null) as Recipe, nullProto.light.container);
+    assert.equal(measure("light", VALUES.colors.light, LEG, nullProto.light).length, HELD_BY_LEGIBILITY);
+    assert.doesNotThrow(() => themeCss(legiblePreset({ edges: nullProto })), "a null-prototype recipe is a plain object");
+    for (const { what, mode, element, measured, build } of HOSTILE_EDGES) {
+      const edges = build(freshEdges()) as Record<Mode, Edges>;
+      const preset = legiblePreset({ edges });
+      const named = element === undefined ? [] : [element];
+      throwsTypeError(() => themeCss(preset), named, `${what}: emitted`);
+      if (measured) {
+        throwsTypeError(() => api("measurePreset")(preset, mode), named, `${what}: measurePreset`);
+        throwsTypeError(() => checkPreset(preset), named, `${what}: checkPreset`);
+        if (what !== "preset.edges inherits light") {
+          throwsTypeError(() => measure(mode, VALUES.colors[mode], LEG, (edges as unknown as Record<Mode, unknown>)[mode]), named, `${what}: measureColors`);
+        }
+      }
+    }
+  });
+
+  test("L133 C3 (c) in a legibility mode whose edges define the elements a line token serves, the record defines the token and it parses with alpha 0 — a visible line, a half-transparent one or none fails edge-not-fill, naming the token", () => {
+    const SERVES: [token: string, elements: string[]][] = [["container-line", ["container", "floating"]], ["field-line", ["field"]], ["filled-line", ["filled-primary", "filled-secondary", "filled-accent", "filled-danger"]]];
+    const ABSENT = Symbol("absent");
+    for (const [token, elements] of SERVES) {
+      for (const mode of MODES) {
+        for (const value of ["#000000", "rgb(0 0 0 / 0.5)", undefined, ABSENT] as const) {
+          const colors = fresh();
+          if (value === ABSENT) {
+            delete colors[mode][token];
+          } else {
+            colors[mode][token] = value as string;
+          }
+          const failures = structureOf(legiblePreset({ colors }));
+          const what = `${mode} ${token} ${value === ABSENT ? "absent" : shown(value)}`;
+          assert.ok(failures.some((f) => f.mode === mode && f.check === "edge-not-fill" && f.detail.includes(token) && (typeof value !== "string" || f.detail.includes(value))), `${what}: ${shown(failures)}`);
+          assert.deepEqual(failures.filter((f) => f.mode !== mode), [], `${what}: the other mode`);
+        }
+        const clear = fresh();
+        clear[mode][token] = "rgb(255 0 0 / 0)";
+        assert.deepEqual(structureOf(legiblePreset({ colors: clear })), [], `${mode} ${token}: any colour at alpha 0 is transparent`);
+        // A mode whose edges define none of the token's elements is not held by (c): its edge rules fail by name (L39).
+        const black = fresh();
+        black[mode][token] = "#000000";
+        const edges = freshEdges();
+        for (const element of elements) {
+          delete edges[mode][element];
+        }
+        assert.deepEqual(structureOf(legiblePreset({ colors: black, edges })), [], `${mode} ${token} black, with none of ${elements.join(", ")} defined`);
+      }
+    }
+  });
+
+  /** An array with a hole at `at`, the rest as given. */
+  const sparse = (values: unknown[], at: number) => {
+    const list: unknown[] = [];
+    values.forEach((value, i) => {
+      if (i !== at) {
+        list[i] = value;
+      }
+    });
+    list.length = values.length;
+    return list;
+  };
+
+  test("L134 L35 `views` and `checks`, when present, are dense: a hole is refused as malformed, naming the contract's key", () => {
+    accepted("probe-dense", SOUND, { views: ["tritan", "typical"], checks: ["label-type"] }, "dense lists");
+    refused("probe-holes", SOUND, { views: sparse(["typical", "tritan"], 0) }, [], "views [ , tritan]");
+    refused("probe-holes", SOUND, { views: sparse(["typical", "protan", "deutan"], 1) }, [], "views [typical, , deutan]");
+    refused("probe-holes", SOUND, { views: sparse(["typical", "protan"], 1) }, [], "views [typical, ] (a trailing hole)");
+    refused("probe-holes", SOUND, { views: [...VIEWS], checks: sparse(["roles-complete", "hierarchy"], 0) }, [], "checks [ , hierarchy]");
+    refused("probe-holes", SOUND, { views: [...VIEWS], checks: sparse(["hierarchy", "label-type"], 1) }, [], "checks [hierarchy, ]");
+  });
+
+  test("L135 L123 a recipe holds only fill, rest, hover and press, fill and rest required; a layer exactly its seven keys — anything else is a TypeError naming the element, at emission and at measurement", () => {
+    const RECIPE: [what: string, change: (recipe: Record<string, unknown>) => void][] = [
+      ["a key hovr", (recipe) => Object.assign(recipe, { hovr: recipe.hover })],
+      ["a key Rest", (recipe) => Object.assign(recipe, { Rest: recipe.rest })],
+      ["a key extra", (recipe) => Object.assign(recipe, { extra: 1 })],
+      ["no fill", (recipe) => Reflect.deleteProperty(recipe, "fill")],
+    ];
+    for (const [what, change] of RECIPE) {
+      for (const mode of MODES) {
+        const edges = freshEdges();
+        change(edges[mode]["filled-primary"] as unknown as Record<string, unknown>);
+        throwsTypeError(() => measure(mode, VALUES.colors[mode], LEG, edges[mode]), ["filled-primary"], `${mode} filled-primary, ${what}: measured`);
+        throwsTypeError(() => themeCss(legiblePreset({ edges })), ["probe-legible", "filled-primary"], `${mode} filled-primary, ${what}: emitted`);
+      }
+    }
+    const LAYER: [what: string, change: (layer: Record<string, unknown>) => void][] = [
+      ["a key colour", (layer) => Object.assign(layer, { colour: "#000000" })],
+      ["a key spreadd", (layer) => Object.assign(layer, { spreadd: 1 })],
+      ["no inset", (layer) => Reflect.deleteProperty(layer, "inset")],
+      ["no alpha", (layer) => Reflect.deleteProperty(layer, "alpha")],
+    ];
+    for (const [what, change] of LAYER) {
+      const edges = freshEdges();
+      change(edges.light.container!.rest[2] as unknown as Record<string, unknown>);
+      throwsTypeError(() => measure("light", VALUES.colors.light, LEG, edges.light), ["container"], `the container's third layer, ${what}: measured`);
+      try {
+        measure("light", VALUES.colors.light, LEG, edges.light);
+      } catch(error) {
+        assert.match((error as Error).message, /\b3(rd)?\b/, `the container's third layer, ${what}: the position, counted from 1 (L122)`);
+      }
+      throwsTypeError(() => themeCss(legiblePreset({ edges })), ["probe-legible", "container"], `the container's third layer, ${what}: emitted`);
+      // A hover layer is emitted, not measured (L124).
+      const hover = freshEdges();
+      change(hover.dark["filled-secondary"]!.hover![0] as unknown as Record<string, unknown>);
+      throwsTypeError(() => themeCss(legiblePreset({ edges: hover })), ["probe-legible", "filled-secondary"], `a hover layer, ${what}: emitted`);
+    }
+  });
+
+  test("L136 a key of a preset's colour record that is neither a role nor an optional token is a TypeError naming the preset, the mode and the key — when emitted and when measured, whatever the contract", () => {
+    for (const [mode, key] of [["light", "feild-fill"], ["dark", "Surface"], ["light", "edge-container"], ["dark", "shadow-sm"]] as const) {
+      for (const contract of [{ light: LEG, dark: LEG }, { light: WCAG, dark: WCAG }]) {
+        const colors = fresh();
+        colors[mode][key] = "#fffbf1";
+        const preset = legiblePreset({ colors, contract });
+        const what = `${mode} ${key}, ${contract.light}`;
+        throwsTypeError(() => themeCss(preset), ["probe-legible", mode, key], `${what}: emitted`);
+        throwsTypeError(() => api("measurePreset")(preset, mode), [mode, key], `${what}: measurePreset`);
+        throwsTypeError(() => checkPreset(preset), [mode, key], `${what}: checkPreset`);
+        throwsTypeError(() => api("checkStructure")(preset), [mode, key], `${what}: checkStructure`);
+      }
+    }
+  });
+
+  test("L137 a contract whose tier carries `requires` must list label-type in its checks: otherwise it is refused whole, naming its key and the tier", () => {
+    const requires = { buttonLabelPx: 16, buttonLabelSmallPx: 14, buttonLabelWeight: 600 };
+    accepted("probe-requires", { ...SOUND, label: tierFloor("lc", 60, { requires }) }, { views: [...VIEWS], checks: ["label-type"] }, "label-type listed");
+    for (const extra of [{ views: [...VIEWS] }, { views: [...VIEWS], checks: [] }, { views: [...VIEWS], checks: ["hierarchy", "edge-not-fill"] }]) {
+      refused("probe-requires", { ...SOUND, label: tierFloor("lc", 60, { requires }) }, extra, ["label"], `requires on label, checks ${shown(extra.checks) ?? "absent"}`);
+    }
+    refused("probe-requires", { body: tierFloor("lc", 50, { requires }) }, { views: [...VIEWS], checks: ["hierarchy"] }, ["body"], "requires on body, no label-type");
+  });
+
+  // ── step 2.1 acceptance #10 (L140): structure failures alone fail every surface ──
+  /** The step-2.6 shape with buttonLabel.px 14: every rule holds, and C9 fails in each legibility mode. */
+  const STRUCTURE_ONLY: Record<string, Record<string, unknown>> = {
+    // L140's tree. Both modes declare legibility, so C9 fails twice (C9 runs per legibility mode: L79, and the C9 test above).
+    "structure-only": { ...PLANTED["as-step-2-6"]!, buttonLabel: { ...VALUES.buttonLabel, px: 14 } },
+    // The same in light only, which gives L140's literal "✗ 1 structure failure(s)".
+    "structure-only-light": { colors: { light: VALUES.colors.light, dark: shipped.sorbet!.colors.dark }, edges: { light: VALUES.edges.light }, buttonLabel: { ...VALUES.buttonLabel, px: 14 }, contract: { light: LEG, dark: WCAG } },
+  };
+  const structureTrees = new Map(Object.entries(STRUCTURE_ONLY).map(([name, parts]) => {
+    const tree = plant(`legibility-${name}`, plantedSorbet(parts));
+    cpSync(join(pkgRoot, "src", "styles"), join(tree.ds, "src", "styles"), { recursive: true });
+    mkdirSync(join(tree.app, "src", "styles", "abstracts"), { recursive: true });
+    // Sorbet's golden is the planted theme, so the golden gate passes and the structure check is the only failure.
+    writeFileSync(join(tree.ds, "tools", "golden", "sorbet.css"), themeCss(twinOf(parts)));
+    return [name, tree];
+  }));
+  for (const [name, parts] of Object.entries(STRUCTURE_ONLY)) {
+    const twin = twinOf(parts);
+    const tree = structureTrees.get(name)!;
+    const expected = () => {
+      const failures = structureOf(twin);
+      const contrast = Object.values({ ...shipped, sorbet: twin }).flatMap((preset) => checkPreset(preset));
+      assert.deepEqual(contrast, [], `${name}: the probe is unsound — a contrast failure`);
+      assert.ok(failures.length > 0 && failures.every((f) => f.check === "label-type"), `${name}: the probe is unsound — ${shown(failures)}`);
+      return failures;
+    };
+    RUNS.slice(0, 3).forEach((report, i) => {
+      test(`2.1 #10 L140 L139 ${report.name}, when only structure checks fail (${name}): a non-zero exit, "✗ ${name === "structure-only" ? 2 : 1} structure failure(s)", no success line, and each structure row directly under its mode line`, () => {
+        const failures = expected();
+        assert.equal(failures.length, name === "structure-only" ? 2 : 1);
+        const run = report.run(tree);
+        assert.doesNotMatch(run.stderr, /TypeError|ReferenceError|SyntaxError/, run.stderr);
+        assert.ok(run.status !== 0 && run.status !== null, `${report.name} exited ${run.status} with a structure failure:\n${run.stdout}\n${run.stderr}`);
+        const all = `${run.stdout}${run.stderr}`;
+        assert.ok(all.includes(`✗ ${failures.length} structure failure(s)`), `the structure count:\n${all}`);
+        assert.doesNotMatch(all, /✓ every declared contract holds|contrast failure\(s\)/, "a success line, or a contrast count, on a run whose only failures are structural");
+        for (const p of readReport(run.stdout)) {
+          const here = p.preset === "sorbet" ? failures.filter((f) => f.mode === p.mode) : [];
+          if (p.preset === "sorbet" && contractOf(twin, p.mode) === LEG) {
+            const want = `all ${HELD_BY_LEGIBILITY} pairings pass (tightest margin ×1.02) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held`;
+            assert.equal(p.summary, REPORT_MARGIN[i] ? want : withoutMargin(want), `sorbet/${p.mode}`);
+          } else {
+            const want = RECORDED_LINES.get(`${p.preset}/${p.mode}`)!;
+            assert.equal(p.summary, REPORT_MARGIN[i] ? want : withoutMargin(want), `${p.preset}/${p.mode}`);
+          }
+          assert.deepEqual(p.order, here.map((f) => ({ kind: "row", text: `${f.check}: ${f.detail}` })), `${p.preset}/${p.mode}: its structure rows directly under its mode line (L139), and nothing else`);
+        }
+      });
+    });
+    RUNS.slice(3).forEach((gate) => {
+      test(`2.1 #10 L140 ${gate.name}, when only structure checks fail (${name}): a non-zero exit, "✗ ${name === "structure-only" ? 2 : 1} structure failure(s)", no success line — and nothing written`, () => {
+        const failures = expected();
+        const run = gate.run(tree);
+        assert.doesNotMatch(run.stderr, /TypeError|ReferenceError|SyntaxError/, run.stderr);
+        assert.ok(run.status !== 0 && run.status !== null, `${gate.name} exited ${run.status} with a structure failure:\n${run.stdout}\n${run.stderr}`);
+        const all = `${run.stdout}${run.stderr}`;
+        assert.ok(all.includes(`✗ ${failures.length} structure failure(s)`), `the structure count:\n${all}`);
+        assert.doesNotMatch(all, /✓ every preset holds the contract it declares|contrast failure\(s\)|golden-file failure/, "a success line, a contrast count or a golden failure: the structure check must be the only thing failing");
+        assert.deepEqual(readGate(run.stderr).rows.map((row) => `${row.at}: ${row.text}`).sort(), failures.map((f) => `${f.preset}/${f.mode}: ${f.check}: ${f.detail}`).sort(), "the gate's rows are the structure failures");
+        assert.ok(!gate.wrote(tree), `${gate.name} wrote its output on a run that failed a structure check`);
+      });
+    });
+  }
+
+  legibilityCount = ran - legibilityFrom;
+
   // ── last: everything mutated above was put back ─────────────────────────
+  // legibility-spec.md L105 #15 (L8): the contracts and CONTRACT_NAMES were ["wcag-aa"] after the mutations; they are
+  // ["wcag-aa", "legibility"]. L105 #16 (L2): RULES equalled the 86 of the fixture; RULES.slice(0, 86) does, and
+  // RULES.length is 277. (The legibility member and the 191 are also checked whole: the step-2.1 tests above mutate them.)
   test("M9 the exported RULES and contracts are as they were before this file mutated them", () => {
-    assert.deepEqual(Object.keys(contracts), ["wcag-aa"]);
-    assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa"]);
+    assert.deepEqual(Object.keys(contracts), ["wcag-aa", "legibility"]);
+    assert.deepEqual([...CONTRACT_NAMES], ["wcag-aa", "legibility"]);
     assert.equal(contracts[WCAG].name, "wcag-aa");
     assert.deepEqual(Object.keys(contracts[WCAG].tiers).sort(), [...M4_TIERS].sort());
-    assert.deepEqual(RULES.map((rule) => [rule.fg, rule.bg, rule.mode ?? null]), RULE_ORDER);
+    assert.deepEqual(RULES.slice(0, 86).map((rule) => [rule.fg, rule.bg, rule.mode ?? null]), RULE_ORDER);
+    assert.equal(RULES.length, 277);
+    assert.deepEqual(RULES.slice(86).map((rule) => [rule.fg, rule.bg, rule.tier, rule.mode ?? null]), APPENDIX.rules.map((rule) => [rule.fg, rule.bg, rule.tier, null]));
+    assert.equal(legibility().name, "legibility");
+    assert.deepEqual(Object.keys(legibility().tiers).sort(), APPENDIX.floors.map((row) => row.tier).sort());
+    for (const row of APPENDIX.floors) {
+      for (const mode of MODES) {
+        assert.equal(floorFor(LEG, row.tier, mode), row[mode], `legibility, ${row.tier}, ${mode}`);
+      }
+    }
     for (const row of M4) {
       for (const mode of MODES) {
         assert.equal(floorFor(WCAG, row.tier, mode), row.floor[mode], `${row.tier}, ${mode}`);
@@ -2029,6 +4207,10 @@ if (failed.length > 0) {
 // A run that tested nothing must not read as a pass.
 if (ran < 110) {
   console.error(styleText("red", `\n✗ only ${ran} contract checks ran`));
+  process.exit(1);
+}
+if ((legibilityCount ?? 0) < 90) {
+  console.error(styleText("red", `\n✗ only ${legibilityCount ?? 0} checks of the legibility member (PR 2, step 2.1) ran`));
   process.exit(1);
 }
 console.log(styleText("green", `✓ every preset is held to the contract it declares, and that contract is the one 2d3b765 enforced: ${ran} checks`));

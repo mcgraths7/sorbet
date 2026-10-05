@@ -1,8 +1,8 @@
 /**
  * Generate theme CSS + the Sass token maps from @sorbet/tokens, and verify
- * them BEFORE writing them. A preset that fails WCAG AA fails the build —
- * inaccessible themes are unrepresentable — and so does a theme file that no
- * longer matches its golden copy.
+ * them BEFORE writing them. A preset that fails the contract it declares fails
+ * the build — inaccessible themes are unrepresentable — and so does a theme
+ * file that no longer matches its golden copy.
  *
  * The order is the point: produce everything in memory, run every check on
  * that, and only then touch the disk. It used to write first and check after,
@@ -21,10 +21,12 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { styleText } from "node:util";
 
-import { checkPreset, generatedScss, manifest, presets, ratioText } from "../src/tokens/index.ts";
+import { checkPreset, checkStructure, contractOf, contracts, declaredContracts, generatedScss, manifest, METRIC_WORD, presets, ratioText } from "../src/tokens/index.ts";
 
 import { checkCvd } from "./check-cvd.ts";
 import { checkGolden, goldenFailureText, goldenSuccessText, producedThemes } from "./check-golden.ts";
+
+import type { Failure } from "../src/tokens/index.ts";
 
 const pkgRoot = join(import.meta.dirname, "..");
 const themesDir = join(pkgRoot, "dist", "themes");
@@ -44,20 +46,56 @@ const scss = generatedScss();
 // nothing written.
 let failed = false;
 
-const failures = Object.values(presets).flatMap(checkPreset);
-if (failures.length > 0) {
-  console.error(styleText("red", `\n✗ ${failures.length} contrast failure(s):`));
-  for (const f of failures) {
-    const found = f.actual === null ? "could not be measured" : `= ${ratioText(f.actual, f.min)}`;
-    console.error(`  ${f.preset}/${f.mode}: ${f.fg} on ${f.bg} ${found} (needs ${f.min})`);
+// The contract each preset declares: its measurement (checkPreset) and its
+// true-or-false checks (checkStructure). A failing pair prints in its metric's
+// form, and under each preset-mode's failures each failing tier's `why` and
+// `retire` are printed once, so a floor's reason is in front of whoever is
+// tempted to lower it. Structure failures are counted on their own line, never
+// in the contrast count.
+{
+  const all = Object.values(presets);
+  const failures = all.flatMap(checkPreset);
+  const structure = all.flatMap(checkStructure);
+  const row = (f: Failure): string => {
+    const word = METRIC_WORD[f.metric];
+    if (f.actual === null) {
+      return `could not be measured (needs ${word === "" ? "" : `${word} `}${f.min})`;
+    }
+    return f.metric === "ratio" ? `= ${ratioText(f.actual, f.min)} (needs ${f.min})` : `= ${word} ${ratioText(f.actual, f.min)} (needs ${f.min}, ${f.view} view)`;
+  };
+  if (failures.length > 0) {
+    console.error(styleText("red", `\n✗ ${failures.length} contrast failure(s):`));
+    for (const preset of all) {
+      for (const mode of ["light", "dark"] as const) {
+        const here = failures.filter((f) => f.preset === preset.name && f.mode === mode);
+        for (const f of here) {
+          console.error(`  ${f.preset}/${f.mode}: ${f.fg} on ${f.bg} ${row(f)}`);
+        }
+        for (const tier of new Set(here.map((f) => f.tier))) {
+          const { why, retire } = contracts[contractOf(preset, mode)].tiers[tier]!;
+          console.error(`      why (${tier}): ${why}`);
+          console.error(`      retire (${tier}): ${retire}`);
+        }
+      }
+    }
+    failed = true;
   }
-  failed = true;
-} else if (Object.keys(presets).length === 0) {
-  // No presets, so no pairs: "holds for 0 presets" would be true of nothing.
-  console.error(styleText("red", "\n✗ the contrast contract measured nothing: there are no presets"));
-  failed = true;
-} else {
-  console.log(styleText("green", `✓ contrast contract holds for ${Object.keys(presets).length} presets × 2 modes`));
+  if (structure.length > 0) {
+    console.error(styleText("red", `\n✗ ${structure.length} structure failure(s):`));
+    for (const failure of structure) {
+      console.error(`  ${failure.preset}/${failure.mode}: ${failure.check}: ${failure.detail}`);
+    }
+    failed = true;
+  }
+  if (failures.length === 0 && structure.length === 0) {
+    if (all.length === 0) {
+      // No presets, so no pairs: "holds for 0 presets" would be true of nothing.
+      console.error(styleText("red", "\n✗ the contrast contract measured nothing: there are no presets"));
+      failed = true;
+    } else {
+      console.log(styleText("green", `✓ every preset holds the contract it declares: ${declaredContracts(all)}`));
+    }
+  }
 }
 
 // A partial may re-scope a token (`--sb-text: …` inside a context) — but the
@@ -65,11 +103,13 @@ if (failures.length > 0) {
 // there is a silent no-op: the variable is defined, nothing reads it, and the
 // context quietly does nothing. Reads are validated by the Sass accessors;
 // this closes the same contract over writes. The universe of legal names is
-// whatever the generators actually emit, so it can never drift from reality.
+// whatever the generators actually emit, so it can never drift from reality —
+// from EVERY theme: an optional token (seams.ts) is emitted only by a theme
+// that defines it, so reading one theme's names would make a partial's
+// assignment legal or not by the order the presets happen to be listed in.
 {
-  const anyTheme = Object.values(themes)[0]!;
   const emitted = new Set(
-    [...(anyTheme + scss).matchAll(/--sb-([a-z0-9-]+):/g)].map((m) => m[1]!),
+    [...(Object.values(themes).join("") + scss).matchAll(/--sb-([a-z0-9-]+):/g)].map((m) => m[1]!),
   );
 
   const { globSync, readFileSync } = await import("node:fs");
