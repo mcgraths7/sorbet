@@ -3247,7 +3247,8 @@ list, not a bounded control, and sheet 2 drew no rim on a row. A glyph the
 consumer passes as a direct child (an `svg`, or an `.sb-icon`) is hidden in a
 danger item, so the octagon replaces it rather than standing beside it
 (S41): `_menu.scss` adds `.sb-menu__item[data-danger] > svg,
-.sb-menu__item[data-danger] > .sb-icon { display: none; }`, which cannot
+.sb-menu__item[data-danger] > .sb-icon { display: none; }` (CORRECTION 2026-10-05: each
+selector gains `:has(> .sb-status)`, L194 (e)), which cannot
 reach the octagon, inside its slot. A menu lines its glyphs up in one
 column, and a second leading glyph would push the danger item's label out of
 it. No in-repo or buylist danger item passes a glyph (checked: the
@@ -3443,7 +3444,7 @@ reported as L10 says.
 
 | # | File:line (at `9b83e50`) | What it asserts today | New expectation | Required by |
 |---|---|---|---|---|
-| 49 | `tools/test-contracts.ts:4823` ("2.4 #3") | no file under `packages/component-library/src` or `packages/design-system/src/behaviors` differs from `e6fd3d5` (fixture `step-2.4-untouched.json`), none added, none removed | narrowed, not retired (S47): the same, less the eight files step 2.5 names under `packages/component-library/src` (`atoms/badge.tsx`, `atoms/button.tsx`, `atoms/icons.tsx`, `atoms/index.ts`, `molecules/alert.tsx`, `molecules/field.tsx`, `molecules/menu.tsx`, `molecules/toast.tsx`), which may change; still none added and none removed. The fixture is not re-recorded. Step 2.7 removes `organisms/token-studio.tsx` from the comparison the same way (#49 again) | step 2.5's file list |
+| 49 | `tools/test-contracts.ts:4823` ("2.4 #3") | no file under `packages/component-library/src` or `packages/design-system/src/behaviors` differs from `e6fd3d5` (fixture `step-2.4-untouched.json`), none added, none removed | narrowed, not retired (S47): the same, less the eight files step 2.5 names under `packages/component-library/src` (`atoms/badge.tsx`, `atoms/button.tsx`, `atoms/icons.tsx`, `atoms/index.ts`, `molecules/alert.tsx`, `molecules/field.tsx`, `molecules/menu.tsx`, `molecules/toast.tsx`), which may change; still none added and none removed. The fixture is not re-recorded. Step 2.7 removes `organisms/token-studio.tsx` from the comparison the same way (#49 again). (CORRECTION 2026-10-05: and `src/behaviors/toast.ts` and `src/behaviors/table-sort.ts` may change, L194 (b), (l)) | step 2.5's file list |
 | 50 | `tools/test-contracts.ts:4718` (C11's edge reads) | the 22 non-status selectors each read their element's `--sb-edge-<element>`; the five status selectors are exempt (it stays true after step 2.5) | widened: all 27 do, the exemption is lifted, and `.sb-alert` and `.sb-alert--info` read `--sb-edge-status-info` | C11, L178 |
 | 51 | `tools/test-contracts.ts:5452` (L148's read fallback) | a `where-defined` read in the sublayer falls back to exactly `revert-layer` | to `revert-layer`, or to an edge read whose own fallback is `revert-layer` (`var(--sb-edge-<element>, revert-layer)`, the element one of the thirteen), which a frozen preset also computes as `revert-layer`. The one such read is `.sb-alert--danger`'s (L178) | L178 |
 
@@ -3511,7 +3512,8 @@ is its own containing block:
   sb-toast__icon"`. The button's and the menu item's slot holds the glyph
   alone. The slot has no other attribute; it is rendered by `StatusMark`
   (L169), which is the only place the slot's markup is written.
-- **Sass,** in `atoms/_icon.scss`:
+- **Sass,** in `atoms/_icon.scss` (CORRECTION 2026-10-05: replaced by L194 (a); the slot is
+  `inline-block` and the glyph `inline-block`, `vertical-align: middle`):
 
   ```
   .sb-status {
@@ -3619,7 +3621,8 @@ props.
   the ones `9b83e50` cannot render the same way: a status tone with `dot`
   (the dot is now replaced, L174), `statusLabel` (new) and `ToastItem`
   (new).
-- **The removal.** Each slot is removed with its contents. A slot's markup
+- **The removal.** (CORRECTION 2026-10-05: the pattern is L194 (g)'s exact one, and a second
+  fixture adds cases.) Each slot is removed with its contents. A slot's markup
   is exactly `<span class="sb-status…">`, one `<svg…>…</svg>`, at most one
   `<span class="u-visually-hidden">…</span>`, then `</span>`, so the pattern
   `<span class="sb-status[^"]*"><svg[^>]*>[\s\S]*?</svg>(?:<span class="u-visually-hidden">[^<]*</span>)?</span>`
@@ -3635,7 +3638,9 @@ props.
   - F3: `<div class="sb-toast"><div><p class="sb-toast__body">All changes saved.</p></div><button type="button" class="sb-toast__dismiss sb-close" aria-label="Dismiss notification"></button></div>`
 
 **L188.** **The provider passes the tone and the word through (verifier
-N3).** Consumers reach a toast only through `toast()` and `ToastProvider`,
+N3).** Consumers reach a toast only through `toast()` and `ToastProvider` (CORRECTION
+2026-10-05: and through the vanilla `toast()`, which L194 (b) covers; the checks below are
+tightened by L194 (h)),
 which renders after mount and so cannot be server-rendered; if it stopped
 using `ToastItem`, or dropped `tone` or `statusLabel`, every real toast would
 lose its word in silence. So the source is pinned, and the presence test (L181
@@ -3705,7 +3710,8 @@ whitespace runs collapsed to one space, and accept the placeholder in either
 spelling `PLACEHOLDER` accepts (`<root>/tools/stylelint/state-definition.js:102`):
 Sass writes the literal `0 0 #0000` as written, but evaluates it inside `#{}`
 to `0 0 rgba(0, 0, 0, 0)` (35 such spellings already compile, and L178's
-`--danger-box` is one). Sizes are always `inline-size` and `block-size`.
+`--danger-box` is one). Sizes are always `inline-size` and `block-size`. (CORRECTION 2026-10-05: rows (a), (d), (e)
+and (j) read as L194 (a), (k), (a) and (e) amend them.)
 
 | | Selector | Declarations |
 |---|---|---|
@@ -3781,6 +3787,258 @@ page load to the next. That is noise in the tool, not a frozen change, and it
 is why no full run here reaches L155's success line. Left open for the tool:
 settle the carousel (wait for scroll-snap to finish, or pin its slide) before
 a page-level shot.
+
+**L194.** **The repair of step 2.5, after its audit (2026-10-05; DECISIONS rows 42 to
+45).** Two read-only lenses audited `7078b76` and `6ef4b35` against `9b83e50`
+(`audit-6ef4b35-frozen.md` and `audit-6ef4b35-status.md` beside this file).
+`9b83e50` was never pushed. Its stand-in is `ec97a20`, the parent of `7078b76`:
+`record-status-markup.mts.txt` run against `ec97a20`'s build writes
+`status-markup.at-9b83e50.json` byte for byte.
+
+**What held.**
+- The React components render and read as L166 to L191 say: in all five presets,
+  both modes, both directions, through the real toast provider, and at 390px.
+- Acceptance #8's accessibility-tree review passes row by row (the status lens
+  holds the table).
+- Masked, the four frozen presets render as at `9b83e50`.
+
+**What failed.** The owner answered four questions on 2026-10-05, taking the
+recommended option each time:
+- (a) the baseline, row 42;
+- (b) the vanilla toast, row 43;
+- (c) the apps' categorical badges, row 44;
+- (d) a tone outside the four, row 45.
+
+The orchestrator ruled on the rest, (e) to (m).
+
+Each statement below wins over the earlier text it names, and that text carries a
+dated pointer here.
+
+(a) **The status slot keeps the text's baseline (row 42; frozen lens F1).**
+- **The cause:** the slot was `inline-flex`, and its only child, the glyph, is
+  `display: block` (the reset's `svg`). So the slot had no text baseline. In a
+  badge or a button, both flex rows, the slot is the first item, so the component's
+  baseline came from the slot's bottom edge.
+- **Measured at 6ef4b35, in every frozen preset and mode:**
+  - status badges rose 3.39px off the text beside them, and danger buttons
+    3.19px;
+  - lines and table rows grew 0.8px (2.4px at DPR 2);
+  - the field error grew 0.69px.
+- **Why no check saw it:** the mask removes the slot and the shift with it.
+
+L186's Sass is replaced:
+
+```
+.sb-status {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: baseline;
+
+  @include where-defined(color, status-ink, seam-only(text-strong), revert-layer);
+}
+
+.sb-status-icon {
+  display: inline-block;
+  vertical-align: middle;
+  inline-size: 1.1em;
+  block-size: 1.1em;
+}
+```
+
+The alert's and the toast's `> .sb-status-icon` rules gain `display: block`
+beside their `100%` sizes, so a glyph fills its 1.25rem box as before.
+
+**How the fix works.** The slot is now a block container whose one line holds the
+glyph inline. That line's baseline is the slot's baseline, at the same place as the
+label's. `middle` keeps the glyph inside the line, so it adds no height.
+
+**Measured with it, unmasked:**
+- In ocean, forest, noir and midnight, light and dark, at 1280px, 390px and 200%
+  text: every badge, button, table row, field error and menu item has the old
+  label position and height, to 0.01px.
+- The `.sb-table-wrap` probe still leaves the page 390px wide.
+- In sorbet, the glyph's centre moves 0.08 to 1.81px against the text's centre:
+  for the field error, −1.09 → +0.72px.
+
+**What still changes beyond the icon's inline room** (L166 allows the alert's and
+the toast's leading box):
+- an alert also classed `.sb-card`, a column, gains a row;
+- an alert that wraps at 390px gains a line;
+- a `.sb-fab` danger button given a text label (a misuse: a FAB holds one glyph,
+  named by `aria-label`) stacks the octagon above its label.
+
+L190 (a) becomes `position: relative`, `display: inline-block`, `flex-shrink: 0`,
+`vertical-align: baseline`. (e) adds `display: inline-block; vertical-align:
+middle` on `.sb-status-icon`, and `display: block` on the two `100%` rules.
+
+**The check** is a hand-run tool, `<root>/tools/check-status-layout.ts`
+(`pnpm check:status-layout`), in Playwright's Chromium as `<root>/tools/shots.ts`
+uses. In each of the five presets and both modes it stages the built library's
+markup:
+- badges of the four tones, soft and solid, in a paragraph, an `h3` and a table
+  cell;
+- danger buttons `sm`, `md` and `lg` in a paragraph;
+- a field's error;
+- a danger menu item.
+
+It renders them twice, masked (L167's `MASK`) and unmasked. Outside the slots,
+every element's top and height must be equal to 0.01px, at 1280px, at 390px and at
+200% text. Widths may differ, since the icon takes inline room. The tool also runs
+L186's overflow probe and the checks of (e) and (l), prints one line per check, and
+exits 1 on any failure. At `6ef4b35` it fails.
+
+(b) **The vanilla toast carries the icon and the word (row 43; status lens F1).**
+`toast()` in `src/behaviors/toast.ts` is public (`@sorbet/design-system/behaviors`),
+and every `sorbet create` starter page calls it with a tone
+(`packages/cli/src/templates.ts:82`). So L188's premise, that consumers reach a
+toast only through `toast()` and `ToastProvider`, was false.
+
+`ToastOptions` gains `statusLabel?: string`. With a tone, the toast's first child
+is the slot, written by DOM calls:
+- `<span class="sb-status sb-toast__icon">`;
+- then the glyph `svg`, its attributes in the React glyph's order: `viewBox="0 0
+  24 24"`, `aria-hidden="true"`, `focusable="false"`, `class="sb-status-icon
+  sb-status-icon--<tone>"`;
+- inside it, one `path` with `fill="currentColor"`, `fill-rule="evenodd"` and
+  `d` the glyph's;
+- then `<span class="u-visually-hidden">W: </span>`, with `statusLabel` trimmed
+  as L171 says.
+
+Without a tone the markup is as before.
+
+**Where the glyph data lives.** The behaviors are dependency-free, and the design
+system cannot import the component library, so `toast.ts` keeps its own copy of
+the four paths and the four words. `test-status.ts` pins the two copies together.
+It runs the built `dist/behaviors/toast.js` against a minimal stand-in for
+`document`. For each tone, with and without a `statusLabel`, the serialized slot
+must equal `ToastItem`'s slot for the same props, character for character. With
+no tone, there must be no slot.
+
+L183 #49 leaves `src/behaviors/toast.ts` and `src/behaviors/table-sort.ts` (l)
+out of its comparison, as it does the eight component files. No file is added
+under either tree.
+
+(c) **The apps' categorical badges (row 44; status lens F5).** `apps/admin` and
+`apps/meal-kit` use status tones for categories and counts:
+- "Warning: Spicy" and "Success: Veggie";
+- "Error: 84" on a stock count;
+- the nav link "Orders Information: 7".
+
+They move to brand tones (`primary`, `secondary`, `accent`) or to none. Real
+statuses keep theirs. The owner sees the renders before the change lands.
+
+(d) **A tone outside the four renders no slot (row 45; frozen lens F4).** From
+untyped JavaScript, `tone="primary"` made `StatusMark` render an undefined glyph,
+and React threw, unmounting the tree. `StatusMark` now renders nothing for a tone
+that is not `success`, `warning`, `danger` or `info`. So `Alert` and `ToastItem`
+given one render as at `9b83e50`, as `Badge` already did.
+
+Held by cases H1 to H3 of `test-status.ts`:
+- H1 and H2: `Alert` with `tone: "primary"` and `"neutral"` render without
+  throwing, and equal the more fixture of (g);
+- H3: `ToastItem` with `tone: "primary"` renders without throwing, with no slot.
+
+(e) **The danger menu item hides a consumer's glyph only beside its octagon
+(frozen lens F2).** L176's rule hid the direct-child glyph of every
+`.sb-menu__item[data-danger]`. So a danger item written by hand, with no slot (the
+HTML API, `demo/index.html:409`; a stylesheet-only consumer, L185), lost its glyph,
+and its label left the column. The rule becomes `.sb-menu__item[data-danger]:has(>
+.sb-status) > svg, .sb-menu__item[data-danger]:has(> .sb-status) > .sb-icon {
+display: none; }`, and L190 (j) names those selectors. `check-status-layout.ts`
+holds that a hand-written danger item keeps its glyph and that its label lines up
+with a plain item's.
+
+(f) **The report surfaces end with `process.exitCode`, not `process.exit()` (status
+lens F9).** `process.exit()` drops what is still queued for a pipe. So a failing
+report read through one (every test of L88 to L91 reads it through `spawnSync`)
+lost its tail at random: "2.1 #9" failed 2 runs in 6 at `6ef4b35`, and 4 in 6 at
+`ec97a20`. The fix covers:
+- `tools/check-contrast.ts` and `tools/build-tokens.ts`;
+- their scaffold copies;
+- `sorbet contrast`.
+
+A static test fails while any of them calls `process.exit()`. Ten runs in a row
+then pass.
+
+(g) **L187, tightened (frozen lens F3).** The removal pattern matched any class
+that starts with `sb-status`, so a visible `<span class="sb-status-pad">` (which
+the mask does not hide) was removed unseen. It becomes the slot's exact markup:
+
+```
+<span class="sb-status(?: sb-alert__icon| sb-toast__icon)?"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="sb-status-icon sb-status-icon--(?:success|warning|danger|info)"><path fill="currentColor" fill-rule="evenodd" d="[^"]*"></path></svg>(?:<span class="u-visually-hidden">[^<]*</span>)?</span>
+```
+
+A second fixture covers the cases the 39 missed:
+- **Its file:** `packages/component-library/tools/fixtures/status-markup-more.at-ec97a20.json`.
+- **Its recorder:** `record-status-markup-more.mts.txt` beside it, run against
+  `ec97a20` (recorded once, and pinned by sha256).
+- **Its cases:**
+  - A6: a danger alert with a title and no `role`;
+  - A7: an alert with `onDismiss` and `dismissLabel`;
+  - C15 to C19: a danger button with `pill`, `full`, `disabled` and a
+    `className`, and a danger link button with `pill`;
+  - D5 and D6: a danger menu item, disabled, and with a `className` and a
+    shortcut;
+  - E4 to E6: a field with a hint and an error, invalid; required, with an
+    error; optional, with a hint and an error, not invalid;
+  - B22 and B23: a solid danger badge with a `className`, and a success badge
+    whose child is an element;
+  - H1 and H2 of (d).
+
+Each must equal its recorded markup with every slot removed.
+
+(h) **L188, tightened (status lens F2).**
+- **Comments are stripped first:** block and line comments are removed from
+  `toast.tsx` before the four textual checks. A JSX comment holding the
+  `<ToastItem …/>` text no longer satisfies them.
+- **No second toast:** outside `ToastItem`'s own body, the file holds no
+  `sb-toast` class except `"sb-toast-region"`.
+- **The record keeps `statusLabel` as itself:** the record `toast()` adds holds
+  `statusLabel` as a shorthand property. So `statusLabel: undefined` fails.
+
+(i) **S39 is held (status lens F3).** A6 of (g), a danger alert with no `role`,
+renders `role="status"`.
+
+(j) **The knock-out is held (status lens F8).** `test-status.ts` flattens each
+built glyph's path and tests even-odd parity at fixed points:
+- **Unfilled, inside the symbol:** the tick's elbow and both arms; the centre of
+  each bar and dot; the cross's centre and two arm points.
+- **Filled, in the silhouette clear of the symbol.**
+
+A cross drawn as two overlapping strokes fails, because its centre fills again.
+
+(k) **L190 (a) and (d), widened (status lens F4).** They read only rules naming
+`.sb-status` or `.sb-status-icon`. So a `position: static` on `.sb-alert__icon`,
+or a `color` on `.sb-badge > .sb-status`, escaped them, and made the page 633px
+wide or recoloured the icon.
+
+They now read every rule, outside conditional at-rules, with a selector item whose
+last compound holds `.sb-status`, `.sb-status-icon`, `.sb-alert__icon` or
+`.sb-toast__icon`:
+- no `position` but `relative` on a slot;
+- no `display` on a slot but (a)'s;
+- no `color` or `fill` but in (b) and (c).
+
+(l) **The vanilla sortable table sorts on what is shown (frozen lens F5).**
+`behaviors/table-sort.ts` sorted on the cell's `textContent`, which now begins with
+a status badge's hidden word ("Error: 12"). Its key now leaves out every
+`.sb-status` slot, so the cells sort as at `9b83e50`. Any other text the consumer
+hid stays in the key, as before. `check-status-layout.ts` sorts a table of the
+built badges and requires `9b83e50`'s order.
+
+(m) **The HTML examples carry the slot (status lens F7).**
+- In `<root>/README.md`'s field example (`:570-584`), the error message carries
+  the slot, and "The React `Field` produces the same markup" is true again.
+- In `<root>/demo/index.html`, every status alert, status badge, field error,
+  danger button and danger menu item carries the slot as its component writes it.
+
+In both files, `test-status.ts` requires each of those elements to lead with
+`<span class="sb-status`. At `6ef4b35` that fails.
+
+Also: `halo-room()`'s superseded doc comment (`abstracts/_tokens.scss:159-161`) is
+removed. Acceptance #8's table is quoted in the commit that carries (a), (e) and
+(k).
 
 ## 13. Left to the eye
 
