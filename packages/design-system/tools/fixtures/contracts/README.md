@@ -71,6 +71,7 @@ was produced by the code under test.
 | `legibility-appendix-a.json` | L61's floors; appendix A's 191 rules with what each measures per mode; appendix B's breakdown of the 22 edge rules | the same |
 | `sorbet-as-shipped.json` | §10's known-bad fixture (L81): sorbet's colours as `e24df74` ships them, and L81's container edge | recorded from `e24df74` by `record-legibility-fixtures.mts.txt` (the edge typed in from L81) |
 | `wcag-aa.at-e24df74.json` | L1, L2: `contracts["wcag-aa"]` and the first 86 rules (fg, bg, tier, why, mode) as `e24df74` has them | recorded the same way |
+| `goldens.at-e24df74.json` | L97, L98: sorbet's golden theme file as `e24df74` has it (the base of step 2.2's and 2.6's allowed diffs), and the sha256 of each frozen golden | recorded the same way |
 
 **The two transcribed files follow the spec, not the code.** If the spec is
 revised, re-run the transcriber (`node --input-type=module - <repo root> <
@@ -81,7 +82,7 @@ the rule numbers against L67), and holds `sorbet-as-shipped.json`'s edge to
 L81's table. Every figure transcribed is then recomputed by the test's own
 arithmetic, written from the spec's words.
 
-**The two recorded files are today's behaviour** and, like the five above, are
+**The three recorded files are e24df74's behaviour** and, like the five above, are
 never re-recorded from a later tree: `sorbet-as-shipped.json` is not edited
 after recording (L85). The recorder's header says how to run it on a checkout
 of `e24df74`.

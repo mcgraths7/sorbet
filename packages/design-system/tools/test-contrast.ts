@@ -67,7 +67,7 @@ import { join, relative, sep } from "node:path";
 import { stripVTControlCharacters, styleText } from "node:util";
 
 import { NAMED_COLORS } from "../src/tokens/color.ts";
-import { checkColors, checkPreset, contractOf, measureColors, presets, ratioText, RULES, tally } from "../src/tokens/index.ts";
+import { checkColors, checkPreset, contractOf, measureColors, measurePreset, presets, ratioText, RULES, SEMANTIC_COLOR_NAMES, tally } from "../src/tokens/index.ts";
 
 import type { Failure, Measurement, Mode, Preset, SemanticColorName, SemanticColors } from "../src/tokens/index.ts";
 
@@ -234,8 +234,10 @@ const TAMPERS: Tamper[] = [
   { preset: "midnight", mode: "dark", token: "primary-subtle", value: undefined },
   // …in the same mode as five measured failures, so one summary line has to carry both counts.
   { preset: "midnight", mode: "dark", token: "text-muted", value: "#000000" },
-  // A thousandth under its floor (4.4990 on sorbet's page, floor 4.5). Two decimals print "4.50 < 4.5".
-  { preset: "sorbet", mode: "light", token: "link-hover", value: "#d92360" },
+  // A thousandth under its floor (4.4990 on forest's page #f8f7f5, floor 4.5). Two decimals print "4.50 < 4.5".
+  // legibility-spec.md L105 #33 (L58): this was on sorbet light, whose link-hover is an Lc rule under legibility from
+  // step 2.2; forest's page is the same #f8f7f5 and measures the same 4.498999.
+  { preset: "forest", mode: "light", token: "link-hover", value: "#d92360" },
 ];
 
 const broken = structuredClone(presets) as Presets;
@@ -384,9 +386,10 @@ function reportAgrees(report: Report, run: Ran, all: Presets) {
 
   let measuredInAll = 0;
   for (const p of printed) {
-    const colors = all[p.preset]!.colors[p.mode];
-    const pairs = measureColors(p.mode, colors, "wcag-aa");
-    const failing = checkColors(p.preset, p.mode, colors, "wcag-aa");
+    // legibility-spec.md L105 #34 (L25): each printed mode is checked against measurePreset(preset, mode) and its
+    // failures — the contract the mode declares — where it was checked against measureColors(…, "wcag-aa").
+    const pairs = measurePreset(all[p.preset]!, p.mode) as Measurement[];
+    const failing = pairs.filter((pair) => !pair.holds).map((pair) => ({ preset: p.preset, mode: p.mode, ...pair }));
     const measured = pairs.filter((pair) => pair.actual !== null).length;
     measuredInAll += measured;
     const where = `${report.name}, ${p.preset}/${p.mode}, printed "${p.summary}"`;
@@ -546,7 +549,10 @@ try {
     let tried = 0;
     for (const { preset, mode, colors } of each(shipped)) {
       const expected = measureColors(mode, colors, "wcag-aa");
-      const variants = Object.fromEntries(Object.entries(colors).map(([name, value]) => [name, spellings(value)]));
+      // legibility-spec.md L105 #35 (L16): only the 69 role values are respelled; the optional tokens (whose values
+      // include `transparent`) are carried over unchanged. wcag-aa reads roles only.
+      const roles = new Set<string>(SEMANTIC_COLOR_NAMES);
+      const variants = Object.fromEntries(Object.entries(colors).map(([name, value]) => [name, roles.has(name) ? spellings(value) : [value]]));
       const most = Math.max(...Object.values(variants).map((list) => list.length));
       for (let i = 0; i < most; i++) {
         const respelled = Object.fromEntries(Object.entries(variants).map(([name, list]) => [name, list[i % list.length]!]));
@@ -566,7 +572,11 @@ try {
       assert.deepEqual(Object.keys(page), Object.keys(colors), `${preset.name}/${mode}: the minified theme lost a colour`);
       respelled += Object.entries(colors).filter(([name, value]) => page[name] !== value).length;
       assert.doesNotMatch(page.scrim!, /^rgb\(/, `${preset.name}/${mode}: the minifier left the scrim alone, so this proves nothing about what it does to it`);
-      assert.deepEqual(checkColors("studio", mode, page, "wcag-aa"), [], `${preset.name}/${mode}: the gate passes this preset, and Token Studio would list these as failures on a production build`);
+      // legibility-spec.md L105 #36 (L92, L95): it passes the contract the preset-mode declares, measured as Token Studio
+      // does — the record read off the page, the preset's declared contract and its edges for the mode.
+      const declared = contractOf(preset, mode);
+      const edges = (preset as unknown as { edges?: Partial<Record<Mode, unknown>> }).edges?.[mode];
+      assert.deepEqual((checkColors as unknown as (...args: unknown[]) => Failure[])("studio", mode, page, declared, edges), [], `${preset.name}/${mode}: the gate passes this preset under ${declared}, and Token Studio would list these as failures on a production build`);
       assert.deepEqual(measureColors(mode, page, "wcag-aa"), measureColors(mode, colors, "wcag-aa"), `${preset.name}/${mode}`);
     }
     assert.ok(respelled >= 20, `the minifier respelled only ${respelled} values: it no longer does what this test is here for`);
@@ -597,9 +607,11 @@ try {
     assert.equal(studio.match(/\bsetFailures\(/g)?.length, 1, "a second place sets the failure list");
   });
 
-  test("no shipped preset has a pair that cannot be measured, and the gate passes all five", () => {
-    for (const { preset, mode, colors } of each(shipped)) {
-      const pairs = measureColors(mode, colors, "wcag-aa");
+  // legibility-spec.md L105 #37 (L25): every shipped preset-mode passes the contract it declares (measurePreset), where
+  // it was every preset-mode under wcag-aa; and none has an unmeasurable pair.
+  test("no shipped preset has a pair that cannot be measured, and the gate passes all five — each mode under the contract it declares", () => {
+    for (const { preset, mode } of each(shipped)) {
+      const pairs = measurePreset(preset, mode) as Measurement[];
       assert.deepEqual(pairs.filter((pair) => pair.actual === null).map(pairOf), [], `${preset.name}/${mode}: unmeasurable`);
       assert.deepEqual(pairs.filter((pair) => !pair.holds).map(pairOf), [], `${preset.name}/${mode}: failing`);
     }
@@ -666,7 +678,7 @@ try {
     const scrim = failures.find((f) => f.preset === "sorbet" && f.mode === "light" && f.bg === "scrim");
     assert.ok(scrim && scrim.actual !== null && scrim.actual < scrim.min, "the scrim pair should fail by measurement");
     assert.equal(failures.filter((f) => f.actual === null).length, 6, "six pairs should be unmeasurable");
-    const hair = failures.find((f) => f.preset === "sorbet" && f.fg === "link-hover");
+    const hair = failures.find((f) => f.preset === "forest" && f.fg === "link-hover"); // L105 #33
     assert.ok(hair && hair.actual !== null && hair.actual.toFixed(2) === "4.50" && hair.min === 4.5, "one pair should fail by so little that two decimals print its floor");
     assert.ok(failures.some((f) => f.actual !== null && f.preset === "midnight") && failures.some((f) => f.actual === null && f.preset === "midnight"));
     assert.deepEqual(checkPreset(broken.ocean!).map((f) => f.mode), ["dark"], "the mode beside a broken one should be untouched");
@@ -684,7 +696,9 @@ try {
         );
       }
       for (const preset of Object.values(all)) {
-        assert.deepEqual(checkPreset(preset), MODES.flatMap((mode) => checkColors(preset.name, mode, preset.colors[mode], "wcag-aa")), preset.name);
+        // legibility-spec.md L105 #38 (L25): checkPreset equals the failures of measurePreset per mode, where it equalled
+        // checkColors(…, "wcag-aa").
+        assert.deepEqual(checkPreset(preset), MODES.flatMap((mode) => (measurePreset(preset, mode) as Measurement[]).filter((pair) => !pair.holds).map(({ fg, bg, min, actual, tier, metric, view }) => ({ preset: preset.name, mode, fg, bg, min, actual, tier, metric, view }))), preset.name);
       }
     }
   });
@@ -767,7 +781,7 @@ try {
           assert.ok(run.stderr.includes(`✗ ${expected.length} contrast failure(s):`), run.stderr);
           const printed = run.stderr.split("\n").filter((line) => /^ {2}\w+\/(light|dark): \S+ on \S+ .*\(needs [\d.]+\)$/.test(line));
           assert.deepEqual(printed.map((line) => line.trim()), expected.map(gateRow));
-          assert.ok(run.stderr.includes("  sorbet/light: link-hover on bg = 4.499 (needs 4.5)\n"), `${gate.name} should print the hair-under pair as what it is`);
+          assert.ok(run.stderr.includes("  forest/light: link-hover on bg = 4.499 (needs 4.5)\n"), `${gate.name} should print the hair-under pair as what it is`); // L105 #33
           assert.ok(!gate.wrote(tree), `${gate.name} wrote its output after failing`);
         });
       }

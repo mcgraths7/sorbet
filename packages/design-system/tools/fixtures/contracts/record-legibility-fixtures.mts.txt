@@ -6,6 +6,8 @@
 //                             main paints round a card: a 1px border in border-subtle, and shadow-sm).
 //   wcag-aa.at-e24df74.json — L1/L2: contracts["wcag-aa"] key for key, and the first 86 entries of RULES with
 //                             fg, bg, tier, why and mode, as e24df74 has them.
+//   goldens.at-e24df74.json — L97/L98: sorbet's golden theme file as e24df74 has it (the base of step 2.2's and
+//                             2.6's allowed diffs), and the sha256 of each of the four frozen goldens.
 //
 // Committed as .txt for the reason record-fixtures.mts.txt is (M10.12): lint, the type checker and every scan the
 // tests make read .ts files and pass it by. Run it on a checkout of e24df74, never on a later tree:
@@ -16,9 +18,10 @@
 //   node /tmp/record-legibility-fixtures.mts /tmp/sorbet-e24df74/packages/design-system /tmp/sorbet-recorded
 //   diff -r /tmp/sorbet-recorded packages/design-system/tools/fixtures/contracts | grep -v '^Only in'
 //
-// The last line prints nothing when the two files on disk are what e24df74 answers.
+// The last line prints nothing when the three files on disk are what e24df74 answers.
 
-import { writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const [designSystem, outDir] = process.argv.slice(2);
@@ -50,4 +53,11 @@ write("wcag-aa.at-e24df74.json", {
   contract: tokens.contracts["wcag-aa"],
   rules: tokens.RULES.slice(0, 86).map((rule: Record<string, unknown>) => ({ fg: rule.fg, bg: rule.bg, tier: rule.tier, why: rule.why, mode: rule.mode ?? null })),
 });
-console.log(`recorded sorbet-as-shipped.json and wcag-aa.at-e24df74.json from ${designSystem} into ${outDir}`);
+const golden = (name: string) => readFileSync(join(designSystem, "tools", "golden", `${name}.css`), "utf8");
+write("goldens.at-e24df74.json", {
+  recordedFrom: "e24df74",
+  note: "legibility-spec.md L97, L98: sorbet's golden as e24df74 has it, and the sha256 of each frozen golden (ocean, forest, noir, midnight).",
+  sorbet: golden("sorbet"),
+  frozenSha256: Object.fromEntries(["ocean", "forest", "noir", "midnight"].map((name) => [name, createHash("sha256").update(golden(name)).digest("hex")])),
+});
+console.log(`recorded sorbet-as-shipped.json, wcag-aa.at-e24df74.json and goldens.at-e24df74.json from ${designSystem} into ${outDir}`);

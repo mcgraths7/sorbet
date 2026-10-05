@@ -69,6 +69,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
@@ -468,7 +469,24 @@ const freshEdges = () => structuredClone(VALUES.edges);
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-const colorsOf = (mode: Mode, preset = "sorbet") => shipped[preset]!.colors[mode];
+// legibility-spec.md L105 #24 (L3): colorsOf's default preset was sorbet; it is ocean, which keeps every caller that
+// measures the default under wcag-aa and expects a pass true once sorbet's light record is rebuilt (step 2.2).
+const colorsOf = (mode: Mode, preset = "ocean") => shipped[preset]!.colors[mode];
+/**
+ * What each shipped preset declares (L101, L105 #26), typed in from the spec. Step 2.2: sorbet's light mode declares
+ * legibility; step 2.6 makes its dark mode legibility too.
+ */
+const DECLARED: Record<string, Record<Mode, ContractName>> = {
+  sorbet: { light: "legibility" as ContractName, dark: "wcag-aa" },
+  ocean: { light: "wcag-aa", dark: "wcag-aa" },
+  forest: { light: "wcag-aa", dark: "wcag-aa" },
+  noir: { light: "wcag-aa", dark: "wcag-aa" },
+  midnight: { light: "wcag-aa", dark: "wcag-aa" },
+};
+/** L105 #25: the preset-modes that still declare wcag-aa, in the fixture's order (preset, then light, then dark). */
+const wcagModes = () => Object.values(shipped).flatMap((preset) => MODES.filter((mode) => DECLARED[preset.name]![mode] === "wcag-aa").map((mode) => ({ preset, mode })));
+/** The fixture's 70 rows for one preset-mode. */
+const recordedFor = (preset: string, mode: Mode) => RECORDED.filter((row) => row.preset === preset && row.mode === mode);
 const triplesOf = (pairs: Measurement[]) => pairs.map((pair) => [pair.fg, pair.bg, pair.min]);
 const near = (a: number | null | undefined, b: number, eps: number) => typeof a === "number" && Math.abs(a - b) <= eps;
 const shown = (value: unknown) => JSON.stringify(value) ?? String(value);
@@ -501,13 +519,19 @@ function check5() {
   }
 }
 
-/** The 700 (M4, M9.2): floor, verdict and order exactly; each ratio to 1e-9. */
+/**
+ * The 700 (M4, M9.2): floor, verdict and order exactly; each ratio to 1e-9. legibility-spec.md L105 #25 (L3): the
+ * rows of the preset-modes that still declare wcag-aa — 630 from step 2.2, 560 from step 2.6 — against the fixture's
+ * rows of those preset-modes.
+ */
 function check700() {
-  const now = Object.values(shipped).flatMap((preset) =>
-    MODES.flatMap((mode) => measureColors(mode, preset.colors[mode], WCAG).map((pair) => ({ preset: preset.name, mode, ...pair }))));
-  assert.equal(now.length, RECORDED.length, "the number of measurements over the shipped presets");
+  const held = wcagModes();
+  const now = held.flatMap(({ preset, mode }) => measureColors(mode, preset.colors[mode], WCAG).map((pair) => ({ preset: preset.name, mode, ...pair })));
+  const recorded = held.flatMap(({ preset, mode }) => recordedFor(preset.name, mode));
+  assert.equal(recorded.length, 70 * held.length, "the fixture's rows of the wcag-aa preset-modes");
+  assert.equal(now.length, recorded.length, "the number of measurements over the shipped presets' wcag-aa modes");
   now.forEach((pair, i) => {
-    const was = RECORDED[i]!;
+    const was = recorded[i]!;
     const where = `#${i} ${was.preset}/${was.mode}: ${was.fg} on ${was.bg}`;
     assert.deepEqual(
       { preset: pair.preset, mode: pair.mode, fg: pair.fg, bg: pair.bg, floor: pair.min, holds: pair.holds },
@@ -880,12 +904,14 @@ try {
   });
 
   // ── M9.4 ────────────────────────────────────────────────────────────────
-  test("M5 all five presets declare wcag-aa in both modes, and contractOf says so", () => {
+  // legibility-spec.md L105 #26 (L101, steps 2.2 and 2.6): all five declared wcag-aa in both modes; sorbet now declares
+  // { light: "legibility", dark: "wcag-aa" } (from step 2.6 legibility in both); the four others are unchanged.
+  test("M5 L101 each preset declares what step 2.2 says — sorbet legibility in light and wcag-aa in dark, the four others wcag-aa in both — and contractOf says so", () => {
     assert.deepEqual(Object.keys(shipped), ["sorbet", "ocean", "forest", "noir", "midnight"]);
     for (const preset of Object.values(shipped)) {
-      assert.deepEqual(preset.contract, { light: "wcag-aa", dark: "wcag-aa" }, preset.name);
+      assert.deepEqual(preset.contract, DECLARED[preset.name], preset.name);
       for (const mode of MODES) {
-        assert.equal(contractOf(preset, mode), "wcag-aa", `${preset.name}/${mode}`);
+        assert.equal(contractOf(preset, mode), DECLARED[preset.name]![mode], `${preset.name}/${mode}`);
       }
     }
   });
@@ -994,7 +1020,8 @@ try {
         for (const mode of MODES) {
           const kept = TRIPLES[mode].filter((_, i) => EXPECTED_TIERS[mode][i] !== row.tier);
           assert.equal(kept.length, 70 - row.perMode);
-          for (const preset of Object.values(shipped)) {
+          // legibility-spec.md L105 #27 (L3): over the preset-modes that declare wcag-aa.
+          for (const preset of wcagModes().filter((held) => held.mode === mode).map((held) => held.preset)) {
             const pairs = measureColors(mode, preset.colors[mode], WCAG);
             assert.deepEqual(triplesOf(pairs), kept, `${preset.name}/${mode} without ${row.tier}: the other tiers' pairs, in order, and none of its`);
             assert.ok(pairs.every((pair) => pair.tier !== row.tier));
@@ -1153,28 +1180,29 @@ try {
   });
 
   test("M6.6 holds is `actual !== null && actual >= min`, with min the CONTRACT's floor for the rule's tier in that mode", () => {
-    // Under wcag-aa, against the ratios 2d3b765 measured.
-    let at = 0;
-    for (const preset of Object.values(shipped)) {
-      for (const mode of MODES) {
-        for (const pair of measureColors(mode, preset.colors[mode], WCAG)) {
-          const was = RECORDED[at++]!;
-          assert.equal(pair.min, floorFor(WCAG, pair.tier, mode));
-          assert.equal(pair.holds, was.actual >= rowOf(pair.tier).floor[mode], `${preset.name}/${mode}: ${pairKey(pair.fg, pair.bg)}`);
-        }
-      }
+    // Under wcag-aa, against the ratios 2d3b765 measured. legibility-spec.md L105 #28 (L3): over the fixture rows of
+    // the preset-modes that still declare wcag-aa (#25).
+    for (const { preset, mode } of wcagModes()) {
+      const rows = recordedFor(preset.name, mode);
+      measureColors(mode, preset.colors[mode], WCAG).forEach((pair, at) => {
+        const was = rows[at]!;
+        assert.equal(pair.min, floorFor(WCAG, pair.tier, mode));
+        assert.equal(pair.holds, was.actual >= rowOf(pair.tier).floor[mode], `${preset.name}/${mode}: ${pairKey(pair.fg, pair.bg)}`);
+      });
     }
     // Raise one tier's floor: its pairs are judged by the new number, and only its pairs.
     for (const raised of [7, 21.5]) {
       withTiers((tiers) => {
         tiers.text!.min = raised;
       }, () => {
-        let i = 0;
+        // legibility-spec.md L105 #29 (L3): over the rows of #25, and the gate's count against the failures of the
+        // wcag-aa-declaring preset-modes only (sorbet's light mode is judged by legibility, which lists no text tier).
         let fell = 0;
-        for (const preset of Object.values(shipped)) {
-          for (const mode of MODES) {
-            for (const pair of measureColors(mode, preset.colors[mode], WCAG)) {
-              const was = RECORDED[i++]!;
+        for (const { preset, mode } of wcagModes()) {
+          const rows = recordedFor(preset.name, mode);
+          {
+            for (const [i, pair] of measureColors(mode, preset.colors[mode], WCAG).entries()) {
+              const was = rows[i]!;
               const min = pair.tier === "text" ? raised : was.floor;
               assert.equal(pair.min, min, `${preset.name}/${mode}: ${pairKey(pair.fg, pair.bg)} with text at ${raised}`);
               assert.equal(pair.holds, pair.actual !== null && pair.actual >= min, `${preset.name}/${mode}: ${pairKey(pair.fg, pair.bg)} at ${pair.actual} against ${min}`);
@@ -1184,7 +1212,7 @@ try {
           }
         }
         assert.ok(fell > 0, `no pair fell when text was raised to ${raised}`);
-        assert.equal(Object.values(shipped).flatMap(checkPreset).length, fell, "the gate fails exactly those");
+        assert.equal(Object.values(shipped).flatMap(checkPreset).filter((failure) => DECLARED[failure.preset]![failure.mode] === "wcag-aa").length, fell, "the gate fails exactly those");
       });
     }
     // A per-mode floor is read for the mode asked.
@@ -1319,9 +1347,18 @@ try {
     assert.equal(run.stderr, "");
     assert.equal(run.status, 0);
     const recorded = readFileSync(join(fixtures, "check-contrast.report.txt"), "utf8");
-    const expected = recorded
+    // legibility-spec.md L105 "#11 again" (step 2.2; L21, L86, L91): sorbet's heading carries its new tagline (L21: its
+    // words are the implementer's, so the line is read off the preset), sorbet's light line is legibility's, with the
+    // margin derived from this spec (84.8629 ÷ 82.8 = 1.0249, ×1.02), and the last line counts 823: wcag-aa × 9, legibility × 1.
+    const lines = recorded
       .replace(/^( {2}(?:light|dark) +all 70 pairings pass.*)$/gm, "$1 — wcag-aa; 191 rules not held")
-      .replace(/^✓ WCAG AA contract holds for every preset in both modes \(700 pairings measured\)$/m, "✓ every declared contract holds for every preset in both modes (700 pairings measured): wcag-aa × 10");
+      .replace(/^✓ WCAG AA contract holds for every preset in both modes \(700 pairings measured\)$/m, "✓ every declared contract holds for every preset in both modes (823 pairings measured): wcag-aa × 9, legibility × 1")
+      .split("\n");
+    const heading = lines.findIndex((line) => line.startsWith("Sorbet — "));
+    assert.ok(heading >= 0 && lines[heading + 1]!.startsWith("  light "), "the fixture's sorbet section");
+    lines[heading] = `Sorbet — ${shipped.sorbet!.tagline}`;
+    lines[heading + 1] = `  light all ${HELD_BY_LEGIBILITY} pairings pass (tightest margin ×1.02) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held`;
+    const expected = lines.join("\n");
     assert.notEqual(expected, recorded, "the transformation changed nothing: the fixture is not the one it was written against");
     assert.equal(run.stdout, expected);
   });
@@ -1374,7 +1411,8 @@ try {
       assert.deepEqual(Object.keys(entry), ["name", "label", "tagline", "defaultMode", "radiusStyle", "contract"], preset.name);
       assert.deepEqual(entry, {
         name: preset.name, label: preset.label, tagline: preset.tagline, defaultMode: preset.defaultMode, radiusStyle: preset.radiusStyle,
-        contract: { light: "wcag-aa", dark: "wcag-aa" },
+        // legibility-spec.md L105 #30 (M6.9, L101): each preset's declaration (sorbet's as in #26), not wcag-aa for all.
+        contract: DECLARED[preset.name],
       });
       assert.deepEqual(Object.keys(entry.contract as object), ["light", "dark"]);
     });
@@ -1674,8 +1712,16 @@ try {
     }, () => {
       refusedEverywhere(WCAG, ["txet"], "wcag-aa with text respelled txet");
       throwsTypeError(() => Object.values(shipped).flatMap(checkPreset), ["wcag-aa", "txet"], "the gate, wcag-aa with text respelled txet");
+      // legibility-spec.md L105 #46 (step 2.2, L57): it throws for each shipped preset and mode that declares wcag-aa, and
+      // contractOf for a mode declaring legibility still returns "legibility".
       for (const preset of Object.values(shipped)) {
-        throwsTypeError(() => contractOf(preset, "light"), ["wcag-aa", "txet"], `contractOf(${preset.name})`);
+        for (const mode of MODES) {
+          if (DECLARED[preset.name]![mode] === "wcag-aa") {
+            throwsTypeError(() => contractOf(preset, mode), ["wcag-aa", "txet"], `contractOf(${preset.name}, ${mode})`);
+          } else {
+            assert.equal(contractOf(preset, mode), "legibility", `contractOf(${preset.name}, ${mode})`);
+          }
+        }
       }
     });
     // A tier a contract does NOT list is still legitimate, and means "not held".
@@ -2017,7 +2063,9 @@ try {
             assert.equal(rows.length, 42, `${report.name}: ${preset}/${mode} failure rows`);
             assert.ok(rows.every((row) => row.includes("21.5")), `${report.name}: a failure row of ${preset}/${mode} not against 21.5:\n${rows.join("\n")}`);
           } else {
-            assert.match(summary, /^all 70 pairings pass\b/, `${report.name}: ${preset}/${mode} declares wcag-aa and holds it, and the report says: ${summary}`);
+            // legibility-spec.md L105 #31 (L91): `all N pairings pass`, N being the declared contract's count — 193 for legibility.
+            const n = DECLARED[preset]![mode as Mode] === "legibility" ? HELD_BY_LEGIBILITY : 70;
+            assert.match(summary, new RegExp(`^all ${n} pairings pass\\b`), `${report.name}: ${preset}/${mode} declares ${DECLARED[preset]![mode as Mode]} and holds it, and the report says: ${summary}`);
             assert.deepEqual(rows, [], `${report.name}: ${preset}/${mode}`);
           }
         }
@@ -2321,7 +2369,8 @@ try {
     try {
       if (emptied) {
         assert.deepEqual(Object.values(shipped).flatMap(checkPreset), [], "the gate, with CONTRACT_NAMES emptied");
-        assert.equal(contractOf(shipped.sorbet!, "light"), "wcag-aa");
+        // legibility-spec.md L105 #32 (step 2.2): this asked sorbet, whose light mode now declares legibility; it asks ocean.
+        assert.equal(contractOf(shipped.ocean!, "light"), "wcag-aa");
         check5();
       }
     } finally {
@@ -3571,9 +3620,11 @@ try {
     throwsTypeError(() => themeCss(legiblePreset({ edges: hover })), ["probe-legible", "filled-accent"], "a hover layer with a five-digit colour");
   });
 
-  test("L5 L17 L56 the absence of the data is the whole switch: no shipped preset defines an optional token, edges or buttonLabel; a legibility declaration alone changes no byte; a wcag-aa preset WITH the data emits it", () => {
+  // L17 says "No WCAG preset": the four frozen presets. (Written in step 2.1 over all five shipped presets, which was true
+  // only while sorbet defined nothing: from step 2.2 sorbet defines all three. A misreading of L17 by this file, corrected.)
+  test("L5 L17 L56 the absence of the data is the whole switch: no WCAG preset defines an optional token, edges or buttonLabel; a legibility declaration alone changes no byte; a wcag-aa preset WITH the data emits it", () => {
     const seamNames = VALUES.seams.map((seam) => seam.name);
-    for (const preset of Object.values(shipped)) {
+    for (const preset of ["ocean", "forest", "noir", "midnight"].map((name) => shipped[name]!)) {
       for (const mode of MODES) {
         assert.deepEqual(Object.keys(preset.colors[mode]).filter((name) => seamNames.includes(name)), [], `${preset.name}/${mode}`);
       }
@@ -3602,14 +3653,24 @@ try {
 
   // ── the reports and the gates (§11.1, §11.2; 2.1 #8, #9) ──────────────
   /** The source appended to a copy of presets.ts that gives sorbet these fields. */
-  const plantedSorbet = (parts: Record<string, unknown>) => `\n// test-contracts.ts: legibility-spec.md step 2.1, in a temporary copy.\n{\n  const sorbet = presets.sorbet as unknown as Record<string, unknown>;\n${Object.entries(parts).map(([key, value]) => `  sorbet[${JSON.stringify(key)}] = ${JSON.stringify(value)};`).join("\n")}\n}\n`;
+  // A part given as undefined removes the field: from step 2.2 the shipped sorbet carries edges and a buttonLabel.
+  const plantedSorbet = (parts: Record<string, unknown>) => `\n// test-contracts.ts: legibility-spec.md step 2.1, in a temporary copy.\n{\n  const sorbet = presets.sorbet as unknown as Record<string, unknown>;\n${Object.entries(parts).map(([key, value]) => (value === undefined ? `  delete sorbet[${JSON.stringify(key)}];` : `  sorbet[${JSON.stringify(key)}] = ${JSON.stringify(value)};`)).join("\n")}\n}\n`;
   /** The same preset, in this process. */
-  const twinOf = (parts: Record<string, unknown>) => Object.assign(structuredClone(shipped.sorbet!), structuredClone(parts)) as unknown as Preset;
+  const twinOf = (parts: Record<string, unknown>) => {
+    const twin = Object.assign(structuredClone(shipped.sorbet!), structuredClone(parts)) as unknown as Record<string, unknown>;
+    for (const [key, value] of Object.entries(parts)) {
+      if (value === undefined) {
+        delete twin[key];
+      }
+    }
+    return twin as unknown as Preset;
+  };
   const PLANTED: Record<string, Record<string, unknown>> = {
     shipped: {},
     "as-step-2-6": { colors: VALUES.colors, edges: VALUES.edges, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: LEG } },
-    "without-edges": { colors: { light: VALUES.colors.light, dark: shipped.sorbet!.colors.dark }, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: WCAG } },
-    "known-bad": { edges: KNOWN_BAD.edges, contract: { light: LEG, dark: LEG } },
+    "without-edges": { colors: { light: VALUES.colors.light, dark: KNOWN_BAD.colors.dark }, edges: undefined, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: WCAG } },
+    // Sorbet as main ships it (the known-bad fixture's colours, no buttonLabel), declaring legibility with its card edge.
+    "known-bad": { colors: KNOWN_BAD.colors, edges: KNOWN_BAD.edges, buttonLabel: undefined, contract: { light: LEG, dark: LEG } },
   };
   const plantedTrees = new Map(Object.entries(PLANTED).map(([name, parts]) => {
     const tree = plant(`legibility-${name}`, Object.keys(parts).length === 0 ? "" : plantedSorbet(parts));
@@ -3629,11 +3690,14 @@ try {
   /** What check-contrast.report.txt says of each wcag-aa preset-mode at 2d3b765, with L91's suffix. */
   const RECORDED_LINES = new Map<string, string>();
   {
+    // By label, not by the whole heading: sorbet's tagline is rewritten in step 2.2 (L21) and the fixture keeps e24df74's.
+    const labels = new Map(Object.values(shipped).map((preset) => [preset.label, preset.name]));
     let preset = "";
     for (const line of readFileSync(join(fixtures, "check-contrast.report.txt"), "utf8").split("\n")) {
       const mode = /^ {2}(light|dark) +(.+)$/.exec(line);
-      if (headings.has(line)) {
-        preset = headings.get(line)!;
+      const label = line.split(" — ")[0]!;
+      if (!line.startsWith(" ") && labels.has(label)) {
+        preset = labels.get(label)!;
       } else if (mode) {
         RECORDED_LINES.set(`${preset}/${mode[1]}`, `${mode[2]} — wcag-aa; ${APPLYING - 70} rules not held`);
       }
@@ -3716,17 +3780,19 @@ try {
   const REPORT_MARGIN = [true, false, true]; // check-contrast.ts, sorbet contrast (no margin, as today), the scaffold's
 
   RUNS.slice(0, 3).forEach((report, i) => {
-    test(`2.1 #9 L86 L91 ${report.name}, on the shipped presets (all declaring wcag-aa): every mode line ends " — wcag-aa; 191 rules not held", and the last line is "✓ every declared contract holds for every preset in both modes (700 pairings measured): wcag-aa × 10"`, () => {
+    // Step 2.2 (as L105 "#11 again"): sorbet light declares legibility, so its line is legibility's and the last line
+    // counts 823 pairings, wcag-aa × 9 and legibility × 1. Derived from DECLARED, the spec's declarations.
+    test(`2.2 L86 L91 ${report.name}, on the shipped presets: each mode line names the contract it declares (sorbet light: "all 193 pairings pass${REPORT_MARGIN[i] ? " (tightest margin ×1.02)" : ""} — legibility; 68 rules not held"), and the last line is "✓ every declared contract holds for every preset in both modes (823 pairings measured): wcag-aa × 9, legibility × 1"`, () => {
       const run = runOn("shipped", report);
       assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
       const said = readReport(run.stdout);
       assert.deepEqual(said.map((p) => `${p.preset}/${p.mode}`), [...RECORDED_LINES.keys()]);
       for (const p of said) {
-        const want = RECORDED_LINES.get(`${p.preset}/${p.mode}`)!;
+        const want = DECLARED[p.preset]![p.mode] === "legibility" ? `all ${HELD_BY_LEGIBILITY} pairings pass (tightest margin ×1.02) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held` : RECORDED_LINES.get(`${p.preset}/${p.mode}`)!;
         assert.equal(p.summary, REPORT_MARGIN[i] ? want : withoutMargin(want), `${p.preset}/${p.mode}`);
         assert.deepEqual([p.rows, p.notes], [[], []]);
       }
-      assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (700 pairings measured): wcag-aa × 10");
+      assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (823 pairings measured): wcag-aa × 9, legibility × 1");
     });
 
     test(`2.1 #9 L86 L91 ${report.name}, with sorbet as step 2.6 will make it (the §3 values and edges, legibility in both modes): its lines read "all 193 pairings pass${REPORT_MARGIN[i] ? " (tightest margin ×1.02)" : ""} — legibility; 68 rules not held", and the last "(946 pairings measured): wcag-aa × 8, legibility × 2"`, () => {
@@ -3805,10 +3871,10 @@ try {
   });
 
   RUNS.slice(3).forEach((gate) => {
-    test(`2.1 #9 L87 ${gate.name}, on the shipped presets: "✓ every preset holds the contract it declares: wcag-aa × 10"`, () => {
+    test(`2.2 L87 ${gate.name}, on the shipped presets: "✓ every preset holds the contract it declares: wcag-aa × 9, legibility × 1"`, () => {
       const run = runOn("shipped", gate);
       assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
-      assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 10"), run.stdout);
+      assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 9, legibility × 1"), run.stdout);
     });
 
     test(`2.1 #9 L87 L79 ${gate.name}, with sorbet as step 2.6 will make it: "✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2", and no contrast or structure failure (the golden may still object: sorbet's file changed)`, () => {
@@ -3877,9 +3943,12 @@ try {
     };
     // A line that names the property without assigning it: the token-name gate's, not a golden diff's "--sb-field-fill: …".
     const flagged = (stderr: string) => stderr.split("\n").some((line) => /--sb-field-fill(?!:)/.test(line));
-    const none = node(["tools/build-tokens.ts"], tree("l100-none", ""));
+    // From step 2.2 sorbet, the first theme, defines every optional token: take field-fill out of it, so only the planted
+    // theme can make the name legal.
+    const withoutSorbets = "\n// test-contracts.ts: L100, in a temporary copy.\nfor (const mode of [\"light\", \"dark\"] as const) {\n  delete (presets.sorbet.colors[mode] as Record<string, string>)[\"field-fill\"];\n}\n";
+    const none = node(["tools/build-tokens.ts"], tree("l100-none", withoutSorbets));
     assert.ok(flagged(none.stderr), `the probe is unsound: a name no theme emits was not flagged:\n${none.stderr}`);
-    const second = node(["tools/build-tokens.ts"], tree("l100-second", "\n// test-contracts.ts: L100, in a temporary copy.\n(presets.ocean.colors.light as Record<string, string>)[\"field-fill\"] = \"#ffffff\";\n"));
+    const second = node(["tools/build-tokens.ts"], tree("l100-second", `${withoutSorbets}(presets.ocean.colors.light as Record<string, string>)["field-fill"] = "#ffffff";\n`));
     assert.ok(!flagged(second.stderr), `the second theme emits --sb-field-fill and the gate still calls it unknown:\n${second.stderr}`);
   });
 
@@ -4109,7 +4178,7 @@ try {
     // L140's tree. Both modes declare legibility, so C9 fails twice (C9 runs per legibility mode: L79, and the C9 test above).
     "structure-only": { ...PLANTED["as-step-2-6"]!, buttonLabel: { ...VALUES.buttonLabel, px: 14 } },
     // The same in light only, which gives L140's literal "✗ 1 structure failure(s)".
-    "structure-only-light": { colors: { light: VALUES.colors.light, dark: shipped.sorbet!.colors.dark }, edges: { light: VALUES.edges.light }, buttonLabel: { ...VALUES.buttonLabel, px: 14 }, contract: { light: LEG, dark: WCAG } },
+    "structure-only-light": { colors: { light: VALUES.colors.light, dark: KNOWN_BAD.colors.dark }, edges: { light: VALUES.edges.light }, buttonLabel: { ...VALUES.buttonLabel, px: 14 }, contract: { light: LEG, dark: WCAG } },
   };
   const structureTrees = new Map(Object.entries(STRUCTURE_ONLY).map(([name, parts]) => {
     const tree = plant(`legibility-${name}`, plantedSorbet(parts));
@@ -4166,6 +4235,145 @@ try {
       });
     });
   }
+
+  // ══ PR 2, step 2.2: sorbet light (L101) — tests first for the values ═══════════════════════════════════════
+  // Every expected value is the spec's: §3 and §5.2 from legibility-values.json, e24df74's sorbet from the recorded
+  // fixtures (sorbet-as-shipped.json, goldens.at-e24df74.json), the rest typed in from L19, L20, L21, L97 and L105.
+  const GOLDENS = json("goldens.at-e24df74.json") as { recordedFrom: string; sorbet: string; frozenSha256: Record<string, string> };
+  const sorbetNow = () => shipped.sorbet! as unknown as Preset & { edges?: Partial<Record<Mode, Edges>>; buttonLabel?: unknown; shadowTint?: unknown };
+
+  test("2.2 L12 L14 L15 presets.sorbet.colors.light is §3's light record, key for key and in order: the 69 roles in SEMANTIC_COLOR_NAMES order, then the 20 optional tokens in L15's", () => {
+    assert.deepEqual(Object.entries(sorbetNow().colors.light), Object.entries(VALUES.colors.light));
+  });
+
+  test("2.2 L45 L101 presets.sorbet.edges.light is L45's light table, element for element in EdgeElement order; the dark edges wait for step 2.6", () => {
+    const edges = sorbetNow().edges;
+    assert.ok(edges !== undefined && edges.light !== undefined, "sorbet has no light edges");
+    assert.deepEqual(Object.keys(edges.light), ELEMENTS);
+    assert.deepEqual(JSON.parse(JSON.stringify(edges.light)), VALUES.edges.light);
+    assert.ok(edges.dark === undefined, "sorbet has dark edges: they are step 2.6's");
+  });
+
+  test("2.2 L19 L20 L21 sorbet's buttonLabel is { px: 16, smallPx: 14, weight: 600 }, its shadowTint the caramel #a16e32, and its tagline is rewritten to name lilac first and no blossom pink", () => {
+    const sorbet = sorbetNow();
+    assert.deepEqual(sorbet.buttonLabel, { px: 16, smallPx: 14, weight: 600 }, "L19");
+    assert.equal(sorbet.shadowTint, "#a16e32", "L20");
+    const before = GOLDENS.sorbet.split("\n")[0]!.split("sorbet — ")[1]!;
+    const tagline = String(sorbet.tagline);
+    assert.notEqual(tagline, before, "L21: the tagline is rewritten in step 2.2");
+    const lower = tagline.toLowerCase();
+    const lilac = lower.indexOf("lilac");
+    assert.ok(lilac >= 0, `L21: the tagline does not name lilac: ${tagline}`);
+    for (const word of ["blush", "butter", "robin", "cream", "milk", "cocoa", "caramel", "pink", "blue", "yellow", "purple", "lavender"]) {
+      const at = lower.indexOf(word);
+      assert.ok(at === -1 || at > lilac, `L21: "${word}" comes before lilac: ${tagline}`);
+    }
+    assert.ok(!lower.includes("blossom"), `L21: the tagline names blossom pink, the old secondary: ${tagline}`);
+  });
+
+  test("2.2 L101 L3 sorbet's dark record is still buildMode's: entry for entry, in order, e24df74's sorbet dark", () => {
+    assert.equal(KNOWN_BAD.recordedFrom, "e24df74");
+    assert.deepEqual(Object.entries(sorbetNow().colors.dark), Object.entries(KNOWN_BAD.colors.dark));
+  });
+
+  test("2.2 sorbet light passes legibility: its 193 measurements, through measurePreset, are the two scrim ratios and appendix A's 191, each in its view; every one holds; and none of the six checks fails", () => {
+    const pairs = api("measurePreset")(shipped.sorbet!, "light") as Measured[];
+    assert.deepEqual(pairs.map((pair) => [pair.fg, pair.bg, pair.tier]), LEGIBILITY_ORDER.map((rule) => [rule.fg, rule.bg, rule.tier]));
+    pairs.forEach((pair, i) => {
+      if (i < 2) {
+        assert.ok(near(pair.actual, SCRIM_RATIO[pair.fg]!, 1e-4) && pair.view === "typical", `${pair.fg} on scrim: ${pair.actual}`);
+      } else {
+        const rule = APPENDIX.rules[i - 2]!;
+        assert.ok(near(pair.actual, rule.light.actual, 0.01) && pair.view === rule.light.view, `${rule.n}: ${pair.actual} (${pair.view}), and appendix A says ${rule.light.actual} (${rule.light.view})`);
+      }
+      assert.equal(pair.holds, true, `${pair.fg} on ${pair.bg}`);
+    });
+    assert.deepEqual(checkPreset(shipped.sorbet!), [], "the gate");
+    assert.deepEqual(structureOf(shipped.sorbet!), [], "the six checks");
+  });
+
+  test("2.2 L3 sorbet dark still passes wcag-aa: its 70 measurements, through measurePreset, are the ones 2d3b765 took — floor and verdict exactly, each ratio to 1e-9", () => {
+    const pairs = api("measurePreset")(shipped.sorbet!, "dark") as Measured[];
+    const rows = recordedFor("sorbet", "dark");
+    assert.equal(pairs.length, 70);
+    pairs.forEach((pair, i) => {
+      const was = rows[i]!;
+      assert.deepEqual([pair.fg, pair.bg, pair.min, pair.holds], [was.fg, was.bg, was.floor, true], `#${i}`);
+      assert.ok(near(pair.actual, was.actual, 1e-9), `${was.fg} on ${was.bg}: ${pair.actual}, and 2d3b765 measured ${was.actual}`);
+    });
+  });
+
+  test("2.2 L105 (step 2.2) why #24 to #38 move off sorbet light: under wcag-aa, §3's light record fails exactly seven pairs, as the spec measures them", () => {
+    const failing = measureColors("light", VALUES.colors.light, WCAG).filter((pair) => !pair.holds).map((pair) => [`${pair.fg} on ${pair.bg}`, Number(pair.actual!.toFixed(2))]);
+    assert.deepEqual(failing.sort(), [
+      ["border-strong on bg", 2.34], ["border-strong on surface", 2.48], ["primary-solid on bg", 2.34], ["primary-solid on surface", 2.48],
+      ["secondary-solid on bg", 2.30], ["accent-solid on bg", 1.85], ["chart-6 on bg", 2.99],
+    ].sort());
+  });
+
+  /** L97: sorbet's step-2.2 golden, built from e24df74's and the spec — below line 1, which carries the free tagline. */
+  function expectedGolden22(): string {
+    const out: string[] = [];
+    let block: "none" | "light" | "dark" = "none";
+    let replacing = false;
+    for (const line of GOLDENS.sorbet.split("\n")) {
+      const t = line.trim();
+      if (/\{\s*$/.test(line) && !t.startsWith("@media")) {
+        block = out.some((done) => done.startsWith(":root {")) ? "dark" : "light";
+        out.push(line);
+        continue;
+      }
+      if (t === "}" && block !== "none") {
+        block = "none";
+        out.push(line);
+        continue;
+      }
+      if (block === "light" && t.startsWith("--sb-bg:")) {
+        // L14, L16: the 89 colour tokens, in record order.
+        replacing = true;
+        out.push(...colourLines(VALUES.colors.light).map((decl) => `  ${decl}`));
+      }
+      if (replacing) {
+        if (!t.startsWith("--sb-shadow-xs")) {
+          continue;
+        }
+        replacing = false;
+      }
+      if (block === "light" && t.startsWith("--sb-shadow-")) {
+        // L20: the five shadow lines tinted with the caramel #a16e32 (161 110 50), where e24df74's tint is #26231f.
+        out.push(line.replaceAll("rgb(38 35 31 / ", "rgb(161 110 50 / "));
+        if (t.startsWith("--sb-shadow-xl")) {
+          // L19, then L53: the two button sizes, then the 21 edge lines.
+          out.push("  --sb-button-font-size: 1rem;", "  --sb-button-font-size-sm: 0.875rem;", ...edgeLines(VALUES.edges.light).map((decl) => `  ${decl}`));
+        }
+        continue;
+      }
+      out.push(line);
+      if (block === "dark" && t.startsWith("--sb-shadow-xl")) {
+        // L55: the 41 resets, after everything else, in the light block's order.
+        const indent = /^\s*/.exec(line)![0];
+        out.push(...[...VALUES.seams.map((seam) => `--sb-${seam.name}: initial;`), ...edgeLines(VALUES.edges.light).map((decl) => `${decl.slice(0, decl.indexOf(":"))}: initial;`)].map((decl) => indent + decl));
+      }
+    }
+    return out.join("\n");
+  }
+
+  test("2.2 L97 L55 sorbet's golden is e24df74's changed only where §11.4 allows: line 1's tagline; in light, the 89 colour tokens, the five shadow lines tinted caramel, the two button sizes and the 21 edge lines; and the 41 resets at the end of each dark block", () => {
+    assert.equal(GOLDENS.recordedFrom, "e24df74");
+    const golden = readFileSync(join(pkgRoot, "tools", "golden", "sorbet.css"), "utf8").split("\n");
+    const [first, ...rest] = expectedGolden22().split("\n");
+    assert.notEqual(golden[0], first, "line 1: the tagline is not rewritten (L21)");
+    assert.equal(golden[0], `/* Sorbet DS theme: sorbet — ${shipped.sorbet!.tagline}`, "line 1 is the header with the preset's own tagline");
+    assert.deepEqual(golden.slice(1), rest, "below line 1, sorbet's golden is not e24df74's with only §11.4's step-2.2 changes");
+    assert.equal(rest.filter((line) => line.endsWith(": initial;")).length, 82, "41 resets in each of the two dark blocks");
+  });
+
+  test("2.2 L4 L98 the four frozen goldens are byte for byte what e24df74 has", () => {
+    for (const [name, sha256] of Object.entries(GOLDENS.frozenSha256)) {
+      assert.equal(createHash("sha256").update(readFileSync(join(pkgRoot, "tools", "golden", `${name}.css`), "utf8")).digest("hex"), sha256, name);
+    }
+    assert.deepEqual(Object.keys(GOLDENS.frozenSha256), ["ocean", "forest", "noir", "midnight"]);
+  });
 
   legibilityCount = ran - legibilityFrom;
 
