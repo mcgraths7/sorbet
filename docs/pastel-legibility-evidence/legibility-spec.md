@@ -568,6 +568,11 @@ tint there.
 **L21.** Sorbet's `tagline` is rewritten in step 2.2. Its text is not a contract
 matter; the only rule is that it names the lead colour first (lilac) and no
 colour the theme no longer has.
+CORRECTION 2026-10-05: the text is fixed here, so the implementer types it and
+writes none of its own: "Light and fun: lilac, blush pink, butter yellow and
+robin's-egg blue on warm cream." Its colours are decisions 2 and 3, in role
+order (primary, secondary, accent, success). Sorbet has no edges for dark until
+step 2.6 (L55's reset lines are what dark carries in steps 2.2 to 2.5).
 
 ## 4. The mechanism, extended
 
