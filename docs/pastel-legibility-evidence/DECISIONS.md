@@ -39,9 +39,12 @@ The record the two sample sheets are built from, and the evidence behind
 | 29 | Filled buttons straight on the page | blush, danger, lilac and butter on the cream page all pass as distinct (18.73, 18.73, 18.99, 18.98), so the light filled-button edge floor 17.7 stands | owner, 2026-10-04 | a button lost on the page in use |
 | 30 | The focus ring touching a lilac fill | `#8e6ac7` on `#dac5fc` at 26.13 (selected calendar day, current page) is visible enough; the light focus floor 24.8 stands | owner, 2026-10-04 | losing track of focus on those controls |
 | 31 | Small button label | 14px semi-bold for sorbet's small buttons (16px is the default size's), a sorbet-only setting with today's 12px as the other themes' fallback. The question that was answered stated the colour figure: "Labels on lilac and blush read Lc 70.9" (that figure does not depend on size; measured at 14px: lilac 71.32, blush 70.92). No sheet drew a 14px label | owner, 2026-10-04 | small buttons feeling crowded |
+| 32 | The selected pill in the pills tabs | keep the milk segment `#fffbf1` as built, label in `text` at medium. Cream `#fef4dc` with a semi-bold strong-ink label was chosen first, then declined once it was drawn beside milk: "oh this is different than what i was picturing. lets go with milk". The cream version is parked on the local branch `parked/cream-segment`. Spec L164 | owner, 2026-10-05 | a selected pill that is hard to find on a real screen |
 
 The five decisions the proposal's section 11 left open were made on 2026-10-04
 (rows 20 to 24). Nothing in the proposal is waiting on the owner.
 
 Sheet 3's two decisions and its fourteen items were answered on 2026-10-04 (rows 25 to 27).
 The revision-2 questions were answered the same day (rows 28 to 31).
+
+The selected pill (spec §15 item 18) was answered on 2026-10-05 (row 32).

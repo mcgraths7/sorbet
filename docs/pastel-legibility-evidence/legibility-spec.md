@@ -2452,7 +2452,7 @@ and that is now stated rather than an accident of specificity (m2). Measured
 in sorbet: the raised fill against the well, light `#fffbf1` on `#f7ecd1`
 4.47 (tritan), dark `#463425` on `#140903` 18.49 (protan); `shadow(sm)` is
 caramel-tinted in light (L20), and the selected label is the strong ink at
-weight 600. Light's 4.47 is weak and no sheet drew it: §13 records it, and
+weight 600 (CORRECTION 2026-10-05, L164: it is `text` at 500). Light's 4.47 is weak and no sheet drew it: §13 records it, and
 §15 item 18 asks the owner's eye. (Drawing the quiet slab there instead,
 19.69 light and 21.33 dark, would put a halo inside the list's 4px padding,
 which L151 forbids.)
@@ -2524,6 +2524,24 @@ too stops flagging `[data-*]` attributes other than `[data-state]`. The
 marquee keeps `padding: var(--sb-halo-room, 0px)` (L151's table); only
 `scroll-padding` is the viewport's alone (L162 (c)).
 
+**L164.** **The selected pill stays milk, as built (DECISIONS row 32,
+2026-10-05), and L157's description of its label is corrected.** The owner
+first chose a cream segment (`#fef4dc`) with a semi-bold label in the strong
+ink, then, shown it rendered beside the milk one, kept milk: "oh this is
+different than what i was picturing. lets go with milk". Nothing in the
+stylesheet changes. The cream design was specified, tested and built on a
+local branch, and is parked there unmerged (`parked/cream-segment`), should
+it be wanted later.
+
+CORRECTION 2026-10-05 to L157 and §15 item 18: both said the selected label
+is "the strong ink at weight 600". The code at `856606b` paints it
+`clr(text)` (sorbet light `#693800`) at the tab's `fw(medium)` (500), against
+the unselected tabs' `text-muted` `#844d16` at 500: separation 8.11 typical,
+7.90 protan (the worst view). That is what the owner kept. §15 item 18's dark
+figure, `#463425` on `#140903` 18.49, is sorbet dark after step 2.6; until
+then the segment paints the built `surface-raised` `#4b463f` on `#38342f`,
+6.89.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
@@ -2544,7 +2562,7 @@ the gate's silence as a pass.
 | A focus ring 2px from a fill against one that touches it: the button (offset 2px) against the selected calendar day and the current page (offset 0) | one pair of colours, two placements; R210 measures the pair (L68) | looked at in step 2.4 |
 | The danger button's rose rim against its own blush fill: `#d77784` on `#f9c3c6`, 18.36 (deutan) | the rim is painted from `danger-mark`, and the button's edge rule measures its halo alone (L116), which understates what is painted | decision 13 and sheet 2; looked at in step 2.5 |
 | An edge whose all-round layer barely renders: the light card with `0 0 200px 0.01px #000000 @ 1` measures 98.63 (L138) | presence ignores blur and the size of a spread, and a minimum would be a number nobody approved | sorbet's golden shows any recipe change; rendered measurement in steps 2.4 and 2.6 |
-| The selected pill: the raised fill on the list's well, light 4.47, dark 18.49, with `shadow(sm)` and the strong ink (L157) | the pills variant is a segmented control and takes no bar; a halo inside the list's 4px padding would be cut (L151) | §15 item 18 |
+| The selected pill: the raised fill on the list's well, light 4.47, with `shadow(sm)` and the `text` ink against the unselected `text-muted` (L157, corrected by L164); dark, from step 2.6, 18.49 | the pills variant is a segmented control and takes no bar; a halo inside the list's 4px padding would be cut (L151) | §15 item 18 |
 | The input-group addon: an unframed well beside the field's inset ring (L158) | part of the field, not an element with an edge; cosmetic | looked at in step 2.4 |
 | An offset falloff cut by a clipping parent (a hovered button's deep-tone layer at a table's last row, at most 12px) | L151 makes room for the all-round layer only; the falloff is depth, not the edge presence measures | looked at |
 | An icon, a bold weight, a thumb's position | a token gate sees colours | status components derive icon and word from `tone` (step 2.5) |
@@ -2705,10 +2723,9 @@ two questions and the small-button question are all answered (DECISIONS rows
 
 ### 14.1 Open
 
-One item, raised by revision 3.5: §15 item 18, the selected pill in the
-pills tab variant (light 4.47), for the owner's eye. It blocks no step and no
-test. Every question revision 2 raised was answered on 2026-10-04 (rows 28 to
-31).
+None. §15 item 18, the one item revision 3.5 raised, was answered on
+2026-10-05: the milk segment stays as built (DECISIONS row 32, L164). Every
+question revision 2 raised was answered on 2026-10-04 (rows 28 to 31).
 
 ## 15. Needs the owner's eye (sheet 3)
 
@@ -2792,7 +2809,7 @@ Items 15 to 17 were raised by revision 2 and answered on 2026-10-04:
     pair (R210). The sheets drew it 2px away, round a button.
     **Answered: visible enough; the 24.8 floor stands (DECISIONS row 30).**
 
-Item 18 was raised by revision 3.5 and is open:
+Item 18 was raised by revision 3.5 and answered on 2026-10-05 (L164):
 
 18. **The selected pill in the pills tab variant.** The raised segment
     `#fffbf1` on the list's well `#f7ecd1`, 4.47 (tritan), with a
@@ -2800,6 +2817,8 @@ Item 18 was raised by revision 3.5 and is open:
     600; dark `#463425` on `#140903`, 18.49 (protan). No sheet drew pills
     tabs. Not blocking any step; if it is too faint, the remedy is a new
     recipe for the segment, which is the owner's look (L157).
+    **Answered 2026-10-05: keep the milk segment as built (DECISIONS row 32).
+    The label figure above was wrong: see L164.**
 
 ## 16. Decided by the spec author
 
