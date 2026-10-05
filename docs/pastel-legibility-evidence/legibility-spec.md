@@ -2511,6 +2511,19 @@ container. The marquee is `overflow: hidden`.
 (d) `state-box-shadow-removed.json` has the allowlist's own entry shape: an
 array of `{ file, selector }`. Entries are appended, never edited or removed.
 
+**L163.** **CORRECTION 2026-10-05 to L162 (b), after the test author ran it.**
+L162 (b) said "8 sites". The compiled check at e24df74 finds 22: 15 field
+focus and invalid glows, plus the two button states, the fab, the
+interactive card, the marquee toggle, the pills tab and the segmented option.
+The fixture is the compiled set, all 22. The removed list therefore carries
+the 15 glows, which step 2.4 moved into `--state-layer`, and the two button
+sites. `.sb-calendar__day[data-today]` is not a state under L153: `today` is
+a fact about a date, not something the user does. It leaves the allowlist.
+The source stylelint rule is aligned to L153's definition of a state, so it
+too stops flagging `[data-*]` attributes other than `[data-state]`. The
+marquee keeps `padding: var(--sb-halo-room, 0px)` (L151's table); only
+`scroll-padding` is the viewport's alone (L162 (c)).
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
