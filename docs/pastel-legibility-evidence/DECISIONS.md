@@ -31,6 +31,17 @@ The record the two sample sheets are built from, and the evidence behind
 | 22 | The text field's edge | a floor per kind of element; the field's is pinned to the field as approved (11.0 on a card) | owner, 2026-10-04 | fields getting lost on a card |
 | 23 | Status icons | four outlined shapes, as on sheet 2: tick in a circle, exclamation mark in a triangle, cross in an octagon, i in a square | owner, 2026-10-04 | |
 | 24 | Which apps move | imagefeed and linecook change on their next sync; pantry, wallpaper-admin and musicdisco move to the new sorbet theme later ("we'll move them later"); buylist stays on ocean | owner, 2026-10-04 | |
+| 25 | Chart marks under the legibility contract | held at a regression baseline of what ships today on the new surfaces: separation at least 28.4 in light and 41.9 in dark (tier `chart-mark`); chart colours unchanged | owner, 2026-10-04, after sheet 3 (`drop/sorbet-pastel-2026-10-04-sheet3/`) | the chart proposal |
+| 26 | Hover fill for rows and quiet controls | stays `bg-subtle`, the well: `#f7ecd1` light, `#140903` dark. In light a hovered table row is the same hex as the header row | owner, 2026-10-04, after sheet 3 | hover proving too faint to see |
+| 27 | Sheet 3 items 1 to 14 | "all readable and on-brand" as drawn, including item 12's six undrawn pairings, so the floors pinned to them (the spec's † floors) stand | owner, 2026-10-04 | a pairing proving hard to read in use |
+
+| 28 | The outline (quiet) button's fill | a milk slab as sheet 2 drew it: optional token `quiet-fill`, `#fffbf1` light and `#463425` dark (fallback transparent, so the other four themes are unchanged); the light edge floor stays 16.0 | owner, 2026-10-04, after sheet 3's revision-2 section | the slab reading as a different kind of button from the outline one |
+| 29 | Filled buttons straight on the page | blush, danger, lilac and butter on the cream page all pass as distinct (18.73, 18.73, 18.99, 18.98), so the light filled-button edge floor 17.7 stands | owner, 2026-10-04 | a button lost on the page in use |
+| 30 | The focus ring touching a lilac fill | `#8e6ac7` on `#dac5fc` at 26.13 (selected calendar day, current page) is visible enough; the light focus floor 24.8 stands | owner, 2026-10-04 | losing track of focus on those controls |
+| 31 | Small button label | 14px semi-bold for sorbet's small buttons (16px is the default size's), a sorbet-only setting with today's 12px as the other themes' fallback | owner, 2026-10-04 | small buttons feeling crowded |
 
 The five decisions the proposal's section 11 left open were made on 2026-10-04
 (rows 20 to 24). Nothing in the proposal is waiting on the owner.
+
+Sheet 3's two decisions and its fourteen items were answered on 2026-10-04 (rows 25 to 27).
+The revision-2 questions were answered the same day (rows 28 to 31).
