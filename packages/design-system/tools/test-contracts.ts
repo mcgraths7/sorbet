@@ -4844,12 +4844,16 @@ try {
   // legibility-spec.md L183 #49 (S47): "2.4 #3" was "no file differs from e6fd3d5"; it is narrowed, not retired: the
   // eight files step 2.5 names under packages/component-library/src may change, and no file may be added or removed,
   // those eight included. The fixture is not re-recorded. (Step 2.7 removes organisms/token-studio.tsx the same way.)
-  const MAY_CHANGE = ["atoms/badge.tsx", "atoms/button.tsx", "atoms/icons.tsx", "atoms/index.ts", "molecules/alert.tsx", "molecules/field.tsx", "molecules/menu.tsx", "molecules/toast.tsx"].map((file) => `packages/component-library/src/${file}`);
+  // L194 (b) and (l): the repair of step 2.5 adds the vanilla toast and the sortable table, by the same rule.
+  const MAY_CHANGE = [
+    ...["atoms/badge.tsx", "atoms/button.tsx", "atoms/icons.tsx", "atoms/index.ts", "molecules/alert.tsx", "molecules/field.tsx", "molecules/menu.tsx", "molecules/toast.tsx"].map((file) => `packages/component-library/src/${file}`),
+    ...["toast.ts", "table-sort.ts"].map((file) => `packages/design-system/src/behaviors/${file}`),
+  ];
 
-  test("2.4 #3 L183 #49 no file under packages/component-library/src or packages/design-system/src/behaviors differs from e6fd3d5 (step 2.3) but the eight step 2.5 names, which may change; none added, none removed", () => {
+  test("2.4 #3 L183 #49 L194 (b) (l) no file under packages/component-library/src or packages/design-system/src/behaviors differs from e6fd3d5 (step 2.3) but the eight step 2.5 names and the two behaviors its repair names, which may change; none added, none removed", () => {
     const base = json("step-2.4-untouched.json") as { recordedFrom: string; files: Record<string, string> };
     assert.equal(base.recordedFrom, "e6fd3d5");
-    assert.deepEqual(MAY_CHANGE.filter((path) => base.files[path] === undefined), [], "each of the eight is a file of the fixture: a misspelt name would exempt nothing");
+    assert.deepEqual(MAY_CHANGE.filter((path) => base.files[path] === undefined), [], "each of the ten is a file of the fixture: a misspelt name would exempt nothing");
     const now: Record<string, string> = {};
     for (const dir of ["packages/component-library/src", "packages/design-system/src/behaviors"]) {
       const walk = (path: string): string[] => readdirSync(path, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(join(path, entry.name)) : [join(path, entry.name)]));

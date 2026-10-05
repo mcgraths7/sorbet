@@ -708,6 +708,110 @@ try {
     assert.equal(renderCase("H3"), "<div class=\"sb-toast sb-toast--primary\"><div><p class=\"sb-toast__body\">x</p></div><button type=\"button\" class=\"sb-toast__dismiss sb-close\" aria-label=\"Dismiss notification\"></button></div>");
   });
 
+  // ── L194 (b): the vanilla toast writes the React toast's slot ────────────────────────────────────────────────────
+  /** Just enough of a document for behaviors/toast.ts: elements that keep their attributes in order and serialize. */
+  class StandIn {
+    readonly tag: string;
+    readonly attrs = new Map<string, string>();
+    readonly children: (StandIn | string)[] = [];
+    parent: StandIn | null = null;
+    constructor(tag: string) {
+      this.tag = tag;
+    }
+    get className() {
+      return this.attrs.get("class") ?? "";
+    }
+    set className(value: string) {
+      this.attrs.set("class", value);
+    }
+    set type(value: string) {
+      this.attrs.set("type", value);
+    }
+    set textContent(value: string) {
+      this.children.splice(0, this.children.length, value);
+    }
+    setAttribute(name: string, value: string) {
+      this.attrs.set(name, String(value));
+    }
+    hasAttribute(name: string) {
+      return this.attrs.has(name);
+    }
+    append(...nodes: (StandIn | string)[]) {
+      for (const node of nodes) {
+        if (typeof node !== "string") {
+          node.parent = this;
+        }
+        this.children.push(node);
+      }
+    }
+    addEventListener() {}
+    get firstElementChild() {
+      return this.children.find((node): node is StandIn => typeof node !== "string");
+    }
+    descendants(): StandIn[] {
+      return this.children.filter((node): node is StandIn => typeof node !== "string").flatMap((el) => [el, ...el.descendants()]);
+    }
+    get outerHTML(): string {
+      const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      const attrs = [...this.attrs].map(([name, value]) => ` ${name}="${escape(value)}"`).join("");
+      return `<${this.tag}${attrs}>${this.children.map((node) => (typeof node === "string" ? escape(node) : node.outerHTML)).join("")}</${this.tag}>`;
+    }
+  }
+  const VANILLA = join(ROOT, "packages", "design-system", "dist", "behaviors", "toast.js");
+  const VANILLA_SOURCE = join(ROOT, "packages", "design-system", "src", "behaviors", "toast.ts");
+  let vanilla: { toast?: (message: string, options: Record<string, unknown>) => () => void } = {};
+  let vanillaMissing = "";
+  try {
+    vanilla = (await import(pathToFileURL(VANILLA).href)) as typeof vanilla;
+  } catch(error) {
+    vanillaMissing = (error as Error).message;
+  }
+  /** The vanilla toast() of the built design system, run against a fresh stand-in document: the toast it appends. */
+  function vanillaToast(options: Record<string, unknown>): StandIn {
+    assert.equal(vanillaMissing, "", `packages/design-system/dist/behaviors/toast.js does not load: ${vanillaMissing}`);
+    assert.equal(typeof vanilla.toast, "function", "packages/design-system/dist/behaviors/toast.js exports no toast");
+    const body = new StandIn("body");
+    const page = {
+      body,
+      createElement: (tag: string) => new StandIn(tag),
+      createElementNS: (_ns: string, tag: string) => new StandIn(tag),
+      querySelector: (selector: string) => body.descendants().find((el) => selector === `.${el.className}`) ?? null,
+    };
+    (globalThis as { document?: unknown }).document = page;
+    try {
+      vanilla.toast!("Deploy failed.", { ...options, duration: 0 });
+    } finally {
+      delete (globalThis as { document?: unknown }).document;
+    }
+    const toasts = body.descendants().filter((el) => el.className.split(" ").includes("sb-toast"));
+    assert.equal(toasts.length, 1, "one toast");
+    return toasts[0]!;
+  }
+  /** The React toast's slot for the same tone and word, cut from ToastItem's markup with L194 (g)'s exact pattern. */
+  const reactSlot = (props: Props) => new RegExp(SLOT.source).exec(render("ToastItem", { message: "Deploy failed.", onDismiss: "noop", ...props }))?.[0];
+
+  test("L194 (b) the vanilla toast reads the built design system: dist/behaviors/toast.js exists and is not older than src/behaviors/toast.ts", () => {
+    assert.ok(existsSync(VANILLA), "packages/design-system/dist/behaviors/toast.js does not exist. Run pnpm build first.");
+    assert.ok(statSync(VANILLA).mtimeMs >= statSync(VANILLA_SOURCE).mtimeMs, "packages/design-system/src/behaviors/toast.ts is newer than its build. Run pnpm build first.");
+  });
+
+  for (const tone of STATUS) {
+    for (const statusLabel of [undefined, " Fehler ", ""]) {
+      const options = statusLabel === undefined ? { tone } : { tone, statusLabel };
+      test(`L194 (b) the vanilla toast(…, ${JSON.stringify(options)}) leads with the slot ToastItem writes for the same tone and word, character for character`, () => {
+        const toast = vanillaToast(options);
+        const want = reactSlot(options);
+        assert.ok(want !== undefined, "ToastItem has a slot to compare with");
+        assert.equal(toast.firstElementChild?.outerHTML, want);
+      });
+    }
+  }
+  test("L194 (b) the vanilla toast without a tone has no slot: its first child is its content, and nothing in it is a slot, an icon or a word", () => {
+    const toast = vanillaToast({ title: "Saved" });
+    assert.equal(toast.firstElementChild?.outerHTML, "<div><p class=\"sb-toast__title\">Saved</p><p class=\"sb-toast__body\">Deploy failed.</p></div>");
+    assert.deepEqual(toast.descendants().filter((el) => /\b(?:sb-status|u-visually-hidden)\b/.test(el.className) || el.tag === "svg").map((el) => el.tag), []);
+  });
+
   // ── L181 case 9, L188: the provider passes the tone and the word through ─────────────────────────────────────────
   /**
    * L188's four textual checks on toast.tsx, its comments removed and its whitespace runs collapsed to one space (L194

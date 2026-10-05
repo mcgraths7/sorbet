@@ -39,7 +39,13 @@ export class SortableTable {
       return Number.isNaN(n) ? null : n;
     };
 
-    const key = (row: HTMLTableRowElement) => row.cells[column]?.textContent?.trim() ?? "";
+    // What the cell shows: a status slot's hidden word ("Error: ") is left out,
+    // so a cell of status badges sorts by its badges' own words (L194 (l)).
+    const key = (row: HTMLTableRowElement) => {
+      const cell = row.cells[column]?.cloneNode(true) as HTMLTableCellElement | undefined;
+      cell?.querySelectorAll(".sb-status").forEach((slot) => slot.remove());
+      return cell?.textContent?.trim() ?? "";
+    };
 
     const rows = [...this.#body.rows].sort((a, b) => {
       const [ka, kb] = [key(a), key(b)];
