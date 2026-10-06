@@ -1,8 +1,8 @@
 # Spec: the `legibility` contract and sorbet's new values (PR 2, step 2.0)
 
-Revision 3.6, 2026-10-05. Written against `main` at `e24df74` (the groundwork is
-merged). Steps 2.1 to 2.4 are built and audited (§12.2, §12.4); nothing after them exists yet. Step 2.5 is settled
-in full, after its spec adversary, the owner's answers and a verifier (§12.5, L166 to L191). Paths are relative to
+Revision 3.7, 2026-10-06. Written against `main` at `e24df74` (the groundwork is
+merged). Steps 2.1 to 2.5 are built and audited (§12.2, §12.4, L194); nothing after them exists yet. Step 2.6 is
+settled in full, after its spec adversary and the owner's answers (§12.6, L195). Paths are relative to
 `packages/design-system/` unless they start with `packages/`, `apps/`, `docs/`
 or `<root>/`. So `tools/test-contracts.ts` is
 `packages/design-system/tools/test-contracts.ts`, and the repo root's own
@@ -886,7 +886,7 @@ printed by `gen.ts`.
 | `container` | `surface` | inset 0 1px 0 0 #fef4dc @ 0.22; 0 0 0 1px #fef4dc @ 0.18 **(all-round)**; 0 10px 28px -6px #05020a @ 0.7 | — | — |
 | `floating` | `surface-raised` | inset 0 1px 0 0 #fef4dc @ 0.28; 0 0 0 1px #fef4dc @ 0.28 **(all-round)**; 0 18px 44px -10px #05020a @ 0.8 | — | — |
 | `field` | `field-fill` | inset 0 1px 3px 0 #05020a @ 0.7; inset 0 0 0 1px #fef4dc @ 0.34 **(all-round)**; 0 1px 0 0 #fef4dc @ 0.12 | — | — |
-| `sunken` | `surface-sunken` | inset 0 1px 3px 0 #05020a @ 0.7; inset 0 0 0 1px #fef4dc @ 0.14 **(all-round)** | — | — |
+| `sunken` | `surface-sunken` | inset 0 1px 3px 0 #05020a @ 0.7; inset 0 0 0 1px #fef4dc @ 0.16 **(all-round)** | — | — |
 | `quiet` | `quiet-fill` (`#463425`) | inset 0 1px 0 0 #fef4dc @ 0.22; 0 0 0 1px #fef4dc @ 0.22 **(all-round)** | — | — |
 | `filled-primary` | `primary` | inset 0 1px 0 0 #ffffff @ 0.5; 0 0 0 1px #dac5fc @ 0.35 **(all-round)**; 0 0 14px -2px #dac5fc @ 0.35 | inset 0 1px 0 0 #ffffff @ 0.5; 0 0 0 1px #dac5fc @ 0.45 **(all-round)**; 0 0 20px -1px #dac5fc @ 0.5 | inset 0 2px 4px 0 #7f5fab @ 0.55; 0 0 6px -2px #dac5fc @ 0.3 |
 | `filled-secondary` | `secondary` | inset 0 1px 0 0 #ffffff @ 0.5; 0 0 0 1px #f9c3c6 @ 0.35 **(all-round)**; 0 0 14px -2px #f9c3c6 @ 0.35 | inset 0 1px 0 0 #ffffff @ 0.5; 0 0 0 1px #f9c3c6 @ 0.45 **(all-round)**; 0 0 20px -1px #f9c3c6 @ 0.5 | inset 0 2px 4px 0 #ac505b @ 0.55; 0 0 6px -2px #f9c3c6 @ 0.3 |
@@ -898,7 +898,11 @@ printed by `gen.ts`.
 | `status-success` | `success-subtle` | 0 0 0 1px #a6edee @ 0.34 **(all-round)** | — | — |
 | `status-warning` | `warning-subtle` | 0 0 0 1px #f5e3a2 @ 0.34 **(all-round)** | — | — |
 | `status-danger` | `danger-subtle` | 0 0 0 1px #f9c3c6 @ 0.34 **(all-round)** | — | — |
-| `status-info` | `info-subtle` | 0 0 0 1px #dac5fc @ 0.34 **(all-round)** | — | — |
+| `status-info` | `info-subtle` | 0 0 0 1px #dac5fc @ 0.38 **(all-round)** | — | — |
+
+(Revision 3.7, L195 (a), DECISIONS row 46: in dark, the sunken panel's all-round layer is `@ 0.16`, sheet 2's
+0.14, and the info status box's `@ 0.38`, sheet 2's 0.34: as drawn they rendered 0.1 and 0.4 under step 2.6's
+bars. Every other recipe is sheet 2's.)
 
 **L46.** `danger` uses the recipe of `secondary`: they share the blush fill
 (decision 13). In dark, `F` in appendix E is the fill's own hex. The quiet
@@ -1036,7 +1040,7 @@ set, so the seam's fallback applies in dark instead of the light value
 inherited from `:root`. Without it, between steps 2.2 and 2.6 sorbet's old dark
 page would paint light-mode halos, light hover and press halos, and a milk
 field. For the new sorbet in steps 2.2 to 2.5 that is 41 lines in each dark
-block: the 20 optional tokens, the 13 `rest` properties, and the 4 `-hover`
+block (CORRECTION 2026-10-06: 42 since L151 added `--sb-halo-room: initial`; L195 (b)): the 20 optional tokens, the 13 `rest` properties, and the 4 `-hover`
 and 4 `-press` properties of the four filled elements. From step 2.6 it is
 none. (`--sb-button-font-size` and `--sb-button-font-size-sm` are not reset:
 they are the same in both modes.)
@@ -1146,7 +1150,7 @@ revision 2 marked it provisional, and the owner passed its pairing on
 | `edge-container` | edge | presence | 2 | 16.70, on `bg` → **15.8** (0.90) | 16.06, on `bg` → **15.2** (0.86) |
 | `edge-floating` | edge | presence | 2 | 17.77, on `surface` → **16.8** (0.97) | 21.58, on `surface` → **20.4** (1.18) |
 | `edge-field` | edge | presence | 3 | 11.03, on `surface` → **10.4** (0.63) | 31.71, on `surface` → **30.1** (1.61) |
-| `edge-sunken` | edge | presence | 1 | 8.69, on `surface` → **8.1** (0.59) | 14.06, on `surface` → **13.3** (0.76) |
+| `edge-sunken` | edge | presence | 1 | 8.69, on `surface` → **8.1** (0.59) | 15.92, on `surface` → **13.3** (2.62; pinned at revision 3.6's 14.06, L60, L195 (a)) |
 | `edge-quiet` | edge | presence | 2 | 16.90, on `surface` → **16.0** (0.90) | 17.18, on `surface` → **16.3** (0.88) |
 | `edge-filled` | edge | presence | 8 | 18.73, `filled-secondary` on `bg` (R265; R273 the same) † (row 29) → **17.7** (1.03). Revision 1: 15.7, pinned to R269, withdrawn | 57.60, `filled-secondary` on `surface` → **54.7** (2.90) |
 | `edge-status` | edge | presence | 4 | 15.46, `status-success` on `surface` → **14.6** (0.86) | 21.45, `status-danger` on `surface` → **20.3** (1.15) |
@@ -1734,7 +1738,7 @@ the diff is the review artefact:
 | Step | What the diff may contain |
 |---|---|
 | 2.2 | line 1 (the tagline); the light block of `:root` (the 69 roles, the 20 optional tokens, the five shadow lines re-tinted, `--sb-button-font-size` and `--sb-button-font-size-sm`, the 21 edge lines: 13 `rest`, 4 `-hover`, 4 `-press`); and, at the end of each of the two dark blocks, the 41 reset lines of L55 |
-| 2.6 | the two dark blocks only: the 69 roles, the 20 optional tokens and the 21 edge lines with their dark values, in place of the 41 reset lines |
+| 2.6 | the two dark blocks only: the 69 roles, the 20 optional tokens and the 21 edge lines with their dark values, in place of the 41 reset lines (CORRECTION 2026-10-06: 42, and `--sb-halo-room: 3px;` replaces the halo room's reset, as L98 says; step 2.6's acceptance #5 gives each block's lines; L195 (b)) |
 
 **L98.** No other step changes it, except one fix commit of step 2.4 (revision 3.5, L151): the light line `--sb-halo-room: 9px;` (8px until the repair of 7a683fd counted the hover rise, L151) and its reset at the end of each dark block, which step 2.6 replaces with `3px`. The four frozen goldens change in no step; the
 update tool refuses them and `check-golden-base.ts` holds them to the base
@@ -1986,24 +1990,55 @@ and "four outlined shapes", gave no colour, size, word or rim form, and said
      quoted in the commit.
 - *Does not:* L184 (among it, the React Menu's ARIA defect).
 
-**2.6 Sorbet dark** — tests first for the values
+**2.6 Sorbet dark** — tests first for the values; the look shown first (L195)
 
-- *Files:* `src/tokens/presets.ts` (`colors.dark`, `edges.dark`,
-  `contract.dark = "legibility"`); `tools/golden/sorbet.css`.
-- *Acceptance:* `colors.dark` and `edges.dark` equal §3 and §5.2; sorbet dark
-  passes `legibility` and the six checks; every name the light block emits is
-  emitted by the dark block too (but the two button-size lines, the same in
-  both modes, L19), so no reset remains and `danger-active` no
-  longer leaks (L160); `--sb-halo-room` reads `1px` in dark (L151); the known-bad fixture still fails
-  as §10 states, unchanged; the golden diff is the two dark blocks only; the
-  edits of L105 for this step are made; the reports print
-  `wcag-aa × 8, legibility × 2` and 946 pairings (950 in revision 1); rendered
-  edges re-measured in dark, each no lower than sheet 2's figure less 1.0.
-  Sheet 2's figures (`edges-measure.json`, `Dark`, `weakest.worstSim`): card 13.2; sunken panel 13.8; box in a well
-  19.1; floating menu 17.2; the lilac, blush and butter buttons on a card
-  58.1 / 57.6 / 63.9; quiet button 17.2; butter on the page 71.0;
-  quiet on the page 19.3; text field 18.9; checkbox and switch 56.3; status
-  box 22.6.
+(Rewritten in revision 3.7, §12.6. Revision 3.6's text said `--sb-halo-room` reads `1px` in dark, compared "the
+light block" with "the dark block" by name alone, listed no test file, authorised none of the nine step-2.2 tests it
+turns red, and had no rendered look: the spec adversary's findings, closed in §12.6's table. Two dark recipes of
+L45 change, DECISIONS row 46.)
+
+- *Files:* `src/tokens/presets.ts`: sorbet's `colors.dark` written out whole from §3 (the 69 roles in
+  `SEMANTIC_COLOR_NAMES` order, then the 20 optional tokens in L15's), as `colors.light` is; `edges.dark` from L45;
+  `contract.dark = "legibility"`. `SORBET_RECIPE` and its comment go (nothing reads it once both records are
+  written out, and lint refuses an unused name); the file's header says sorbet's two records are the exception to
+  "every preset is built by `buildMode`"; `chartThemes.sorbet` stays (`tools/check-cvd.ts` reads it).
+  `tools/golden/sorbet.css`. `tools/test-contracts.ts` and `tools/test-contrast.ts`: L105's edits for this step and
+  L195 (c)'s table, and no other existing assertion.
+- *Acceptance* (each test shown red without the change):
+  1. `presets.sorbet.colors.dark` equals §3's dark record key for key and in order, and `presets.sorbet.edges.dark`
+     equals L45's dark table element for element in `EdgeElement` order. The expected values may be read from
+     `tools/fixtures/contracts/legibility-values.json`, whose dark half is §3 and L45 as transcribed (2.1 #2).
+  2. Sorbet dark passes `legibility`: its 193 measurements through `measurePreset` are the two scrim ratios
+     (5.5562 and 4.6844 to 1e-4, view `typical`) and appendix A's 191 dark figures, each to 0.01 in its stated view
+     (the form of step 2.2's light test); every one holds, and none of the six checks fails.
+  3. No name is left to leak (L160): in sorbet's theme file, every `--sb-` name declared from `color-scheme: light;`
+     to the end of `:root` (the light block as `modeBlock` writes it; the fonts and radii above it hold in both
+     modes), but `--sb-button-font-size` and `--sb-button-font-size-sm` (L19), is declared in **each** of the two
+     dark blocks with a value that is not `initial`: 116 names each. No `initial` is left in the file, and
+     `--sb-danger-active` reads `#f9c3c6` in both dark blocks.
+  4. `--sb-halo-room` reads `3px` in each dark block, its last line, after the edge lines (L151, L98: the rims'
+     `0 0 0 1px`, 1, plus the card's rise, 2).
+  5. The golden changes only inside the two dark blocks. Each becomes, in the light block's order,
+     `color-scheme: dark;`, the 69 roles, the 20 optional tokens, the five shadow lines (unchanged), the 21 edge
+     lines and `--sb-halo-room: 3px;`: 117 lines. Today it is 116: `color-scheme`, buildMode's 68 roles
+     (`danger-active` missing, L160), the five shadows and the 42 `initial` lines of L55 and L151. The file goes
+     from 375 lines to 377. The four frozen goldens are unchanged, and the build's golden gate passes.
+  6. The reports and the gates print `wcag-aa × 8, legibility × 2` and `946 pairings`; the reports' sorbet dark
+     line is `all 193 pairings pass (tightest margin ×1.02) — legibility; 68 rules not held` (×1.02 where the
+     report prints a margin, L91).
+  7. The known-bad fixture still fails as §10 states, unchanged (it holds e24df74's sorbet, not the shipped one).
+  8. Rendered edges in dark, with `<root>/tools/measure-edges.ts --preset sorbet --mode dark` (L159's whole
+     boundary, worst simulation), each no lower than sheet 2's figure less 1.0: card 12.2; sunken panel 12.8; the
+     lilac, blush (the danger button is the staged "Blush (danger)" row, as in step 2.4) and butter buttons on a
+     card 57.1 / 56.6 / 62.9; floating menu (the combobox panel row) 16.2; quiet button 16.2; butter on the page
+     70.0; quiet on the page 18.3; text field 17.9; checkbox and switch 55.3; each of the four status boxes on a card
+     21.6 (L191). "Box in a well" (19.1) has no component in the library, as in step 2.4. The run's table is
+     quoted in the commit. A rendered bar that fails is a contradiction report to the owner, never a value edit.
+  9. Looked at: the owner saw the library in sorbet dark with these values (the playground, and the dark status
+     boxes and sunken panel at 2x) on 2026-10-06, and approved it (DECISIONS row 47); `pnpm check:status-layout`
+     passes in all five presets and both modes.
+- *Does not:* change a floor. The edge-sunken dark tier's weakest pair rises from 14.06 to 15.92 under its pinned
+  floor of 13.3 (L60; L195 (a)).
 
 **2.7 Token Studio** — the resolution tests first; the panel loud
 
@@ -2315,7 +2350,7 @@ disagree, these win.
 | C1 | L155: the screenshot tool covers every state the audit walked, plus staged fixtures for what the playground lacks, runs a same-commit control first, and never prints the frozen success line unless every frozen preset was compared in both modes |
 | C2, C3 | L148, L149: a frozen preset gains no new rendered layer. A new ring, bar or line comes wholly from a token the frozen presets do not define, through `where-defined`, with the element's old value as the fallback. L70's rows for the switch ring, the thumb and slider-track rings and the selected bar change; the "transparent fallback leaves them pixel-identical" sentence is withdrawn |
 | M1 | L150: L146 restated to cover a fallback-less `var()` whose declaration is `none` (`flat-elevation`), with the test's resolution: the closure of custom properties a composed list reads, over the compiled CSS. `flat-elevation` sets `0 0 #0000` |
-| M2 | L151: a clipping parent never cuts an all-round layer. The emitter derives `--sb-halo-room` from edge data (8px light, 1px dark); the carousel viewport and the marquee pad by it, through `calc(<old> + var(--sb-halo-room, 0px))`; each of proposal §7's six parents is named with its reach and decision |
+| M2 | L151: a clipping parent never cuts an all-round layer. The emitter derives `--sb-halo-room` from edge data (8px light, 1px dark; CORRECTION 2026-10-06: 9px and 3px since the repair of 7a683fd, L195 (b)); the carousel viewport and the marquee pad by it, through `calc(<old> + var(--sb-halo-room, 0px))`; each of proposal §7's six parents is named with its reach and decision |
 | M3 | L152: a state is never weaker than rest. The interactive card's hover reads `edge(container, shadow(lg))` and its line through `container-line` by `where-defined`; the frozen presets keep `shadow(lg)` and `border` exactly |
 | M4 | L153: a check on the compiled CSS catches every way a state selector gets a `box-shadow`: shadow-writing mixins, vendor prefixes, interpolated names, `@at-root`, and named BEM state modifiers. Out of scope, with reasons: style variants that are not states |
 | M5 | L154: "may only shrink" is held by a test in `pnpm test` (the allowlist plus an append-only removed list equals the e24df74 sites, recorded as a fixture) and by a CI base-branch check like `check-golden-base.ts`; `--check`'s false claim is corrected |
@@ -2501,7 +2536,8 @@ parents:
 | `.sb-card` (`_card.scss:10`) | children inside its `space(4)` padding (16px) | no room: 16 > 8 |
 
 Visible in sorbet: the carousel and the marquee inset their content by 8px
-in light (1px in dark from step 2.6). Nothing changes in a frozen preset.
+in light (1px in dark from step 2.6). (CORRECTION 2026-10-06: 9px in light and 3px in dark, as this statement's
+own arithmetic and L98 give; L195 (b).) Nothing changes in a frozen preset.
 
 **L152.** **A state is never weaker than rest.** A hovered, pressed, focused,
 selected, checked, indeterminate or open element never draws less edge than it
@@ -4043,6 +4079,126 @@ Also: `halo-room()`'s superseded doc comment (`abstracts/_tokens.scss:159-161`) 
 removed. Acceptance #8's table is quoted in the commit that carries (a), (e) and
 (k).
 
+### 12.6 Revision 3.7: step 2.6 settled (2026-10-06)
+
+**Before any test was written.** A spec adversary attacked step 2.6's text (`spec-adversary-step26.md` beside this
+file). It built the step in a scratch copy, from values parsed out of this document's own tables by script, and ran
+every gate on it. It found:
+- 1 critical, 4 major, 6 minor and 2 nits;
+- no error in the dark values: they pass `legibility`, and every dark figure of L164 and L170 to L179 reproduces.
+
+**The owner's answers, 2026-10-06, both the recommended option:**
+- C-1: they chose from a rendered comparison (`step26/c1-compare.png`), DECISIONS row 46;
+- M-4: they approved sorbet dark's look from the playground rendered in it, row 47.
+
+The orchestrator ruled on the rest. These statements close every finding. Where they and earlier text disagree,
+these win, and each earlier statement they change carries a dated pointer here.
+
+| Id | Closed where, and how |
+|---|---|
+| C-1 | L195 (a): two dark recipes strengthened (row 46). Step 2.6's acceptance #8: the bars as written, and a failing bar is a contradiction report |
+| M-1 | Step 2.6's acceptance #4 and L195 (b): `3px` in dark, and the stale "1px" lines pointed here |
+| M-2 | L195 (c): every existing assertion step 2.6 changes, with its new expectation |
+| M-3 | Step 2.6's acceptance #3: the light block bounded, both dark blocks, no `initial`, 116 names |
+| M-4 | Step 2.6's acceptance #9 and L195 (e) (row 47) |
+| m-1 | L195 (c): #27 to #29, and the current anchors |
+| m-2 | Step 2.6's *Files*: the test files; `SORBET_RECIPE` goes; the header; `chartThemes.sorbet` stays |
+| m-3 | Step 2.6's acceptance #8: "box in a well" has no component; the danger and menu rows are named; the run is quoted |
+| m-4 | L195 (b): 42 reset lines; acceptance #5 gives each dark block's 117 lines and the file's 377 |
+| m-5 | Step 2.6's acceptance #2: appendix A's dark column to 0.01, in each stated view |
+| m-6 | L195 (c): #47's anchor is `tools/test-contrast.ts:226` |
+| n-1 | L195 (f): the "as step 2.6 will make it" tests stay |
+| n-2 | L195 (f): a §13 note |
+
+**L195.** **Step 2.6, settled (2026-10-06).**
+
+(a) **Two dark recipes strengthened (DECISIONS row 46).**
+
+Built as sheet 2 drew them, two dark elements rendered under step 2.6's bars (`<root>/tools/measure-edges.ts`, L159's
+whole boundary, the same over two runs):
+- the info status box on a card: 21.2, against 21.6;
+- the sunken panel on a card: 12.7, against 12.8 (its bottom side, `#120802`).
+
+The owner chose to strengthen each one's all-round layer in L45's dark table:
+
+| Element | Layer | Was (sheet 2) | Now |
+|---|---|---|---|
+| `sunken` | `inset 0 0 0 1px #fef4dc` | `@ 0.14` | `@ 0.16` |
+| `status-info` | `0 0 0 1px #dac5fc` | `@ 0.34` | `@ 0.38` |
+
+Every other recipe is unchanged, the other three status boxes among them.
+
+**Rendered, dark:**
+- sunken panel 13.1 (bar 12.8);
+- info box 23.8 (bar 21.6);
+- success, warning and danger boxes 22.6, 23.8 and 36.2, unchanged.
+
+**The gate's figures move in two rules:**
+
+| Rule | Was | Now | Edge pixel | From backdrop | From fill |
+|---|---|---|---|---|---|
+| R259 `edge:sunken` on `surface`, dark | 14.06 | **15.92** (deutan) | `#352a21` → `#392f26` | 3.77 | 15.92 |
+| R279 `edge:status-info` on `surface`, dark | 21.46 | **23.76** (tritan) | `#6c5b65` → `#73616e` | 23.76 | 10.92 |
+
+Appendix A, appendix B and L61's weakest figure carry the new numbers. The well on the bare page in §13 moves from
+14.06 to 15.92.
+
+**No floor moves.** The edge-sunken dark floor stays 13.3: a floor is re-pinned only with a new sheet (L60), and the
+owner's sheet changed values, not the contract. The tier now carries 2.62 of slack where it carried 0.76.
+`edge-status`'s weakest is R278, 21.45, which is unchanged. So `src/tokens/contracts.ts` is not edited.
+
+**The transcribed fixtures.** This revision changes the header's revision number, so the commit that carries it
+re-runs the transcriber, `transcribe-legibility-spec.mjs.txt`.
+- `legibility-values.json` changes in the two alphas and `transcribedFrom`.
+- `legibility-appendix-a.json` changes in R259's and R279's dark figures, their appendix B rows and
+  `transcribedFrom`.
+- Every existing test passes on the re-transcription; the step-2.1 tests measure the fixture against it.
+
+(b) **Stale numbers.**
+- The dark halo room is `3px`. L151's arithmetic gives it: the rims' `0 0 0 1px`, 1, plus the card's rise, 2. L98
+  and `tools/test-contracts.ts:5031` (`[9, 3]`) say so too. The "1px" of §12 step 2.6 (revision 3.6), of §12.4's
+  M2 and of L151's last paragraph was written before the repair of 7a683fd counted the rise.
+- The reset lines are 42 in each dark block, not 41, since L151 added `--sb-halo-room: initial`. L97's step-2.6
+  row omitted the halo room's line, which L98 carries.
+
+(c) **The tests step 2.6 changes.** L105's edits for this step, with their current anchors, and the nine step-2.2
+tests no line had authorised. Step 2.6's test author edits these, in the step, and no other existing assertion;
+one more found is a defect of this spec, reported as L10 says.
+
+| # | File:line (at `4a5f7f6`) | What it asserts today | New expectation |
+|---|---|---|---|
+| 11 again | `tools/test-contracts.ts:1351` (M6.8) | the reports' counts, `823`, `× 9, × 1` | `946`, `wcag-aa × 8, legibility × 2`; the sorbet dark line `all 193 pairings pass (tightest margin ×1.02) — legibility; 68 rules not held` |
+| 25 to 31, 46 | `DECLARED` at `:485`, read by check700 `:530` and `:774`, M5 `:915`, M6.6 `:1188`, M6.9 `:1412`, M10.1 `:1688`, M10.7 `:2058`, M9 `:6067` | sorbet dark among the preset-modes that declare `wcag-aa` | sorbet dark leaves them, so check700 holds 560 measurements (8 preset-modes × 70). The one edit to `DECLARED` clears all of these, #27 to #29 among them |
+| 47 | `tools/test-contrast.ts:226` | the impossible-alpha `scrim` tamper is on sorbet dark | it moves to forest dark (L105 #47) |
+| 52 | `tools/test-contracts.ts:3819` ("2.2 L86 L91", ×3) | each mode line, and the last line's `823 … wcag-aa × 9, legibility × 1` | sorbet dark's line as in #11; the last line `… (946 pairings measured): wcag-aa × 8, legibility × 2` |
+| 53 | `:3908` ("2.2 L87", ×2) | the gates' `wcag-aa × 9, legibility × 1` | `wcag-aa × 8, legibility × 2` |
+| 54 | `:4300` ("2.2 L45 L101") | `edges.dark` is undefined | `edges.dark` is L45's dark table (acceptance #1); the light half unchanged |
+| 55 | `:4325` ("2.2 L101 L3") | sorbet's dark record is buildMode's | retired, replaced by acceptance #1 |
+| 56 | `:4346` ("2.2 L3 sorbet dark still passes wcag-aa") | its 70 measurements are 2d3b765's | retired, replaced by acceptance #2. The new dark record also holds `wcag-aa`, 70 of 70, but nothing declares it |
+| 57 | `:4414` ("2.2 L97 L55 L151", the golden) | the 42 resets at the end of each dark block | the golden of acceptance #5: step 2.2's light block as that test states it, and each dark block as acceptance #5 gives it |
+
+(d) **No name left to leak.** "The light block" of L160 and of step 2.6's acceptance #3 is the run of declarations
+from `color-scheme: light;` to the end of `:root`. The nine names above it (three fonts, six radii) hold in both
+modes, and no dark block repeats them.
+
+(e) **The look (DECISIONS row 47).**
+- **What the owner saw**, before any test was written: the playground in sorbet dark with these values, and the
+  dark status boxes and the sunken panel at 2x, under both options of (a). It was the first time the library was
+  seen rendered in sorbet dark. It included:
+  - the cocoa page;
+  - the danger rims;
+  - the status icon's ink `#f3e7ce` on the dark washes;
+  - the dark link `#dac5fc`;
+  - the selected pill.
+- **What the step owes now:** the rendered-edge run of its acceptance #8, quoted in its commit. No second sheet is
+  owed: the values are the ones the owner saw.
+
+(f) **Two notes.**
+- The planted "2.1 #9 … as step 2.6 will make it" tests (`tools/test-contracts.ts:3832`, `:3914`) stay. They test
+  the reports on a planted tree, which the shipped presets do not replace.
+- `tools/check-cvd.ts` reads `chartThemes.sorbet`, not the `chart-*` hexes sorbet's records emit. They are equal,
+  and step 2.6's acceptance #1 holds the records' half (a §13 matter, unchanged).
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
@@ -4075,7 +4231,7 @@ the gate's silence as a pass.
 | The rating's stars in a tone: `clr(X)`, the pastel (warning `#f5e3a2` 7.99, tritan, from a card) | a rating is not a status; the star count and the fractional fill carry its value | the off star's ring (the row on `border-strong` lines below) |
 | Font size, apart from the button label at its two sizes (C9, L115) | the checker reads no Sass | the 47-row table of L72; L111 for 12px text on fills and washes |
 | "Paragraphs never sit on a full-strength fill" (the ink reads 62.47 on lilac) | a usage convention | none; stated in the docs of step 2.8 |
-| Placements sheet 2 did not draw: a status box on the bare page (14.47 to 16.27 light); a well on the bare page (6.37 light, 14.06 dark); a card inside a card (15.47 light, 14.03 dark); a divider on the page in light (9.68) and on a raised surface in dark (9.91) | a floor pinned to them would be pinned to something nobody approved; several sit under their class's floor | §15, item 13 |
+| Placements sheet 2 did not draw: a status box on the bare page (14.47 to 16.27 light); a well on the bare page (6.37 light, 15.92 dark; 14.06 before L195 (a)); a card inside a card (15.47 light, 14.03 dark); a divider on the page in light (9.68) and on a raised surface in dark (9.91) | a floor pinned to them would be pinned to something nobody approved; several sit under their class's floor | §15, item 13 |
 | A card on a brand wash (the auth template) | the template paints a gradient of the wash toward transparent, never the full wash (`templates/_auth.scss:19-21`), so the pair measures a backdrop that is never on screen | the two ends of that gradient are the page (gated, 16.70) and the wash |
 | `chart-muted`; the chart order under tritan | as today (decision A3) | `tools/check-cvd.ts`, unchanged |
 | The rating's "off" star, the carousel's "off" dot, the calendar's "today" ring and five more places that paint `border-strong` as a line (proposal §7): they become the ring colour `#b096d7` | not drawn on a sheet | §15, item 6 |
@@ -4831,7 +4987,7 @@ breakdown is in appendix B. Script: `evaluate.ts new`, printed by `gen.ts`
 
 | # | `fg` | `bg` | Light | Dark | Pair | For |
 |---|---|---|---|---|---|---|
-| R259 | `edge:sunken` | `surface` | 8.69 (tritan) | 14.06 (deutan) | new |  |
+| R259 | `edge:sunken` | `surface` | 8.69 (tritan) | 15.92 (deutan) | new |  |
 
 **Tier `edge-quiet`** — presence; 2 rules; floor light 16, dark 16.3
 
@@ -4866,7 +5022,7 @@ breakdown is in appendix B. Script: `evaluate.ts new`, printed by `gen.ts`
 | R276 | `edge:status-success` | `surface` | 15.46 (protan) | 22.62 (deutan) | new |  |
 | R277 | `edge:status-warning` | `surface` | 17.74 (tritan) | 23.97 (tritan) | new |  |
 | R278 | `edge:status-danger` | `surface` | 17.49 (deutan) | 21.45 (protan) | new |  |
-| R279 | `edge:status-info` | `surface` | 17.48 (tritan) | 21.46 (tritan) | new |  |
+| R279 | `edge:status-info` | `surface` | 17.48 (tritan) | 23.76 (tritan) | new |  |
 
 ## Appendix B. The 22 edge rules, broken down
 
@@ -4894,7 +5050,7 @@ row. Script: `gen.ts` (`out/edge-detail.md`).
 | R258 `edge:field` on `surface-raised` | light | `#fffbf1` on `#fffbf1` | 0.00 | `#e1d5bf` | 11.03 | 11.03 | **11.03** (tritan) |
 | R258 `edge:field` on `surface-raised` | dark | `#140903` on `#463425` | 18.49 | `#64594d` | 12.93 | 31.71 | **31.71** (deutan) |
 | R259 `edge:sunken` on `surface` | light | `#f7ecd1` on `#fffbf1` | 4.47 | `#edddbe` | 8.69 | 4.22 | **8.69** (tritan) |
-| R259 `edge:sunken` on `surface` | dark | `#140903` on `#342417` | 12.04 | `#352a21` | 2.01 | 14.06 | **14.06** (deutan) |
+| R259 `edge:sunken` on `surface` | dark | `#140903` on `#342417` | 12.04 | `#392f26` | 3.77 | 15.92 | **15.92** (deutan) |
 | R260 `edge:quiet` on `surface` | light | `#fffbf1` on `#fffbf1` | 0.00 | `#d8c0a1` | 16.90 | 16.90 | **16.90** (deutan) |
 | R260 `edge:quiet` on `surface` | dark | `#463425` on `#342417` | 6.45 | `#605242` | 17.18 | 10.65 | **17.18** (deutan) |
 | R261 `edge:quiet` on `bg` | light | `#fffbf1` on `#fef4dc` | 2.36 | `#d7bc95` | 15.88 | 18.18 | **18.18** (tritan) |
@@ -4934,7 +5090,7 @@ row. Script: `gen.ts` (`out/edge-detail.md`).
 | R278 `edge:status-danger` on `surface` | light | `#fcdfdc` on `#fffbf1` | 6.08 | `#f1acaf` | 17.49 | 11.42 | **17.49** (deutan) |
 | R278 `edge:status-danger` on `surface` | dark | `#5b443a` on `#342417` | 13.00 | `#775a53` | 21.45 | 8.45 | **21.45** (protan) |
 | R279 `edge:status-info` on `surface` | light | `#ede0f7` on `#fffbf1` | 6.42 | `#cfb6ea` | 17.48 | 11.06 | **17.48** (tritan) |
-| R279 `edge:status-info` on `surface` | dark | `#554445` on `#342417` | 12.85 | `#6c5b65` | 21.46 | 8.61 | **21.46** (tritan) |
+| R279 `edge:status-info` on `surface` | dark | `#554445` on `#342417` | 12.85 | `#73616e` | 23.76 | 10.92 | **23.76** (tritan) |
 
 ## Appendix C. The scripts
 

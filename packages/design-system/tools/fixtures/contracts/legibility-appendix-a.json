@@ -1,5 +1,5 @@
 {
-  "transcribedFrom": "docs/pastel-legibility-evidence/legibility-spec.md, revision 3.6 (2026-10-05)",
+  "transcribedFrom": "docs/pastel-legibility-evidence/legibility-spec.md, revision 3.7 (2026-10-06)",
   "note": "floors: L61. rules: appendix A, the 191 rules in RULES order (L67), each with the actual and view the spec states per mode (two decimals). edgeDetail: appendix B.",
   "floors": [
     {
@@ -3594,7 +3594,7 @@
         "view": "tritan"
       },
       "dark": {
-        "actual": 14.06,
+        "actual": 15.92,
         "view": "deutan"
       },
       "pair": "new",
@@ -3818,7 +3818,7 @@
         "view": "tritan"
       },
       "dark": {
-        "actual": 21.46,
+        "actual": 23.76,
         "view": "tritan"
       },
       "pair": "new",
@@ -4124,10 +4124,10 @@
       "fill": "#140903",
       "backdrop": "#342417",
       "fillStep": 12.04,
-      "pixel": "#352a21",
-      "pixelFromBackdrop": 2.01,
-      "pixelFromFill": 14.06,
-      "presence": 14.06,
+      "pixel": "#392f26",
+      "pixelFromBackdrop": 3.77,
+      "pixelFromFill": 15.92,
+      "presence": 15.92,
       "view": "deutan"
     },
     {
@@ -4516,10 +4516,10 @@
       "fill": "#554445",
       "backdrop": "#342417",
       "fillStep": 12.85,
-      "pixel": "#6c5b65",
-      "pixelFromBackdrop": 21.46,
-      "pixelFromFill": 8.61,
-      "presence": 21.46,
+      "pixel": "#73616e",
+      "pixelFromBackdrop": 23.76,
+      "pixelFromFill": 10.92,
+      "presence": 23.76,
       "view": "tritan"
     }
   ]

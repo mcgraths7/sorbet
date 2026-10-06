@@ -53,6 +53,8 @@ The record the two sample sheets are built from, and the evidence behind
 | 43 | The vanilla toast carries the icon and the word | `toast()` in `@sorbet/design-system/behaviors` (every `sorbet create` starter page calls it) writes the same status slot as the React toast, with a `statusLabel` option; a test pins its glyphs and words to the React ones. Spec L194 (b) | owner, 2026-10-05: "Cover it" (the recommended option) | the vanilla behaviors being retired |
 | 44 | The apps' categorical badges | `apps/admin` and `apps/meal-kit` use brand tones or none for categories and counts ("Spicy", "Veggie", a stock count, a nav count), so only real statuses carry a status icon and word; the owner saw the renders (`row44/sheet.png`) and chose the recommended set: same hexes where a brand tone matches, accent for Spicy and 15 min, neutral grey for Packing and the nutrition tags (1.6 apart from Out for delivery in fill, deutan, where the secondary tone was 0.2), and "Behind schedule: 2", "Very low: 84", "Low: 140" for the real statuses. Spec L194 (c) | owner, 2026-10-05: "Re-tone the apps"; 2026-10-06: "Land as recommended" | a category that is in fact a status |
 | 45 | A tone outside the four statuses | `Alert` and the toast given one (from untyped code) render with no icon and no word, as before step 2.5, instead of throwing. Spec L194 (d) | owner, 2026-10-05: "Render no icon" (the recommended option) | a reason to show an unknown tone as info |
+| 46 | Sorbet dark's two weakest drawn edges | strengthened: the sunken panel's all-round rim `#fef4dc` @ 0.16 (was 0.14), the info status box's `#dac5fc` @ 0.38 (was 0.34). As drawn they rendered 12.7 and 21.2 against bars of 12.8 and 21.6; now 13.1 and 23.8. No floor moves. Spec L195 (a) | owner, 2026-10-06: "Strengthen the two rims" (the recommended option), from `step26/c1-compare.png` | a dark panel or info box that reads too heavy |
+| 47 | Sorbet dark's look | approved as rendered from the library (the playground in sorbet dark with step 2.6's values: the cocoa page, the dark rims, the status icon's cream ink `#f3e7ce`, the lilac link `#dac5fc`), before any test was written. Spec L195 (e) | owner, 2026-10-06: "Yes, build it" | a dark screen that reads wrong in use |
 
 The five decisions the proposal's section 11 left open were made on 2026-10-04
 (rows 20 to 24). Nothing in the proposal is waiting on the owner.
@@ -69,3 +71,5 @@ decided for the same step; spec §12.5 holds it all.
 
 The audit of step 2.5 left four questions, answered on 2026-10-05 (rows 42 to 45), each
 with the recommended option; spec L194 holds them with the repair's other rulings.
+
+Step 2.6's two questions were answered on 2026-10-06 (rows 46 and 47), from rendered sheets; spec L195 holds them.
