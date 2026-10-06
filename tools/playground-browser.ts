@@ -17,7 +17,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createServer, type Server } from "node:http";
 import { extname, join, normalize } from "node:path";
 
@@ -58,6 +58,26 @@ const run = (cmd: string, args: string[], cwd: string) => {
 export function buildPlayground(root: string = ROOT): void {
   run("pnpm", ["build"], root);
   run("pnpm", ["--filter", "playground", "build"], root);
+  const refusal = dirRefusal(join(root, "apps", "playground", "dist"));
+  if (refusal !== null) {
+    throw new Error(refusal);
+  }
+}
+
+/**
+ * Null when the built playground's stylesheet keeps the library's `:dir(rtl)` as written; else why not. A bundler
+ * that lowers `:dir()` for older browsers writes a list of right-to-left languages instead, which a page set right to
+ * left with `dir="rtl"` alone does not match, so every right-to-left shot would show the selected bar on the wrong side
+ * on both sides of a compare (the audit of step 2.6, render lens F3).
+ */
+export function dirRefusal(dist: string): string | null {
+  const assets = join(dist, "assets");
+  const css = existsSync(assets) ? readdirSync(assets).filter((file) => file.endsWith(".css")).map((file) => readFileSync(join(assets, file), "utf8")) : [];
+  const library = css.find((text) => text.includes(".sb-sidebar__item"));
+  if (library === undefined) {
+    return `${assets} holds no library stylesheet: build the playground first`;
+  }
+  return library.includes(":dir(rtl)") ? null : "the playground's library stylesheet has no :dir(rtl): its bundler lowered :dir() (apps/playground/vite.config.ts, build.cssTarget), so a right-to-left page would match none of it";
 }
 
 /** Serve a built playground on a free loopback port. */
