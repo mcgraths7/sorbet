@@ -10,9 +10,10 @@ before step 2.6 (L160).
 Steps 2.1 to 2.5 are built, audited and repaired. Step 2.5's audit (two
 lenses, `audit-6ef4b35-frozen.md` and `audit-6ef4b35-status.md`) and its
 one repair pass are done: spec L194, DECISIONS rows 42 to 45, commits
-`1e6ce6f` to `318070f`. The spec is `legibility-spec.md` (revision 3.6, L1 to
-L194); every owner decision, with what would retire it, is in `DECISIONS.md`
-(rows 1 to 45). Read the spec's §12 (the steps), §12.4 and §12.5 (the latest
+`1e6ce6f` to `318070f`. Step 2.6's spec is settled (revision 3.7, §12.6, L195,
+DECISIONS rows 46 and 47), after its spec adversary, the owner's answers and a
+verifier. The spec is `legibility-spec.md` (revision 3.7, L1 to L195); every owner
+decision, with what would retire it, is in `DECISIONS.md` (rows 1 to 47). Read the spec's §12 (the steps), §12.4 and §12.5 (the latest
 revisions, L194 last), and the repo's `CLAUDE.md` before changing anything.
 
 `9b83e50`, which §12.5 compares against, was never pushed; `ec97a20` stands for
@@ -20,8 +21,8 @@ it (the recorder re-writes its fixture byte for byte from `ec97a20`'s build).
 
 ## What is left, in order
 
-1. **Step 2.6, sorbet dark** (§12, "2.6"): spec adversary first, then tests
-   first by a separate author, then the implementer.
+1. **Step 2.6, sorbet dark** (§12, "2.6", rewritten in revision 3.7): tests first
+   by a separate author from the spec alone, then the implementer, then its audit.
 2. **Step 2.7, Token Studio**: the resolution tests first; the panel by eye.
 3. **Step 2.8, docs and stale numbers.**
 4. A full screenshot run on the branch head (`pnpm shots baseline --at

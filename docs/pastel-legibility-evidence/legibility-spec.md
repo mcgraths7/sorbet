@@ -336,7 +336,8 @@ false here:
 | 11 again | `tools/test-contracts.ts:982` | (as #11 of step 2.1) | the transformed fixture, with sorbet's heading line carrying its new tagline (L21), sorbet's light line reading `all 193 pairings pass (tightest margin ×1.02) — legibility; 68 rules not held`, and the last line `… (823 pairings measured): wcag-aa × 9, legibility × 1`. The margin is derived from this spec, not from the code under test: the smallest `actual ÷ floor` over the mode's 193 measurements, from appendix A's values and L61's floors and the two scrim ratios: light 84.8629 ÷ 82.8 = 1.0249 (R087), dark 85.2412 ÷ 83.2 = 1.0245 (R089), each printed ×1.02 (`rev2/rev3.ts`) | L21, L86, L91 |
 | 46 | `tools/test-contracts.ts:1326-1328` | with `wcag-aa`'s `text` respelled `txet`, `contractOf(preset, "light")` throws for every shipped preset | it throws for each shipped preset and mode that declares `wcag-aa` (from step 2.2 not sorbet light; from step 2.6 not sorbet at all), and `contractOf` for a mode declaring `legibility` still returns `"legibility"` | step 2.2, L57 |
 
-*Step 2.6* (sorbet dark declares `legibility`): #11, #25, #26, #30, #31 and
+*Step 2.6* (sorbet dark declares `legibility`; CORRECTION 2026-10-06: and #27 to #29 and nine step-2.2 tests,
+with current anchors, as L195 (c) lists them): #11, #25, #26, #30, #31 and
 #46 again, for the dark mode (#11's last line then reads `(946 pairings
 measured): wcag-aa × 8, legibility × 2`, and sorbet's dark line ×1.02), and
 one more:
@@ -1086,7 +1087,10 @@ mark rules added by m10.)
 
 ### 6.2 How a floor gets its number
 
-**L59.** Each floor is a regression baseline: the weakest pair of its tier,
+**L59.** (CORRECTION 2026-10-06, DECISIONS row 46 and the owner's answer to the verifier's N-2: one exception.
+The dark `edge-sunken` floor stays 13.3 although its one rule now measures 15.92, which this rule would pin at
+15.1. So the gate alone would pass a return to the rejected `@ 0.14` recipe (14.06); sorbet's pinned golden (C4)
+and step 2.6's acceptance #1 catch it, byte for byte. L195 (a).) Each floor is a regression baseline: the weakest pair of its tier,
 as the approved values measure it at the worst view, in that mode, minus a
 margin, rounded **down** to one decimal.
 
@@ -1737,7 +1741,7 @@ the diff is the review artefact:
 
 | Step | What the diff may contain |
 |---|---|
-| 2.2 | line 1 (the tagline); the light block of `:root` (the 69 roles, the 20 optional tokens, the five shadow lines re-tinted, `--sb-button-font-size` and `--sb-button-font-size-sm`, the 21 edge lines: 13 `rest`, 4 `-hover`, 4 `-press`); and, at the end of each of the two dark blocks, the 41 reset lines of L55 |
+| 2.2 | line 1 (the tagline); the light block of `:root` (the 69 roles, the 20 optional tokens, the five shadow lines re-tinted, `--sb-button-font-size` and `--sb-button-font-size-sm`, the 21 edge lines: 13 `rest`, 4 `-hover`, 4 `-press`); and, at the end of each of the two dark blocks, the 41 reset lines of L55  (CORRECTION 2026-10-06: 42 reset lines since L151, L195 (b)) |
 | 2.6 | the two dark blocks only: the 69 roles, the 20 optional tokens and the 21 edge lines with their dark values, in place of the 41 reset lines (CORRECTION 2026-10-06: 42, and `--sb-halo-room: 3px;` replaces the halo room's reset, as L98 says; step 2.6's acceptance #5 gives each block's lines; L195 (b)) |
 
 **L98.** No other step changes it, except one fix commit of step 2.4 (revision 3.5, L151): the light line `--sb-halo-room: 9px;` (8px until the repair of 7a683fd counted the hover rise, L151) and its reset at the end of each dark block, which step 2.6 replaces with `3px`. The four frozen goldens change in no step; the
@@ -2004,7 +2008,8 @@ L45 change, DECISIONS row 46.)
   "every preset is built by `buildMode`"; `chartThemes.sorbet` stays (`tools/check-cvd.ts` reads it).
   `tools/golden/sorbet.css`. `tools/test-contracts.ts` and `tools/test-contrast.ts`: L105's edits for this step and
   L195 (c)'s table, and no other existing assertion.
-- *Acceptance* (each test shown red without the change):
+- *Acceptance* (#1 to #6 each shown red without the change; #7 and #9's `check:status-layout` are guards, green
+  before and after; #8 is by hand):
   1. `presets.sorbet.colors.dark` equals §3's dark record key for key and in order, and `presets.sorbet.edges.dark`
      equals L45's dark table element for element in `EdgeElement` order. The expected values may be read from
      `tools/fixtures/contracts/legibility-values.json`, whose dark half is §3 and L45 as transcribed (2.1 #2).
@@ -2023,8 +2028,9 @@ L45 change, DECISIONS row 46.)
      lines and `--sb-halo-room: 3px;`: 117 lines. Today it is 116: `color-scheme`, buildMode's 68 roles
      (`danger-active` missing, L160), the five shadows and the 42 `initial` lines of L55 and L151. The file goes
      from 375 lines to 377. The four frozen goldens are unchanged, and the build's golden gate passes.
-  6. The reports and the gates print `wcag-aa × 8, legibility × 2` and `946 pairings`; the reports' sorbet dark
-     line is `all 193 pairings pass (tightest margin ×1.02) — legibility; 68 rules not held` (×1.02 where the
+  6. The three reports' last line is `✓ every declared contract holds for every preset in both modes (946 pairings
+     measured): wcag-aa × 8, legibility × 2`, and the two gates' (L87) is `✓ every preset holds the contract it
+     declares: wcag-aa × 8, legibility × 2`, with no count; the reports' sorbet dark line is `all 193 pairings pass (tightest margin ×1.02) — legibility; 68 rules not held` (×1.02 where the
      report prints a margin, L91).
   7. The known-bad fixture still fails as §10 states, unchanged (it holds e24df74's sorbet, not the shipped one).
   8. Rendered edges in dark, with `<root>/tools/measure-edges.ts --preset sorbet --mode dark` (L159's whole
@@ -2698,7 +2704,8 @@ not one line per side (m4). Re-measured by the audit for the light card:
 11.81 at its weakest point, 0.1 above the bar of 11.7, so step 2.4's verdict
 stands. The measurer is changed to sample this way before step 2.6.
 
-**L160.** **The `danger-active` leak closes at step 2.6.** Sorbet's light
+**L160.** **The `danger-active` leak closes at step 2.6.** (CORRECTION 2026-10-06: "the light block" and "the
+dark block" are as L195 (d) and step 2.6's acceptance #3 bound them: both dark blocks are checked.) Sorbet's light
 block defines `danger-active`, its dark block (still from `buildMode`) does
 not, and roles are not reset, so a pressed danger button in sorbet dark
 paints the light `#f9c3c6` (m7). It predates these steps (`c0504b7`). Roles
@@ -4108,7 +4115,26 @@ these win, and each earlier statement they change carries a dated pointer here.
 | m-5 | Step 2.6's acceptance #2: appendix A's dark column to 0.01, in each stated view |
 | m-6 | L195 (c): #47's anchor is `tools/test-contrast.ts:226` |
 | n-1 | L195 (f): the "as step 2.6 will make it" tests stay |
-| n-2 | L195 (f): a §13 note |
+| n-2 | L195 (f): noted there; §13 unchanged |
+
+**Revision 3.7, after its verifier (2026-10-06).** An independent agent built step 2.6 as revision 3.7 specifies it
+and ran every gate.
+- **What held:**
+  - 12 of the 13 findings are closed; n-2 was partly closed (the table's wording).
+  - Every figure re-derives: 15.92, 23.76, the two edge pixels, 3.77 and 10.92.
+  - Rendered in dark, the sunken panel is 13.1 and the info box 23.8, and every bar holds.
+  - The golden is exactly acceptance #5's.
+  - The red tests are exactly L195 (c)'s, and nothing else goes red.
+- **New findings:** 3 minor and 6 nits, closed as follows.
+  - N-1: acceptance #6 now gives the reports' line and the gates' line separately.
+  - N-2: the owner kept the dark `edge-sunken` floor at 13.3, with the pointer at L59 and S3.
+  - N-3: pointers at L105's step-2.6 paragraph, L160 and L97's 2.2 row.
+  - N-4: L195 (c)'s anchors are `wcagModes` `:493`, check700 `:533`, and #27 at `:1023`.
+  - N-5: acceptance's preamble says which items are shown red and which are guards.
+  - N-6: the playground shots the owner saw are committed (`step26/look-dark-*.png`).
+  - N-7: n-2's row says what was done.
+  - N-8: a test's title follows its new expectation.
+  - N-9: NEXT.md is updated.
 
 **L195.** **Step 2.6, settled (2026-10-06).**
 
@@ -4162,13 +4188,14 @@ re-runs the transcriber, `transcribe-legibility-spec.mjs.txt`.
   row omitted the halo room's line, which L98 carries.
 
 (c) **The tests step 2.6 changes.** L105's edits for this step, with their current anchors, and the nine step-2.2
-tests no line had authorised. Step 2.6's test author edits these, in the step, and no other existing assertion;
+tests no line had authorised. Step 2.6's test author edits these, in the step, and no other existing assertion (a test's title follows its
+new expectation: M5's "wcag-aa in dark" and "2.2 L45 L101"'s "the dark edges wait for step 2.6" among them);
 one more found is a defect of this spec, reported as L10 says.
 
 | # | File:line (at `4a5f7f6`) | What it asserts today | New expectation |
 |---|---|---|---|
 | 11 again | `tools/test-contracts.ts:1351` (M6.8) | the reports' counts, `823`, `× 9, × 1` | `946`, `wcag-aa × 8, legibility × 2`; the sorbet dark line `all 193 pairings pass (tightest margin ×1.02) — legibility; 68 rules not held` |
-| 25 to 31, 46 | `DECLARED` at `:485`, read by check700 `:530` and `:774`, M5 `:915`, M6.6 `:1188`, M6.9 `:1412`, M10.1 `:1688`, M10.7 `:2058`, M9 `:6067` | sorbet dark among the preset-modes that declare `wcag-aa` | sorbet dark leaves them, so check700 holds 560 measurements (8 preset-modes × 70). The one edit to `DECLARED` clears all of these, #27 to #29 among them |
+| 25 to 31, 46 | `DECLARED` at `:485`, read through `wcagModes` (`:493`) by check700 (`:533`, run at `:774`), M6.1 `:1023` (#27, which stays green), M5 `:915`, M6.6 `:1188`, M6.9 `:1412`, M10.1 `:1688`, M10.7 `:2058`, M9 `:6067` | sorbet dark among the preset-modes that declare `wcag-aa` | sorbet dark leaves them, so check700 holds 560 measurements (8 preset-modes × 70). The one edit to `DECLARED` clears all of these, #27 to #29 among them |
 | 47 | `tools/test-contrast.ts:226` | the impossible-alpha `scrim` tamper is on sorbet dark | it moves to forest dark (L105 #47) |
 | 52 | `tools/test-contracts.ts:3819` ("2.2 L86 L91", ×3) | each mode line, and the last line's `823 … wcag-aa × 9, legibility × 1` | sorbet dark's line as in #11; the last line `… (946 pairings measured): wcag-aa × 8, legibility × 2` |
 | 53 | `:3908` ("2.2 L87", ×2) | the gates' `wcag-aa × 9, legibility × 1` | `wcag-aa × 8, legibility × 2` |
@@ -4190,7 +4217,8 @@ modes, and no dark block repeats them.
   - the status icon's ink `#f3e7ce` on the dark washes;
   - the dark link `#dac5fc`;
   - the selected pill.
-- **What the step owes now:** the rendered-edge run of its acceptance #8, quoted in its commit. No second sheet is
+- **What the step owes now:** the rendered-edge run of its acceptance #8, quoted in its commit. The playground
+  shots the owner saw are committed as `step26/look-dark-1.png` and `step26/look-dark-2.png`. No second sheet is
   owed: the values are the ones the owner saw.
 
 (f) **Two notes.**
@@ -4512,7 +4540,7 @@ verifier, N11).
 |---|---|---|---|
 | S1 | Edge presence counts three boundaries, adding the edge pixel against the element's own fill (§5.3) | It is what the rendered measurement of sheet 2 does, and without it an inset line's number depends on a backdrop it never touches | a rendered edge ranking the other way round from its bound on a real component |
 | S2 | "All-round" is computed: no offset and a positive spread | A flag typed by hand is one more thing that can disagree with the numbers beside it | an approved recipe whose only edge is a spreadless blur |
-| S3 | Margins: 2.0 for Lc; 5% and at least 0.5 for separation and presence; rounded down to one decimal | One 8-bit step moves a measurement at most 0.593 Lc and 0.409 separation, so no single step fails a floor, and two can at the 0.5 minimum, which is what a regression baseline is for; and each margin is under half the smallest step the owner chose between (L59) | the owner asking for tighter or looser pins |
+| S3 | Margins: 2.0 for Lc; 5% and at least 0.5 for separation and presence; rounded down to one decimal | One 8-bit step moves a measurement at most 0.593 Lc and 0.409 separation, so no single step fails a floor, and two can at the 0.5 minimum, which is what a regression baseline is for; and each margin is under half the smallest step the owner chose between (L59) | the owner asking for tighter or looser pins  (CORRECTION 2026-10-06: dark `edge-sunken` is pinned below this rule's figure, L59, L195 (a)) |
 | S4 | A tier's floor is pinned to its weakest pair even when no sheet drew that exact pairing (†), and such a floor is **provisional until the owner passes the pairing** | Every member is built from approved values, and a text tier that left out today's pairs would hold less than `wcag-aa` does; but decision 20 pins floors to what the owner approved, so the pairing goes in front of the owner first (revision 1 called this routine; the adversary's M2 was right that it is not). Revision 1's † pairings were passed on sheet 3 (row 27); revision 2's (R265, and R263 beside it) on row 29; and the placement that pins the light focus floor (R210, the ring touching the fill) on row 30 | the owner finding a † pairing unacceptable: the recipe or value changes, not the floor |
 | S5 | `legibility` lists only `scrim` of PR 1's seven tiers; charts get `chart-mark` | Reusing a tier name with another metric would make one tier mean two things; WCAG's chart tier fails on the new page (2.99:1 against 3) | decided: DECISIONS row 25 |
 | S6 | Ratio tiers are measured in typical vision only | The published floor is defined on the colours as written | a contract that wants a simulated ratio: it adds a metric, it does not reuse this one |
@@ -5118,7 +5146,7 @@ imports `packages/design-system/src/tokens/color.ts` from the
 | `rev2/rev2.ts` | Revision 2's measurements: the rule list with the six withdrawn and R280 to R283 appended, `quiet-fill`, every tier's weakest pair and floor (only `edge-filled` light moves: 15.7 → 17.7), the quiet button with the page showing through (the option DECISIONS row 28 closed), the counts (191, 277, 261, 193, 68, 823, 946), sorbet's new records under `wcag-aa` (seven light failures, none dark), the scrim values to 1e-4, the scrim gradient (L110), the known-bad fixture's counts (L84) |
 | `rev2/onestep.ts` | L59: the largest move one 8-bit step makes on any text or separation rule, both modes (0.593 Lc, 0.409 separation) |
 | `rev2/scope.ts` | L80: what C1, C2 and C3 would say of the five shipped presets unscoped |
-| `rev2/rev35.ts` | Revision 3.5: the halo room from edge data (8px light, 1px dark; L151) and the selected pill measured both ways (L157) |
+| `rev2/rev35.ts` | Revision 3.5: the halo room from edge data (8px light, 1px dark at the time; 9px and 3px since, L195 (b); L151) and the selected pill measured both ways (L157) |
 | `rev2/inflate.ts` | Revision 3.3, L138: the card's presence with its all-round layer replaced by one that barely renders |
 | `rev2/c11.mjs` | Revision 3.1: C11's reading run against the compiled `dist/css/sorbet.css` (postcss from the workspace's store); the layer-order check, the derived floating and field selector lists, and each selector's rule blocks and last background |
 | `rev2/rev3.ts` | Revision 3's measurements: each sorbet mode's tightest margin (×1.02, L105 #11), the 14px small button's label pairs and the other small variants (L115), the danger button with and without its rose rim and the rim against its fill (L116), the neutral badge (L111) |
