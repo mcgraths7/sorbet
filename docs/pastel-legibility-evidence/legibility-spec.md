@@ -2022,7 +2022,8 @@ L45 change, DECISIONS row 46.)
      dark blocks with a value that is not `initial`: 116 names each. No `initial` is left in the file, and
      `--sb-danger-active` reads `#f9c3c6` in both dark blocks.
   4. `--sb-halo-room` reads `3px` in each dark block, its last line, after the edge lines (L151, L98: the rims'
-     `0 0 0 1px`, 1, plus the card's rise, 2).
+     `0 0 0 1px`, 1, plus the card's rise, 2). (CORRECTION 2026-10-06: `20px`, L197: the room counts the dark hover
+     glow, 19, plus the button's rise, 1; DECISIONS row 48.)
   5. The golden changes only inside the two dark blocks. Each becomes, in the light block's order,
      `color-scheme: dark;`, the 69 roles, the 20 optional tokens, the five shadow lines (unchanged), the 21 edge
      lines and `--sb-halo-room: 3px;`: 117 lines. Today it is 116: `color-scheme`, buildMode's 68 roles
@@ -4264,6 +4265,63 @@ tests had leaned on it. The repair restores each, with a check shown red by the 
 - `.claude/skills/debug-contrast/SKILL.md:90-91`;
 - `src/tokens/semantics.ts:4-7`;
 - the "823" comments of `<root>/tools/shots.ts:70` and `<root>/tools/shots-provenance.ts:16`.
+
+**L197.** **The audit of step 2.6, render lens (2026-10-06; `audit-ea7a2a8-render.md`; DECISIONS row 48).**
+
+**What held:**
+- Everything step 2.6 names renders as specified:
+  - the danger-active leak is closed;
+  - the icon ink is `#f3e7ce` on the dark washes and surfaces;
+  - the rims render in every state;
+  - the marks are read;
+  - the selected pill is as specified.
+- The `[data-theme="dark"]` and `prefers-color-scheme` paths render the same.
+- Sorbet light, the frozen presets and the apps are unchanged.
+- No state reads below rest in dark.
+
+**The halo room counts the glows and keeps the focus ring (row 48; render lens F1 and F2).**
+- **What went wrong:**
+  - The dark filled recipes add a glow, `0 0 14px -2px` at rest and `0 0 20px -1px` on hover. It has no offset, so
+    it is not depth. Its spread is negative, so L47 does not call it all-round. L151 counted only all-round layers,
+    so the dark room was 3px.
+  - The carousel, the marquee and the accordion cut the glow flat: the hover cut line stepped 14.98, stronger than
+    a card's own edge (13.2).
+  - They also cut the focus ring, `focus-ring-width` 3px plus its 2px offset, by 2px.
+- **The owner chose from a rendered sheet** (`step26/halo-room-dark.png`), with the rooms 3, 5, 12 and 20px: nothing
+  cut.
+- **L151's room becomes:**
+  - the largest `blur + spread` of any **outset layer with no offset** that reaches past the box (an all-round layer
+    or a glow), in the same elements and states, plus the same rises, rounded up;
+  - never less than the focus ring's reach, `FOCUS_REACH` = 5 (`src/tokens/edges.ts`; a test reads the ring's width
+    and default offset off `scales.ts` and `_mixins.scss`);
+  - 0 when there is no such layer.
+- **The figures:**
+  - light stays 9px;
+  - dark becomes **20px** (the hover glow's 19, plus the button's rise of 1);
+  - the hover glow's cut line at a carousel's clip measures 0.43 in dark and 0.44 in light.
+- Step 2.6's acceptance #4 and #5 read `20px` for `3px`, and L195 (b)'s dark figure follows. The golden changes in
+  those two lines only.
+- The carousel, the marquee and the accordion now inset their content by 20px in dark and 9px in light.
+
+**The playground keeps `:dir(rtl)` (render lens F3; it predates step 2.6).** Vite 8's minifier lowered the library's
+`:dir(rtl)` into a list of right-to-left languages. So a page set right to left with `dir="rtl"` in English (as
+`<root>/tools/shots.ts` sets it) drew the selected bar on the left, on both sides of every compare.
+`apps/playground/vite.config.ts` now targets browsers that support `:dir()`. `buildPlayground`
+(`<root>/tools/playground-browser.ts`) refuses a built playground whose library stylesheet lost `:dir(rtl)`, and it
+refuses the build without the fix.
+
+**Recorded, not changed:**
+- **The compact table (render lens F4).** L151's table read the compact table's cell padding as "12 or more"; it is
+  8px in the block axis (`_table.scss:53`). As L165 (d) already records, a hovered filled button in an edge row of an
+  overflowing compact table loses 1px of its light halo to the wrapper. In dark it loses the outer part of its glow
+  there. Tables pad nothing by the halo room.
+- **Dark presses (render lens N1).** L45's dark press recipes have no all-round layer, so a pressed filled button
+  loses its rim. By L165 (a)'s reading (the fill credited) a press is not weaker than rest: 58.06 at both.
+- **Focus-ring ratio (N2).** The ring `#8e6ac7` measures 2.04 to 2.83:1 on the dark raised surface and washes, under
+  WCAG's 3:1 for non-text. It holds the contract's dark `focus-visible` floor (lowest 17.96, against 17.0).
+- **N3 and N4.** Disabled controls read weaker than rest, which L152 does not cover. Under forced colours, status boxes,
+  sunken panels and the pills' selection show no boundary; this predates step 2.6. Both are step 2.8's §13 rows to
+  write.
 
 ## 13. Left to the eye
 

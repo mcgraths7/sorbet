@@ -55,6 +55,7 @@ The record the two sample sheets are built from, and the evidence behind
 | 45 | A tone outside the four statuses | `Alert` and the toast given one (from untyped code) render with no icon and no word, as before step 2.5, instead of throwing. Spec L194 (d) | owner, 2026-10-05: "Render no icon" (the recommended option) | a reason to show an unknown tone as info |
 | 46 | Sorbet dark's two weakest drawn edges | strengthened: the sunken panel's all-round rim `#fef4dc` @ 0.16 (was 0.14), the info status box's `#dac5fc` @ 0.38 (was 0.34). As drawn they rendered 12.7 and 21.2 against bars of 12.8 and 21.6; now 13.1 and 23.8. No floor moves: the dark edge-sunken floor stays 13.3 under the new 15.92, so the pinned golden, not the floor, catches a return to 0.14 (the owner's answer to the verifier, the same day). Spec L195 (a), L59 | owner, 2026-10-06: "Strengthen the two rims" (the recommended option), from `step26/c1-compare.png` | a dark panel or info box that reads too heavy |
 | 47 | Sorbet dark's look | approved as rendered from the library (the playground in sorbet dark with step 2.6's values: the cocoa page, the dark rims, the status icon's cream ink `#f3e7ce`, the lilac link `#dac5fc`), before any test was written. Spec L195 (e) | owner, 2026-10-06: "Yes, build it" | a dark screen that reads wrong in use |
+| 48 | How much room a clipping parent leaves in sorbet dark | 20px (light stays 9px): the halo room counts the dark filled buttons' glow (`0 0 20px -1px` on hover, plus the 1px rise) and never drops under the focus ring's 5px, so the carousel, the marquee and the accordion cut no glow (its cut line went from 14.98 to 0.43) and no focus ring. Their content insets 20px in dark against 9px in light. Spec L197 | owner, 2026-10-06: "20px: nothing cut" (the recommended option), from `step26/halo-room-dark.png` | the 11px shift between modes reading wrong |
 
 The five decisions the proposal's section 11 left open were made on 2026-10-04
 (rows 20 to 24). Nothing in the proposal is waiting on the owner.
@@ -72,4 +73,4 @@ decided for the same step; spec §12.5 holds it all.
 The audit of step 2.5 left four questions, answered on 2026-10-05 (rows 42 to 45), each
 with the recommended option; spec L194 holds them with the repair's other rulings.
 
-Step 2.6's two questions were answered on 2026-10-06 (rows 46 and 47), from rendered sheets; spec L195 holds them.
+Step 2.6's two questions were answered on 2026-10-06 (rows 46 and 47), from rendered sheets; spec L195 holds them. Its audit's question was answered the same day (row 48, L197).
