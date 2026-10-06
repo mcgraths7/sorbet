@@ -2,7 +2,7 @@
  * File templates for `sorbet create` and `sorbet component`.
  */
 
-import type { PresetName } from "@sorbet/design-system/tokens";
+import { presets, type PresetName } from "@sorbet/design-system/tokens";
 
 export function starterPackageJson(name: string): string {
   return `${JSON.stringify(
@@ -87,6 +87,12 @@ export function starterIndexHtml(brand: string, preset: PresetName, darkByDefaul
 `;
 }
 
+/** The contract a preset declares, as the README says it: one name, or each mode's. */
+function contractWords(preset: PresetName): string {
+  const { light, dark } = presets[preset].contract;
+  return light === dark ? `\`${light}\`` : `\`${light}\` in light, \`${dark}\` in dark`;
+}
+
 export function starterReadme(brand: string, preset: PresetName): string {
   return `# ${brand}
 
@@ -105,7 +111,7 @@ npm run dev       # serve public/ locally
 
 | Path | What it is |
 | --- | --- |
-| \`src/tokens/\` | TypeScript source of truth: ramps, presets, scales, WCAG rules |
+| \`src/tokens/\` | TypeScript source of truth: ramps, presets, scales, contrast rules and contracts |
 | \`src/styles/\` | Sass library (atomic design: layout → atoms → molecules → organisms) |
 | \`src/scripts/\` | Dependency-free behaviors (theme, tabs, modal, menu, toast…) |
 | \`public/themes/\` | Generated theme CSS — one file per preset, light + dark each |
@@ -114,8 +120,9 @@ npm run dev       # serve public/ locally
 ## Make it yours
 
 - **Change brand colors**: edit your preset in \`src/tokens/presets.ts\`, then
-  \`npm run build\`. Contrast is re-verified on every build — a palette that
-  fails WCAG AA fails the build.
+  \`npm run build\`. Contrast is re-measured on every build against the
+  contract the preset declares (${contractWords(preset)} for ${preset}) — a palette that
+  fails it fails the build.
 - **New component**: \`npx sorbet component Rating --level atom\`
 - **Switch preset**: point the \`theme-css\` link at another file in \`public/themes/\`.
 `;

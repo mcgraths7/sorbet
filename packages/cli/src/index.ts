@@ -85,9 +85,10 @@ async function cmdPresets(): Promise<void> {
   for (const preset of Object.values(presets)) {
     const c = preset.colors.light;
     const chips = [c.primary, c.secondary, c.accent, c.bg, c.text].map(swatch).join("");
-    console.log(`  ${chips}  ${styleText("bold", preset.name.padEnd(10))} ${styleText("dim", preset.tagline)}`);
+    const contract = preset.contract.light === preset.contract.dark ? preset.contract.light : `${preset.contract.light} light, ${preset.contract.dark} dark`;
+    console.log(`  ${chips}  ${styleText("bold", preset.name.padEnd(10))} ${contract.padEnd(11)} ${styleText("dim", preset.tagline)}`);
   }
-  console.log(styleText("dim", "\n  every preset ships light + dark, WCAG AA verified\n"));
+  console.log(styleText("dim", `\n  every preset ships light + dark, each held to the contract it declares: ${declaredContracts(Object.values(presets))}\n`));
 }
 
 async function cmdTheme(): Promise<void> {
