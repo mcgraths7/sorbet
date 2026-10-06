@@ -3926,7 +3926,10 @@ under either tree.
 - the nav link "Orders Information: 7".
 
 They move to brand tones (`primary`, `secondary`, `accent`) or to none. Real
-statuses keep theirs. The owner sees the renders before the change lands.
+statuses keep theirs. The owner sees the renders before the change lands. (2026-10-06: the owner chose the
+recommended set from `row44/sheet.png`. Brand tones of the same hex where one matches; accent for Spicy and 15 min;
+neutral for Packing and the nutrition tags; "Behind schedule", "Very low" and "Low" as `statusLabel` on the real
+statuses. Held by `test-status.ts`: no app Badge has a literal status tone without a `statusLabel`.)
 
 (d) **A tone outside the four renders no slot (row 45; frozen lens F4).** From
 untyped JavaScript, `tone="primary"` made `StatusMark` render an undefined glyph,
