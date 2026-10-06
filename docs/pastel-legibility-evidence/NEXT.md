@@ -28,11 +28,13 @@ fixture byte for byte from `ec97a20`'s build).
 
 1. ~~Step 2.7, Token Studio~~: withdrawn by the owner (DECISIONS row 49); the Studio is to be sunset.
 2. ~~Step 2.8, docs and stale numbers~~: done (above).
-3. A full screenshot run on the branch head (`pnpm shots baseline --at e24df74`, then `pnpm shots compare`), quoted
-   in the PR, and `pnpm check:status-layout` (L194 (a); it passes at `d99fd53`), then mark the PR ready. Known
-   noise (L193): the right-to-left carousel page shots and some overlays differ between two shots of the same tree,
-   so the "identical" line is not reachable until the tool settles them; report the run honestly. The playground
-   now keeps `:dir(rtl)` (L197), so right-to-left shots taken before `486aebe` are not comparable with later ones.
+3. ~~A full screenshot run and `check:status-layout`~~: done at `792852f` (`shots-792852f.md`). No frozen change
+   found; 236 of 24,912 shots differ, by at most 8 levels, and every one is shown to be noise. The "identical"
+   line is not reached (L193: the tool's noisy shots are still unsettled). `check:status-layout` passes.
+4. **Mark the PR ready**, once the owner has read that result: the screenshot verdict is evidence, not the tool's
+   success line, and taking it is the owner's call.
+5. Left open, outside this PR: the screenshot tool settling focus rings, overlays and the carousel before it
+   shoots (L193), so a clean run can print its success line.
 
 ## How the work is done here (the owner's process)
 
