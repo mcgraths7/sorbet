@@ -4227,6 +4227,44 @@ modes, and no dark block repeats them.
 - `tools/check-cvd.ts` reads `chartThemes.sorbet`, not the `chart-*` hexes sorbet's records emit. They are equal,
   and step 2.6's acceptance #1 holds the records' half (a §13 matter, unchanged).
 
+**L196.** **The audit of step 2.6, guards lens (2026-10-06; `audit-ea7a2a8-guards.md`).**
+
+**What held.** The four frozen presets are byte-identical in every output. Every value-side guard bites.
+
+**Three guards had lost their coverage.** Step 2.6 removed the last mixed or derived sorbet configuration, and the
+tests had leaned on it. The repair restores each, with a check shown red by the lens's own plant.
+
+(a) **The preset-modes count of L86 and L87.**
+- With every shipped preset declaring one contract in both modes, a `declaredContracts` that counted one mode twice
+  printed the same lines (plant R4).
+- The planted tree "as step 2.2 left it" returns, and passes:
+  - §3's light record and `edges.light`;
+  - e24df74's dark record (`sorbet-as-shipped.json`);
+  - `{ light: legibility, dark: wcag-aa }`.
+- The three reports must end `(823 pairings measured): wcag-aa × 9, legibility × 1`, and the two gates must print
+  `wcag-aa × 9, legibility × 1`.
+- A unit test reads `declaredContracts` on mixed and flipped declarations.
+
+(b) **The known-bad fixture "unchanged" (L85, step 2.6's acceptance #7).**
+- The retired "2.2 L101 L3" test was its dark half's only pin.
+- `sorbet-as-shipped.json`'s colour record, in both modes, must now equal e24df74's sorbet as
+  `goldens.at-e24df74.json` holds it, entry for entry.
+
+(c) **The colour-vision gate (L195 (f)).**
+- `chartColors(chartThemes.sorbet, mode)` must equal `chart-1` to `chart-8` of `presets.sorbet.colors[mode]`, in
+  both modes.
+- `tools/check-cvd.ts` then validates the colours sorbet emits.
+
+**Step 2.8's file list gains** what the lens found stale and no step owned:
+- `.claude/skills/author-theme/SKILL.md`:
+  - "Dark mode is never split";
+  - "today only `wcag-aa`";
+  - "A preset is a SemanticRecipe";
+  - its charts step.
+- `.claude/skills/debug-contrast/SKILL.md:90-91`;
+- `src/tokens/semantics.ts:4-7`;
+- the "823" comments of `<root>/tools/shots.ts:70` and `<root>/tools/shots-provenance.ts:16`.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
