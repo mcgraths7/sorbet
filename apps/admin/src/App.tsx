@@ -84,10 +84,13 @@ export function App() {
             Overview
           </SidebarItem>
           <SidebarItem href="#orders">
-            Orders <Badge tone="info">7</Badge>
+            Orders <Badge tone="primary">7</Badge>
           </SidebarItem>
           <SidebarItem href="#kitchen">
-            Kitchen <Badge tone="warning">2</Badge>
+            Kitchen{" "}
+            <Badge tone="warning" statusLabel="Behind schedule">
+              2
+            </Badge>
           </SidebarItem>
           <SidebarItem href="#feedback">Feedback</SidebarItem>
           <SidebarFooter>

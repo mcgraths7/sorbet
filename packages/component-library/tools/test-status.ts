@@ -919,6 +919,27 @@ try {
     });
   }
 
+  // ── L194 (c), row 44: the apps' categorical badges carry no status ──────────────────────────────────────────────
+  /** Each <Badge …> in a source whose tone is a literal status and that does not say its own word (statusLabel). */
+  const unlabelledStatusBadges = (source: string) => [...source.matchAll(/<Badge\b[^>]*>/g)]
+    .map((m) => m[0].replace(/\s+/g, " "))
+    .filter((tag) => /\btone="(?:success|warning|danger|info)"/.test(tag) && !/\bstatusLabel=/.test(tag));
+
+  test("L194 (c) (checker) a Badge with a literal status tone and no statusLabel is found; with a statusLabel, a brand tone or none, it is not", () => {
+    assert.equal(unlabelledStatusBadges("Orders <Badge tone=\"info\">7</Badge> <Badge\n  tone=\"success\"\n  dot>Delivering</Badge>").length, 2);
+    assert.deepEqual(unlabelledStatusBadges("<Badge tone=\"warning\" statusLabel=\"Behind schedule\">2</Badge><Badge tone=\"primary\">7</Badge><Badge>x</Badge>"), []);
+  });
+
+  test("L194 (c) row 44 in apps/admin and apps/meal-kit, a category or a count is not a status: no Badge has a literal status tone without its own word, and of the order stages only Delivered and Failed take a status tone", () => {
+    const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(join(dir, entry.name)) : /\.tsx?$/.test(entry.name) ? [join(dir, entry.name)] : []));
+    const found = ["admin", "meal-kit"].flatMap((app) => walk(join(ROOT, "apps", app, "src")).flatMap((file) => unlabelledStatusBadges(readFileSync(file, "utf8")).map((tag) => `${relative(ROOT, file)}: ${tag}`)));
+    assert.deepEqual(found, []);
+    const block = /export const STATUS_TONE = \{([\s\S]*?)\}/.exec(readFileSync(join(ROOT, "apps", "admin", "src", "data.ts"), "utf8"))?.[1];
+    assert.ok(block !== undefined, "apps/admin/src/data.ts declares STATUS_TONE");
+    const stages = [...block.matchAll(/^\s*"?([^":\n]+)"?:\s*"?(\w+)"?,/gm)].map((m) => [m[1]!.trim(), m[2]!]);
+    assert.deepEqual(stages.filter(([, tone]) => STATUS.includes(tone as Tone)).map(([stage]) => stage), ["Delivered", "Failed"], `the stages: ${JSON.stringify(stages)}`);
+  });
+
   // ── L181 case 10, L189: the barrel ───────────────────────────────────────────────────────────────────────────────
   test("L189 L169 the built barrel exports the four glyphs, SuccessIcon, WarningIcon, DangerIcon and InfoIcon", () => {
     assert.equal(barrelMissing, "", `packages/component-library/dist/index.js does not load: ${barrelMissing}`);

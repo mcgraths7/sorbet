@@ -21,9 +21,13 @@ export const ORDERS: Order[] = [
   { id: "SPR-4827", customer: "Idris Bello", plan: "Taster", meals: 2, status: "Packing", total: 29.99, placed: "2026-07-30" },
 ];
 
+// An order's stage. Only a failure and a delivery are statuses (a status badge
+// leads with its icon and a word a screen reader says first, "Error: "); the
+// stages on the way are not, so "Packing" is not read as a warning: it is
+// neutral, and "Out for delivery" keeps its blue as the brand tone.
 export const STATUS_TONE = {
-  Packing: "warning",
-  "Out for delivery": "info",
+  Packing: undefined,
+  "Out for delivery": "primary",
   Delivered: "success",
   Failed: "danger",
 } as const;

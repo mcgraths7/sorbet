@@ -83,7 +83,9 @@ export function Kitchen() {
                       <TableHeaderCell scope="row">{row.item}</TableHeaderCell>
                       <TableCell>{row.supplier}</TableCell>
                       <TableCell numeric>
-                        <Badge tone={row.onHand / row.needed < 0.4 ? "danger" : "warning"}>{row.onHand}</Badge>
+                        <Badge tone={row.onHand / row.needed < 0.4 ? "danger" : "warning"} statusLabel={row.onHand / row.needed < 0.4 ? "Very low" : "Low"}>
+                          {row.onHand}
+                        </Badge>
                       </TableCell>
                       <TableCell numeric>{row.needed}</TableCell>
                     </TableRow>

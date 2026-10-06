@@ -13,7 +13,9 @@ interface Meal {
   name: string;
   blurb: string;
   minutes: number;
-  tags: Array<{ label: string; tone?: "success" | "warning" | "info" }>;
+  // Tags are categories, not statuses: brand tones, so a tag carries no status
+  // icon and is not read as "Warning: Spicy".
+  tags: Array<{ label: string; tone?: "primary" | "secondary" | "accent" }>;
   from: string;
   to: string;
 }
@@ -24,7 +26,7 @@ const MEALS: Meal[] = [
     name: "Miso butter ramen",
     blurb: "Soft egg, charred corn, a broth that tastes like it simmered all day.",
     minutes: 25,
-    tags: [{ label: "Veggie", tone: "success" }, { label: "Cosy" }],
+    tags: [{ label: "Veggie", tone: "primary" }, { label: "Cosy" }],
     from: "warning",
     to: "danger",
   },
@@ -33,7 +35,7 @@ const MEALS: Meal[] = [
     name: "Charred halloumi bowl",
     blurb: "Herby grains, quick-pickled onion, lemon and honey dressing.",
     minutes: 20,
-    tags: [{ label: "Veggie", tone: "success" }, { label: "Under 500 cal", tone: "info" }],
+    tags: [{ label: "Veggie", tone: "primary" }, { label: "Under 500 cal" }],
     from: "success",
     to: "secondary",
   },
@@ -42,7 +44,7 @@ const MEALS: Meal[] = [
     name: "Chipotle black bean tacos",
     blurb: "Smoky beans, charred sweetcorn salsa, lime crema.",
     minutes: 15,
-    tags: [{ label: "Vegan", tone: "success" }, { label: "15 min", tone: "warning" }],
+    tags: [{ label: "Vegan", tone: "primary" }, { label: "15 min", tone: "accent" }],
     from: "warning",
     to: "accent",
   },
@@ -51,7 +53,7 @@ const MEALS: Meal[] = [
     name: "Nduja rigatoni",
     blurb: "Slow-melted onion, a little chilli heat, plenty of parmesan.",
     minutes: 30,
-    tags: [{ label: "Spicy", tone: "warning" }],
+    tags: [{ label: "Spicy", tone: "accent" }],
     from: "danger",
     to: "primary",
   },
@@ -60,7 +62,7 @@ const MEALS: Meal[] = [
     name: "Miso-glazed salmon",
     blurb: "Sticky glaze, sesame greens, rice that actually steams properly.",
     minutes: 25,
-    tags: [{ label: "High protein", tone: "info" }],
+    tags: [{ label: "High protein" }],
     from: "info",
     to: "accent",
   },
@@ -69,7 +71,7 @@ const MEALS: Meal[] = [
     name: "Coconut dal",
     blurb: "Red lentils, curry leaves, a crisp tadka poured over at the end.",
     minutes: 30,
-    tags: [{ label: "Vegan", tone: "success" }, { label: "Batch-friendly" }],
+    tags: [{ label: "Vegan", tone: "primary" }, { label: "Batch-friendly" }],
     from: "warning",
     to: "success",
   },

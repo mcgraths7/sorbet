@@ -130,7 +130,7 @@ export function Plans() {
               <TableHeaderCell scope="row">
                 <Cluster gap={2}>
                   {plan.name}
-                  {plan.best && <Badge tone="success">Most popular</Badge>}
+                  {plan.best && <Badge tone="primary">Most popular</Badge>}
                 </Cluster>
               </TableHeaderCell>
               <TableCell>{plan.meals}</TableCell>
