@@ -20,7 +20,8 @@ belong to a numbered scale — `border-width`, `control-height-{sm,md,lg}`,
 `sidebar-width`, `avatar-size-*`, `tile-min`, `focus-ring-width`.
 
 Colour is different: ramps live in `ramps.ts`, and the semantic roles that
-consume them are built contrast-first in `semantics.ts`. For anything colour
+consume them are built contrast-first in `semantics.ts` for the four built
+presets; sorbet's are typed in `presets.ts`. For anything colour
 related use the **author-theme** or **debug-contrast** skill instead.
 
 ## The loop

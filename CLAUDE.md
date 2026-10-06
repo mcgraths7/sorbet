@@ -29,9 +29,11 @@ so it replaces a tree scan rather than adding to it.
 - `packages/design-system` (`@sorbet/design-system`) — framework-agnostic core.
   - `src/tokens/` — TS source of truth. `color.ts` (OKLCH→sRGB + WCAG maths),
     `ramps.ts`, `scales.ts` (dimensions, incl. the `misc` map), `semantics.ts`
-    (the contrast-driven semantic colour builder), `presets.ts`
-    (sorbet|ocean|forest|noir|midnight), `charts.ts` (8-slot CVD-validated
-    palettes), `rules.ts` (which pairs are measured, each with a tier),
+    (the contrast-driven builder of the four WCAG presets; sorbet's records are
+    typed in `presets.ts`), `presets.ts` (sorbet|ocean|forest|noir|midnight),
+    `charts.ts` (8-slot CVD-validated palettes), `edges.ts` (shadows as data,
+    and what an edge measures), `seams.ts` (the optional colour tokens and
+    their fallbacks), `rules.ts` (which pairs are measured, each with a tier),
     `contracts.ts` (**the floors each tier owes**; every preset declares a
     contract per mode in `presets.ts`).
   - `src/styles/` — Sass, atomic layers loaded into CSS cascade layers via
@@ -79,7 +81,8 @@ These hold on every task, which is why they are here and not in a skill:
   `presets.ts` (`contract`).
 - **Layout owns spacing between components.** Atoms and molecules have no outer
   margins.
-- **Never inline a new `<svg>`** — glyphs live in `atoms/icons.tsx`. Charts are exempt.
+- **Never inline a new `<svg>`** — glyphs live in `atoms/icons.tsx`. Charts are exempt,
+  and so is the status slot's glyph (see the sorbet-classes skill).
 - Commit footer: `Co-Authored-By: Claude <noreply@anthropic.com>` — no model
   name; pinning one dates the convention and makes the history a record of which
   model was current rather than of what changed.

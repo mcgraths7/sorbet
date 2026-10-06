@@ -36,7 +36,7 @@ locally and faster:
 
 ```
 pnpm build          # includes the contrast gate and the golden-file gate — a failed check writes nothing
-pnpm test           # check:contrast + check:client + test:golden + test:contrast + test:contracts
+pnpm test           # check:contrast + check:client + test:golden + test:contrast + test:contracts + test:status
 pnpm check:catalog  # README component roster must list every export
 pnpm check:cli      # scaffold templates still resolve
 pnpm lint           # eslint, --max-warnings 0

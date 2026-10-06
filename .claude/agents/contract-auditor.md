@@ -66,8 +66,10 @@ can point at with a file and line.
     preset's `contract` in `presets.ts` switched without that being the PR's
     stated purpose; a frozen golden (`tools/golden/` for ocean, forest, noir,
     midnight) changed, or a name taken off `FROZEN_PRESETS` in
-    `tools/check-golden.ts`. The correct fixes are adjusting the ramp, widening the candidate
-    walk, or splitting an overloaded role (see `primary-solid`).
+    `tools/check-golden.ts`. In a built preset the correct fixes are adjusting
+    the ramp, widening the candidate walk, or splitting an overloaded role
+    (see `primary-solid`); in sorbet, whose records are typed, a failing value
+    is a contradiction report to the owner, never an edit.
 
 ## How to work
 
