@@ -3707,6 +3707,9 @@ try {
   const PLANTED: Record<string, Record<string, unknown>> = {
     shipped: {},
     "as-step-2-6": { colors: VALUES.colors, edges: VALUES.edges, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: LEG } },
+    // L196 (a): a passing tree whose declaration is mixed, sorbet as step 2.2 left it (§3's light half, e24df74's dark
+    // half, the light edges), so the "preset-modes" count of L86 and L87 is still tested once no shipped preset is mixed.
+    "as-step-2-2": { colors: { light: VALUES.colors.light, dark: KNOWN_BAD.colors.dark }, edges: { light: VALUES.edges.light }, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: WCAG } },
     "without-edges": { colors: { light: VALUES.colors.light, dark: KNOWN_BAD.colors.dark }, edges: undefined, buttonLabel: VALUES.buttonLabel, contract: { light: LEG, dark: WCAG } },
     // Sorbet as main ships it (the known-bad fixture's colours, no buttonLabel), declaring legibility with its card edge.
     "known-bad": { colors: KNOWN_BAD.colors, edges: KNOWN_BAD.edges, buttonLabel: undefined, contract: { light: LEG, dark: LEG } },
@@ -3838,6 +3841,18 @@ try {
       assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (946 pairings measured): wcag-aa × 8, legibility × 2");
     });
 
+    test(`L196 (a) L86 L91 ${report.name}, with sorbet as step 2.2 left it (legibility in light, wcag-aa in dark): sorbet's lines are each its own contract's, and the last line counts the preset-modes, "(823 pairings measured): wcag-aa × 9, legibility × 1"`, () => {
+      const run = runOn("as-step-2-2", report);
+      assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
+      const said = readReport(run.stdout);
+      const want = (p: Reported) => (p.preset === "sorbet" && p.mode === "light" ? `all ${HELD_BY_LEGIBILITY} pairings pass (tightest margin ×1.02) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held` : RECORDED_LINES.get(`${p.preset}/${p.mode}`)!);
+      for (const p of said) {
+        assert.equal(p.summary, REPORT_MARGIN[i] ? want(p) : withoutMargin(want(p)), `${p.preset}/${p.mode}`);
+      }
+      assert.equal(said.length, 10, "five presets, two modes");
+      assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (823 pairings measured): wcag-aa × 9, legibility × 1");
+    });
+
     test(`2.1 #9 L86 L91 ${report.name}, with sorbet as step 2.6 will make it (the §3 values and edges, legibility in both modes): its lines read "all 193 pairings pass${REPORT_MARGIN[i] ? " (tightest margin ×1.02)" : ""} — legibility; 68 rules not held", and the last "(946 pairings measured): wcag-aa × 8, legibility × 2"`, () => {
       const run = runOn("as-step-2-6", report);
       assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
@@ -3919,6 +3934,12 @@ try {
       const run = runOn("shipped", gate);
       assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
       assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2"), run.stdout);
+    });
+
+    test(`L196 (a) L87 ${gate.name}, with sorbet as step 2.2 left it: "✓ every preset holds the contract it declares: wcag-aa × 9, legibility × 1"`, () => {
+      const run = runOn("as-step-2-2", gate);
+      assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 9, legibility × 1"), `${run.stdout}\n${run.stderr}`);
+      assert.doesNotMatch(run.stderr, /contrast failure|structure failure|TypeError/, run.stderr);
     });
 
     test(`2.1 #9 L87 L79 ${gate.name}, with sorbet as step 2.6 will make it: "✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2", and no contrast or structure failure (the golden may still object: sorbet's file changed)`, () => {
@@ -4553,6 +4574,40 @@ try {
         assert.equal(values.get("--sb-danger-active"), "#f9c3c6", `${where}: --sb-danger-active`);
       });
       assert.doesNotMatch(css, /\binitial\b/, `${what}: an initial is left in the file`);
+    }
+  });
+
+  test("L196 (a) L86 L87 declaredContracts counts preset-modes, each mode's own declaration: a preset declaring legibility in light and wcag-aa in dark counts once for each, and contracts are listed in the order of contracts", () => {
+    const declared = api("declaredContracts") as (all: Iterable<Preset>) => string;
+    const mixed = { ...shipped.sorbet!, contract: { light: LEG, dark: WCAG } } as Preset;
+    const flipped = { ...shipped.sorbet!, contract: { light: WCAG, dark: LEG } } as Preset;
+    assert.equal(declared([mixed]), "wcag-aa × 1, legibility × 1");
+    assert.equal(declared([flipped]), "wcag-aa × 1, legibility × 1");
+    assert.equal(declared([mixed, flipped, shipped.ocean!]), "wcag-aa × 4, legibility × 2");
+    assert.equal(declared([shipped.sorbet!]), "legibility × 2");
+    assert.equal(declared(Object.values(shipped)), "wcag-aa × 8, legibility × 2");
+  });
+
+  test("L196 (b) L85 §10 the known-bad fixture is unchanged: its colour record, both modes, is e24df74's sorbet as that commit's golden emits it, entry for entry", () => {
+    assert.equal(GOLDENS.recordedFrom, "e24df74");
+    const block = (selector: string) => {
+      const from = GOLDENS.sorbet.indexOf(`${selector} {`);
+      assert.ok(from !== -1, `e24df74's sorbet golden has no ${selector} block`);
+      const body = GOLDENS.sorbet.slice(from, GOLDENS.sorbet.indexOf("\n}", from));
+      return new Map([...body.matchAll(/--sb-([\w-]+):\s*([^;]+);/g)].map((m) => [m[1]!, m[2]!.trim()]));
+    };
+    for (const [mode, selector] of [["light", ":root"], ["dark", "[data-theme=\"dark\"]"]] as const) {
+      const emitted = block(selector);
+      const entries = Object.entries(KNOWN_BAD.colors[mode]);
+      assert.ok(entries.length >= 68, `${mode}: ${entries.length} entries`);
+      assert.deepEqual(entries.filter(([name, value]) => emitted.get(name) !== value).map(([name, value]) => `${name}: ${value}, golden ${emitted.get(name) ?? "nothing"}`), [], mode);
+    }
+  });
+
+  test("L196 (c) L195 (f) the colour-vision gate reads what sorbet emits: chartColors(chartThemes.sorbet, mode) is chart-1 to chart-8 of presets.sorbet.colors[mode], in both modes", () => {
+    for (const mode of MODES) {
+      const record = shipped.sorbet!.colors[mode] as Record<string, string>;
+      assert.deepEqual(tokens.chartColors(tokens.chartThemes.sorbet!, mode), Array.from({ length: 8 }, (_, n) => record[`chart-${n + 1}`]), mode);
     }
   });
 
