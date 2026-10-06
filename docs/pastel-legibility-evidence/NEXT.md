@@ -22,8 +22,7 @@ fixture byte for byte from `ec97a20`'s build).
 
 ## What is left, in order
 
-1. **Step 2.7, Token Studio**: spec adversary first, then the resolution tests first, then the panel by eye. Its
-   badge must name each theme's contract (sorbet: legibility in both modes now).
+1. ~~Step 2.7, Token Studio~~: withdrawn by the owner (DECISIONS row 49); the Studio is to be sunset.
 2. **Step 2.8, docs and stale numbers.** Its list grew in L196 (skills, `semantics.ts`, shots comments) and L197
    (the §13 rows for disabled controls and forced colours), on top of proposal §8's.
 3. A full screenshot run on the branch head (`pnpm shots baseline --at e24df74`, then `pnpm shots compare`), quoted

@@ -2049,6 +2049,13 @@ L45 change, DECISIONS row 46.)
 
 **2.7 Token Studio** — the resolution tests first; the panel loud
 
+(WITHDRAWN 2026-10-06, DECISIONS row 49. The owner: "we can ignore the studio that was more of a test thing for
+personal use. will likely sunset in favor of something leaner in the future." Nothing below is built. Token Studio
+stays as it is: its badge still says `wcag-aa` for every preset (`token-studio.tsx:377, 381`), and for sorbet light
+it lists the seven pairs `wcag-aa` fails (L105). Under `wcag-aa`, sorbet dark fails none of its 70 (the audit of step
+2.6, guards lens). §11.3, L105 #40 to #42 and L183 #49's step-2.7 sentence are withdrawn with it, and no later step or
+audit treats the Studio's contract badge as owed.)
+
 - *Files:* `packages/component-library/src/organisms/token-studio.tsx`,
   `_token-studio.scss`; the edits of L105 for this step (#40 to #42), and
   L183's #49 again, which leaves `organisms/token-studio.tsx` out of the
