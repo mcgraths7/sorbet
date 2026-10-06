@@ -1,8 +1,8 @@
 # Spec: the `legibility` contract and sorbet's new values (PR 2, step 2.0)
 
-Revision 3.7, 2026-10-06. Written against `main` at `e24df74` (the groundwork is
-merged). Steps 2.1 to 2.5 are built and audited (§12.2, §12.4, L194); nothing after them exists yet. Step 2.6 is
-settled in full, after its spec adversary and the owner's answers (§12.6, L195). Paths are relative to
+Revision 3.8, 2026-10-06. Written against `main` at `e24df74` (the groundwork is
+merged). Steps 2.1 to 2.6 are built and audited (§12.2, §12.4, L194 to L197); step 2.7 is withdrawn (DECISIONS
+row 49); step 2.8 is settled (L198). Paths are relative to
 `packages/design-system/` unless they start with `packages/`, `apps/`, `docs/`
 or `<root>/`. So `tools/test-contracts.ts` is
 `packages/design-system/tools/test-contracts.ts`, and the repo root's own
@@ -2063,12 +2063,32 @@ audit treats the Studio's contract badge as owed.)
 - *Acceptance:* §11.3; loading each of the five themes in the playground, the
   badge names that theme's contract and sorbet shows no WCAG failure.
 
-**2.8 Docs and stale numbers** — loud
+**2.8 Docs and stale numbers** — loud, with one check tests first (L198)
 
-- *Files:* as proposal §8, step 2.8. Every count is derived from the rule
-  list (261 a mode, 277 entries, 946 measurements), never typed.
-- *Acceptance:* `check:catalog` and `check:cli` green; no document says
-  sorbet is "WCAG AA verified".
+(Rewritten in revision 3.8, L198. Revision 3.7's text named "the files of proposal §8, step 2.8" and an acceptance
+green before the step began: the spec adversary's findings, `spec-adversary-step28.md`.)
+
+- *Files:* the work list of `spec-adversary-step28.md` (file, line, current text, why false, required replacement),
+  with the owner's copy for the hero (DECISIONS row 50) and the qualified focus sentence (row 51). Its "do not touch"
+  list stands: the evidence folder's records, the dated proposals' bodies, fixtures, goldens, the history in test and
+  tool comments, the "2.4 #3" fence (`packages/component-library/src/**`, `behaviors/**`) and CLAUDE.md's held
+  `pnpm test` line. The §13 rows are this revision's (L198), not the step's.
+- *Counts:* a count in prose is either computed from the code where it is shown (the playground's
+  `CONTRAST_CHECKS`, the CLI's printed figures, the README contract paragraph held by `test-contrast.ts`), or held by
+  check B, or not written. 946 is the sum over the five presets and two modes of `measurePreset(p, m).length`
+  (8 × 70 + 2 × 193); 277 rules, 261 applying a mode.
+- *Acceptance* (the checks written before the edits, each shown red by a plant):
+  1. Check A, in `tools/test-contrast.ts`: no file it scans (the adversary's list) matches a stale claim ("AA
+     verified", "WCAG AA … enforced / verified / guarantee", "provably accessible", "accessible by construction",
+     "fails WCAG AA fails", "guarantee WCAG", "every preset … WCAG", "today / every preset … only / declares
+     `wcag-aa`", "dark mode is never split", "reaches every theme", "inaccessible theme / palette"); and README's
+     presets table names each preset's contract, `presets[p].contract`. Red with "AA verified" planted in the demo.
+  2. Check B: every "N pairings / pairs / checks / rules / entries / measurements" in those files is a figure the
+     code computes, or an entry of an explicit history allowlist (file and exact phrase). Red with "823 pairings"
+     planted in README.
+  3. `tools/check-cli.ts`: `sorbet presets` names each preset's contract and never says "WCAG AA verified".
+  4. `test-status.ts` holds ship-change's `pnpm test` line as it holds CLAUDE.md's.
+  5. The eight gates green; the playground and the demo hero shown rendered in the commit's evidence.
 
 ### 12.1 Revision 3.2: readings fixed after step 2.1's test author (2026-10-04)
 
@@ -4330,6 +4350,36 @@ refuses the build without the fix.
   sunken panels and the pills' selection show no boundary; this predates step 2.6. Both are step 2.8's §13 rows to
   write.
 
+**L198.** **Step 2.8 settled (revision 3.8, 2026-10-06; DECISIONS rows 50 and 51).**
+
+**Before any edit.** A spec adversary attacked step 2.8 (`spec-adversary-step28.md`).
+- Revision 3.7's acceptance was green before the step began: "WCAG AA verified" appears once, in a CLI string, and
+  none of the other stale claims trips it.
+- "As proposal §8" was out of date in both directions: its line numbers had drifted, some of its items were done, and
+  about 20 stale statements were missing.
+- The step's text is rewritten above: the work list, the counts rule, and the checks written first.
+
+**The owner's copy** (2026-10-06, both the recommended option):
+- **Row 50, the hero.** The playground and the demo hero say "Delightfully themeable. Legible by contract.". The
+  badge reads "Contrast contract — enforced at build time", in a non-status tone, so it carries no status icon or
+  word. The card ends "A theme that fails the contract it declares fails to compile", and keeps the count it derives.
+- **Row 51, the focus sentence.** README's "visible `:focus-visible` rings everywhere" is qualified: "everywhere but the
+  command palette's input (a known defect, §17 #20)".
+
+**§13 gains three rows and amends three** (render lens N1 to N4 and F4). The forced-colours row has the Sass's scope.
+The focus-ring row includes the fills in both modes, which L197 omitted (adversary S5).
+
+**Not owned by step 2.8, and left as they are:**
+- Token Studio's comment (`token-studio.tsx:377`), which is fenced and withdrawn (row 49). README carries the caveat
+  instead.
+- The lab memory note proposal §2 names, which this repository cannot reach. The PR says so.
+
+**The PR's ready state is step 2.8's last item (adversary S10):**
+- the PR description brought up to date;
+- the full screenshot run of NEXT.md taken after the hero changes, and quoted;
+- `pnpm check:status-layout` run and quoted;
+- the PR marked ready.
+
 ## 13. Left to the eye
 
 These are deliberately not gated. Each is stated so that nobody later reads
@@ -4341,8 +4391,11 @@ the gate's silence as a pass.
 |---|---|---|
 | The hue, colourfulness and harshness of an edge. A black line at 25% over the cream measures 18.37 against it and would pass every light edge floor (proposal appendix G, G11) | "No harsh black or gray outlines" is a judgement about a look, and a colourfulness floor would be a number nobody approved | The recipes are pinned by sorbet's golden, so a changed edge colour is a diff in review. C8 holds the direction |
 | Whether an edge is *enough* | presence is a heuristic, neither an upper nor a lower bound (L48, L51) | rendered measurement by hand in steps 2.4 and 2.6 |
-| Hover and pressed edges | they are transient, and sheet 2's hover and pressed recipes measure above rest (light, the four filled buttons: hover 20.11 to 21.98, pressed 21.42 to 23.44, against 18.73 to 20.52 at rest; revision 1's 17.54 and 16.54 were the withdrawn robin's-egg element; `rev2/states.ts`) | emitted from the same data; looked at |
-| Disabled controls (L112) | the library fades a disabled control with `opacity: 0.55` (`abstracts/_mixins.scss:85`), which is not a token, and WCAG exempts inactive components too | sheet 3 drew the library's fade and the owner passed it (row 27); step 2.4 looks at the real thing |
+| Hover and pressed edges | they are transient, and sheet 2's hover and pressed recipes measure above rest (light, the four filled buttons: hover 20.11 to 21.98, pressed 21.42 to 23.44, against 18.73 to 20.52 at rest; revision 1's 17.54 and 16.54 were the withdrawn robin's-egg element; `rev2/states.ts`) | emitted from the same data; looked at (2026-10-06, L198: in dark a pressed filled button draws no rim, L45's dark press recipes having no all-round layer; with its fill credited, L165 (a), it measures 58.06, as at rest.) |
+| Disabled controls (L112) | the library fades a disabled control with `opacity: 0.55` (`abstracts/_mixins.scss:85`), which is not a token, and WCAG exempts inactive components too | sheet 3 drew the library's fade and the owner passed it (row 27); step 2.4 looks at the real thing (2026-10-06, L198: L152 holds every state to rest but disabled, which is meant to read weaker. Measured by L112's method: the primary label Lc 45.18 light and 33.53 dark, against 71.32 at rest; the faded lilac fill on a card 7.17 light against 13.10, 33.70 dark against 58.06.) |
+| Forced colours (2026-10-06, L198) | under `forced-colors: active` box shadows are dropped and colours replaced, so the status box (`molecules/_alert.scss`, no border, all five presets), the pills' selected segment (`_tabs.scss:76`, `border: none`, all five) and sorbet's sunken panel (its container line transparent) show no boundary; no contract measures a forced palette; it predates step 2.6 | the status icon and word (L168); `aria-selected` |
+| The focus ring against WCAG's 3:1 for non-text (2026-10-06, L198; render lens N2, widened) | `#8e6ac7` measures, light / dark: page 3.81 / 4.31; card 4.03 / 3.57; raised surface 4.03 / **2.83**; the washes 3.30 to 3.63 / **2.04 to 2.19**; the fills 2.66 to 3.25 in both modes (2.66 on lilac, which the selected calendar day and the current page touch at offset 0, R210, DECISIONS row 30). `legibility` holds the ring by separation instead: lowest light 26.13 against 24.8, dark 17.96 against 17.0 | the `focus-visible` tier |
+| Paragraphs on a full-strength fill, and A14's conventions (2026-10-06, L198) | usage rules, stated in the README's "Using sorbet" note by step 2.8: paragraphs never sit on a full-strength fill (the ink reads Lc 62.47 on lilac); robin's egg is never a lone button on the bare page; butter is used small, on cards | the docs |
 | 12px text off cream and milk: the solid badge, the neutral badge, the soft badge, the tooltip (L111) | the checker reads no type size but the button's | row 27; sheet 3 drew them at their real size |
 | Text over the default scrim's gradient (L110) | the gate measures the full-strength scrim, which the gradient reaches only at its bottom edge | an existing defect of all five presets, deferred (L110) |
 | The selected wash in a dark menu: `#554445` on the menu's `#463425`, 6.38 (12.85 on a card) | the wash is stored opaque over `surface` (D7), and the menu is raised | the selected bar (R195, 31.29) and the heavier weight carry the selection; neither is colour alone |
@@ -4352,7 +4405,7 @@ the gate's silence as a pass.
 | An edge whose all-round layer barely renders: the light card with `0 0 200px 0.01px #000000 @ 1` measures 98.63 (L138) | presence ignores blur and the size of a spread, and a minimum would be a number nobody approved | sorbet's golden shows any recipe change; rendered measurement in steps 2.4 and 2.6 |
 | The selected pill: the raised fill on the list's well, light 4.47, with `shadow(sm)` and the `text` ink against the unselected `text-muted` (L157, corrected by L164); dark, from step 2.6, 18.49 | the pills variant is a segmented control and takes no bar; a halo inside the list's 4px padding would be cut (L151) | §15 item 18 |
 | The input-group addon: an unframed well beside the field's inset ring (L158) | part of the field, not an element with an edge; cosmetic | looked at in step 2.4 |
-| An offset falloff cut by a clipping parent (a hovered button's deep-tone layer at a table's last row, at most 12px) | L151 makes room for the all-round layer only; the falloff is depth, not the edge presence measures | looked at |
+| An offset falloff cut by a clipping parent (a hovered button's deep-tone layer at a table's last row, at most 12px) | L151 makes room for the all-round layer only; the falloff is depth, not the edge presence measures | looked at (2026-10-06, L198: the compact table pads 8px in the block axis, `_table.scss:53`, not "12 or more" as L151's table read; a hovered filled button in an edge row of an overflowing compact table loses 1px of its light halo, L165 (d), and the outer part of its dark glow, L197. Tables pad nothing by the halo room.) |
 | An icon, a bold weight, a thumb's position | a token gate sees colours | status components derive the icon and word from their status (L168); the presence test of L181 holds that both are there; their look is by eye (L167) |
 | The status icon's ink on three light status washes: `#472400` on `#d3f4f0` 87.74 (deutan), on `#faefca` 89.70 (tritan), on `#fcdfdc` 84.21 (tritan), the last also the hovered danger menu item (L170) | no rule names `text-strong` on a status wash; the ink is darker than the `X-text` the `on-wash` tier holds on the same washes (76.17 to 81.66), and every other pair of the icon is a rule's pair exactly | each is 10.8 or more above the `on-wash` floor; the look of L167 |
 | The `Icon` atom's status tones off the surfaces the mark rules name: on the page, light 22.52 (protan) to 28.48 (deutan), dark 43.13 (protan) to 51.17 (tritan); and in dark the marks are weaker than the pastels they replace, 36.22 to 44.13 on a card against 57.60 to 63.88 (L179) | an icon can sit anywhere; R196 to R203 and R280 to R283 hold the card, the washes and the raised surface | every figure clears its mode's `mark-line` floor (19.5, 22.0) |

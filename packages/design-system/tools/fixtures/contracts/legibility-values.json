@@ -1,5 +1,5 @@
 {
-  "transcribedFrom": "docs/pastel-legibility-evidence/legibility-spec.md, revision 3.7 (2026-10-06)",
+  "transcribedFrom": "docs/pastel-legibility-evidence/legibility-spec.md, revision 3.8 (2026-10-06)",
   "note": "Transcribed by hand-written parsing of the spec's tables (transcribe-legibility-spec.mjs.txt beside this file), never produced by the code under test. colors: L12's 69 roles in table order, then L15's 20 optional tokens in table order (L14). edges: L45. buttonLabel: L19.",
   "colors": {
     "light": {
