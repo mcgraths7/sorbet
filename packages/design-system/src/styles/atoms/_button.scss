@@ -1,13 +1,61 @@
+@use "sass:string";
 @use "../abstracts" as *;
+
+// The filled buttons' falloff in each state, as every theme without edge data
+// paints it: the fallback of the edge() seams below. Each reads `--edge`, so a
+// variant that repoints the edge gets a matching falloff for free.
+$shadow-rest: (
+  0 1px 2px color-mix(in oklab, var(--edge) 22%, transparent),
+  0 2px 6px color-mix(in oklab, var(--edge) 12%, transparent)
+);
+$shadow-hover: (
+  0 2px 4px color-mix(in oklab, var(--edge) 26%, transparent),
+  0 6px 14px color-mix(in oklab, var(--edge) 14%, transparent)
+);
+$shadow-press: (
+  0 1px 1px color-mix(in oklab, var(--edge) 26%, transparent),
+  0 1px 2px color-mix(in oklab, var(--edge) 14%, transparent)
+);
+
+/// A filled button's edge in its three states: the theme's edge for that
+/// element when it has one (`--sb-edge-filled-<x>`, -hover, -press), else the
+/// falloff above. Declared on the element, never at :root, so `--edge` in the
+/// fallback is the element's own (a custom property resolves var() where it is
+/// declared).
+///
+/// `$rim` is an inset ring drawn above the edge in all three states (the
+/// danger button's, L175): it goes into a local, `--<x>-rim`, read ahead of the
+/// edge in each shadow with the placeholder as its fallback. Its colour comes
+/// through seam-only(), so in a theme without that token the local is invalid,
+/// each shadow computes the placeholder and then exactly its old falloff, and
+/// no layer is added (L148, L149). Each state's shadow carries the rim, so it
+/// never vanishes on hover or press, and no state rule gains a declaration.
+@mixin filled-edge($element, $rim: null) {
+  @if $rim {
+    $local: "#{string.slice("#{$element}", 8)}-rim";
+
+    --#{$local}: #{$rim};
+    --shadow-rest: var(--#{$local}, 0 0 #0000), #{edge($element, $shadow-rest)};
+    --shadow-hover: var(--#{$local}, 0 0 #0000), #{edge($element, $shadow-hover, hover)};
+    --shadow-press: var(--#{$local}, 0 0 #0000), #{edge($element, $shadow-press, press)};
+  } @else {
+    --shadow-rest: #{edge($element, $shadow-rest)};
+    --shadow-hover: #{edge($element, $shadow-hover, hover)};
+    --shadow-press: #{edge($element, $shadow-press, press)};
+  }
+}
 
 /// Variants that sit flat on the page: no falloff in any state, and nothing to
 /// lift. Shared by --soft, --ghost and --link, which differ in fill but agree
 /// completely about elevation.
 @mixin flat-elevation {
+  // The placeholder, not `none`: soft-edge composes these under the state
+  // layer, and a list holding `none` is invalid, so the button would draw no
+  // state layer either (L150).
   --lift: 0;
-  --shadow-rest: none;
-  --shadow-hover: none;
-  --shadow-press: none;
+  --shadow-rest: 0 0 #0000;
+  --shadow-hover: 0 0 #0000;
+  --shadow-press: 0 0 #0000;
 }
 
 .sb-button {
@@ -23,7 +71,9 @@
   padding-inline: space(4);
   border-radius: radius(md);
   font-weight: fw(semibold);
-  font-size: fs(sm);
+  // A theme with a buttonLabel (sorbet: 16px) sets the label's size; the rest
+  // paint fs(sm) as before (L19).
+  font-size: button-label(md);
   white-space: nowrap;
   text-decoration: none;
   // This shorthand overrides the one `pressable` sets, so it has to restate
@@ -48,7 +98,9 @@
   // so a pink button never wears a teal outline.
   --edge: #{clr(primary-solid)};
 
-  border: token(border-width) solid var(--edge);
+  // A theme with edge data sets `filled-line` (sorbet: transparent, the halo
+  // is the edge); every other theme paints `--edge`, as before.
+  border: token(border-width) solid seam(filled-line);
   // The border is the guarantee; this is the softening. A box-shadow's blur IS
   // a gradient — full colour at the edge, fading outward — so the edge reads as
   // a falloff rather than a hard rule. Two layers shape that curve: a tight,
@@ -66,35 +118,33 @@
   // pulls in TIGHTER than rest — a button held down is flush against the page,
   // so its shadow should be smaller than its resting one, not merely restored.
   // All three read `--edge`, so a variant that repoints the edge gets a
-  // matching falloff in every state for free.
-  --shadow-rest:
-    0 1px 2px color-mix(in oklab, var(--edge) 22%, transparent),
-    0 2px 6px color-mix(in oklab, var(--edge) 12%, transparent);
-  --shadow-hover:
-    0 2px 4px color-mix(in oklab, var(--edge) 26%, transparent),
-    0 6px 14px color-mix(in oklab, var(--edge) 14%, transparent);
-  --shadow-press:
-    0 1px 1px color-mix(in oklab, var(--edge) 26%, transparent),
-    0 1px 2px color-mix(in oklab, var(--edge) 14%, transparent);
-
-  box-shadow: var(--shadow-rest);
+  // matching falloff in every state for free. A theme with edge data replaces
+  // all three, per variant (`filled-edge`, above); the state rules only pick
+  // which one is showing (`soft-edge`), so a state never writes box-shadow.
+  @include filled-edge(filled-primary);
+  @include soft-edge(var(--shadow-rest), var(--shadow-hover), var(--shadow-press));
 
   &:hover:not(:disabled, [aria-disabled="true"]) {
     background-color: clr(primary-hover);
-    box-shadow: var(--shadow-hover);
   }
 
   &:active:not(:disabled, [aria-disabled="true"]) {
     background-color: clr(primary-active);
-    box-shadow: var(--shadow-press);
   }
 
   @each $variant in (secondary, accent, danger) {
     &--#{$variant} {
       @if $variant == danger {
         --edge: #{clr(danger)};
+
+        // The danger button's rose rim, 2px inside its edge (decision 13): with
+        // its octagon, what tells it from the secondary button, whose pastel
+        // fill it shares in a pastel theme.
+        @include filled-edge(filled-danger, inset 0 0 0 2px seam-only(danger-mark));
       } @else {
         --edge: #{clr(#{$variant}-solid)};
+
+        @include filled-edge(filled-#{$variant});
       }
 
       background-color: clr($variant);
@@ -132,16 +182,19 @@
   &--outline {
     // Owns its own ring; the filled-button border, falloff and lift would all
     // double it. The ring is the shape in every state, so it is pinned across
-    // the three elevations rather than being swapped out on hover.
+    // the three elevations rather than being swapped out on hover. A theme with
+    // edge data replaces the ring with the quiet edge (sorbet: a caramel halo
+    // round a milk slab), which has a resting state only.
     $ring: inset 0 0 0 1px #{clr(border-strong)};
+    $quiet: edge(quiet, $ring);
 
     --lift: 0;
-    --shadow-rest: #{$ring};
-    --shadow-hover: #{$ring};
-    --shadow-press: #{$ring};
+    --shadow-rest: #{$quiet};
+    --shadow-hover: #{$quiet};
+    --shadow-press: #{$quiet};
 
     border-color: transparent;
-    background-color: transparent;
+    background-color: seam(quiet-fill);
     color: clr(text);
 
     &:hover:not(:disabled, [aria-disabled="true"]),
@@ -190,7 +243,7 @@
   &--sm {
     block-size: token(control-height-sm);
     padding-inline: space(3);
-    font-size: fs(xs);
+    font-size: button-label(sm);
     border-radius: radius(sm);
   }
 
@@ -247,5 +300,12 @@
     inline-size: 1.1em;
     block-size: 1.1em;
     flex-shrink: 0;
+  }
+
+  // The danger button's status slot (atoms/_icon.scss): its octagon is on the
+  // fill, so it takes the label's ink, and turns transparent with the label
+  // under [data-loading] (L170, L175).
+  > .sb-status {
+    color: inherit;
   }
 }

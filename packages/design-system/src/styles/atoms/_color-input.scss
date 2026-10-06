@@ -185,7 +185,8 @@
     inline-size: token(control-height-sm);
     block-size: token(control-height-sm);
     flex-shrink: 0;
-    border: token(border-width) solid clr(border-strong);
+    // The frame of a field-shaped control (proposal §7): the field's line.
+    border: token(border-width) solid seam(field-line);
     border-radius: radius(sm);
     color: clr(text-subtle);
 
@@ -234,7 +235,7 @@
   &__field-label {
     font-size: fs(xs);
     font-weight: fw(medium);
-    color: clr(text-subtle);
+    color: seam(text-caption);
     text-align: center;
   }
 

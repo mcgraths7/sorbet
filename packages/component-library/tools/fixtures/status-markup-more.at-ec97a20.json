@@ -1,0 +1,194 @@
+{
+  "recordedFrom": "ec97a20",
+  "cases": [
+    {
+      "id": "A6",
+      "component": "Alert",
+      "props": {
+        "tone": "danger",
+        "title": "Sync failed",
+        "children": "x"
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--danger\"><div><p class=\"sb-alert__title\">Sync failed</p>x</div></div>"
+    },
+    {
+      "id": "A7",
+      "component": "Alert",
+      "props": {
+        "tone": "warning",
+        "title": "Heads up",
+        "onDismiss": "noop",
+        "dismissLabel": "Schliessen",
+        "children": "x"
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--warning\"><div><p class=\"sb-alert__title\">Heads up</p>x</div><button type=\"button\" class=\"sb-alert__dismiss sb-close\" aria-label=\"Schliessen\"></button></div>"
+    },
+    {
+      "id": "B22",
+      "component": "Badge",
+      "props": {
+        "tone": "danger",
+        "solid": true,
+        "className": "x",
+        "children": "7"
+      },
+      "html": "<span class=\"sb-badge sb-badge--danger sb-badge--solid x\">7</span>"
+    },
+    {
+      "id": "B23",
+      "component": "Badge",
+      "props": {
+        "tone": "success",
+        "children": {
+          "element": "strong",
+          "props": {
+            "children": "Done"
+          }
+        }
+      },
+      "html": "<span class=\"sb-badge sb-badge--success\"><strong>Done</strong></span>"
+    },
+    {
+      "id": "C15",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "pill": true,
+        "children": "Delete"
+      },
+      "html": "<button class=\"sb-button sb-button--danger sb-button--pill\" type=\"button\">Delete</button>"
+    },
+    {
+      "id": "C16",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "full": true,
+        "children": "Delete"
+      },
+      "html": "<button class=\"sb-button sb-button--danger sb-button--full\" type=\"button\">Delete</button>"
+    },
+    {
+      "id": "C17",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "disabled": true,
+        "children": "Delete"
+      },
+      "html": "<button class=\"sb-button sb-button--danger\" type=\"button\" disabled=\"\">Delete</button>"
+    },
+    {
+      "id": "C18",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "className": "x",
+        "children": "Delete"
+      },
+      "html": "<button class=\"sb-button sb-button--danger x\" type=\"button\">Delete</button>"
+    },
+    {
+      "id": "C19",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "as": "a",
+        "href": "#delete",
+        "pill": true,
+        "children": "Delete"
+      },
+      "html": "<a class=\"sb-button sb-button--danger sb-button--pill\" href=\"#delete\">Delete</a>"
+    },
+    {
+      "id": "D5",
+      "component": "MenuItem",
+      "props": {
+        "danger": true,
+        "disabled": true,
+        "children": "Delete"
+      },
+      "html": "<button type=\"button\" class=\"sb-menu__item\" data-danger=\"true\" disabled=\"\">Delete</button>"
+    },
+    {
+      "id": "D6",
+      "component": "MenuItem",
+      "props": {
+        "danger": true,
+        "className": "x",
+        "shortcut": "Del",
+        "children": "Delete"
+      },
+      "html": "<button type=\"button\" class=\"sb-menu__item x\" data-danger=\"true\">Delete<span class=\"sb-menu__kbd\">Del</span></button>"
+    },
+    {
+      "id": "E4",
+      "component": "Field",
+      "props": {
+        "label": "Rice",
+        "hint": "Cups, cooked.",
+        "error": "That is more rice than the pantry holds.",
+        "invalid": true,
+        "children": {
+          "element": "input",
+          "props": {
+            "className": "sb-input"
+          }
+        }
+      },
+      "html": "<div class=\"sb-field\" data-invalid=\"true\"><label class=\"sb-label\" for=\"_R_0_\">Rice</label><input class=\"sb-input\" id=\"_R_0_\" aria-describedby=\"_R_0_-hint _R_0_-error\" aria-invalid=\"true\"/><p class=\"sb-field__hint\" id=\"_R_0_-hint\">Cups, cooked.</p><p class=\"sb-field__error\" id=\"_R_0_-error\">That is more rice than the pantry holds.</p></div>"
+    },
+    {
+      "id": "E5",
+      "component": "Field",
+      "props": {
+        "label": "Rice",
+        "required": true,
+        "error": "That is more rice than the pantry holds.",
+        "invalid": true,
+        "children": {
+          "element": "input",
+          "props": {
+            "className": "sb-input"
+          }
+        }
+      },
+      "html": "<div class=\"sb-field\" data-invalid=\"true\"><label class=\"sb-label\" data-required=\"true\" for=\"_R_0_\">Rice</label><input class=\"sb-input\" id=\"_R_0_\" aria-describedby=\"_R_0_-error\" aria-invalid=\"true\"/><p class=\"sb-field__error\" id=\"_R_0_-error\">That is more rice than the pantry holds.</p></div>"
+    },
+    {
+      "id": "E6",
+      "component": "Field",
+      "props": {
+        "label": "Rice",
+        "optional": true,
+        "hint": "Cups, cooked.",
+        "error": "That is more rice than the pantry holds.",
+        "children": {
+          "element": "input",
+          "props": {
+            "className": "sb-input"
+          }
+        }
+      },
+      "html": "<div class=\"sb-field\"><label class=\"sb-label\" data-optional=\"true\" for=\"_R_0_\">Rice</label><input class=\"sb-input\" id=\"_R_0_\" aria-describedby=\"_R_0_-hint\"/><p class=\"sb-field__hint\" id=\"_R_0_-hint\">Cups, cooked.</p><p class=\"sb-field__error\" id=\"_R_0_-error\">That is more rice than the pantry holds.</p></div>"
+    },
+    {
+      "id": "H1",
+      "component": "Alert",
+      "props": {
+        "tone": "primary",
+        "children": "x"
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--primary\"><div>x</div></div>"
+    },
+    {
+      "id": "H2",
+      "component": "Alert",
+      "props": {
+        "tone": "neutral",
+        "children": "x"
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--neutral\"><div>x</div></div>"
+    }
+  ]
+}

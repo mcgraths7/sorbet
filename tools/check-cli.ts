@@ -22,7 +22,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { stripVTControlCharacters, styleText } from "node:util";
 
-import { contractOf, measureColors, presets } from "../packages/design-system/src/tokens/index.ts";
+import { measurePreset, presets } from "../packages/design-system/src/tokens/index.ts";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const keep = process.argv.includes("--keep");
@@ -46,12 +46,12 @@ const check = (label: string, cond: boolean) => {
  * word "holds" was not enough — the report this replaced printed that too,
  * over "all 86 pairings pass" when 70 apply and it had measured 68.
  *
- * N is counted under the contract each preset declares for the mode
- * (`contractOf`), the same one the installed report must have used: a contract
- * named here instead would expect the wrong count the day a preset declares
- * another.
+ * N is counted by `measurePreset`, under the contract each preset declares
+ * for the mode and with its edges, the same measurement the installed report
+ * must have used: a contract named here instead would expect the wrong count
+ * the day a preset declares another.
  */
-const expectedCounts = Object.values(presets).flatMap((preset) => (["light", "dark"] as const).map((mode) => measureColors(mode, preset.colors[mode], contractOf(preset, mode)).length));
+const expectedCounts = Object.values(presets).flatMap((preset) => (["light", "dark"] as const).map((mode) => measurePreset(preset, mode).length));
 function reportsWhatWasMeasured(output: string): boolean {
   const text = stripVTControlCharacters(output);
   const printed = [...text.matchAll(/^ {2}(?:light|dark) +all (\d+) pairings pass/gm)].map((m) => Number(m[1]));
@@ -98,6 +98,12 @@ try {
   // ---- exercise every command ----------------------------------------------
   console.log(styleText("bold", "running the binary…"));
   check("presets lists all five", ["sorbet", "ocean", "forest", "noir", "midnight"].every((p) => run(sorbet, ["presets"], temp).includes(p)));
+  // legibility-spec.md L198: each preset's row names the contract it declares, and no line says "WCAG AA verified" (sorbet is held to legibility).
+  {
+    const listed = run(sorbet, ["presets"], temp).split("\n");
+    const named = Object.values(presets).every((preset) => listed.some((line) => line.includes(` ${preset.name} `) && line.includes(preset.contract.light) && line.includes(preset.contract.dark)));
+    check("presets names each preset's contract, and never says WCAG AA verified", named && !listed.some((line) => /WCAG AA verified/i.test(line)));
+  }
   run(sorbet, ["theme", "ocean", "--out", "ocean.css"], temp);
   check("theme emits non-empty CSS with --sb- tokens", statSync(join(temp, "ocean.css")).size > 1000 && readFileSync(join(temp, "ocean.css"), "utf8").includes("--sb-"));
   check("contrast report passes, and prints the counts the contract measures", reportsWhatWasMeasured(run(sorbet, ["contrast"], temp)));

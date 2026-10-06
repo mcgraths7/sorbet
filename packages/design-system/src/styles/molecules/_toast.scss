@@ -19,17 +19,33 @@
   gap: space(3);
   padding: space(3) space(4);
   border-radius: radius(md);
-  border: token(border-width) solid clr(border-subtle);
+  // The floating surface's line and edge, as popover-surface draws them (L113).
+  border: token(border-width) solid seam(container-line);
   background-color: clr(surface-raised);
   color: clr(text);
   font-size: fs(sm);
-  box-shadow: shadow(lg);
+  box-shadow: edge(floating, shadow(lg));
   animation: sb-toast-in dur(slow) ease(spring);
 
   &[data-leaving] {
     transition: opacity dur(base) ease(out), translate dur(base) ease(out);
     opacity: 0;
     translate: space(4) 0;
+  }
+
+  // A toast with a tone leads with the status slot (atoms/_icon.scss), in a
+  // box that copies the alert's: <span class="sb-status sb-toast__icon">…</span>
+  &__icon {
+    flex-shrink: 0;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    margin-block-start: 0.05em;
+
+    > .sb-status-icon {
+      display: block;
+      inline-size: 100%;
+      block-size: 100%;
+    }
   }
 
   &__title {
@@ -61,9 +77,11 @@
     }
   }
 
+  // The stripe is a mark with no label: the tone's mark-strength colour,
+  // whose fallback is the tone itself (L179).
   @each $tone in (success, warning, danger, info) {
     &--#{$tone} {
-      border-inline-start: 3px solid clr($tone);
+      border-inline-start: 3px solid seam(#{$tone}-mark);
     }
   }
 }

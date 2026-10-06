@@ -62,7 +62,13 @@
   }
 
   &__body {
-    padding: 0 space(4) space(4);
+    // The top is the room for the all-round edge layer of whatever sits first
+    // in the body (L151): `::details-content` clips its block axis for the
+    // open and close animation, and a top padding of 0 cut a card's or a
+    // button's halo flat (audit of 7a683fd, frozen lens F2). 0 where a theme
+    // draws no such layer, so every other theme keeps its padding exactly; the
+    // sides and the bottom already have space(4), more than any room.
+    padding: halo-room() space(4) space(4);
     color: clr(text-muted);
     font-size: fs(sm);
     line-height: lh(relaxed);

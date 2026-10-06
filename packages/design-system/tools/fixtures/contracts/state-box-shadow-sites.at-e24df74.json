@@ -1,0 +1,117 @@
+{
+  "recordedFrom": "e24df74",
+  "check": "legibility-spec.md L153, on the compiled stylesheet",
+  "note": "legibility-spec.md L154 (1) as L162 (b) rules it: the state selectors whose rule writes a box-shadow in neither the composed nor the where-defined form, in e24df74's compiled stylesheet, allowing nothing. Not edited after recording.",
+  "sites": [
+    {
+      "selector": ".sb-button:active:not(:disabled, [aria-disabled=true])",
+      "property": "box-shadow",
+      "value": "var(--shadow-press)"
+    },
+    {
+      "selector": ".sb-button:hover:not(:disabled, [aria-disabled=true])",
+      "property": "box-shadow",
+      "value": "var(--shadow-hover)"
+    },
+    {
+      "selector": ".sb-card--interactive:hover",
+      "property": "box-shadow",
+      "value": "var(--sb-shadow-lg)"
+    },
+    {
+      "selector": ".sb-combobox__field:focus-within",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-focus-ring), transparent 70%)"
+    },
+    {
+      "selector": ".sb-combobox__field[data-invalid]:focus-within",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-date-range__control:focus-within",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-focus-ring), transparent 70%)"
+    },
+    {
+      "selector": ".sb-date-range__control[data-invalid]:focus-within",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-fab:hover",
+      "property": "box-shadow",
+      "value": "var(--sb-shadow-xl)"
+    },
+    {
+      "selector": ".sb-input:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-focus-ring), transparent 70%)"
+    },
+    {
+      "selector": ".sb-input:user-invalid:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-input[aria-invalid=true]:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-marquee__toggle:focus",
+      "property": "box-shadow",
+      "value": "var(--sb-shadow-md)"
+    },
+    {
+      "selector": ".sb-number-input:focus-within",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-focus-ring), transparent 70%)"
+    },
+    {
+      "selector": ".sb-number-input:has(.sb-number-input__field[aria-invalid=true]):focus-within",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-segmented__option[aria-checked=true]",
+      "property": "box-shadow",
+      "value": "var(--sb-shadow-sm)"
+    },
+    {
+      "selector": ".sb-select select:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-focus-ring), transparent 70%)"
+    },
+    {
+      "selector": ".sb-select select:user-invalid:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-select select[aria-invalid=true]:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-tabs--pills .sb-tabs__tab[aria-selected=true]",
+      "property": "box-shadow",
+      "value": "var(--sb-shadow-sm)"
+    },
+    {
+      "selector": ".sb-textarea:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-focus-ring), transparent 70%)"
+    },
+    {
+      "selector": ".sb-textarea:user-invalid:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    },
+    {
+      "selector": ".sb-textarea[aria-invalid=true]:focus-visible",
+      "property": "box-shadow",
+      "value": "0 0 0 calc(var(--sb-focus-ring-width) - 1px) color-mix(in oklab, var(--sb-danger), transparent 70%)"
+    }
+  ]
+}

@@ -10,21 +10,24 @@
   inline-size: fit-content;
   block-size: token(control-height-md);
   overflow: hidden;
-  border: token(border-width) solid clr(border-strong);
+  // The field's line, fill and edge, as .sb-input's (atoms/_input.scss).
+  border: token(border-width) solid seam(field-line);
   border-radius: radius(sm);
-  background-color: clr(surface);
+  background-color: seam(field-fill);
   color: clr(text);
   transition: border-color dur(fast) ease(out), box-shadow dur(fast) ease(out);
+
+  @include soft-edge(edge(field, 0 0 #0000));
 
   &:focus-within {
     @include control-glow;
   }
 
   &:has(.sb-number-input__field[aria-invalid="true"]) {
-    border-color: clr(danger);
+    border-color: seam(danger-mark);
 
     &:focus-within {
-      @include control-glow(danger);
+      @include control-glow(danger-mark);
     }
   }
 

@@ -4,7 +4,10 @@
  * A recipe maps primitive ramps onto semantic roles. Shade selection is
  * contrast-driven: instead of hardcoding "primary = 600", we walk the ramp
  * until the pairing (e.g. white text on a solid button) measures ≥ 4.5:1.
- * That is what lets every preset guarantee WCAG AA in both modes.
+ *
+ * Each preset meets the contract it declares (contracts.ts). This builder
+ * serves the four built presets, whose contract is `wcag-aa`; a legibility
+ * preset's values (sorbet's records in presets.ts) are picked, then checked.
  */
 
 import { chartColors, chartMuted, type ChartTheme } from "./charts.ts";

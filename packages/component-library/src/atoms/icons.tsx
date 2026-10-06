@@ -1,4 +1,6 @@
-import type { SVGProps } from "react";
+import { cx, type Tone } from "../core/index.ts";
+
+import type { ReactElement, SVGProps } from "react";
 
 /**
  * The glyphs Sorbet's own components need — not a general icon set.
@@ -13,7 +15,8 @@ import type { SVGProps } from "react";
  *
  * House style: `currentColor`, round caps and joins, and a stroke weight that
  * reads as 1.5 on a 16 grid — scaled per viewBox so they all look equally
- * heavy side by side (2.25 on 24, 1.875 on 20).
+ * heavy side by side (2.25 on 24, 1.875 on 20). The four status glyphs at the
+ * end are the exception: filled shapes with the symbol cut out, below.
  */
 export type IconGlyphProps = SVGProps<SVGSVGElement>;
 
@@ -115,5 +118,144 @@ export function MinusIcon(props: IconGlyphProps) {
     <svg viewBox="0 0 16 16" {...base} strokeWidth={1.5} {...props}>
       <path d="M3.5 8h9" />
     </svg>
+  );
+}
+
+// ----- status glyphs ----------------------------------------------------------
+//
+// A status is told apart by its SHAPE, never by its colour alone: a tick in a
+// circle (success), an exclamation mark in a triangle (warning), a cross in an
+// octagon (danger), an i in a rounded square (info). Each is a silhouette
+// filled in `currentColor` with the symbol knocked out, so the surface under
+// the icon shows through the symbol and the icon has exactly one colour pair:
+// its ink against what it sits on (legibility-spec.md L169, L170).
+//
+// The knock-out is ONE path under the even-odd rule: the first subpath is the
+// silhouette and the others are the symbol, each a hole. So the symbol's
+// subpaths never overlap one another (the cross is one outline, the union of
+// its two strokes: two overlapping subpaths would fill the centre again), and
+// nothing is referenced by id: a <mask> needs an id unique in the document,
+// which needs a hook, which would make this a client module. No colour is
+// written anywhere in a glyph.
+//
+// The geometry is the status-icons sheet's, on a 24 grid, written as outlines:
+// the silhouette includes the sheet's 2-unit round-joined stroke (a disc of
+// radius 11; the triangle and octagon grown by 1 with round corners; the
+// square from 1 to 23 with corner radius 5.5), and the symbol is the sheet's
+// 2.6-unit round-capped strokes and its two dots of radius 1.61.
+//
+// Sized by the stylesheet (`.sb-status-icon`, 1.1em), so like the house
+// glyphs above they have no intrinsic size.
+
+const STATUS_PATHS: Record<Tone, string> = {
+  success:
+    "M1 12A11 11 0 1 0 23 12A11 11 0 1 0 1 12Z" +
+    "M6.581 13.419L9.581 16.419A1.3 1.3 0 0 0 11.455 16.382L17.455 9.882A1.3 1.3 0 0 0 15.545 8.118L10.462 13.624L8.419 11.581A1.3 1.3 0 0 0 6.581 13.419Z",
+  warning:
+    "M12.868 2.303L23.068 20.103A1 1 0 0 1 22.2 21.6L1.8 21.6A1 1 0 0 1 0.932 20.103L11.132 2.303A1 1 0 0 1 12.868 2.303Z" +
+    "M10.7 9.3A1.3 1.3 0 0 1 13.3 9.3V13.9A1.3 1.3 0 0 1 10.7 13.9Z" +
+    "M10.39 17.2A1.61 1.61 0 1 0 13.61 17.2A1.61 1.61 0 1 0 10.39 17.2Z",
+  danger:
+    "M8.1 0.8L15.9 0.8A1 1 0 0 1 16.607 1.093L22.907 7.393A1 1 0 0 1 23.2 8.1L23.2 15.9A1 1 0 0 1 22.907 16.607" +
+    "L16.607 22.907A1 1 0 0 1 15.9 23.2L8.1 23.2A1 1 0 0 1 7.393 22.907L1.093 16.607A1 1 0 0 1 0.8 15.9L0.8 8.1" +
+    "A1 1 0 0 1 1.093 7.393L7.393 1.093A1 1 0 0 1 8.1 0.8Z" +
+    "M12 10.162L14.281 7.881A1.3 1.3 0 0 1 16.119 9.719L13.838 12L16.119 14.281A1.3 1.3 0 0 1 14.281 16.119L12 13.838" +
+    "L9.719 16.119A1.3 1.3 0 0 1 7.881 14.281L10.162 12L7.881 9.719A1.3 1.3 0 0 1 9.719 7.881Z",
+  info:
+    "M6.5 1H17.5A5.5 5.5 0 0 1 23 6.5V17.5A5.5 5.5 0 0 1 17.5 23H6.5A5.5 5.5 0 0 1 1 17.5V6.5A5.5 5.5 0 0 1 6.5 1Z" +
+    "M10.39 7.6A1.61 1.61 0 1 0 13.61 7.6A1.61 1.61 0 1 0 10.39 7.6Z" +
+    "M10.7 11A1.3 1.3 0 0 1 13.3 11V17A1.3 1.3 0 0 1 10.7 17Z",
+};
+
+function statusGlyph(tone: Tone, { className, ...props }: IconGlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable={false}
+      {...props}
+      className={cx("sb-status-icon", `sb-status-icon--${tone}`, className)}
+    >
+      <path fill="currentColor" fillRule="evenodd" d={STATUS_PATHS[tone]} />
+    </svg>
+  );
+}
+
+/** Success: a tick knocked out of a circle. */
+export function SuccessIcon(props: IconGlyphProps) {
+  return statusGlyph("success", props);
+}
+
+/** Warning: an exclamation mark knocked out of a triangle. */
+export function WarningIcon(props: IconGlyphProps) {
+  return statusGlyph("warning", props);
+}
+
+/** Danger: a cross knocked out of an octagon. */
+export function DangerIcon(props: IconGlyphProps) {
+  return statusGlyph("danger", props);
+}
+
+/** Info: an i knocked out of a rounded square. */
+export function InfoIcon(props: IconGlyphProps) {
+  return statusGlyph("info", props);
+}
+
+// ----- internal: for the status components only, not exported by the barrel --
+
+/** Which glyph each status takes. Internal (not in `atoms/index.ts`). */
+export const STATUS_GLYPHS: Record<Tone, (props: IconGlyphProps) => ReactElement> = {
+  success: SuccessIcon,
+  warning: WarningIcon,
+  danger: DangerIcon,
+  info: InfoIcon,
+};
+
+/**
+ * The word a screen reader says before a status's own words. "Error", not
+ * "Danger": the tone is named for the colour's job, the word for what a
+ * listener needs. "Information", not "Info": a word a reader says, not an
+ * abbreviation it may spell out. The slot adds the colon and the space.
+ * Internal (not in `atoms/index.ts`).
+ */
+export const STATUS_WORDS: Record<Tone, string> = {
+  success: "Success",
+  warning: "Warning",
+  danger: "Error",
+  info: "Information",
+};
+
+export interface StatusMarkProps {
+  tone: Tone;
+  /** Replaces the word (another language); trimmed, and an empty one gives the default. */
+  statusLabel?: string;
+  /** The danger button and the danger menu item: their label is their word. */
+  wordless?: boolean;
+  /** Added after `sb-status`: the alert's and the toast's slot box. */
+  className?: string;
+}
+
+/**
+ * The status slot: the glyph and, unless `wordless`, the visually hidden word,
+ * in one positioned span. It is the word's containing block (the word is
+ * `position: absolute`), so the word stays inside its component and inside
+ * any scroller round it. The only place the slot's markup is written. Every
+ * status component renders it from its status, so a status cannot render
+ * without its icon and word (legibility-spec.md L168, L171, L186). A tone that
+ * is not a status (from untyped code) renders nothing, so the component renders
+ * as it did before it had a slot, rather than throwing (L194 (d)).
+ * Internal (not in `atoms/index.ts`).
+ */
+export function StatusMark({ tone, statusLabel, wordless, className }: StatusMarkProps) {
+  if (!Object.hasOwn(STATUS_GLYPHS, tone)) {
+    return null;
+  }
+  const Glyph = STATUS_GLYPHS[tone];
+  const word = statusLabel?.trim() || STATUS_WORDS[tone];
+  return (
+    <span className={cx("sb-status", className)}>
+      <Glyph />
+      {!wordless && <span className="u-visually-hidden">{`${word}: `}</span>}
+    </span>
   );
 }

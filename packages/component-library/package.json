@@ -42,7 +42,8 @@
   "files": ["dist", "src"],
   "scripts": {
     "build": "pnpm run check:client && tsc -p tsconfig.json",
-    "check:client": "node tools/check-client-directives.ts"
+    "check:client": "node tools/check-client-directives.ts",
+    "test:status": "node tools/test-status.ts"
   },
   "dependencies": {
     "@sorbet/design-system": "workspace:*"

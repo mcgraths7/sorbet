@@ -60,21 +60,24 @@
     gap: space(1);
     min-block-size: token(control-height-md);
     padding: space(1) space(12) space(1) space(2);
-    border: token(border-width) solid clr(border-strong);
+    // The field's line, fill and edge, as .sb-input's (atoms/_input.scss).
+    border: token(border-width) solid seam(field-line);
     border-radius: radius(sm);
-    background-color: clr(surface);
+    background-color: seam(field-fill);
     cursor: text;
     transition: border-color dur(fast) ease(out), box-shadow dur(fast) ease(out);
+
+    @include soft-edge(edge(field, 0 0 #0000));
 
     &:focus-within {
       @include control-glow;
     }
 
     &[data-invalid] {
-      border-color: clr(danger);
+      border-color: seam(danger-mark);
 
       &:focus-within {
-        @include control-glow(danger);
+        @include control-glow(danger-mark);
       }
     }
 
@@ -160,7 +163,7 @@
 
   &__option-desc {
     font-size: fs(xs);
-    color: clr(text-subtle);
+    color: seam(text-caption);
 
     [data-highlighted] & {
       color: clr(primary-text);
@@ -174,7 +177,7 @@
     font-weight: fw(semibold);
     letter-spacing: ls(wide);
     text-transform: uppercase;
-    color: clr(text-subtle);
+    color: seam(text-caption);
   }
 
   &__empty {

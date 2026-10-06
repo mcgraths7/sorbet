@@ -1,0 +1,390 @@
+{
+  "recordedFrom": "9b83e50",
+  "cases": [
+    {
+      "id": "A1",
+      "component": "Alert",
+      "props": {
+        "tone": "success",
+        "title": "Deployed",
+        "children": "Build 214 is live in production."
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--success\"><div><p class=\"sb-alert__title\">Deployed</p>Build 214 is live in production.</div></div>"
+    },
+    {
+      "id": "A2",
+      "component": "Alert",
+      "props": {
+        "tone": "danger",
+        "title": "Payment failed",
+        "role": "alert",
+        "children": "We could not charge your card."
+      },
+      "html": "<div role=\"alert\" class=\"sb-alert sb-alert--danger\"><div><p class=\"sb-alert__title\">Payment failed</p>We could not charge your card.</div></div>"
+    },
+    {
+      "id": "A3",
+      "component": "Alert",
+      "props": {
+        "tone": "warning",
+        "children": "Two items run out before Thursday."
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--warning\"><div>Two items run out before Thursday.</div></div>"
+    },
+    {
+      "id": "A4",
+      "component": "Alert",
+      "props": {
+        "tone": "info",
+        "title": "Note",
+        "onDismiss": "noop",
+        "children": "The Thursday shop covers the rest of the week."
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--info\"><div><p class=\"sb-alert__title\">Note</p>The Thursday shop covers the rest of the week.</div><button type=\"button\" class=\"sb-alert__dismiss sb-close\" aria-label=\"Dismiss\"></button></div>"
+    },
+    {
+      "id": "A5",
+      "component": "Alert",
+      "props": {
+        "children": "No tone was given."
+      },
+      "html": "<div role=\"status\" class=\"sb-alert sb-alert--info\"><div>No tone was given.</div></div>"
+    },
+    {
+      "id": "B1",
+      "component": "Badge",
+      "props": {
+        "tone": "success",
+        "children": "Overdue"
+      },
+      "html": "<span class=\"sb-badge sb-badge--success\">Overdue</span>"
+    },
+    {
+      "id": "B2",
+      "component": "Badge",
+      "props": {
+        "tone": "warning",
+        "children": "Overdue"
+      },
+      "html": "<span class=\"sb-badge sb-badge--warning\">Overdue</span>"
+    },
+    {
+      "id": "B3",
+      "component": "Badge",
+      "props": {
+        "tone": "danger",
+        "children": "Overdue"
+      },
+      "html": "<span class=\"sb-badge sb-badge--danger\">Overdue</span>"
+    },
+    {
+      "id": "B4",
+      "component": "Badge",
+      "props": {
+        "tone": "info",
+        "children": "Overdue"
+      },
+      "html": "<span class=\"sb-badge sb-badge--info\">Overdue</span>"
+    },
+    {
+      "id": "B5",
+      "component": "Badge",
+      "props": {
+        "tone": "success",
+        "solid": true,
+        "children": "7"
+      },
+      "html": "<span class=\"sb-badge sb-badge--success sb-badge--solid\">7</span>"
+    },
+    {
+      "id": "B6",
+      "component": "Badge",
+      "props": {
+        "tone": "warning",
+        "solid": true,
+        "children": "7"
+      },
+      "html": "<span class=\"sb-badge sb-badge--warning sb-badge--solid\">7</span>"
+    },
+    {
+      "id": "B7",
+      "component": "Badge",
+      "props": {
+        "tone": "danger",
+        "solid": true,
+        "children": "7"
+      },
+      "html": "<span class=\"sb-badge sb-badge--danger sb-badge--solid\">7</span>"
+    },
+    {
+      "id": "B8",
+      "component": "Badge",
+      "props": {
+        "tone": "info",
+        "solid": true,
+        "children": "7"
+      },
+      "html": "<span class=\"sb-badge sb-badge--info sb-badge--solid\">7</span>"
+    },
+    {
+      "id": "B9",
+      "component": "Badge",
+      "props": {
+        "tone": "primary",
+        "dot": true,
+        "children": "New"
+      },
+      "html": "<span class=\"sb-badge sb-badge--primary\"><i class=\"sb-badge__dot\" aria-hidden=\"true\"></i>New</span>"
+    },
+    {
+      "id": "B10",
+      "component": "Badge",
+      "props": {
+        "tone": "secondary",
+        "children": "Draft"
+      },
+      "html": "<span class=\"sb-badge sb-badge--secondary\">Draft</span>"
+    },
+    {
+      "id": "B11",
+      "component": "Badge",
+      "props": {
+        "tone": "accent",
+        "dot": true,
+        "children": "Beta"
+      },
+      "html": "<span class=\"sb-badge sb-badge--accent\"><i class=\"sb-badge__dot\" aria-hidden=\"true\"></i>Beta</span>"
+    },
+    {
+      "id": "B12",
+      "component": "Badge",
+      "props": {
+        "children": "Neutral"
+      },
+      "html": "<span class=\"sb-badge\">Neutral</span>"
+    },
+    {
+      "id": "B13",
+      "component": "Badge",
+      "props": {
+        "dot": true,
+        "children": "Neutral"
+      },
+      "html": "<span class=\"sb-badge\"><i class=\"sb-badge__dot\" aria-hidden=\"true\"></i>Neutral</span>"
+    },
+    {
+      "id": "C1",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "children": "Delete account"
+      },
+      "html": "<button class=\"sb-button sb-button--danger\" type=\"button\">Delete account</button>"
+    },
+    {
+      "id": "C2",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "size": "sm",
+        "children": "Delete"
+      },
+      "html": "<button class=\"sb-button sb-button--danger sb-button--sm\" type=\"button\">Delete</button>"
+    },
+    {
+      "id": "C3",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "size": "lg",
+        "children": "Delete"
+      },
+      "html": "<button class=\"sb-button sb-button--danger sb-button--lg\" type=\"button\">Delete</button>"
+    },
+    {
+      "id": "C4",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "as": "a",
+        "href": "#delete",
+        "children": "Delete"
+      },
+      "html": "<a class=\"sb-button sb-button--danger\" href=\"#delete\">Delete</a>"
+    },
+    {
+      "id": "C5",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "iconOnly": true,
+        "aria-label": "Delete",
+        "children": "x"
+      },
+      "html": "<button class=\"sb-button sb-button--danger sb-button--icon\" type=\"button\" aria-label=\"Delete\">x</button>"
+    },
+    {
+      "id": "C6",
+      "component": "Button",
+      "props": {
+        "variant": "danger",
+        "loading": true,
+        "children": "Deleting"
+      },
+      "html": "<button class=\"sb-button sb-button--danger\" data-loading=\"true\" type=\"button\">Deleting</button>"
+    },
+    {
+      "id": "C7",
+      "component": "Button",
+      "props": {
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "C8",
+      "component": "Button",
+      "props": {
+        "variant": "primary",
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "C9",
+      "component": "Button",
+      "props": {
+        "variant": "secondary",
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button sb-button--secondary\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "C10",
+      "component": "Button",
+      "props": {
+        "variant": "accent",
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button sb-button--accent\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "C11",
+      "component": "Button",
+      "props": {
+        "variant": "soft",
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button sb-button--soft\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "C12",
+      "component": "Button",
+      "props": {
+        "variant": "outline",
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button sb-button--outline\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "C13",
+      "component": "Button",
+      "props": {
+        "variant": "ghost",
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button sb-button--ghost\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "C14",
+      "component": "Button",
+      "props": {
+        "variant": "link",
+        "children": "Save"
+      },
+      "html": "<button class=\"sb-button sb-button--link\" type=\"button\">Save</button>"
+    },
+    {
+      "id": "D1",
+      "component": "MenuItem",
+      "props": {
+        "danger": true,
+        "children": "Delete project"
+      },
+      "html": "<button type=\"button\" class=\"sb-menu__item\" data-danger=\"true\">Delete project</button>"
+    },
+    {
+      "id": "D2",
+      "component": "MenuItem",
+      "props": {
+        "danger": true,
+        "shortcut": "Del",
+        "children": "Delete"
+      },
+      "html": "<button type=\"button\" class=\"sb-menu__item\" data-danger=\"true\">Delete<span class=\"sb-menu__kbd\">Del</span></button>"
+    },
+    {
+      "id": "D3",
+      "component": "MenuItem",
+      "props": {
+        "children": "Rename"
+      },
+      "html": "<button type=\"button\" class=\"sb-menu__item\">Rename</button>"
+    },
+    {
+      "id": "D4",
+      "component": "MenuItem",
+      "props": {
+        "shortcut": "R",
+        "children": "Rename"
+      },
+      "html": "<button type=\"button\" class=\"sb-menu__item\">Rename<span class=\"sb-menu__kbd\">R</span></button>"
+    },
+    {
+      "id": "E1",
+      "component": "Field",
+      "props": {
+        "label": "Rice",
+        "error": "That is more rice than the pantry holds.",
+        "invalid": true,
+        "children": {
+          "element": "input",
+          "props": {
+            "className": "sb-input"
+          }
+        }
+      },
+      "html": "<div class=\"sb-field\" data-invalid=\"true\"><label class=\"sb-label\" for=\"_R_0_\">Rice</label><input class=\"sb-input\" id=\"_R_0_\" aria-describedby=\"_R_0_-error\" aria-invalid=\"true\"/><p class=\"sb-field__error\" id=\"_R_0_-error\">That is more rice than the pantry holds.</p></div>"
+    },
+    {
+      "id": "E2",
+      "component": "Field",
+      "props": {
+        "label": "Rice",
+        "hint": "Cups, cooked.",
+        "children": {
+          "element": "input",
+          "props": {
+            "className": "sb-input"
+          }
+        }
+      },
+      "html": "<div class=\"sb-field\"><label class=\"sb-label\" for=\"_R_0_\">Rice</label><input class=\"sb-input\" id=\"_R_0_\" aria-describedby=\"_R_0_-hint\"/><p class=\"sb-field__hint\" id=\"_R_0_-hint\">Cups, cooked.</p></div>"
+    },
+    {
+      "id": "E3",
+      "component": "Field",
+      "props": {
+        "label": "Rice",
+        "error": "That is more rice than the pantry holds.",
+        "children": {
+          "element": "input",
+          "props": {
+            "className": "sb-input"
+          }
+        }
+      },
+      "html": "<div class=\"sb-field\"><label class=\"sb-label\" for=\"_R_0_\">Rice</label><input class=\"sb-input\" id=\"_R_0_\"/><p class=\"sb-field__error\" id=\"_R_0_-error\">That is more rice than the pantry holds.</p></div>"
+    }
+  ]
+}

@@ -1,13 +1,15 @@
 @use "../abstracts" as *;
 
 // Label + control + hint + error. The molecule owns the internal spacing;
-// the error reveals itself via :has(:user-invalid) with no JS.
+// the error reveals itself via :has(:user-invalid) with no JS. The error leads
+// with the danger status slot (atoms/_icon.scss): the octagon and a hidden
+// "Error: ", so it never rests on its colour.
 //
 // <div class="sb-field">
 //   <label class="sb-label" for="email" data-required>Email</label>
 //   <input class="sb-input" id="email" type="email" required>
 //   <p class="sb-field__hint">We'll never share it.</p>
-//   <p class="sb-field__error">Enter a valid email address.</p>
+//   <p class="sb-field__error"><span class="sb-status"><svg class="sb-status-icon sb-status-icon--danger" …></svg><span class="u-visually-hidden">Error: </span></span>Enter a valid email address.</p>
 // </div>
 .sb-field {
   display: flex;
@@ -28,6 +30,10 @@
     display: none;
     color: clr(danger-text);
     font-weight: fw(medium);
+
+    > .sb-status {
+      margin-inline-end: space(1);
+    }
   }
 
   &:has(:user-invalid) .sb-field__error,

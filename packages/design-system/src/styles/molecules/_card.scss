@@ -4,9 +4,13 @@
   display: flex;
   flex-direction: column;
   border-radius: radius(lg);
-  border: token(border-width) solid clr(border-subtle);
+  // The line and the shadow are the container's, through their seams: a theme
+  // with edge data (sorbet) makes the line transparent, keeping its 1px of
+  // layout, and draws the boundary with the container edge alone (L113); the
+  // rest paint the border-subtle line and shadow(sm) as before.
+  border: token(border-width) solid seam(container-line);
   background-color: clr(surface);
-  box-shadow: shadow(sm);
+  box-shadow: edge(container, shadow(sm));
   overflow: hidden;
 
   &__header,
@@ -58,28 +62,44 @@
     line-height: lh(snug);
   }
 
+  // A theme with edge data draws the raised card's boundary with the container
+  // edge, as it does a plain card's (L165 (b), DECISIONS row 35); every other
+  // theme keeps shadow(md) exactly.
   &--raised {
     border: none;
-    box-shadow: shadow(md);
+    box-shadow: edge(container, shadow(md));
   }
 
+  // Flat drops the elevation, not the boundary. Where the boundary is the line,
+  // that is no shadow at all; where a theme draws it with the edge and no line,
+  // a flat card keeps the edge, or it would have nothing to show where it ends.
   &--flat {
-    box-shadow: none;
+    box-shadow: edge(container, none);
   }
 
   &--sunken {
     background-color: clr(surface-sunken);
     border: none;
-    box-shadow: none;
+    box-shadow: edge(sunken, none);
+    // Read by the interactive hover below: a sunken card keeps its own edge on
+    // hover rather than swapping to the container's (L152, L165 (c)). In a
+    // theme without edge data it is shadow(lg), the hover it always had.
+    --card-hover-edge: #{edge(sunken, shadow(lg))};
   }
 
   // Whole-card link/button affordance.
   &--interactive {
     transition: box-shadow dur(base) ease(out), translate dur(base) ease(out), border-color dur(base) ease(out);
 
+    // Never weaker than rest (L152): a theme with edge data shows the card's
+    // own edge on hover (the container edge, or the sunken one through the
+    // variant's --card-hover-edge, L165 (c)) and its line stays the
+    // container's (transparent in sorbet); every other theme lifts to
+    // shadow(lg) and shows the border line, as before.
     &:hover {
-      box-shadow: shadow(lg);
-      border-color: clr(border);
+      box-shadow: var(--card-hover-edge, #{edge(container, shadow(lg))});
+
+      @include where-defined(border-color, card-hover-line, seam-only(container-line), clr(border));
     }
 
     // Only the displacement is gated, not the whole hover state. A touch

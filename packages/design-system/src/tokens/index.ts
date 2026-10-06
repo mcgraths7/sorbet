@@ -7,10 +7,13 @@ export type { Mode, SemanticColorName, SemanticColors, SemanticRecipe } from "./
 export { presets, PRESET_NAMES, DEFAULT_PRESET } from "./presets.ts";
 export type { Preset, PresetName } from "./presets.ts";
 export * as scales from "./scales.ts";
-export { contracts, CONTRACT_NAMES, TIERS, TIER_KIND, floorFor } from "./contracts.ts";
-export type { Contract, ContractName, Kind, Tier, TierFloor } from "./contracts.ts";
-export { RULES, checkPreset, checkColors, contractOf, measureColors, ratioText, tally } from "./rules.ts";
-export type { Failure, Measurement, Rule, Tally } from "./rules.ts";
+export { contracts, CONTRACT_NAMES, TIERS, TIER_KIND, METRIC_WORD, floorFor, metricFor } from "./contracts.ts";
+export type { CheckName, Contract, ContractName, Kind, Metric, Tier, TierFloor, View } from "./contracts.ts";
+export { SEAMS } from "./seams.ts";
+export type { ColorRecord, SeamFallback, SeamName } from "./seams.ts";
+export type { EdgeData, EdgeElement, EdgeRecipe, ShadowLayer } from "./edges.ts";
+export { RULES, applyingCount, checkPreset, checkColors, checkStructure, contractOf, declaredContracts, measureColors, measurePreset, ratioText, tally } from "./rules.ts";
+export type { ColorRef, Failure, Measurement, Rule, StructureFailure, Tally } from "./rules.ts";
 export { chartThemes, chartColors, chartMuted } from "./charts.ts";
 export type { ChartSlot, ChartTheme } from "./charts.ts";
 export { themeCss, generatedScss, manifest } from "./emit.ts";

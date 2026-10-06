@@ -1,0 +1,103 @@
+// Records status-markup.at-9b83e50.json for legibility-spec.md L187 (revision 3.6, step 2.5): the markup 9b83e50's
+// built component library renders for the 39 cases of L187's table that 9b83e50 can render the same way (A1 to A5,
+// B1 to B13, C1 to C14, D1 to D4, E1 to E3), each the renderToStaticMarkup of 9b83e50's build. The presence test
+// (tools/test-status.ts, L181 case 9) renders the same cases with this tree's build, removes every status slot with
+// L187's pattern, and requires the result to equal the recorded html character for character: the masked screenshot
+// compare (L167) renders this tree's markup on both sides and cannot see a markup change.
+//
+// The cases L187 leaves out are the ones 9b83e50 cannot render the same way: a status tone with `dot` (the dot is
+// replaced, L174), `statusLabel` (new) and ToastItem (new; L187 gives its three expected strings). Props are data:
+// "noop" for onDismiss is a function that does nothing, and a child { "element", "props" } is one host element.
+//
+// Committed as .txt, like record-e24df74-styles.mts.txt, so nothing runs or lints it by accident. Recorded once,
+// before step 2.5 changed the components, and never re-recorded; the test pins the fixture's sha256. Run it on a
+// checkout of 9b83e50 whose component library is built:
+//
+//   mkdir -p /tmp/sorbet-9b83e50
+//   git archive 9b83e50 | tar -x -C /tmp/sorbet-9b83e50
+//   (cd /tmp/sorbet-9b83e50 && pnpm install --offline && pnpm build)
+//   cp packages/component-library/tools/fixtures/record-status-markup.mts.txt /tmp/record-status-markup.mts
+//   node /tmp/record-status-markup.mts /tmp/sorbet-9b83e50 /tmp/status-markup.at-9b83e50.json
+//   cmp /tmp/status-markup.at-9b83e50.json packages/component-library/tools/fixtures/status-markup.at-9b83e50.json
+
+import { writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
+
+const [checkout, out] = process.argv.slice(2);
+if (!checkout || !out) {
+  console.error("usage: node record-status-markup.mts <root of a built 9b83e50 checkout> <output file>");
+  process.exit(1);
+}
+const library = join(checkout, "packages", "component-library");
+// react and react-dom from the component library's own peer dependencies, as the presence test resolves them (L189).
+const req = createRequire(join(library, "package.json"));
+const React = req("react") as { createElement: (type: unknown, props?: Record<string, unknown> | null, ...children: unknown[]) => unknown };
+const { renderToStaticMarkup } = req("react-dom/server") as { renderToStaticMarkup: (element: unknown) => string };
+const barrel = (await import(pathToFileURL(join(library, "dist", "index.js")).href)) as Record<string, unknown>;
+
+type Props = Record<string, unknown>;
+const STATUS = ["success", "warning", "danger", "info"] as const;
+const input = { element: "input", props: { className: "sb-input" } };
+const ERROR = "That is more rice than the pantry holds.";
+
+// L187's table, in its order, less the cases 9b83e50 cannot render the same way.
+const CASES: { id: string; component: string; props: Props }[] = [
+  { id: "A1", component: "Alert", props: { tone: "success", title: "Deployed", children: "Build 214 is live in production." } },
+  { id: "A2", component: "Alert", props: { tone: "danger", title: "Payment failed", role: "alert", children: "We could not charge your card." } },
+  { id: "A3", component: "Alert", props: { tone: "warning", children: "Two items run out before Thursday." } },
+  { id: "A4", component: "Alert", props: { tone: "info", title: "Note", onDismiss: "noop", children: "The Thursday shop covers the rest of the week." } },
+  { id: "A5", component: "Alert", props: { children: "No tone was given." } },
+  ...STATUS.map((tone, i) => ({ id: `B${i + 1}`, component: "Badge", props: { tone, children: "Overdue" } })),
+  ...STATUS.map((tone, i) => ({ id: `B${i + 5}`, component: "Badge", props: { tone, solid: true, children: "7" } })),
+  { id: "B9", component: "Badge", props: { tone: "primary", dot: true, children: "New" } },
+  { id: "B10", component: "Badge", props: { tone: "secondary", children: "Draft" } },
+  { id: "B11", component: "Badge", props: { tone: "accent", dot: true, children: "Beta" } },
+  { id: "B12", component: "Badge", props: { children: "Neutral" } },
+  { id: "B13", component: "Badge", props: { dot: true, children: "Neutral" } },
+  { id: "C1", component: "Button", props: { variant: "danger", children: "Delete account" } },
+  { id: "C2", component: "Button", props: { variant: "danger", size: "sm", children: "Delete" } },
+  { id: "C3", component: "Button", props: { variant: "danger", size: "lg", children: "Delete" } },
+  { id: "C4", component: "Button", props: { variant: "danger", as: "a", href: "#delete", children: "Delete" } },
+  { id: "C5", component: "Button", props: { variant: "danger", iconOnly: true, "aria-label": "Delete", children: "x" } },
+  { id: "C6", component: "Button", props: { variant: "danger", loading: true, children: "Deleting" } },
+  { id: "C7", component: "Button", props: { children: "Save" } },
+  ...["primary", "secondary", "accent", "soft", "outline", "ghost", "link"].map((variant, i) => ({ id: `C${i + 8}`, component: "Button", props: { variant, children: "Save" } })),
+  { id: "D1", component: "MenuItem", props: { danger: true, children: "Delete project" } },
+  { id: "D2", component: "MenuItem", props: { danger: true, shortcut: "Del", children: "Delete" } },
+  { id: "D3", component: "MenuItem", props: { children: "Rename" } },
+  { id: "D4", component: "MenuItem", props: { shortcut: "R", children: "Rename" } },
+  { id: "E1", component: "Field", props: { label: "Rice", error: ERROR, invalid: true, children: input } },
+  { id: "E2", component: "Field", props: { label: "Rice", hint: "Cups, cooked.", children: input } },
+  { id: "E3", component: "Field", props: { label: "Rice", error: ERROR, children: input } },
+];
+
+/** Props as data, made React props: "noop" for onDismiss is a function that does nothing; a child { element, props } is one host element. */
+function live(props: Props): Props {
+  const made: Props = {};
+  for (const [key, value] of Object.entries(props)) {
+    if (key === "onDismiss" && value === "noop") {
+      made[key] = () => {};
+    } else if (key === "children" && typeof value === "object" && value !== null && "element" in value) {
+      const child = value as { element: string; props: Props };
+      made[key] = React.createElement(child.element, child.props);
+    } else {
+      made[key] = value;
+    }
+  }
+  return made;
+}
+
+const cases = CASES.map(({ id, component, props }) => {
+  const Component = barrel[component];
+  if (typeof Component !== "function") {
+    throw new Error(`${id}: 9b83e50's barrel exports no ${component}`);
+  }
+  return { id, component, props, html: renderToStaticMarkup(React.createElement(Component, live(props))) };
+});
+if (cases.length !== 39) {
+  throw new Error(`${cases.length} cases, not L187's 39`);
+}
+writeFileSync(out, `${JSON.stringify({ recordedFrom: "9b83e50", cases }, null, 2)}\n`);
+console.log(`recorded ${cases.length} cases from ${library} into ${out}`);

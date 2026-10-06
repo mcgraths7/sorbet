@@ -57,7 +57,7 @@
 
   &__heading {
     padding: space(3) space(3) space(1);
-    color: clr(text-subtle);
+    color: seam(text-caption);
     font-size: fs(xs);
     font-weight: fw(semibold);
     letter-spacing: ls(wide);
@@ -133,7 +133,7 @@
     justify-content: flex-end;
     padding: space(3) space(5);
     border-block-start: token(border-width) solid clr(border-subtle);
-    color: clr(text-subtle);
+    color: seam(text-caption);
     font-size: fs(xs);
 
     span {

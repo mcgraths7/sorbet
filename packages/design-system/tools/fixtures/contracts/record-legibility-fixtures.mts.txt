@@ -1,0 +1,63 @@
+// Records the two step-2.1 fixtures that are TODAY'S BEHAVIOUR, from the tree at e24df74
+// (`main` when the legibility spec was written; see legibility-spec.md, L81 and L1/L2):
+//
+//   sorbet-as-shipped.json  — L81: presets.sorbet.colors for both modes (68 roles each, no optional token),
+//                             and one edge element per mode, `container`, TRANSCRIBED from L81's table (what
+//                             main paints round a card: a 1px border in border-subtle, and shadow-sm).
+//   wcag-aa.at-e24df74.json — L1/L2: contracts["wcag-aa"] key for key, and the first 86 entries of RULES with
+//                             fg, bg, tier, why and mode, as e24df74 has them.
+//   goldens.at-e24df74.json — L97/L98: sorbet's golden theme file as e24df74 has it (the base of step 2.2's and
+//                             2.6's allowed diffs), and the sha256 of each of the four frozen goldens.
+//
+// Committed as .txt for the reason record-fixtures.mts.txt is (M10.12): lint, the type checker and every scan the
+// tests make read .ts files and pass it by. Run it on a checkout of e24df74, never on a later tree:
+//
+//   mkdir -p /tmp/sorbet-e24df74 /tmp/sorbet-recorded
+//   git archive e24df74 packages/design-system | tar -x -C /tmp/sorbet-e24df74
+//   cp packages/design-system/tools/fixtures/contracts/record-legibility-fixtures.mts.txt /tmp/record-legibility-fixtures.mts
+//   node /tmp/record-legibility-fixtures.mts /tmp/sorbet-e24df74/packages/design-system /tmp/sorbet-recorded
+//   diff -r /tmp/sorbet-recorded packages/design-system/tools/fixtures/contracts | grep -v '^Only in'
+//
+// The last line prints nothing when the three files on disk are what e24df74 answers.
+
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+const [designSystem, outDir] = process.argv.slice(2);
+if (!designSystem || !outDir) {
+  console.error("usage: node record-legibility-fixtures.mts <packages/design-system of e24df74> <output dir>");
+  process.exit(1);
+}
+const tokens = (await import(join(designSystem, "src", "tokens", "index.ts"))) as Record<string, any>;
+
+// L81's table, typed in from the spec: what main paints round a card. A CSS border is an inset layer of spread 1;
+// the two shadow-sm layers are offset and have no spread, so neither is all-round (L47).
+const layer = (inset: boolean, x: number, y: number, blur: number, spread: number, color: string, alpha: number) => ({ inset, x, y, blur, spread, color, alpha });
+const edges = {
+  light: { container: { fill: "surface", rest: [layer(true, 0, 0, 0, 1, "#f1eeeb", 1), layer(false, 0, 1, 3, 0, "#26231f", 0.09), layer(false, 0, 1, 2, 0, "#26231f", 0.05)] } },
+  dark: { container: { fill: "surface", rest: [layer(true, 0, 0, 0, 1, "#38342f", 1), layer(false, 0, 1, 3, 0, "#000000", 0.216), layer(false, 0, 1, 2, 0, "#000000", 0.12)] } },
+};
+
+const sorbet = tokens.presets.sorbet;
+const write = (file: string, data: unknown) => writeFileSync(join(outDir, file), `${JSON.stringify(data, null, 2)}\n`);
+write("sorbet-as-shipped.json", {
+  recordedFrom: "e24df74",
+  note: "legibility-spec.md L81: presets.sorbet.colors as main ships it (68 roles a mode, recorded by running e24df74), and the container edge per mode transcribed from L81's table. Not edited after recording (L85).",
+  colors: { light: sorbet.colors.light, dark: sorbet.colors.dark },
+  edges,
+});
+write("wcag-aa.at-e24df74.json", {
+  recordedFrom: "e24df74",
+  note: "legibility-spec.md L1 and L2: contracts['wcag-aa'] key for key, and RULES[0..85] with fg, bg, tier, why and mode, as e24df74 has them.",
+  contract: tokens.contracts["wcag-aa"],
+  rules: tokens.RULES.slice(0, 86).map((rule: Record<string, unknown>) => ({ fg: rule.fg, bg: rule.bg, tier: rule.tier, why: rule.why, mode: rule.mode ?? null })),
+});
+const golden = (name: string) => readFileSync(join(designSystem, "tools", "golden", `${name}.css`), "utf8");
+write("goldens.at-e24df74.json", {
+  recordedFrom: "e24df74",
+  note: "legibility-spec.md L97, L98: sorbet's golden as e24df74 has it, and the sha256 of each frozen golden (ocean, forest, noir, midnight).",
+  sorbet: golden("sorbet"),
+  frozenSha256: Object.fromEntries(["ocean", "forest", "noir", "midnight"].map((name) => [name, createHash("sha256").update(golden(name)).digest("hex")])),
+});
+console.log(`recorded sorbet-as-shipped.json, wcag-aa.at-e24df74.json and goldens.at-e24df74.json from ${designSystem} into ${outDir}`);

@@ -19,7 +19,7 @@
   border: none;
   background-color: clr(surface-raised);
   color: clr(text);
-  box-shadow: shadow(xl);
+  box-shadow: edge(floating, shadow(xl));
   display: flex;
   flex-direction: column;
   translate: 100% 0;

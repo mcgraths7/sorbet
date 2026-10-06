@@ -142,9 +142,10 @@ it might be a viewport mismatch instead.
   consumer-code raw-`var()` usage (not a library Sass file), consistent
   with CLAUDE.md's accessor-function rule applying only to the library's
   own Sass.
-- **No general icon set exists** — `atoms/icons.tsx` ships exactly the 9
+- **No general icon set exists** — `atoms/icons.tsx` ships exactly the 13
   glyphs Sorbet's own components need (Check/Chevron/Close/Search/Calendar/
-  Upload/Eyedropper/Plus/Minus), not general-purpose nav icons (Dashboard/
+  Upload/Eyedropper/Plus/Minus, and the four status glyphs Success/Warning/
+  Danger/Info), not general-purpose nav icons (Dashboard/
   Settings/Bell/etc). `Icon`'s own docs invite bringing your own SVG for
   exactly this reason. When a preview needs a concept the shipped set
   doesn't cover, hand-draw a small local glyph matching the house style

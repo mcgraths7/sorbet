@@ -18,7 +18,7 @@ export function Hero() {
       <Grid cols={2}>
         <Stack gap={4}>
           <Cluster gap={2}>
-            <Badge tone="success" dot>
+            <Badge tone="primary" dot>
               Delivering in your area
             </Badge>
             <Badge tone="primary">New: 15-minute menu</Badge>

@@ -249,7 +249,9 @@ try {
 
     const broken = node(["tools/build-tokens.ts"], copy);
     assert.equal(broken.status, 1, "the build passed with a shared ramp changed");
-    assert.match(broken.stdout, /contrast contract holds/, "the contrast gate was meant to stay green here");
+    // legibility-spec.md L105 #23 (L87): the gate's success line was "contrast contract holds"; it is
+    // "every preset holds the contract it declares".
+    assert.match(broken.stdout, /every preset holds the contract it declares/, "the contrast gate was meant to stay green here");
     assert.match(broken.stderr, /FROZEN — .*forest/);
     assert.ok(!existsSync(join(copy, "dist")), "a failing build wrote to dist/");
     assert.ok(readFileSync(generated).equals(generatedBefore), "a failing build rewrote _generated.scss");

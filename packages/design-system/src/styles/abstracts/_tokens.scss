@@ -4,6 +4,7 @@
 
 @use "sass:list";
 @use "sass:map";
+@use "sass:string";
 @use "generated" as gen;
 
 @function -check($group, $key) {
@@ -81,4 +82,87 @@
 /// token(control-height-md), token(avatar-size-lg)
 @function token($name) {
   @return var(--sb-#{-check("misc", $name)});
+}
+
+/// Optional colour token, e.g. seam(field-fill) → var(--sb-field-fill, var(--sb-surface)).
+/// A theme that does not define the token paints the fallback, which is what
+/// the site painted before the token existed: a role's custom property, or CSS
+/// as written (`inherit`, `transparent`, a `color-mix()`). The fallback comes
+/// from `$seams`, which the build writes from SEAMS in src/tokens/seams.ts, so
+/// the stylesheet and the checker read one definition of it. An unknown name is
+/// a compile error, as it is for clr(); a quoted name is the same name.
+@function seam($name) {
+  $entry: map.get(gen.$seams, "#{$name}");
+  @if not $entry {
+    @error "Unknown optional colour token `#{$name}` for seam(). Valid: #{map.keys(gen.$seams)}";
+  }
+  @if map.has-key($entry, "fallback") {
+    @return var(--sb-#{$name}, var(--sb-#{map.get($entry, "fallback")}));
+  }
+  @return var(--sb-#{$name}, #{map.get($entry, "css")});
+}
+
+/// An element's edge, as a theme with edge data emits it, e.g.
+/// edge(filled-primary, (0 1px 2px …, 0 2px 6px …), hover)
+/// → var(--sb-edge-filled-primary-hover, 0 1px 2px …, 0 2px 6px …).
+/// `$fallback` is the site's own declaration as it stood before the seam (a
+/// comma list goes in parentheses), so a theme with no edge data paints exactly
+/// what it painted before. `$state` is rest, hover or press; only the filled-*
+/// elements have the last two. The element is checked against
+/// `$edge-elements` (src/tokens/edges.ts), and a state is never part of its
+/// name.
+@function edge($element, $fallback, $state: rest) {
+  @if not list.index(gen.$edge-elements, "#{$element}") {
+    @error "Unknown edge element `#{$element}` for edge(). Valid: #{gen.$edge-elements}";
+  }
+  @if not list.index(("rest", "hover", "press"), "#{$state}") {
+    @error "Unknown state `#{$state}` for edge(#{$element}, …). Valid: rest, hover, press";
+  }
+  @if "#{$state}" != "rest" and string.index("#{$element}", "filled-") != 1 {
+    @error "edge(#{$element}, …, #{$state}): only the filled-* elements have a `#{$state}` edge; `#{$element}` has rest only";
+  }
+  @if "#{$state}" == "rest" {
+    @return var(--sb-edge-#{$element}, $fallback);
+  }
+  @return var(--sb-edge-#{$element}-#{$state}, $fallback);
+}
+
+/// A button's label size: button-label(md) for the default button,
+/// button-label(sm) for the small one. A theme that sets `buttonLabel` emits
+/// --sb-button-font-size and --sb-button-font-size-sm (sorbet: 16px and 14px);
+/// every other theme paints today's sizes, fs(sm) and fs(xs). Any other size
+/// is a compile error: the large button keeps fs(md) and reads no token.
+@function button-label($size) {
+  @if "#{$size}" == "md" {
+    @return var(--sb-button-font-size, fs(sm));
+  }
+  @if "#{$size}" == "sm" {
+    @return var(--sb-button-font-size-sm, fs(xs));
+  }
+  @error "Unknown size `#{$size}` for button-label(). Valid: md, sm";
+}
+
+/// An optional colour token with NO fallback, e.g. seam-only(switch-ring) →
+/// var(--sb-switch-ring). Legal only inside a where-defined() value
+/// (abstracts/_mixins.scss, L149): in a theme that does not define the token the
+/// local property holding it is invalid at computed-value time, so the
+/// property that reads the local takes its old value exactly, and a frozen
+/// preset gains no new rendered layer (L148). An unknown name is a compile
+/// error, as for seam().
+@function seam-only($name) {
+  @if not map.get(gen.$seams, "#{$name}") {
+    @error "Unknown optional colour token `#{$name}` for seam-only(). Valid: #{map.keys(gen.$seams)}";
+  }
+  @return var(--sb-#{$name});
+}
+
+/// The room a clipping or scrolling parent leaves for its children's all-round
+/// edge layer (L151): --sb-halo-room, which a theme with edge data emits (sorbet
+/// light 8px). The fallback is the parent's old value of the property it pads,
+/// so a frozen preset keeps it: 0px for padding, `auto` for scroll-padding
+/// (L193).
+@function halo-room($fallback: 0px) {
+  // The unit is kept on purpose: L162 (c) fixes the form as written.
+  // stylelint-disable-next-line length-zero-no-unit
+  @return var(--sb-halo-room, $fallback);
 }

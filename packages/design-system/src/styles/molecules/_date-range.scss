@@ -13,20 +13,23 @@
     gap: space(1);
     padding-inline: space(3) space(1);
     min-block-size: token(control-height-md);
-    border: token(border-width) solid clr(border-strong);
+    // The field's line, fill and edge, as .sb-input's (atoms/_input.scss).
+    border: token(border-width) solid seam(field-line);
     border-radius: radius(sm);
-    background-color: clr(surface);
+    background-color: seam(field-fill);
     transition: border-color dur(fast) ease(out), box-shadow dur(fast) ease(out);
+
+    @include soft-edge(edge(field, 0 0 #0000));
 
     &:focus-within {
       @include control-glow;
     }
 
     &[data-invalid] {
-      border-color: clr(danger);
+      border-color: seam(danger-mark);
 
       &:focus-within {
-        @include control-glow(danger);
+        @include control-glow(danger-mark);
       }
     }
   }

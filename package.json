@@ -18,6 +18,7 @@
     "test:golden": "pnpm --filter @sorbet/design-system test:golden",
     "test:contrast": "pnpm --filter @sorbet/design-system test:contrast",
     "test:contracts": "pnpm --filter @sorbet/design-system test:contracts",
+    "test:status": "pnpm --filter @sorbet/component-library test:status",
     "pack:vendor": "node tools/pack-vendor.ts",
     "check:consumable": "node tools/check-consumable.ts",
     "lint": "eslint . --max-warnings 0",
@@ -27,10 +28,15 @@
     "playground": "pnpm --filter playground dev",
     "example": "pnpm --filter meal-kit dev",
     "example:admin": "pnpm --filter admin dev",
-    "test": "pnpm run check:contrast && pnpm run check:client && pnpm run test:golden && pnpm run test:contrast && pnpm run test:contracts",
+    "test": "pnpm run check:contrast && pnpm run check:client && pnpm run test:golden && pnpm run test:contrast && pnpm run test:contracts && pnpm run test:status",
     "typecheck": "pnpm --filter \"./apps/*\" typecheck",
     "check:cli": "node tools/check-cli.ts",
-    "check:catalog": "node tools/check-catalog.ts"
+    "check:catalog": "node tools/check-catalog.ts",
+    "check:status-layout": "node tools/check-status-layout.ts",
+    "check:allowlist:base": "node tools/check-allowlist-base.ts",
+    "shots": "node tools/shots.ts",
+    "measure:edges": "node tools/measure-edges.ts",
+    "browsers:install": "playwright install --only-shell chromium"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -43,6 +49,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
+    "playwright": "1.63.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "sass": "^1.104.0",

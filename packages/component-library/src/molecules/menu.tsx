@@ -13,6 +13,7 @@ import {
   type ToggleEvent,
 } from "react";
 
+import { StatusMark } from "../atoms/icons.tsx";
 import { composeRefs, cx, positionPopover, rovingIndex, useScrollDismiss } from "../core/index.ts";
 
 export interface MenuProps {
@@ -99,6 +100,11 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
 }
 
 export interface MenuItemProps extends Omit<ComponentPropsWithRef<"button">, "onSelect"> {
+  /**
+   * A destructive item: it leads with the danger status's octagon, which takes
+   * the place of any leading glyph you pass (a menu lines its glyphs up in one
+   * column). Its label is its word, so no hidden word is added.
+   */
   danger?: boolean;
   /** Right-aligned shortcut hint. */
   shortcut?: ReactNode;
@@ -117,6 +123,7 @@ export function MenuItem({ danger, shortcut, onSelect, className, children, onCl
       }}
       {...rest}
     >
+      {danger && <StatusMark tone="danger" wordless />}
       {children}
       {shortcut && <span className="sb-menu__kbd">{shortcut}</span>}
     </button>

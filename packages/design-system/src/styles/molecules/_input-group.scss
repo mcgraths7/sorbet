@@ -36,7 +36,8 @@
     display: inline-flex;
     align-items: center;
     padding-inline: space(3);
-    border: token(border-width) solid clr(border-strong);
+    // Joined to a field, so drawn with the field's line.
+    border: token(border-width) solid seam(field-line);
     background-color: clr(bg-subtle);
     color: clr(text-muted);
     font-size: fs(sm);

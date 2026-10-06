@@ -1,5 +1,21 @@
 @use "../abstracts" as *;
 
+// The two layers of an element's shadow (abstracts/_mixins.scss: soft-edge,
+// control-glow). Registered as not inherited, because a custom property
+// inherits by default: a wrapper in its focus state (:focus-within) would
+// otherwise hand its glow to every element inside it that has an edge. With
+// syntax "*" and no initial value an unset layer stays unset, so its var()
+// fallback, a shadow that draws nothing, still applies.
+@property --state-layer {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --edge-layer {
+  syntax: "*";
+  inherits: false;
+}
+
 :root {
   @include static-tokens;
 

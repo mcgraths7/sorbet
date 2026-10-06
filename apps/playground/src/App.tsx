@@ -116,14 +116,12 @@ export function App() {
               <Stack gap={4}>
                 <Cluster gap={2}>
                   <Badge tone="primary">@sorbet/component-library</Badge>
-                  <Badge tone="success" dot>
-                    WCAG AA — enforced at build time
-                  </Badge>
+                  <Badge>Contrast contract — enforced at build time</Badge>
                 </Cluster>
                 <h1>
                   Delightfully themeable.
                   <br />
-                  Provably accessible.
+                  Legible by contract.
                 </h1>
                 <p className="sb-lead" style={{ maxInlineSize: "58ch" }}>
                   Sorbet is a modern, token-based component library built on an accessible design system — layout
@@ -147,10 +145,10 @@ export function App() {
                 <Card variant="sunken">
                   <CardBody>
                     <Stack gap={2}>
-                      <CardTitle>Accessible by construction</CardTitle>
+                      <CardTitle>Checked on every build</CardTitle>
                       <p className="u-text-sm u-text-muted">
-                        Every semantic color pairing is contrast-verified on every build — {CONTRAST_CHECKS}. A
-                        theme that fails WCAG AA fails to compile.
+                        Every preset is measured against the contract it declares on every build — {CONTRAST_CHECKS}.
+                        A theme that fails the contract it declares fails to compile.
                       </p>
                     </Stack>
                   </CardBody>

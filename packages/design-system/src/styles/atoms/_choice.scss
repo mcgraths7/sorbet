@@ -11,7 +11,8 @@
   inline-size: token(choice-size);
   block-size: token(choice-size);
   border: 1.5px solid clr(border-strong);
-  background-color: clr(surface);
+  // Unchecked, the box is a little field: the field's own fill (L70).
+  background-color: seam(field-fill);
   display: inline-grid;
   place-content: center;
   cursor: pointer;
@@ -24,7 +25,7 @@
   }
 
   &:checked {
-    background-color: clr(primary-solid);
+    background-color: seam(control-checked);
     border-color: clr(primary-solid);
 
     &::before {
@@ -50,7 +51,7 @@
   }
 
   &:indeterminate {
-    background-color: clr(primary-solid);
+    background-color: seam(control-checked);
     border-color: clr(primary-solid);
 
     &::before {

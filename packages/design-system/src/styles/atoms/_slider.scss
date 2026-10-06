@@ -23,10 +23,15 @@
   // The track is a translucent tint of the current text color so it stays
   // visible on any surface — `clr(border)` collides with `surface-raised` in
   // dark mode, where border and the raised surface resolve to the same value.
+  // That tint is slider-track's fallback; a theme may set the track (sorbet:
+  // the well) and ring it in switch-ring; a theme without it renders no ring
+  // (L148).
   &::-webkit-slider-runnable-track {
     block-size: space(1);
     border-radius: radius(full);
-    background-color: color-mix(in oklab, currentColor, transparent 80%);
+    background-color: seam(slider-track);
+
+    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), revert-layer);
   }
 
   &::-webkit-slider-thumb {
@@ -48,7 +53,9 @@
   &::-moz-range-track {
     block-size: space(1);
     border-radius: radius(full);
-    background-color: color-mix(in oklab, currentColor, transparent 80%);
+    background-color: seam(slider-track);
+
+    @include where-defined(box-shadow, track-ring-layer, inset 0 0 0 1px seam-only(switch-ring), revert-layer);
   }
 
   &::-moz-range-thumb {

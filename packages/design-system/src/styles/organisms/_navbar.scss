@@ -62,9 +62,13 @@
         background-color: clr(bg-subtle);
       }
 
+      // The wash stays primary-subtle, which selected-wash equals (D7); the
+      // bar is the selection's second mark, transparent where a theme has none.
       &[aria-current="page"] {
         color: clr(primary-text);
         background-color: clr(primary-subtle);
+
+        @include selected-mark(end);
       }
     }
   }

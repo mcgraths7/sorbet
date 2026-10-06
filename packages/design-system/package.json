@@ -1,7 +1,7 @@
 {
   "name": "@sorbet/design-system",
   "version": "0.1.0",
-  "description": "The Sorbet design system: token engine (OKLCH ramps, validated presets, WCAG rules), the compiled stylesheet + themes, the Sass source, and the framework-agnostic behaviors.",
+  "description": "The Sorbet design system: token engine (OKLCH ramps, validated presets, contrast rules and contracts), the compiled stylesheet + themes, the Sass source, and the framework-agnostic behaviors.",
   "type": "module",
   "license": "MIT",
   "exports": {

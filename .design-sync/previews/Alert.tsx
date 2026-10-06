@@ -1,4 +1,4 @@
-import { Alert, CheckIcon } from "@sorbet/component-library";
+import { Alert } from "@sorbet/component-library";
 
 export function Tones() {
   return (
@@ -7,7 +7,7 @@ export function Tones() {
         We're upgrading our payment infrastructure tonight from 11pm–1am ET. Checkout may be briefly
         unavailable.
       </Alert>
-      <Alert tone="success" title="Payment received" icon={<CheckIcon />}>
+      <Alert tone="success" title="Payment received">
         Your invoice #4821 for $1,240.00 has been paid in full.
       </Alert>
       <Alert tone="warning" title="Card expiring soon">

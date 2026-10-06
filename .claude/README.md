@@ -75,7 +75,7 @@ visible, it makes the build stop mentioning that it isn't" is one it will hold.
 **Push bulk into tier 4.** Big tables, exhaustive maps and generated data go in
 files the body points at. `sorbet-classes` is the example: the SKILL.md holds
 the judgment (which element gets which class, and the ordering rules), and the
-76-block exhaustive tables sit in `reference/` and load only if needed.
+exhaustive tables sit in `reference/` and load only if needed.
 
 **Generate derived data, don't hand-maintain it.** `sorbet-classes/refresh.py`
 rebuilds those tables from the Sass partials. A hand-written class map drifts,

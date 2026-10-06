@@ -1,5 +1,10 @@
 # Proposal: a legibility contract, so the flagship theme can be a true pastel
 
+**Status, 2026-10-06:** PR 1 is merged. PR 2 (sorbet's new look, PR #130 on
+`feat/pastel-legibility`) has built steps 2.0 to 2.6 and 2.8; step 2.7 (the
+Token Studio) is withdrawn (DECISIONS row 49). The text below is the proposal
+as dated, kept as written.
+
 **Status:** proposed. PR 1 (the groundwork, §8 steps 1.1 to 1.6) is built and
 committed on `chore/contract-groundwork`. PR 2, sorbet's new look, is not
 started. (Updated 2026-10-04, when steps 1.3 to 1.6 landed.) **Revision 2**,

@@ -67,7 +67,7 @@ import { join, relative, sep } from "node:path";
 import { stripVTControlCharacters, styleText } from "node:util";
 
 import { NAMED_COLORS } from "../src/tokens/color.ts";
-import { checkColors, checkPreset, measureColors, presets, ratioText, RULES, tally } from "../src/tokens/index.ts";
+import { checkColors, checkPreset, contractOf, measureColors, measurePreset, presets, ratioText, RULES, SEMANTIC_COLOR_NAMES, tally } from "../src/tokens/index.ts";
 
 import type { Failure, Measurement, Mode, Preset, SemanticColorName, SemanticColors } from "../src/tokens/index.ts";
 
@@ -118,8 +118,19 @@ function floorOf(tier: string, mode: Mode): number {
   const floor = FLOORS[tier]!;
   return typeof floor === "number" ? floor : floor[mode];
 }
-/** The rules that apply in a mode — filtered here, not asked of rules.ts — each with the floor this file says its tier owes. */
-const applies = (mode: Mode) => RULES.filter((rule) => rule.mode === undefined || rule.mode === mode).map((rule) => ({ ...rule, min: floorOf(rule.tier, mode) }));
+/**
+ * The 20 tiers the legibility member adds (legibility-spec.md L22, L23), typed in. wcag-aa lists none of them, so a
+ * rule in one is not wcag-aa's and this file leaves it out; a tier in neither list is still a failure (floorOf).
+ * legibility-spec.md L105 #17: `applies(mode)` was every rule that applies in the mode.
+ */
+const NOT_WCAG = new Set([
+  "body", "secondary", "on-wash", "tinted", "label", "placeholder", "mark-area", "mark-line", "divider", "focus-visible",
+  "tell-apart", "palette", "chart-mark", "edge-container", "edge-floating", "edge-field", "edge-sunken", "edge-quiet", "edge-filled", "edge-status",
+]);
+/** Every rule that applies in a mode, whatever any contract holds — counted here, not asked of rules.ts (L91's 261). */
+const applying = (mode: Mode) => RULES.filter((rule) => rule.mode === undefined || rule.mode === mode);
+/** The rules wcag-aa holds in a mode — filtered here, not asked of rules.ts — each with the floor this file says its tier owes. */
+const applies = (mode: Mode) => applying(mode).filter((rule) => !NOT_WCAG.has(rule.tier)).map((rule) => ({ ...rule, min: floorOf(rule.tier, mode) }));
 const pairOf = ({ fg, bg, min }: { fg: string; bg: string; min: number }) => `${fg} on ${bg} ≥ ${min}`;
 const touches = (token: SemanticColorName) => (pair: { fg: string; bg: string }) => pair.fg === token || pair.bg === token;
 
@@ -212,7 +223,9 @@ const TAMPERS: Tamper[] = [
   // The pair the private loops skipped: opaque text over the translucent scrim, far too faint.
   { preset: "sorbet", mode: "light", token: "on-scrim", value: "#808080" },
   // The right shape and an impossible alpha. Compositing it used to throw.
-  { preset: "sorbet", mode: "dark", token: "scrim", value: "rgb(0 0 0 / 1.5)" },
+  // legibility-spec.md L105 #47, L195 (c) row 47: this was on sorbet dark, which declares legibility from step 2.6, where
+  // the unreadable scrim also fails C1 and prints a structure row; forest dark has no tamper of its own.
+  { preset: "forest", mode: "dark", token: "scrim", value: "rgb(0 0 0 / 1.5)" },
   // A translucent foreground: there is no one ratio to measure.
   { preset: "ocean", mode: "dark", token: "link-hover", value: "rgb(255 255 255 / 0.5)" },
   // The ordinary failure: opaque, and plainly under its floor on all five surfaces.
@@ -223,8 +236,10 @@ const TAMPERS: Tamper[] = [
   { preset: "midnight", mode: "dark", token: "primary-subtle", value: undefined },
   // …in the same mode as five measured failures, so one summary line has to carry both counts.
   { preset: "midnight", mode: "dark", token: "text-muted", value: "#000000" },
-  // A thousandth under its floor (4.4990 on sorbet's page, floor 4.5). Two decimals print "4.50 < 4.5".
-  { preset: "sorbet", mode: "light", token: "link-hover", value: "#d92360" },
+  // A thousandth under its floor (4.4990 on forest's page #f8f7f5, floor 4.5). Two decimals print "4.50 < 4.5".
+  // legibility-spec.md L105 #33 (L58): this was on sorbet light, whose link-hover is an Lc rule under legibility from
+  // step 2.2; forest's page is the same #f8f7f5 and measures the same 4.498999.
+  { preset: "forest", mode: "light", token: "link-hover", value: "#d92360" },
 ];
 
 const broken = structuredClone(presets) as Presets;
@@ -302,9 +317,10 @@ const crashed = (stderr: string) => /TypeError|ReferenceError|\n\s+at .+:\d+:\d+
 const SURFACES: { name: string; file: string; reads: string }[] = [
   { name: "the build gate", file: "packages/design-system/tools/build-tokens.ts", reads: "checkPreset" },
   { name: "the scaffold's build gate", file: "packages/cli/scaffold/tools/build-tokens.ts", reads: "checkPreset" },
-  { name: "the report", file: "packages/design-system/tools/check-contrast.ts", reads: "measureColors" },
-  { name: "the CLI's contrast command", file: "packages/cli/src/index.ts", reads: "measureColors" },
-  { name: "the scaffold's report", file: "packages/cli/scaffold/tools/check-contrast.ts", reads: "measureColors" },
+  // legibility-spec.md L105 #18 (L25): the three reports read measureColors; they read measurePreset.
+  { name: "the report", file: "packages/design-system/tools/check-contrast.ts", reads: "measurePreset" },
+  { name: "the CLI's contrast command", file: "packages/cli/src/index.ts", reads: "measurePreset" },
+  { name: "the scaffold's report", file: "packages/cli/scaffold/tools/check-contrast.ts", reads: "measurePreset" },
   { name: "Token Studio's live check", file: "packages/component-library/src/organisms/token-studio.tsx", reads: "checkColors" },
 ];
 
@@ -372,28 +388,34 @@ function reportAgrees(report: Report, run: Ran, all: Presets) {
 
   let measuredInAll = 0;
   for (const p of printed) {
-    const colors = all[p.preset]!.colors[p.mode];
-    const pairs = measureColors(p.mode, colors, "wcag-aa");
-    const failing = checkColors(p.preset, p.mode, colors, "wcag-aa");
+    // legibility-spec.md L105 #34 (L25): each printed mode is checked against measurePreset(preset, mode) and its
+    // failures — the contract the mode declares — where it was checked against measureColors(…, "wcag-aa").
+    const pairs = measurePreset(all[p.preset]!, p.mode) as Measurement[];
+    const failing = pairs.filter((pair) => !pair.holds).map((pair) => ({ preset: p.preset, mode: p.mode, ...pair }));
     const measured = pairs.filter((pair) => pair.actual !== null).length;
     measuredInAll += measured;
     const where = `${report.name}, ${p.preset}/${p.mode}, printed "${p.summary}"`;
 
     assert.deepEqual(p.rows, failing.map(reportRow), `${where}: its failing pairs are not the gate's`);
+    // legibility-spec.md L105 #19 and #20 (L91): each mode line now ends " — <contract>; <k> rules not held", the contract
+    // the preset declares for the mode, and k the rules that apply in the mode less the measurements returned.
+    const held = contractOf(all[p.preset]!, p.mode);
     if (failing.length === 0) {
-      const m = /^all (\d+) pairings pass(?: \(tightest margin ×([\d.]+)\))?$/.exec(p.summary);
+      const m = /^all (\d+) pairings pass(?: \(tightest margin ×([\d.]+)\))? — (\S+); (\d+) rules not held$/.exec(p.summary);
       assert.ok(m, `${where}: not a passing line, and the gate passes this mode`);
       assert.equal(Number(m[1]), measured, `${where}: the gate measured ${measured} pairs here`);
       const tightest = Math.min(...pairs.map((pair) => pair.actual! / pair.min)).toFixed(2);
       assert.equal(m[2], report.margin ? tightest : undefined, `${where}: the tightest margin is ×${tightest}`);
+      assert.deepEqual([m[3], Number(m[4])], [held, applying(p.mode).length - measured], `${where}: the contract it declares, and the rules it leaves unheld`);
     } else {
-      const m = /^(\d+) failing \((\d+) measured(?:, (\d+) could not be measured)?\)$/.exec(p.summary);
+      const m = /^(\d+) failing \((\d+) measured(?:, (\d+) could not be measured)?\) — (\S+); (\d+) rules not held$/.exec(p.summary);
       assert.ok(m, `${where}: not a failing line, and the gate fails ${failing.length} pair(s) in this mode`);
       assert.deepEqual(
         { failing: Number(m[1]), measured: Number(m[2]), unmeasurable: Number(m[3] ?? 0) },
         { failing: failing.length, measured, unmeasurable: pairs.length - measured },
         `${where}: those are not the gate's counts`,
       );
+      assert.deepEqual([m[4], Number(m[5])], [held, applying(p.mode).length - pairs.length], `${where}: the contract it declares, and the rules it leaves unheld (measured or not, every measurement returned counts)`);
     }
   }
 
@@ -511,7 +533,8 @@ try {
     assert.ok(close(scrimPair("rgb(0 0 0 / 0.6)", "#ffffff").actual, wcag(1, lum([102, 102, 102]))));
     assert.ok(close(scrimPair("rgb(255 255 255 / 0.6)", "#000000").actual, wcag(0, lum([153, 153, 153]))));
     // Mid-grey text on a scrim that is not there: some photo is exactly that grey.
-    assert.deepEqual({ ...scrimPair("rgb(0 0 0 / 0)", "#767676"), fg: undefined, bg: undefined }, { fg: undefined, bg: undefined, tier: "scrim", kind: "text", min: 4.5, actual: 1, holds: false });
+    // legibility-spec.md L105 #44 (L7): the literal gains metric "ratio" and view "typical" (the pair is measured, actual 1).
+    assert.deepEqual({ ...scrimPair("rgb(0 0 0 / 0)", "#767676"), fg: undefined, bg: undefined }, { fg: undefined, bg: undefined, tier: "scrim", kind: "text", metric: "ratio", min: 4.5, actual: 1, view: "typical", holds: false });
   });
 
   test("a colour measures the same however it is spelled", () => {
@@ -528,7 +551,10 @@ try {
     let tried = 0;
     for (const { preset, mode, colors } of each(shipped)) {
       const expected = measureColors(mode, colors, "wcag-aa");
-      const variants = Object.fromEntries(Object.entries(colors).map(([name, value]) => [name, spellings(value)]));
+      // legibility-spec.md L105 #35 (L16): only the 69 role values are respelled; the optional tokens (whose values
+      // include `transparent`) are carried over unchanged. wcag-aa reads roles only.
+      const roles = new Set<string>(SEMANTIC_COLOR_NAMES);
+      const variants = Object.fromEntries(Object.entries(colors).map(([name, value]) => [name, roles.has(name) ? spellings(value) : [value]]));
       const most = Math.max(...Object.values(variants).map((list) => list.length));
       for (let i = 0; i < most; i++) {
         const respelled = Object.fromEntries(Object.entries(variants).map(([name, list]) => [name, list[i % list.length]!]));
@@ -548,7 +574,11 @@ try {
       assert.deepEqual(Object.keys(page), Object.keys(colors), `${preset.name}/${mode}: the minified theme lost a colour`);
       respelled += Object.entries(colors).filter(([name, value]) => page[name] !== value).length;
       assert.doesNotMatch(page.scrim!, /^rgb\(/, `${preset.name}/${mode}: the minifier left the scrim alone, so this proves nothing about what it does to it`);
-      assert.deepEqual(checkColors("studio", mode, page, "wcag-aa"), [], `${preset.name}/${mode}: the gate passes this preset, and Token Studio would list these as failures on a production build`);
+      // legibility-spec.md L105 #36 (L92, L95): it passes the contract the preset-mode declares, measured as Token Studio
+      // does — the record read off the page, the preset's declared contract and its edges for the mode.
+      const declared = contractOf(preset, mode);
+      const edges = (preset as unknown as { edges?: Partial<Record<Mode, unknown>> }).edges?.[mode];
+      assert.deepEqual((checkColors as unknown as (...args: unknown[]) => Failure[])("studio", mode, page, declared, edges), [], `${preset.name}/${mode}: the gate passes this preset under ${declared}, and Token Studio would list these as failures on a production build`);
       assert.deepEqual(measureColors(mode, page, "wcag-aa"), measureColors(mode, colors, "wcag-aa"), `${preset.name}/${mode}`);
     }
     assert.ok(respelled >= 20, `the minifier respelled only ${respelled} values: it no longer does what this test is here for`);
@@ -579,9 +609,11 @@ try {
     assert.equal(studio.match(/\bsetFailures\(/g)?.length, 1, "a second place sets the failure list");
   });
 
-  test("no shipped preset has a pair that cannot be measured, and the gate passes all five", () => {
-    for (const { preset, mode, colors } of each(shipped)) {
-      const pairs = measureColors(mode, colors, "wcag-aa");
+  // legibility-spec.md L105 #37 (L25): every shipped preset-mode passes the contract it declares (measurePreset), where
+  // it was every preset-mode under wcag-aa; and none has an unmeasurable pair.
+  test("no shipped preset has a pair that cannot be measured, and the gate passes all five — each mode under the contract it declares", () => {
+    for (const { preset, mode } of each(shipped)) {
+      const pairs = measurePreset(preset, mode) as Measurement[];
       assert.deepEqual(pairs.filter((pair) => pair.actual === null).map(pairOf), [], `${preset.name}/${mode}: unmeasurable`);
       assert.deepEqual(pairs.filter((pair) => !pair.holds).map(pairOf), [], `${preset.name}/${mode}: failing`);
     }
@@ -648,7 +680,7 @@ try {
     const scrim = failures.find((f) => f.preset === "sorbet" && f.mode === "light" && f.bg === "scrim");
     assert.ok(scrim && scrim.actual !== null && scrim.actual < scrim.min, "the scrim pair should fail by measurement");
     assert.equal(failures.filter((f) => f.actual === null).length, 6, "six pairs should be unmeasurable");
-    const hair = failures.find((f) => f.preset === "sorbet" && f.fg === "link-hover");
+    const hair = failures.find((f) => f.preset === "forest" && f.fg === "link-hover"); // L105 #33
     assert.ok(hair && hair.actual !== null && hair.actual.toFixed(2) === "4.50" && hair.min === 4.5, "one pair should fail by so little that two decimals print its floor");
     assert.ok(failures.some((f) => f.actual !== null && f.preset === "midnight") && failures.some((f) => f.actual === null && f.preset === "midnight"));
     assert.deepEqual(checkPreset(broken.ocean!).map((f) => f.mode), ["dark"], "the mode beside a broken one should be untouched");
@@ -658,14 +690,17 @@ try {
     for (const all of [shipped, broken]) {
       for (const { preset, mode, colors } of each(all)) {
         const failing = measureColors(mode, colors, "wcag-aa").filter((pair) => !pair.holds);
+        // legibility-spec.md L105 #45 (L7): the built failures gain tier, metric and view, from the measurement.
         assert.deepEqual(
           checkColors(preset.name, mode, colors, "wcag-aa"),
-          failing.map(({ fg, bg, min, actual }) => ({ preset: preset.name, mode, fg, bg, min, actual })),
+          failing.map(({ fg, bg, min, actual, tier, metric, view }) => ({ preset: preset.name, mode, fg, bg, min, actual, tier, metric, view })),
           `${preset.name}/${mode}`,
         );
       }
       for (const preset of Object.values(all)) {
-        assert.deepEqual(checkPreset(preset), MODES.flatMap((mode) => checkColors(preset.name, mode, preset.colors[mode], "wcag-aa")), preset.name);
+        // legibility-spec.md L105 #38 (L25): checkPreset equals the failures of measurePreset per mode, where it equalled
+        // checkColors(…, "wcag-aa").
+        assert.deepEqual(checkPreset(preset), MODES.flatMap((mode) => (measurePreset(preset, mode) as Measurement[]).filter((pair) => !pair.holds).map(({ fg, bg, min, actual, tier, metric, view }) => ({ preset: preset.name, mode, fg, bg, min, actual, tier, metric, view }))), preset.name);
       }
     }
   });
@@ -748,7 +783,7 @@ try {
           assert.ok(run.stderr.includes(`✗ ${expected.length} contrast failure(s):`), run.stderr);
           const printed = run.stderr.split("\n").filter((line) => /^ {2}\w+\/(light|dark): \S+ on \S+ .*\(needs [\d.]+\)$/.test(line));
           assert.deepEqual(printed.map((line) => line.trim()), expected.map(gateRow));
-          assert.ok(run.stderr.includes("  sorbet/light: link-hover on bg = 4.499 (needs 4.5)\n"), `${gate.name} should print the hair-under pair as what it is`);
+          assert.ok(run.stderr.includes("  forest/light: link-hover on bg = 4.499 (needs 4.5)\n"), `${gate.name} should print the hair-under pair as what it is`); // L105 #33
           assert.ok(!gate.wrote(tree), `${gate.name} wrote its output after failing`);
         });
       }
@@ -775,28 +810,41 @@ try {
   }
 
   // ── the numbers typed by hand ──────────────────────────────────────────
-  test("README.md states the contract's true size", () => {
+  // legibility-spec.md L105 #21 (L58, L67; worded per L127): the README said 86 entries, 70 apply in each mode, 54 hold in both modes,
+  // 32 chart-mark entries, 16 in light and 16 in dark, and measures all 70. It now says 277 entries, 261 apply in each
+  // mode, 245 apply in both modes ("hold" is reserved for what a contract holds), 32 mode-restricted chart entries,
+  // 16 in light and 16 in dark, and — in place of "measures all 70" — that wcag-aa measures 70 and legibility 193 in
+  // each mode, both counted here, never typed. The stray-number set gains 70, 193, 68 and 191.
+  test("L105 #21 L127 README.md states the contract's true size", () => {
     const readme = readFileSync(join(repoRoot, "README.md"), "utf8").replace(/\s+/g, " ");
     const both = RULES.filter((rule) => rule.mode === undefined).length;
     const only = (mode: Mode) => RULES.filter((rule) => rule.mode === mode).length;
     const perMode = both + only("light");
     assert.equal(both + only("dark"), perMode, "light and dark no longer apply the same number of rules: reword the README's paragraph, then this test");
     assert.ok(RULES.every((rule) => rule.mode === undefined || rule.fg.startsWith("chart-")), "a per-mode rule that is not a chart mark: the README calls them all chart marks");
+    // What each contract measures in a mode: wcag-aa the rules of its seven tiers, legibility those of its 21 (L61, typed in: scrim and the 20 new).
+    const wcagMeasures = applies("light").length;
+    const legibilityMeasures = applying("light").filter((rule) => rule.tier === "scrim" || NOT_WCAG.has(rule.tier)).length;
+    assert.equal(applies("dark").length, wcagMeasures);
     const phrases = [
       `${RULES.length} entries`,
       `${perMode} apply in each mode`,
-      `${both} hold in both modes`,
-      `${only("light") + only("dark")} chart-mark entries`,
+      `${both} apply in both modes`,
+      `${only("light") + only("dark")} mode-restricted chart entries`,
       `${only("light")} in light and ${only("dark")} in dark`,
-      `measures all ${perMode}`,
     ];
     const missing = phrases.filter((phrase) => !readme.includes(phrase));
     assert.deepEqual(missing, [], "README.md, \"The accessibility contract\": these are RULES' figures today, and the paragraph does not say them");
+    // In place of "measures all 70": what each contract measures in each mode. L127 (revision 3.2): worded freely, so each
+    // contract's name and its count in one sentence. (Revision 3.1's reading required "wcag-aa … measures 70" verbatim.)
+    assert.match(readme, new RegExp(`wcag-aa[^.]*?\\b${wcagMeasures}\\b`), `README.md does not say that wcag-aa measures ${wcagMeasures} in each mode (L127)`);
+    assert.match(readme, new RegExp(`legibility[^.]*?\\b${legibilityMeasures}\\b`), `README.md does not say that legibility measures ${legibilityMeasures} in each mode (L127)`);
+    assert.doesNotMatch(readme, /measures all \d+/, "README.md still says one contract measures every rule that applies");
 
     // …and says no other. A true sentence beside a stale one ("declares 47 contrast pairings") is still a stale README.
     const section = /## The accessibility contract(.*?)(?= ## |$)/.exec(readme)?.[1];
     assert.ok(section, "README.md no longer has a section called \"The accessibility contract\"");
-    const figures = new Set([RULES.length, perMode, both, only("light") + only("dark")]);
+    const figures = new Set([RULES.length, perMode, both, only("light") + only("dark"), wcagMeasures, legibilityMeasures, perMode - legibilityMeasures, perMode - wcagMeasures]);
     const stray = [...section.matchAll(/(\d+)\s+(?:contrast\s+|chart-mark\s+)?(?:pairings?|entries|checks|rules)\b/g)].filter((m) => !figures.has(Number(m[1]))).map((m) => m[0]);
     assert.deepEqual(stray, [], "README.md, \"The accessibility contract\", counts something the contract does not have");
   });
@@ -807,7 +855,123 @@ try {
       .map((file) => relative(repoRoot, file));
     assert.deepEqual(typed, [], "a typed number of checks (it read \"790 checks\" long after the contract changed size) — use CONTRAST_CHECKS from contrast-checks.ts");
     const counted = body(join(repoRoot, "apps", "playground", "src", "contrast-checks.ts"));
-    assert.match(counted, /\bmeasureColors\(/, "contrast-checks.ts no longer counts from measureColors()");
+    // legibility-spec.md L105 #22 (L25): it called measureColors(; it calls measurePreset(.
+    assert.match(counted, /\bmeasurePreset\(/, "contrast-checks.ts no longer counts from measurePreset()");
+  });
+
+  // ── step 2.8 (legibility-spec.md L198): what the docs, the copy and the agents' guidance say ─────────────────────
+  // The files a reader or an agent takes as the truth about the contract today. Not scanned: docs/** (the dated
+  // proposals and the evidence folder are records), fixtures, goldens, the test files, and
+  // packages/component-library/src/** (fenced by test-contracts.ts "2.4 #3"; Token Studio is withdrawn, DECISIONS row 49).
+  const walk = (dir: string): string[] => (existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).flatMap((entry) => (entry.name === "node_modules" || entry.name === "dist" ? [] : entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)])) : []);
+  const DOC_FILES = [
+    join(repoRoot, "README.md"),
+    join(repoRoot, "CLAUDE.md"),
+    ...walk(join(repoRoot, ".claude")).filter((file) => file.endsWith(".md") && !file.includes(`${sep}reference${sep}`)),
+    join(repoRoot, "demo", "index.html"),
+    ...walk(join(repoRoot, "apps", "playground", "src")).filter((file) => /\.tsx?$/.test(file)),
+    ...walk(join(repoRoot, "packages", "cli", "src")).filter((file) => file.endsWith(".ts")),
+    ...walk(join(repoRoot, "packages", "cli", "scaffold")).filter((file) => /\.(ts|tsx|md|html|json|scss)$/.test(file)),
+    ...["design-system", "component-library", "cli"].map((name) => join(repoRoot, "packages", name, "package.json")),
+    ...walk(join(pkgRoot, "src", "tokens")).filter((file) => file.endsWith(".ts")),
+    join(repoRoot, "tools", "shots.ts"),
+    join(repoRoot, "tools", "shots-provenance.ts"),
+  ];
+  /** A file as prose: HTML's tags removed, every whitespace run one space. */
+  const proseOf = (file: string) => {
+    const text = readFileSync(file, "utf8");
+    return (file.endsWith(".html") ? text.replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&") : text).replace(/\s+/g, " ");
+  };
+  /** L198 check A: what was true when every preset declared wcag-aa, and is not now. */
+  const STALE_CLAIMS: RegExp[] = [
+    /\bAA verified\b/i,
+    /WCAG AA[^.]{0,40}\b(?:enforced|verified|guarantee)/i,
+    /provably accessible/i,
+    /accessible by construction/i,
+    /fails? WCAG AA fails?/i,
+    /guarantee WCAG/i,
+    /every preset[^.]{0,80}\bWCAG\b/i,
+    /(?:today|every preset)[^.]{0,30}(?:only|declares) `?wcag-aa/i,
+    /dark mode is never split/i,
+    /reaches every theme/i,
+    /\binaccessible (?:theme|palette)\b/i,
+  ];
+  const staleClaims = (files: string[]) => files.flatMap((file) => {
+    const prose = proseOf(file);
+    return STALE_CLAIMS.flatMap((pattern) => {
+      const m = pattern.exec(prose);
+      return m === null ? [] : [`${relative(repoRoot, file)}: "${m[0]}"`];
+    });
+  });
+
+  test("L198 check A (checker): each stale claim is found in prose, and the words that replace it are not", () => {
+    const at = join(tmp, "claims");
+    mkdirSync(at, { recursive: true });
+    const plant = (name: string, text: string) => {
+      writeFileSync(join(at, name), text);
+      return staleClaims([join(at, name)]).length;
+    };
+    assert.equal(plant("a.html", "<span class=\"sb-badge\">AA\n verified</span>"), 1, "a tag-split AA verified");
+    assert.equal(plant("b.md", "A palette that fails WCAG AA fails the build. Dark mode is never split."), 2);
+    assert.equal(plant("c.md", "Today only `wcag-aa`. A change to the builder reaches every theme."), 2);
+    assert.equal(plant("d.md", "Each preset declares the contract it is held to; a theme that fails its declared contract fails the build. Legible by contract."), 0);
+  });
+
+  test("L198 check A: no file a reader or an agent takes as the truth says what was true when every preset declared wcag-aa", () => {
+    assert.ok(DOC_FILES.length > 40, `only ${DOC_FILES.length} files scanned`);
+    assert.deepEqual(staleClaims(DOC_FILES), []);
+  });
+
+  test("L198 check A: README.md's presets table names each preset's contract, as presets.ts declares it", () => {
+    const readme = readFileSync(join(repoRoot, "README.md"), "utf8");
+    const rows = readme.split("\n").filter((line) => /^\| \*\*\w+\*\*/.test(line));
+    for (const preset of Object.values(presets)) {
+      const row = rows.find((line) => line.startsWith(`| **${preset.name}**`));
+      assert.ok(row, `README.md's presets table has no row for ${preset.name}`);
+      const want = preset.contract.light === preset.contract.dark ? `\`${preset.contract.light}\`` : `\`${preset.contract.light}\` light, \`${preset.contract.dark}\` dark`;
+      assert.ok(row.includes(want), `${preset.name}'s row does not name its contract ${want}: ${row}`);
+    }
+  });
+
+  // L198 check B: a count in prose is the code's, or history. Each figure is computed here.
+  const measuredTotal = Object.values(presets).flatMap((preset) => (["light", "dark"] as const).map((mode) => measurePreset(preset, mode).length)).reduce((a, b) => a + b, 0);
+  const contractFigures = () => {
+    const both = RULES.filter((rule) => rule.mode === undefined).length;
+    const only = (mode: Mode) => RULES.filter((rule) => rule.mode === mode).length;
+    const perMode = both + only("light");
+    const per = (name: string) => measurePreset(Object.values(presets).find((preset) => contractOf(preset, "light") === name)!, "light").length;
+    const wcag = per("wcag-aa");
+    const legibility = per("legibility");
+    return new Set([RULES.length, perMode, both, only("light") + only("dark"), only("light"), wcag, legibility, perMode - wcag, perMode - legibility, measuredTotal]);
+  };
+  /** Counts that were true of their time, kept as history: file (repo-relative) and the exact phrase. */
+  const COUNT_HISTORY: [file: string, phrase: string][] = [
+    ["apps/playground/src/contrast-checks.ts", "790 checks"], // what the playground once typed, and why it counts now
+    ["packages/design-system/src/tokens/contracts.ts", "28 pairs"], // a past bug's measurement
+    ["packages/design-system/src/tokens/rules.ts", "86 rules"], // PR 1's rules, which RULES still begins with
+    ["tools/shots.ts", "700 checks"], // the playground's count at e24df74, which a baseline --at e24df74 shows
+    ["tools/shots-provenance.ts", "700 checks"], // the same
+  ];
+  const COUNT_PHRASE = /\b(\d[\d,]*)\s+(?:contrast\s+|chart-mark\s+)?(?:pairings?|pairs|checks|rules|entries|measurements)\b/g;
+  const strayCounts = (files: string[], figures: Set<number>, history: [string, string][]) => files.flatMap((file) => {
+    const where = relative(repoRoot, file).split(sep).join("/");
+    return [...proseOf(file).matchAll(COUNT_PHRASE)]
+      .filter((m) => !figures.has(Number(m[1]!.replace(/,/g, ""))) && !history.some(([f, phrase]) => f === where && phrase === m[0]))
+      .map((m) => `${where}: "${m[0]}"`);
+  });
+
+  test("L198 check B (checker): a count the code does not compute is found, unless it is history, file and phrase", () => {
+    const at = join(tmp, "counts");
+    mkdirSync(at, { recursive: true });
+    writeFileSync(join(at, "README.md"), `Every build measures ${measuredTotal} pairings. Sorbet once had 823 pairings.`);
+    const file = join(at, "README.md");
+    assert.deepEqual(strayCounts([file], contractFigures(), []).map((line) => line.split(": ").at(-1)), ["\"823 pairings\""]);
+    assert.deepEqual(strayCounts([file], contractFigures(), [[relative(repoRoot, file).split(sep).join("/"), "823 pairings"]]), []);
+  });
+
+  test(`L198 check B: every count of the contract in those files is the code's (${measuredTotal} measured in all, 8 × 70 + 2 × 193 today), or history named file by file`, () => {
+    assert.equal(measuredTotal, 946, "the presets measure another total: the docs follow from the code, and this figure from the spec");
+    assert.deepEqual(strayCounts(DOC_FILES, contractFigures(), COUNT_HISTORY), []);
   });
 } finally {
   rmSync(tmp, { recursive: true, force: true });

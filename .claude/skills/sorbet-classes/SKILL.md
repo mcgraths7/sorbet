@@ -83,7 +83,13 @@ inventing `.sb-button--tertiary` produces an unstyled button, not an error.
   instead of hand-writing the class. The class map is for HTML, foreign markup,
   and the few places the library has no wrapper.
 - **Never inline a new `<svg>`.** House glyphs live in `atoms/icons.tsx`; `Icon`
-  is the size/tone/a11y box around any provider's glyph.
+  is the size/tone/a11y box around any provider's glyph. The one exception is a
+  status written by hand: a status alert, a status badge, a field's error, a
+  danger button or a danger menu item leads with the status slot, written as
+  its React component writes it — `<span class="sb-status">`, the glyph's `svg`
+  copied from `atoms/icons.tsx`, then `<span class="u-visually-hidden">Error:
+  </span>` where the component has a word (see the comments in
+  `atoms/_icon.scss`, `molecules/_alert.scss`, `atoms/_badge.scss`).
 
 ## Verify
 
