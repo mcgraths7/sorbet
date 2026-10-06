@@ -2,8 +2,8 @@
  * Theme presets. Each preset is a personality: ramp assignments, radius
  * style, font stacks, and a shadow tint. Semantic colors are derived — and
  * contrast-verified — by `buildMode`, never hand-tuned per component; the one
- * exception is sorbet's light record, written whole from the values its
- * legibility contract was approved on, and held to them by the tests.
+ * exception is sorbet's two records, light and dark, written whole from the
+ * values its legibility contract was approved on, and held to them by the tests.
  */
 
 import { chartThemes } from "./charts.ts";
@@ -74,22 +74,6 @@ const STATUS = {
 function build(recipe: SemanticRecipe): Record<Mode, SemanticColors> {
   return { light: buildMode(recipe, "light"), dark: buildMode(recipe, "dark") };
 }
-
-/**
- * Sorbet's recipe, which still builds its DARK record. Its light record is no
- * longer built: it is written whole below, as the legibility contract's
- * values were approved (docs/pastel-legibility-evidence/legibility-spec.md,
- * §3), and its dark record is rebuilt the same way in a later step.
- */
-const SORBET_RECIPE: SemanticRecipe = {
-  neutral: ramps.sand,
-  charts: chartThemes.sorbet,
-  primary: ramps.aqua,
-  secondary: ramps.raspberry,
-  accent: ramps.lemon,
-  brandStyle: "pastel",
-  ...STATUS,
-};
 
 /**
  * Sorbet in light mode, every value as legibility-spec.md §3 states it: the
@@ -191,6 +175,103 @@ const SORBET_LIGHT = {
   "accent-mark": "#ccb563",
 } satisfies SemanticColors & Partial<Record<SeamName, string>>;
 
+/**
+ * Sorbet in dark mode, every value as legibility-spec.md §3 states it, in the
+ * light record's order: the 69 roles (L12), then the 20 optional colour tokens
+ * (L15). Typed, not derived, as the light record is (step 2.6).
+ */
+const SORBET_DARK = {
+  bg: "#211409",
+  "bg-subtle": "#140903",
+  surface: "#342417",
+  "surface-raised": "#463425",
+  "surface-sunken": "#140903",
+  scrim: "rgb(0 0 0 / 0.6)",
+  "on-scrim": "#fffbf1",
+  "on-scrim-muted": "#f3e7ce",
+  text: "#f3e7ce",
+  "text-muted": "#d7c9ae",
+  "text-subtle": "#b3a58d",
+  "text-inverse": "#211409",
+  border: "rgb(254 244 220 / 0.14)",
+  "border-subtle": "rgb(254 244 220 / 0.14)",
+  "border-strong": "#b096d7",
+  "focus-ring": "#8e6ac7",
+  primary: "#dac5fc",
+  "primary-hover": "#dac5fc",
+  "primary-active": "#dac5fc",
+  "primary-subtle": "#554445",
+  "primary-text": "#f3e7ce",
+  "on-primary": "#472400",
+  "primary-solid": "#b096d7",
+  "secondary-solid": "#d29397",
+  "accent-solid": "#ccb563",
+  secondary: "#f9c3c6",
+  "secondary-hover": "#f9c3c6",
+  "secondary-active": "#f9c3c6",
+  "secondary-subtle": "#5b443a",
+  "secondary-text": "#f3e7ce",
+  "on-secondary": "#472400",
+  accent: "#f5e3a2",
+  "accent-hover": "#f5e3a2",
+  "accent-active": "#f5e3a2",
+  "accent-subtle": "#5b4a33",
+  "accent-text": "#f3e7ce",
+  "on-accent": "#472400",
+  success: "#a6edee",
+  "success-hover": "#a6edee",
+  "success-subtle": "#4b4c42",
+  "success-text": "#f3e7ce",
+  "on-success": "#472400",
+  warning: "#f5e3a2",
+  "warning-hover": "#f5e3a2",
+  "warning-subtle": "#5b4a33",
+  "warning-text": "#f3e7ce",
+  "on-warning": "#472400",
+  danger: "#f9c3c6",
+  "danger-hover": "#f9c3c6",
+  "danger-active": "#f9c3c6",
+  "danger-subtle": "#5b443a",
+  "danger-text": "#f3e7ce",
+  "on-danger": "#472400",
+  info: "#dac5fc",
+  "info-hover": "#dac5fc",
+  "info-subtle": "#554445",
+  "info-text": "#f3e7ce",
+  "on-info": "#472400",
+  link: "#dac5fc",
+  "link-hover": "#dac5fc",
+  "chart-1": "#4cc7d1",
+  "chart-2": "#efa024",
+  "chart-3": "#ff85b6",
+  "chart-4": "#d4b000",
+  "chart-5": "#7db6ff",
+  "chart-6": "#ff9164",
+  "chart-7": "#9dacff",
+  "chart-8": "#92c73c",
+  "chart-muted": "#999389",
+  "text-strong": "#f3e7ce",
+  "heading-ink": "#f3e7ce",
+  "text-caption": "#f3e7ce",
+  "field-fill": "#140903",
+  "control-checked": "#dac5fc",
+  "switch-off": "#140903",
+  "slider-track": "#140903",
+  "switch-ring": "#b096d7",
+  "selected-wash": "#554445",
+  "selected-bar": "#b096d7",
+  "container-line": "transparent",
+  "field-line": "transparent",
+  "filled-line": "transparent",
+  "quiet-fill": "#463425",
+  "success-mark": "#00b5b8",
+  "warning-mark": "#bb9c12",
+  "danger-mark": "#d77784",
+  "info-mark": "#b096d7",
+  "secondary-mark": "#d29397",
+  "accent-mark": "#ccb563",
+} satisfies SemanticColors & Partial<Record<SeamName, string>>;
+
 /** One shadow layer, written in the order a box-shadow is: `[inset] x y blur spread colour`, then its strength. */
 const layer = (inset: boolean, x: number, y: number, blur: number, spread: number, color: Hex, alpha: number): ShadowLayer => ({ inset, x, y, blur, spread, color, alpha });
 const IN = true;
@@ -264,6 +345,75 @@ const SORBET_EDGES_LIGHT: EdgeData = {
   },
 };
 
+/**
+ * Sorbet's dark edges, as legibility-spec.md §5.2 writes them (L45): sheet 2's
+ * recipes on the cocoa page, but the sunken panel's all-round layer (@ 0.16) and
+ * the info status box's (@ 0.38), strengthened so each clears its rendered bar
+ * (L195 (a), DECISIONS row 46). The danger button's recipe is the blush one's (L46).
+ */
+const SORBET_EDGES_DARK: EdgeData = {
+  container: {
+    fill: "surface",
+    rest: [layer(IN, 0, 1, 0, 0, "#fef4dc", 0.22), layer(OUT, 0, 0, 0, 1, "#fef4dc", 0.18), layer(OUT, 0, 10, 28, -6, "#05020a", 0.7)],
+  },
+  floating: {
+    fill: "surface-raised",
+    rest: [layer(IN, 0, 1, 0, 0, "#fef4dc", 0.28), layer(OUT, 0, 0, 0, 1, "#fef4dc", 0.28), layer(OUT, 0, 18, 44, -10, "#05020a", 0.8)],
+  },
+  field: {
+    fill: "field-fill",
+    rest: [layer(IN, 0, 1, 3, 0, "#05020a", 0.7), layer(IN, 0, 0, 0, 1, "#fef4dc", 0.34), layer(OUT, 0, 1, 0, 0, "#fef4dc", 0.12)],
+  },
+  sunken: {
+    fill: "surface-sunken",
+    rest: [layer(IN, 0, 1, 3, 0, "#05020a", 0.7), layer(IN, 0, 0, 0, 1, "#fef4dc", 0.16)],
+  },
+  quiet: {
+    fill: "quiet-fill",
+    rest: [layer(IN, 0, 1, 0, 0, "#fef4dc", 0.22), layer(OUT, 0, 0, 0, 1, "#fef4dc", 0.22)],
+  },
+  "filled-primary": {
+    fill: "primary",
+    rest: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#dac5fc", 0.35), layer(OUT, 0, 0, 14, -2, "#dac5fc", 0.35)],
+    hover: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#dac5fc", 0.45), layer(OUT, 0, 0, 20, -1, "#dac5fc", 0.5)],
+    press: [layer(IN, 0, 2, 4, 0, "#7f5fab", 0.55), layer(OUT, 0, 0, 6, -2, "#dac5fc", 0.3)],
+  },
+  "filled-secondary": {
+    fill: "secondary",
+    rest: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#f9c3c6", 0.35), layer(OUT, 0, 0, 14, -2, "#f9c3c6", 0.35)],
+    hover: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#f9c3c6", 0.45), layer(OUT, 0, 0, 20, -1, "#f9c3c6", 0.5)],
+    press: [layer(IN, 0, 2, 4, 0, "#ac505b", 0.55), layer(OUT, 0, 0, 6, -2, "#f9c3c6", 0.3)],
+  },
+  "filled-accent": {
+    fill: "accent",
+    rest: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#f5e3a2", 0.35), layer(OUT, 0, 0, 14, -2, "#f5e3a2", 0.35)],
+    hover: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#f5e3a2", 0.45), layer(OUT, 0, 0, 20, -1, "#f5e3a2", 0.5)],
+    press: [layer(IN, 0, 2, 4, 0, "#877000", 0.55), layer(OUT, 0, 0, 6, -2, "#f5e3a2", 0.3)],
+  },
+  "filled-danger": {
+    fill: "danger",
+    rest: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#f9c3c6", 0.35), layer(OUT, 0, 0, 14, -2, "#f9c3c6", 0.35)],
+    hover: [layer(IN, 0, 1, 0, 0, "#ffffff", 0.5), layer(OUT, 0, 0, 0, 1, "#f9c3c6", 0.45), layer(OUT, 0, 0, 20, -1, "#f9c3c6", 0.5)],
+    press: [layer(IN, 0, 2, 4, 0, "#ac505b", 0.55), layer(OUT, 0, 0, 6, -2, "#f9c3c6", 0.3)],
+  },
+  "status-success": {
+    fill: "success-subtle",
+    rest: [layer(OUT, 0, 0, 0, 1, "#a6edee", 0.34)],
+  },
+  "status-warning": {
+    fill: "warning-subtle",
+    rest: [layer(OUT, 0, 0, 0, 1, "#f5e3a2", 0.34)],
+  },
+  "status-danger": {
+    fill: "danger-subtle",
+    rest: [layer(OUT, 0, 0, 0, 1, "#f9c3c6", 0.34)],
+  },
+  "status-info": {
+    fill: "info-subtle",
+    rest: [layer(OUT, 0, 0, 0, 1, "#dac5fc", 0.38)],
+  },
+};
+
 export const presets = {
   sorbet: {
     name: "sorbet",
@@ -273,9 +423,9 @@ export const presets = {
     radiusStyle: "round",
     fonts: { sans: ROUNDED, display: ROUNDED, mono: MONO },
     shadowTint: "#a16e32",
-    contract: { light: "legibility", dark: "wcag-aa" },
-    colors: { light: SORBET_LIGHT, dark: buildMode(SORBET_RECIPE, "dark") },
-    edges: { light: SORBET_EDGES_LIGHT },
+    contract: { light: "legibility", dark: "legibility" },
+    colors: { light: SORBET_LIGHT, dark: SORBET_DARK },
+    edges: { light: SORBET_EDGES_LIGHT, dark: SORBET_EDGES_DARK },
     buttonLabel: { px: 16, smallPx: 14, weight: 600 },
   },
   ocean: {

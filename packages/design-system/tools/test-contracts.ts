@@ -480,10 +480,11 @@ const freshEdges = () => structuredClone(VALUES.edges);
 const colorsOf = (mode: Mode, preset = "ocean") => shipped[preset]!.colors[mode];
 /**
  * What each shipped preset declares (L101, L105 #26), typed in from the spec. Step 2.2: sorbet's light mode declares
- * legibility; step 2.6 makes its dark mode legibility too.
+ * legibility; step 2.6 makes its dark mode legibility too (L195 (c), rows 25 to 31 and 46: this one edit moves sorbet
+ * dark out of every wcag-aa assertion that reads DECLARED, so check700 holds 560 measurements, 8 preset-modes × 70).
  */
 const DECLARED: Record<string, Record<Mode, ContractName>> = {
-  sorbet: { light: "legibility" as ContractName, dark: "wcag-aa" },
+  sorbet: { light: "legibility" as ContractName, dark: "legibility" as ContractName },
   ocean: { light: "wcag-aa", dark: "wcag-aa" },
   forest: { light: "wcag-aa", dark: "wcag-aa" },
   noir: { light: "wcag-aa", dark: "wcag-aa" },
@@ -910,9 +911,10 @@ try {
   });
 
   // ── M9.4 ────────────────────────────────────────────────────────────────
-  // legibility-spec.md L105 #26 (L101, steps 2.2 and 2.6): all five declared wcag-aa in both modes; sorbet now declares
-  // { light: "legibility", dark: "wcag-aa" } (from step 2.6 legibility in both); the four others are unchanged.
-  test("M5 L101 each preset declares what step 2.2 says — sorbet legibility in light and wcag-aa in dark, the four others wcag-aa in both — and contractOf says so", () => {
+  // legibility-spec.md L105 #26 (L101, steps 2.2 and 2.6): all five declared wcag-aa in both modes; sorbet declared
+  // { light: "legibility", dark: "wcag-aa" } from step 2.2, and from step 2.6 legibility in both (L195 (c)); the four
+  // others are unchanged.
+  test("M5 L101 L195 each preset declares what step 2.6 says — sorbet legibility in both modes, the four others wcag-aa in both — and contractOf says so", () => {
     assert.deepEqual(Object.keys(shipped), ["sorbet", "ocean", "forest", "noir", "midnight"]);
     for (const preset of Object.values(shipped)) {
       assert.deepEqual(preset.contract, DECLARED[preset.name], preset.name);
@@ -1355,15 +1357,18 @@ try {
     const recorded = readFileSync(join(fixtures, "check-contrast.report.txt"), "utf8");
     // legibility-spec.md L105 "#11 again" (step 2.2; L21, L86, L91): sorbet's heading carries its new tagline (L21: its
     // words are the implementer's, so the line is read off the preset), sorbet's light line is legibility's, with the
-    // margin derived from this spec (84.8629 ÷ 82.8 = 1.0249, ×1.02), and the last line counts 823: wcag-aa × 9, legibility × 1.
+    // margin derived from this spec (84.8629 ÷ 82.8 = 1.0249, ×1.02). Step 2.6 (L105, L195 (c) row "11 again"):
+    // sorbet's dark line is legibility's too (85.2412 ÷ 83.2 = 1.0245, ×1.02), and the last line counts 946:
+    // wcag-aa × 8, legibility × 2.
     const lines = recorded
       .replace(/^( {2}(?:light|dark) +all 70 pairings pass.*)$/gm, "$1 — wcag-aa; 191 rules not held")
-      .replace(/^✓ WCAG AA contract holds for every preset in both modes \(700 pairings measured\)$/m, "✓ every declared contract holds for every preset in both modes (823 pairings measured): wcag-aa × 9, legibility × 1")
+      .replace(/^✓ WCAG AA contract holds for every preset in both modes \(700 pairings measured\)$/m, "✓ every declared contract holds for every preset in both modes (946 pairings measured): wcag-aa × 8, legibility × 2")
       .split("\n");
     const heading = lines.findIndex((line) => line.startsWith("Sorbet — "));
-    assert.ok(heading >= 0 && lines[heading + 1]!.startsWith("  light "), "the fixture's sorbet section");
+    assert.ok(heading >= 0 && lines[heading + 1]!.startsWith("  light ") && lines[heading + 2]!.startsWith("  dark "), "the fixture's sorbet section");
     lines[heading] = `Sorbet — ${shipped.sorbet!.tagline}`;
     lines[heading + 1] = `  light all ${HELD_BY_LEGIBILITY} pairings pass (tightest margin ×1.02) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held`;
+    lines[heading + 2] = `  dark  all ${HELD_BY_LEGIBILITY} pairings pass (tightest margin ×1.02) — legibility; ${APPLYING - HELD_BY_LEGIBILITY} rules not held`;
     const expected = lines.join("\n");
     assert.notEqual(expected, recorded, "the transformation changed nothing: the fixture is not the one it was written against");
     assert.equal(run.stdout, expected);
@@ -3814,9 +3819,11 @@ try {
   const REPORT_MARGIN = [true, false, true]; // check-contrast.ts, sorbet contrast (no margin, as today), the scaffold's
 
   RUNS.slice(0, 3).forEach((report, i) => {
-    // Step 2.2 (as L105 "#11 again"): sorbet light declares legibility, so its line is legibility's and the last line
-    // counts 823 pairings, wcag-aa × 9 and legibility × 1. Derived from DECLARED, the spec's declarations.
-    test(`2.2 L86 L91 ${report.name}, on the shipped presets: each mode line names the contract it declares (sorbet light: "all 193 pairings pass${REPORT_MARGIN[i] ? " (tightest margin ×1.02)" : ""} — legibility; 68 rules not held"), and the last line is "✓ every declared contract holds for every preset in both modes (823 pairings measured): wcag-aa × 9, legibility × 1"`, () => {
+    // Step 2.2 (as L105 "#11 again"): sorbet light declares legibility, so its line is legibility's. Step 2.6 (its
+    // acceptance #6, L195 (c) row 52): sorbet dark declares legibility too, so both its lines are legibility's and the last
+    // line counts 946 pairings, wcag-aa × 8 and legibility × 2. Derived from DECLARED, the spec's declarations; sorbet
+    // dark's line is also checked as acceptance #6 types it.
+    test(`2.6 #6 L86 L91 L195 ${report.name}, on the shipped presets: each mode line names the contract it declares (sorbet light and dark: "all 193 pairings pass${REPORT_MARGIN[i] ? " (tightest margin ×1.02)" : ""} — legibility; 68 rules not held"), and the last line is "✓ every declared contract holds for every preset in both modes (946 pairings measured): wcag-aa × 8, legibility × 2"`, () => {
       const run = runOn("shipped", report);
       assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
       const said = readReport(run.stdout);
@@ -3826,7 +3833,9 @@ try {
         assert.equal(p.summary, REPORT_MARGIN[i] ? want : withoutMargin(want), `${p.preset}/${p.mode}`);
         assert.deepEqual([p.rows, p.notes], [[], []]);
       }
-      assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (823 pairings measured): wcag-aa × 9, legibility × 1");
+      const dark = said.find((p) => p.preset === "sorbet" && p.mode === "dark");
+      assert.equal(dark?.summary, REPORT_MARGIN[i] ? "all 193 pairings pass (tightest margin ×1.02) — legibility; 68 rules not held" : "all 193 pairings pass — legibility; 68 rules not held", "sorbet dark, as acceptance #6 gives it");
+      assert.equal(run.stdout.trimEnd().split("\n").at(-1), "✓ every declared contract holds for every preset in both modes (946 pairings measured): wcag-aa × 8, legibility × 2");
     });
 
     test(`2.1 #9 L86 L91 ${report.name}, with sorbet as step 2.6 will make it (the §3 values and edges, legibility in both modes): its lines read "all 193 pairings pass${REPORT_MARGIN[i] ? " (tightest margin ×1.02)" : ""} — legibility; 68 rules not held", and the last "(946 pairings measured): wcag-aa × 8, legibility × 2"`, () => {
@@ -3905,10 +3914,11 @@ try {
   });
 
   RUNS.slice(3).forEach((gate) => {
-    test(`2.2 L87 ${gate.name}, on the shipped presets: "✓ every preset holds the contract it declares: wcag-aa × 9, legibility × 1"`, () => {
+    // Step 2.6's acceptance #6, L195 (c) row 53: the gates' line, with no count.
+    test(`2.6 #6 L87 L195 ${gate.name}, on the shipped presets: "✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2"`, () => {
       const run = runOn("shipped", gate);
       assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
-      assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 9, legibility × 1"), run.stdout);
+      assert.ok(run.stdout.split("\n").includes("✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2"), run.stdout);
     });
 
     test(`2.1 #9 L87 L79 ${gate.name}, with sorbet as step 2.6 will make it: "✓ every preset holds the contract it declares: wcag-aa × 8, legibility × 2", and no contrast or structure failure (the golden may still object: sorbet's file changed)`, () => {
@@ -4297,12 +4307,16 @@ try {
     assert.deepEqual(Object.entries(sorbetNow().colors.light), Object.entries(VALUES.colors.light));
   });
 
-  test("2.2 L45 L101 presets.sorbet.edges.light is L45's light table, element for element in EdgeElement order; the dark edges wait for step 2.6", () => {
+  // L195 (c) row 54 (step 2.6): this said the dark edges were undefined, waiting for step 2.6; they are L45's dark table
+  // (step 2.6's acceptance #1), and the light half is unchanged.
+  test("2.2 L45 L101 L195 presets.sorbet.edges is L45's: the light table, and from step 2.6 the dark table, each element for element in EdgeElement order", () => {
     const edges = sorbetNow().edges;
     assert.ok(edges !== undefined && edges.light !== undefined, "sorbet has no light edges");
     assert.deepEqual(Object.keys(edges.light), ELEMENTS);
     assert.deepEqual(JSON.parse(JSON.stringify(edges.light)), VALUES.edges.light);
-    assert.ok(edges.dark === undefined, "sorbet has dark edges: they are step 2.6's");
+    assert.ok(edges.dark !== undefined, "sorbet has no dark edges: step 2.6 writes L45's dark table");
+    assert.deepEqual(Object.keys(edges.dark), ELEMENTS);
+    assert.deepEqual(JSON.parse(JSON.stringify(edges.dark)), VALUES.edges.dark);
   });
 
   test("2.2 L19 L20 L21 sorbet's buttonLabel is { px: 16, smallPx: 14, weight: 600 }, its shadowTint the caramel #a16e32, and its tagline is rewritten to name lilac first and no blossom pink", () => {
@@ -4322,9 +4336,16 @@ try {
     assert.ok(!lower.includes("blossom"), `L21: the tagline names blossom pink, the old secondary: ${tagline}`);
   });
 
-  test("2.2 L101 L3 sorbet's dark record is still buildMode's: entry for entry, in order, e24df74's sorbet dark", () => {
-    assert.equal(KNOWN_BAD.recordedFrom, "e24df74");
-    assert.deepEqual(Object.entries(sorbetNow().colors.dark), Object.entries(KNOWN_BAD.colors.dark));
+  // Step 2.6 (§12 "2.6", L195 (c) row 55): "2.2 L101 L3 sorbet's dark record is still buildMode's" is retired, replaced
+  // by acceptance #1. The expected values are §3's dark record and L45's dark table from legibility-values.json, as
+  // acceptance #1 allows (revision 3.7's transcription, with L195 (a)'s two alphas).
+  test("2.6 #1 L12 L14 L15 L45 L195 presets.sorbet.colors.dark is §3's dark record, key for key and in order — the 69 roles in SEMANTIC_COLOR_NAMES order, then the 20 optional tokens in L15's — and presets.sorbet.edges.dark is L45's dark table, element for element in EdgeElement order", () => {
+    assert.deepEqual(Object.keys(VALUES.colors.dark), [...SEMANTIC_COLOR_NAMES, ...VALUES.seams.map((seam) => seam.name)], "the transcription's dark record is not in L14's order");
+    assert.deepEqual(Object.entries(sorbetNow().colors.dark), Object.entries(VALUES.colors.dark), "sorbet's dark record is not §3's, key for key and in order");
+    const dark = sorbetNow().edges?.dark;
+    assert.ok(dark !== undefined, "sorbet has no dark edges");
+    assert.deepEqual(Object.keys(dark), ELEMENTS);
+    assert.deepEqual(JSON.parse(JSON.stringify(dark)), VALUES.edges.dark);
   });
 
   test("2.2 sorbet light passes legibility: its 193 measurements, through measurePreset, are the two scrim ratios and appendix A's 191, each in its view; every one holds; and none of the six checks fails", () => {
@@ -4343,15 +4364,25 @@ try {
     assert.deepEqual(structureOf(shipped.sorbet!), [], "the six checks");
   });
 
-  test("2.2 L3 sorbet dark still passes wcag-aa: its 70 measurements, through measurePreset, are the ones 2d3b765 took — floor and verdict exactly, each ratio to 1e-9", () => {
+  // L195 (c) row 56: "2.2 L3 sorbet dark still passes wcag-aa" is retired, replaced by this test. (The new dark record
+  // also holds wcag-aa, 70 of 70, but nothing declares it.) The form of step 2.2's light test.
+  test("2.6 #2 L58 L61 L195 sorbet dark passes legibility: its 193 measurements, through measurePreset, are the two scrim ratios (5.5562 and 4.6844 to 1e-4, typical) and appendix A's 191 dark figures, each to 0.01 in the view it states; every one holds; and none of the six checks fails", () => {
     const pairs = api("measurePreset")(shipped.sorbet!, "dark") as Measured[];
-    const rows = recordedFor("sorbet", "dark");
-    assert.equal(pairs.length, 70);
+    assert.equal(pairs.length, HELD_BY_LEGIBILITY, `sorbet dark: ${pairs.length} measurements, not legibility's 193`);
+    assert.deepEqual(pairs.map((pair) => [pair.fg, pair.bg, pair.tier]), LEGIBILITY_ORDER.map((rule) => [rule.fg, rule.bg, rule.tier]));
     pairs.forEach((pair, i) => {
-      const was = rows[i]!;
-      assert.deepEqual([pair.fg, pair.bg, pair.min, pair.holds], [was.fg, was.bg, was.floor, true], `#${i}`);
-      assert.ok(near(pair.actual, was.actual, 1e-9), `${was.fg} on ${was.bg}: ${pair.actual}, and 2d3b765 measured ${was.actual}`);
+      const tier = LEGIBILITY_ORDER[i]!.tier;
+      assert.deepEqual([pair.metric, pair.min], [LEG_FLOOR.get(tier)!.metric, floorIn(tier, "dark")], `${pair.fg} on ${pair.bg}: metric and L61's dark floor`);
+      if (i < 2) {
+        assert.ok(near(pair.actual, SCRIM_RATIO[pair.fg]!, 1e-4) && pair.view === "typical", `${pair.fg} on scrim: ${pair.actual} (${pair.view})`);
+      } else {
+        const rule = APPENDIX.rules[i - 2]!;
+        assert.ok(near(pair.actual, rule.dark.actual, 0.01) && pair.view === rule.dark.view, `${rule.n} dark: ${pair.actual} (${pair.view}), and appendix A says ${rule.dark.actual} (${rule.dark.view})`);
+      }
+      assert.equal(pair.holds, true, `${pair.fg} on ${pair.bg}`);
     });
+    assert.deepEqual(checkPreset(shipped.sorbet!), [], "the gate");
+    assert.deepEqual(structureOf(shipped.sorbet!), [], "the six checks");
   });
 
   test("2.2 L105 (step 2.2) why #24 to #38 move off sorbet light: under wcag-aa, §3's light record fails exactly seven pairs, as the spec measures them", () => {
@@ -4410,15 +4441,89 @@ try {
     return out.join("\n");
   }
 
-  // L151, L98 (revision 3.5): the golden gains the light --sb-halo-room line and its two resets; 82 initial lines became 84.
-  test("2.2 L97 L55 L151 sorbet's golden is e24df74's changed only where §11.4 allows: line 1's tagline; in light, the 89 colour tokens, the five shadow lines tinted caramel, the two button sizes, the 21 edge lines and the halo room; and the 42 resets at the end of each dark block", () => {
+  /**
+   * Step 2.6's acceptance #5 (L97's 2.6 row, L98, L195 (b)): step 2.2's golden as expectedGolden22 builds it, with each
+   * dark block's lines replaced by, in the light block's order, `color-scheme: dark;`, the 69 roles and the 20 optional
+   * tokens with §3's dark values, the five shadow lines unchanged, L45's 21 dark edge lines and `--sb-halo-room: 3px;`.
+   */
+  function expectedGolden26(): string {
+    assert.deepEqual(Object.keys(VALUES.colors.dark), Object.keys(VALUES.colors.light), "the dark record's keys are not in the light block's order");
+    const out: string[] = [];
+    let inDark = false;
+    let indent = "";
+    let shadows: string[] = [];
+    for (const line of expectedGolden22().split("\n")) {
+      const t = line.trim();
+      if (t === "color-scheme: dark;") {
+        inDark = true;
+        indent = /^\s*/.exec(line)![0];
+        shadows = [];
+        continue;
+      }
+      if (inDark && t === "}") {
+        assert.equal(shadows.length, 5, "the five shadow lines of a dark block");
+        out.push(...["color-scheme: dark;", ...colourLines(VALUES.colors.dark), ...shadows, ...edgeLines(VALUES.edges.dark), "--sb-halo-room: 3px;"].map((decl) => indent + decl));
+        inDark = false;
+        out.push(line);
+        continue;
+      }
+      if (inDark) {
+        // The five shadow lines are kept as they are; everything else in the block is replaced.
+        if (t.startsWith("--sb-shadow-")) {
+          shadows.push(t);
+        }
+        continue;
+      }
+      out.push(line);
+    }
+    return out.join("\n");
+  }
+  /** A file's line count, as `wc -l` gives it (L195 (b): "375 lines to 377"). */
+  const lineCount = (text: string) => text.split("\n").length - (text.endsWith("\n") ? 1 : 0);
+  /**
+   * L195 (d): a theme file's light block, the run of declarations from `color-scheme: light;` to the end of :root (the
+   * fonts and radii above it hold in both modes), and its two dark blocks, each from `color-scheme: dark;` to its end.
+   */
+  function modeBlocks(css: string): { light: string[]; dark: string[][] } {
+    const lines = css.split("\n").map((line) => line.trim());
+    const from = (text: string) => lines.flatMap((line, i) => (line === text ? [i] : []));
+    const run = (start: number) => {
+      const end = lines.indexOf("}", start);
+      assert.ok(end > start, `the block from line ${start + 1} does not end`);
+      return lines.slice(start, end).filter((line) => line !== "");
+    };
+    const light = from("color-scheme: light;");
+    const dark = from("color-scheme: dark;");
+    assert.equal(light.length, 1, "one color-scheme: light; line");
+    assert.equal(dark.length, 2, "two color-scheme: dark; lines");
+    return { light: run(light[0]!), dark: dark.map(run) };
+  }
+  /** A block's --sb- declarations, as [name, value]. */
+  const declsOf = (block: string[]) => block.filter((line) => line.startsWith("--sb-")).map((line) => [line.slice(0, line.indexOf(":")), line.slice(line.indexOf(":") + 1).trim().replace(/;$/, "")] as const);
+  const sorbetFiles = () => [["tools/golden/sorbet.css", readFileSync(join(pkgRoot, "tools", "golden", "sorbet.css"), "utf8")], ["themeCss(presets.sorbet)", themeCss(shipped.sorbet!)]] as const;
+
+  // L195 (c) row 57: this test expected the 42 resets at the end of each dark block (step 2.2's golden); it expects the
+  // golden of step 2.6's acceptance #5: step 2.2's light block as expectedGolden22 states it, and each dark block as
+  // acceptance #5 gives it.
+  test("2.6 #5 L97 L98 L55 L151 L195 sorbet's golden is step 2.2's changed only inside the two dark blocks: each is, in the light block's order, color-scheme: dark;, the 69 roles, the 20 optional tokens, the five shadow lines unchanged, the 21 edge lines and --sb-halo-room: 3px; — 117 lines, where step 2.2's was 116; the file is 377 lines, where it was 375; and the four frozen goldens are unchanged", () => {
     assert.equal(GOLDENS.recordedFrom, "e24df74");
-    const golden = readFileSync(join(pkgRoot, "tools", "golden", "sorbet.css"), "utf8").split("\n");
-    const [first, ...rest] = expectedGolden22().split("\n");
-    assert.notEqual(golden[0], first, "line 1: the tagline is not rewritten (L21)");
+    const text = readFileSync(join(pkgRoot, "tools", "golden", "sorbet.css"), "utf8");
+    const golden = text.split("\n");
+    const was = expectedGolden22();
+    const [first, ...rest] = expectedGolden26().split("\n");
+    assert.equal(first, was.split("\n")[0], "line 1 is step 2.2's expectation's");
     assert.equal(golden[0], `/* Sorbet DS theme: sorbet — ${shipped.sorbet!.tagline}`, "line 1 is the header with the preset's own tagline");
-    assert.deepEqual(golden.slice(1), rest, "below line 1, sorbet's golden is not e24df74's with only §11.4's step-2.2 changes");
-    assert.equal(rest.filter((line) => line.endsWith(": initial;")).length, 84, "42 resets in each of the two dark blocks");
+    // The expectation itself: step 2.2's dark blocks were 116 lines (color-scheme, buildMode's 68 roles, five shadows,
+    // 42 initial lines), and the file 375 lines.
+    assert.deepEqual(modeBlocks(was).dark.map((block) => block.length), [116, 116], "step 2.2's dark blocks");
+    assert.equal(lineCount(was), 375, "step 2.2's golden");
+    assert.deepEqual(golden.slice(1), rest, "below line 1, sorbet's golden is not step 2.2's with each dark block as step 2.6's acceptance #5 gives it");
+    assert.deepEqual(modeBlocks(text).dark.map((block) => block.length), [117, 117], "117 lines in each dark block");
+    assert.equal(lineCount(text), 377, "the file is 377 lines");
+    assert.equal(golden.filter((line) => line.endsWith(": initial;")).length, 0, "no reset is left");
+    for (const [name, sha256] of Object.entries(GOLDENS.frozenSha256)) {
+      assert.equal(createHash("sha256").update(readFileSync(join(pkgRoot, "tools", "golden", `${name}.css`), "utf8")).digest("hex"), sha256, `${name}: a frozen golden changed`);
+    }
   });
 
   test("2.2 L4 L98 the four frozen goldens are byte for byte what e24df74 has", () => {
@@ -4426,6 +4531,40 @@ try {
       assert.equal(createHash("sha256").update(readFileSync(join(pkgRoot, "tools", "golden", `${name}.css`), "utf8")).digest("hex"), sha256, name);
     }
     assert.deepEqual(Object.keys(GOLDENS.frozenSha256), ["ocean", "forest", "noir", "midnight"]);
+  });
+
+  // ══ PR 2, step 2.6: sorbet dark (§12 "2.6", L195) — the theme file ═════════════════════════════════════════
+  // Acceptance #1, #2 and #5 are above, in place of the step-2.2 tests L195 (c) retires or rewrites; #6 is with the
+  // reports. Each is read both off the golden and off what themeCss emits for the shipped sorbet (M6.9 holds them equal).
+  test("2.6 #3 L160 L19 L195 no name is left to leak: every --sb- name sorbet's light block declares (from color-scheme: light; to the end of :root), but --sb-button-font-size and -sm, is declared in each of the two dark blocks with a value that is not initial — 116 names each; no initial anywhere in the file; --sb-danger-active: #f9c3c6 in both dark blocks", () => {
+    for (const [what, css] of sorbetFiles()) {
+      const { light, dark } = modeBlocks(css);
+      const names = declsOf(light).map(([name]) => name).filter((name) => name !== "--sb-button-font-size" && name !== "--sb-button-font-size-sm");
+      assert.equal(names.length, 116, `${what}: the light block's names, but the two button sizes`);
+      assert.equal(new Set(names).size, 116, `${what}: a name declared twice in the light block`);
+      dark.forEach((block, i) => {
+        const where = `${what}, dark block ${i + 1}`;
+        const decls = declsOf(block);
+        const values = new Map(decls);
+        assert.deepEqual(names.filter((name) => !values.has(name)), [], `${where}: names the light block declares and this block does not`);
+        assert.deepEqual(names.filter((name) => values.get(name) === "initial"), [], `${where}: names whose value is initial`);
+        assert.equal(decls.length, 116, `${where}: 116 names`);
+        assert.equal(values.size, 116, `${where}: 116 distinct names`);
+        assert.equal(values.get("--sb-danger-active"), "#f9c3c6", `${where}: --sb-danger-active`);
+      });
+      assert.doesNotMatch(css, /\binitial\b/, `${what}: an initial is left in the file`);
+    }
+  });
+
+  test("2.6 #4 L151 L98 L195 --sb-halo-room reads 3px in each dark block, as its last line, after the edge lines (the rims' 0 0 0 1px, 1, plus the card's rise, 2)", () => {
+    for (const [what, css] of sorbetFiles()) {
+      modeBlocks(css).dark.forEach((block, i) => {
+        const where = `${what}, dark block ${i + 1}`;
+        assert.equal(block.at(-1), "--sb-halo-room: 3px;", `${where}: its last line`);
+        assert.ok(block.at(-2)?.startsWith("--sb-edge-"), `${where}: the line before the halo room is not an edge line: ${block.at(-2)}`);
+        assert.equal(block.filter((line) => line.startsWith("--sb-halo-room:")).length, 1, `${where}: one halo room`);
+      });
+    }
   });
 
   // ══ PR 2, step 2.3: the Sass accessors (L71) — tests first for the one silent part ═══════════════════════

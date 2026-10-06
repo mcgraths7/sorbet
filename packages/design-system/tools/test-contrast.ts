@@ -223,7 +223,9 @@ const TAMPERS: Tamper[] = [
   // The pair the private loops skipped: opaque text over the translucent scrim, far too faint.
   { preset: "sorbet", mode: "light", token: "on-scrim", value: "#808080" },
   // The right shape and an impossible alpha. Compositing it used to throw.
-  { preset: "sorbet", mode: "dark", token: "scrim", value: "rgb(0 0 0 / 1.5)" },
+  // legibility-spec.md L105 #47, L195 (c) row 47: this was on sorbet dark, which declares legibility from step 2.6, where
+  // the unreadable scrim also fails C1 and prints a structure row; forest dark has no tamper of its own.
+  { preset: "forest", mode: "dark", token: "scrim", value: "rgb(0 0 0 / 1.5)" },
   // A translucent foreground: there is no one ratio to measure.
   { preset: "ocean", mode: "dark", token: "link-hover", value: "rgb(255 255 255 / 0.5)" },
   // The ordinary failure: opaque, and plainly under its floor on all five surfaces.
