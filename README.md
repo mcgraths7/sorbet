@@ -2,8 +2,9 @@
 
 A fun, themeable, **accessibility-first design system**. A Sass + TypeScript core
 with typed React bindings for every atomic-design layer, shipped as scoped
-packages. Five presets, light + dark for each, and a WCAG AA contrast contract
-that is *enforced at build time* — an inaccessible theme literally fails the build.
+packages. Five presets, light + dark for each, and each held to the contrast
+contract it declares — `wcag-aa` for ocean, forest, noir and midnight, `legibility`
+for sorbet — *at build time*: a theme that fails its own contract fails the build.
 
 ```sh
 corepack enable          # provisions the pinned pnpm (skip if you already have it)
@@ -37,7 +38,7 @@ pnpm playground          # React kitchen sink (Vite, port 5183)
 
 | Package | What's inside |
 | --- | --- |
-| `@sorbet/design-system` | The framework-agnostic system. Subpaths: `/tokens` (OKLCH ramps, validated presets, WCAG rules), `/css` (the compiled stylesheet), `/themes/*` (per-preset theme files), `/scss/*` (Sass source), `/behaviors` (vanilla progressive enhancement) |
+| `@sorbet/design-system` | The framework-agnostic system. Subpaths: `/tokens` (OKLCH ramps, validated presets, contrast rules and the two contracts, `wcag-aa` and `legibility`), `/css` (the compiled stylesheet), `/themes/*` (per-preset theme files), `/scss/*` (Sass source), `/behaviors` (vanilla progressive enhancement) |
 | `@sorbet/component-library` | The React components, one subpath per atomic-design layer — `/layout`, `/atoms`, `/molecules`, `/organisms`, `/templates`, `/charts` — plus `/core` (cx, polymorphic types, `ThemeProvider`/`useTheme`). The root export is everything in one import |
 | `@sorbet/cli` | The `sorbet` CLI: scaffold a standalone design system, emit themes, generate component stubs |
 
@@ -60,9 +61,10 @@ Four rules, ruthlessly applied:
    a component's own parts is the component's business. This is what makes any
    component composable anywhere without spacing fights.
 
-3. **Accessibility is a contract, not a hope.** Semantic color pairings are
-   chosen *by measured contrast* and re-verified on every build across every
-   preset × mode. Focus rings, `:user-invalid`, reduced-motion, and ARIA
+3. **Accessibility is a contract, not a hope.** Every preset declares the
+   contract it is held to, and is re-measured against it on every build, in
+   both modes. The four built presets' colours are chosen *by measured
+   contrast*; sorbet's are picked by eye on sample sheets and then checked. Focus rings, `:user-invalid`, reduced-motion, and ARIA
    patterns are built into the components — both flavors.
 
 4. **The platform first.** Modals are native `<dialog>`. Menus and tooltips ride
@@ -76,7 +78,7 @@ Four rules, ruthlessly applied:
 ```
 packages/
 ├── design-system/          @sorbet/design-system
-│   ├── src/tokens/           TS token engine (color math, ramps, presets, WCAG rules)
+│   ├── src/tokens/           TS token engine (color math, ramps, presets, contrast rules, contracts)
 │   ├── src/styles/            Sass source (atomic layers, cascade layers)
 │   ├── src/behaviors/         vanilla TS behaviors (no dependencies)
 │   └── tools/                 build-tokens (emit + verify), check-contrast
@@ -385,7 +387,7 @@ Semantic color roles (the only colors components may use):
 
 - **Surfaces** — `bg`, `bg-subtle`, `surface`, `surface-raised`, `surface-sunken`, `scrim`
 - **Content** — `text`, `text-muted`, `text-subtle`, `text-inverse`, `link`, `link-hover`
-- **Lines** — `border`, `border-subtle`, `border-strong` (≥3:1, safe for inputs), `focus-ring`
+- **Lines** — `border`, `border-subtle`, `border-strong` (≥3:1 under `wcag-aa`; under `legibility` a field's edge is its own inset ring), `focus-ring`
 - **Brand** — `primary` (+ `-hover`, `-active`, `-subtle`, `-text`, `on-primary`), same for `secondary` and `accent`
 - **Status** — `success`, `warning`, `danger`, `info` (+ `-hover`, `-subtle`, `-text`, `on-*`)
 
@@ -393,13 +395,18 @@ Semantic color roles (the only colors components may use):
 
 Five presets ship out of the box:
 
-| Preset | Personality | Radius | Default mode |
-| --- | --- | --- | --- |
-| **sorbet** *(default)* | Light & fun — robin's-egg blue, blossom pink, butter yellow on warm cream | round | light |
-| **ocean** | Clean corporate SaaS — confident blues on white | soft | system |
-| **forest** | Organic — deep greens, terracotta, serif display | soft | light |
-| **noir** | Minimal editorial monochrome + one lemon accent | sharp | system |
-| **midnight** | Sleek & electric — violet and cyan, dark-first | soft | dark |
+| Preset | Personality | Radius | Default mode | Contract |
+| --- | --- | --- | --- | --- |
+| **sorbet** *(default)* | Light & fun — lilac, blush pink, butter yellow and robin's-egg blue on warm cream | round | light | `legibility` |
+| **ocean** | Clean corporate SaaS — confident blues on white | soft | system | `wcag-aa` |
+| **forest** | Organic — deep greens, terracotta, serif display | soft | light | `wcag-aa` |
+| **noir** | Minimal editorial monochrome + one lemon accent | sharp | system | `wcag-aa` |
+| **midnight** | Sleek & electric — violet and cyan, dark-first | soft | dark | `wcag-aa` |
+
+**Using sorbet.** A few conventions its contract does not gate (spec §13):
+paragraphs never sit on a full-strength fill (the cocoa ink reads Lc 62.47 on
+lilac — fine for a label, too faint for reading); robin's egg is never a lone
+button on the bare page; butter is used small, on cards.
 
 **Switching presets** = swapping one small CSS file
 (`@sorbet/design-system/themes/<name>.css`). Nothing else changes — components are
@@ -439,7 +446,9 @@ The gate, that report, `sorbet contrast` and a scaffolded project's own report
 all measure a preset through one function (`measurePreset` in
 `src/tokens/rules.ts`), and Token Studio's live check reads the same
 measurement (`checkColors`), so the count a report prints is the count it
-measured.
+measured. Token Studio holds whatever theme is loaded to `wcag-aa`, since it does not
+know which preset that is, so in sorbet light it lists pairs that sorbet's own
+contract, `legibility`, holds differently.
 The colours are read in one place as well (`parseColor` in `src/tokens/color.ts`):
 Token Studio measures what is on the page, where a production build's minifier
 has respelled the theme (`#ffffff` as `#fff`, the scrim as `#0009`, `#808080` as
@@ -448,9 +457,10 @@ cannot read — `oklch()`, `hsl()`, `color-mix()` — is a failure that says so.
 The figures above are typed by hand, which is how the old ones went stale:
 `pnpm test` recounts them against `RULES` and fails if this paragraph is wrong.
 
-Beyond color: visible `:focus-visible` rings everywhere, `prefers-reduced-motion`
+Beyond color: visible `:focus-visible` rings everywhere but the command
+palette's input (a known defect, tracked), `prefers-reduced-motion`
 collapses all animation, form errors use `:user-invalid` (only after
-interaction), inputs keep ≥3:1 borders, tables get `aria-sort`, toasts announce
+interaction), inputs keep ≥3:1 borders under `wcag-aa`, tables get `aria-sort`, toasts announce
 via a polite live region, and dialogs/menus ride native focus management.
 
 ## Atomic design: how to put components together
@@ -633,7 +643,7 @@ sorbet create <dir> [--preset <name>] [--name <brand>]   scaffold a standalone p
 sorbet theme <preset> [--out <file>]                     emit one preset's theme CSS
 sorbet component <Name> [--level atom|molecule|organism] [--behavior]
 sorbet presets                                           list presets w/ swatches
-sorbet contrast                                          run the WCAG AA report
+sorbet contrast                                          run the contrast report (each preset against its contract)
 ```
 
 Run it from the monorepo with `node packages/cli/dist/index.js …` (or via the
@@ -644,12 +654,18 @@ evolve, no dependency on this repo.
 
 ## Extending the system
 
-**Change brand colors** — edit a preset in `packages/design-system/src/tokens/presets.ts`
-(swap which ramps map to `primary`/`secondary`/`accent`, or add a ramp with a
-hue + chroma). Rebuild; the contrast contract re-verifies.
+**Change brand colors** — edit a preset in `packages/design-system/src/tokens/presets.ts`.
+A built preset: swap which ramps map to `primary`/`secondary`/`accent`, or add a
+ramp with a hue + chroma, and rebuild; its contract re-verifies. Sorbet's two
+records are typed whole and pinned: edit the record, then
+`pnpm --filter @sorbet/design-system update:golden sorbet`, in a pull request
+whose stated purpose is that change. The four WCAG presets are frozen.
 
 **Add a preset** — one entry in `presets.ts` buys you light + dark modes, a
-theme file, manifest + CLI support, and contract enforcement.
+theme file, manifest + CLI support, and contract enforcement. It also needs a
+`contract` (the build refuses a preset without one), a golden file
+(`update:golden <name>`), a `chartThemes` entry and a colour-vision floor in
+`tools/check-cvd.ts`.
 
 **Add a component** — Sass partial first (tokens only, registered in the right
 `@layer` block of `packages/design-system/src/styles/index.scss`), then a thin React wrapper

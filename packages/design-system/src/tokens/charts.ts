@@ -42,6 +42,8 @@ export const chartThemes: { [name in "sorbet" | "ocean" | "forest" | "noir" | "m
     // collapse together under protanopia (ΔE 3.2 adjacent), so the separator
     // is what buys the palette its floor. Order found by exhaustive search
     // over the gate's own ΔE; CVD separation gated by tools/check-cvd.ts.
+    // (That brand predates the legibility look, which leads with lilac; the
+    // charts were kept as they were, and sorbet's records emit these slots.)
     slot("aqua", 600, 400),
     slot("amber", 600, 400),
     slot("raspberry", 500, 400),

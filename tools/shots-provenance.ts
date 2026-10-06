@@ -13,7 +13,7 @@
  *   so a quoted summary could not show it either.
  * - F6 (frozen lens). A baseline `--at e24df74` built e24df74's whole
  *   playground, whose own text counts the checks the design system's tokens
- *   make ("700 checks" there, "823" here): every frozen full-page shot
+ *   make ("700 checks" there, this tree's own count here): every frozen full-page shot
  *   differed, so the verdict L4 asks for (identical to e24df74) could never
  *   be given. The baseline is now THIS tree's playground with the other
  *   commit's LIBRARY STYLESHEET swapped in (shots.ts), so the stylesheet is

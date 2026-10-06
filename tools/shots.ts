@@ -67,7 +67,7 @@
  * files are byte-identical to e24df74's (the golden gate, check-golden.ts),
  * and the playground is a demo, not the library. But the playground's own
  * text counts the checks the design system's tokens make ("700 checks" at
- * e24df74, "823" after step 2.1), so a baseline of <ref>'s whole playground
+ * e24df74, this tree's own count here), so a baseline of <ref>'s whole playground
  * differs from this one in every frozen full-page shot, and the verdict L4
  * asks for, identical to e24df74, could never be given. So `--at` compiles
  * <ref>'s `packages/design-system/src/styles/index.scss` (from `git archive`,

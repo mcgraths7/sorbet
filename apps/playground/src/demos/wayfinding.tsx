@@ -39,7 +39,8 @@ export function WayfindingDemo() {
           Yes — exclusive-open via the shared <code>name</code>, animated by <code>interpolate-size</code>.
         </AccordionItem>
         <AccordionItem name="faq" summary="Do themes stay accessible?">
-          Contrast is checked at build time; failing palettes fail the build.
+          Contrast is checked at build time against the contract each preset declares; failing palettes fail
+          the build.
         </AccordionItem>
       </Accordion>
       <Cluster justify="between">

@@ -13,5 +13,5 @@ const all = Object.values(presets);
 
 const checks = all.reduce((sum, preset) => sum + MODES.reduce((n, mode) => n + measurePreset(preset, mode).length, 0), 0);
 
-/** e.g. "700 checks across 5 presets × 2 modes" — every figure in it derived. */
+/** e.g. "N checks across 5 presets × 2 modes" — every figure in it derived, none typed here. */
 export const CONTRAST_CHECKS = `${checks} checks across ${all.length} presets × ${MODES.length} modes`;
