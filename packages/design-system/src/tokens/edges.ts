@@ -270,18 +270,36 @@ const HALO_ELEMENTS: readonly EdgeElement[] = ["container", "quiet", "filled-pri
 export const HOVER_LIFT: Readonly<{ container: number; quiet: number; filled: number }> = { container: 2, quiet: 0, filled: 1 };
 
 /**
- * How far a mode's all-round layers reach past an element's box, in whole px
- * (L151): the largest `max(|x|, |y|) + blur + spread` of any all-round layer
- * drawn outside the box, in the rest, hover and press of the container, the
- * quiet element and the four filled ones, plus the element's rise
- * (`HOVER_LIFT`) wherever it is hovered — the filled elements' hover recipe,
- * and the container's rest recipe, which is also its hover (`edge()` allows a
- * state only on `filled-*`) — rounded up. A clipping or scrolling parent pads
- * by it, so it never cuts that layer, hovered or not. 0 when no such layer
- * exists.
+ * How far the default focus ring reaches past an element's box, in px: the
+ * ring's width, `focus-ring-width` (3px, `scales.ts`), past the outline's
+ * default offset of 2px (`focus-ring` in `abstracts/_mixins.scss`). A copy of
+ * the stylesheet's numbers, which `test-contracts.ts` reads and holds this to.
+ */
+export const FOCUS_REACH = 5;
+
+/**
+ * Whether a clipping parent must make room for this layer (L151, as L197
+ * widens it): an outset layer with no offset that reaches past the box, an
+ * all-round layer or a glow (`0 0 14px -2px`: no offset, so it is not depth,
+ * and a negative spread, so it is not all-round, but it still reaches
+ * 12px). An offset layer is depth, which a parent may cut.
+ */
+const reachesAround = (layer: ShadowLayer): boolean => !layer.inset && layer.x === 0 && layer.y === 0 && layer.blur + layer.spread > 0;
+
+/**
+ * How far a mode's edges reach past an element's box, in whole px (L151, L197):
+ * the largest `blur + spread` of any outset layer with no offset, in the rest,
+ * hover and press of the container, the quiet element and the four filled ones,
+ * plus the element's rise (`HOVER_LIFT`) wherever it is hovered — the filled
+ * elements' hover recipe, and the container's rest recipe, which is also its
+ * hover (`edge()` allows a state only on `filled-*`) — rounded up, and never
+ * less than the focus ring's reach (`FOCUS_REACH`). A clipping or scrolling
+ * parent pads by it, so it cuts no glow, no all-round layer and no focus ring,
+ * hovered or not. 0 when no such layer exists (a theme without edge data emits
+ * no room, and its parents keep their old padding).
  */
 export function haloRoom(data: EdgeData): number {
-  const reach = (layers: readonly ShadowLayer[], rise: number) => layers.filter((layer) => allRound(layer) && !layer.inset).map((layer) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread + rise);
+  const reach = (layers: readonly ShadowLayer[], rise: number) => layers.filter(reachesAround).map((layer) => layer.blur + layer.spread + rise);
   const reaches = HALO_ELEMENTS.flatMap((element) => {
     const recipe = data[element];
     if (recipe === undefined) {
@@ -290,7 +308,7 @@ export function haloRoom(data: EdgeData): number {
     const lift = element === "container" ? HOVER_LIFT.container : element === "quiet" ? HOVER_LIFT.quiet : HOVER_LIFT.filled;
     return [...reach(recipe.rest, element === "container" ? lift : 0), ...reach(recipe.hover ?? [], lift), ...reach(recipe.press ?? [], 0)];
   });
-  return Math.ceil(Math.max(0, ...reaches));
+  return reaches.length === 0 ? 0 : Math.ceil(Math.max(FOCUS_REACH, ...reaches));
 }
 
 /**

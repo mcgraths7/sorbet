@@ -3571,13 +3571,16 @@ try {
    * is the repair of 7a683fd (frozen lens F5): a hovered filled button reached 8 + 1 = 9px and a hovered interactive
    * card 7 + 2 = 9px, against a room of 8px that counted no rise.
    */
-  const haloRoomOf = (edges: Partial<Edges>) => Math.ceil(Math.max(...["container", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger"]
+  const haloRoomOf = (edges: Partial<Edges>) => Math.ceil((["container", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger"] as const)
     .flatMap((element) => {
       const rise = element === "container" ? HOVER_RISE.container : element === "quiet" ? HOVER_RISE.quiet : HOVER_RISE.filled;
       return [...(edges[element]?.rest ?? []).map((layer) => [layer, element === "container" ? rise : 0] as const), ...(edges[element]?.hover ?? []).map((layer) => [layer, rise] as const), ...(edges[element]?.press ?? []).map((layer) => [layer, 0] as const)];
     })
-    .filter(([layer]) => allRound(layer) && !layer.inset)
-    .map(([layer, rise]) => Math.max(Math.abs(layer.x), Math.abs(layer.y)) + layer.blur + layer.spread + rise)));
+    // L197: every outset layer with no offset that reaches past the box (an all-round layer or a glow) counts, and the
+    // room is never less than the focus ring's reach, 5px; with no such layer there is no room (a theme without edges).
+    .filter(([layer]) => !layer.inset && layer.x === 0 && layer.y === 0 && layer.blur + layer.spread > 0)
+    .map(([layer, rise]) => layer.blur + layer.spread + rise)
+    .reduce((room, reach) => Math.max(room, reach, 5), 0));
   const haloLine = (edges: Partial<Edges>) => `--sb-halo-room: ${haloRoomOf(edges)}px;`;
   const afterShadows = (lines: string[]) => {
     const at = lines.findIndex((line) => line.startsWith("--sb-shadow-xl:"));
@@ -4465,7 +4468,7 @@ try {
   /**
    * Step 2.6's acceptance #5 (L97's 2.6 row, L98, L195 (b)): step 2.2's golden as expectedGolden22 builds it, with each
    * dark block's lines replaced by, in the light block's order, `color-scheme: dark;`, the 69 roles and the 20 optional
-   * tokens with §3's dark values, the five shadow lines unchanged, L45's 21 dark edge lines and `--sb-halo-room: 3px;`.
+   * tokens with §3's dark values, the five shadow lines unchanged, L45's 21 dark edge lines and `--sb-halo-room: 20px;` (L197; 3px before).
    */
   function expectedGolden26(): string {
     assert.deepEqual(Object.keys(VALUES.colors.dark), Object.keys(VALUES.colors.light), "the dark record's keys are not in the light block's order");
@@ -4483,7 +4486,7 @@ try {
       }
       if (inDark && t === "}") {
         assert.equal(shadows.length, 5, "the five shadow lines of a dark block");
-        out.push(...["color-scheme: dark;", ...colourLines(VALUES.colors.dark), ...shadows, ...edgeLines(VALUES.edges.dark), "--sb-halo-room: 3px;"].map((decl) => indent + decl));
+        out.push(...["color-scheme: dark;", ...colourLines(VALUES.colors.dark), ...shadows, ...edgeLines(VALUES.edges.dark), "--sb-halo-room: 20px;"].map((decl) => indent + decl));
         inDark = false;
         out.push(line);
         continue;
@@ -4611,11 +4614,11 @@ try {
     }
   });
 
-  test("2.6 #4 L151 L98 L195 --sb-halo-room reads 3px in each dark block, as its last line, after the edge lines (the rims' 0 0 0 1px, 1, plus the card's rise, 2)", () => {
+  test("2.6 #4 L151 L98 L195 L197 --sb-halo-room reads 20px in each dark block, as its last line, after the edge lines (the filled buttons' hover glow, 0 0 20px -1px, 19, plus their rise, 1; 3px before L197 counted the glows)", () => {
     for (const [what, css] of sorbetFiles()) {
       modeBlocks(css).dark.forEach((block, i) => {
         const where = `${what}, dark block ${i + 1}`;
-        assert.equal(block.at(-1), "--sb-halo-room: 3px;", `${where}: its last line`);
+        assert.equal(block.at(-1), "--sb-halo-room: 20px;", `${where}: its last line`);
         assert.ok(block.at(-2)?.startsWith("--sb-edge-"), `${where}: the line before the halo room is not an edge line: ${block.at(-2)}`);
         assert.equal(block.filter((line) => line.startsWith("--sb-halo-room:")).length, 1, `${where}: one halo room`);
       });
@@ -5222,7 +5225,21 @@ try {
   });
 
   test("2.4 L151 the halo room: max(|x|, |y|) + blur + spread over the all-round outset layers of container, quiet and the filled-* elements' rest, hover and press, plus the element's rise where it is hovered, rounded up — 9px in light and 3px in dark for §3's edges (8 and 1 before the rise counted: frozen lens F5), and nothing else counts", () => {
-    assert.deepEqual([haloRoomOf(VALUES.edges.light), haloRoomOf(VALUES.edges.dark)], [9, 3], "L151's figures, with the rise (repair proposal for L151)");
+    assert.deepEqual([haloRoomOf(VALUES.edges.light), haloRoomOf(VALUES.edges.dark)], [9, 20], "L151's figures, with the rise (repair proposal for L151), and L197's glows: dark's hover glow, 19 + 1");
+    // L197: a glow (no offset, a negative spread) counts; an offset layer does not; and the room is never under the focus ring's 5px.
+    const glow = freshEdges();
+    glow.light["filled-accent"]!.hover!.push({ inset: false, x: 0, y: 0, blur: 30, spread: -2, color: "#000000", alpha: 0.3 });
+    assert.equal(haloRoomOf(glow.light), 29, "a hover glow of 30 - 2, plus the button's rise of 1");
+    assert.equal(edgeTokens.haloRoom(glow.light as never), 29, "the emitter counts the glow too");
+    const tiny = freshEdges();
+    for (const element of ["container", "quiet", "filled-primary", "filled-secondary", "filled-accent", "filled-danger"] as const) {
+      const recipe = tiny.light[element]!;
+      recipe.rest = [{ inset: false, x: 0, y: 0, blur: 0, spread: 1, color: "#000000", alpha: 0.3 }];
+      recipe.hover = recipe.hover === undefined ? undefined : [];
+      recipe.press = recipe.press === undefined ? undefined : [];
+    }
+    assert.equal(haloRoomOf(tiny.light), 5, "a 1px rim (3 with the card's rise) still leaves the focus ring its 5px");
+    assert.equal(edgeTokens.haloRoom(tiny.light as never), 5, "the emitter's floor is the focus ring's reach");
     const grown = freshEdges();
     grown.light.container!.rest.find(allRound)!.blur = 12.5;
     assert.equal(haloRoomOf(grown.light), 16, "12.5 + 1 + the card's rise of 2, rounded up (14 before the rise counted)");
@@ -5251,6 +5268,13 @@ try {
     // 0px was the one computed difference the frozen lens found in the frozen presets.
     assert.deepEqual([lastOf(".sb-carousel__viewport", ["padding"]), lastOf(".sb-carousel__viewport", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", "var(--sb-halo-room, auto)"], ".sb-carousel__viewport");
     assert.deepEqual([lastOf(".sb-marquee", ["padding"]), lastOf(".sb-marquee", ["scroll-padding"])], ["var(--sb-halo-room, 0px)", undefined], ".sb-marquee");
+  });
+
+  test("L197 the focus ring's reach the halo room keeps is the stylesheet's: focus-ring-width (scales.ts) plus focus-ring's default outline-offset (abstracts/_mixins.scss) equals edges.ts's FOCUS_REACH", () => {
+    const width = Number.parseFloat(/"focus-ring-width":\s*"([\d.]+)px"/.exec(readFileSync(join(pkgRoot, "src", "tokens", "scales.ts"), "utf8"))?.[1] ?? "NaN");
+    const offset = Number.parseFloat(/@mixin focus-ring\(\$offset:\s*([\d.]+)px\)/.exec(readFileSync(join(pkgRoot, "src", "styles", "abstracts", "_mixins.scss"), "utf8"))?.[1] ?? "NaN");
+    assert.deepEqual([width, offset], [3, 2], "the ring's width and its default offset");
+    assert.equal(edgeTokens.FOCUS_REACH, width + offset);
   });
 
   test("2.4 L151 (lift) the rises the halo room counts are the stylesheet's: the filled buttons' --lift, the quiet button's, and the interactive card's hover translate, read off the compiled CSS, equal this file's HOVER_RISE and edges.ts's HOVER_LIFT (frozen lens F5: a rise the room did not count cut the hovered halo)", () => {
