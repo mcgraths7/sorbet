@@ -956,7 +956,7 @@ try {
     built("ToastItem");
   });
 
-  test("L189 the wiring: test:status in the package and at the root, the root test chain ending in test:contracts and then test:status, CI's step between test:contracts and check:consumable, and CLAUDE.md's pnpm test line", () => {
+  test("L189 the wiring: test:status in the package and at the root, the root test chain ending in test:contracts and then test:status, CI's step between test:contracts and check:consumable, and the pnpm test line of CLAUDE.md and ship-change", () => {
     const scripts = (dir: string) => (JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as { scripts: Record<string, string> }).scripts;
     assert.equal(scripts(LIB)["test:status"], "node tools/test-status.ts", "packages/component-library/package.json");
     assert.equal(scripts(ROOT)["test:status"], "pnpm --filter @sorbet/component-library test:status", "package.json");
@@ -966,6 +966,8 @@ try {
     const runs = [...ci.matchAll(/^ +run: (.+)$/gm)].map((m) => m[1]!.trim());
     const at = (command: string) => runs.findIndex((run) => run === command || run.startsWith(`${command} `));
     assert.ok(at("pnpm run test:contracts") !== -1 && at("pnpm run test:contracts") < at("pnpm run test:status") && at("pnpm run test:status") < at("pnpm run check:consumable"), `build.yml's order: ${runs.join(" | ")}`);
+    // L198: the ship-change skill's gate list says the same chain.
+    assert.ok(readFileSync(join(ROOT, ".claude", "skills", "ship-change", "SKILL.md"), "utf8").includes("pnpm test           # check:contrast + check:client + test:golden + test:contrast + test:contracts + test:status\n"), "ship-change's pnpm test line (L198)");
     assert.ok(readFileSync(join(ROOT, "CLAUDE.md"), "utf8").includes("pnpm test           # check:contrast + check:client + test:golden + test:contrast + test:contracts + test:status\n"), "CLAUDE.md's pnpm test line");
   });
 

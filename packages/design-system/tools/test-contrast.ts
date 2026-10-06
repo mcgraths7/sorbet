@@ -858,6 +858,121 @@ try {
     // legibility-spec.md L105 #22 (L25): it called measureColors(; it calls measurePreset(.
     assert.match(counted, /\bmeasurePreset\(/, "contrast-checks.ts no longer counts from measurePreset()");
   });
+
+  // ── step 2.8 (legibility-spec.md L198): what the docs, the copy and the agents' guidance say ─────────────────────
+  // The files a reader or an agent takes as the truth about the contract today. Not scanned: docs/** (the dated
+  // proposals and the evidence folder are records), fixtures, goldens, the test files, and
+  // packages/component-library/src/** (fenced by test-contracts.ts "2.4 #3"; Token Studio is withdrawn, DECISIONS row 49).
+  const walk = (dir: string): string[] => (existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).flatMap((entry) => (entry.name === "node_modules" || entry.name === "dist" ? [] : entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)])) : []);
+  const DOC_FILES = [
+    join(repoRoot, "README.md"),
+    join(repoRoot, "CLAUDE.md"),
+    ...walk(join(repoRoot, ".claude")).filter((file) => file.endsWith(".md") && !file.includes(`${sep}reference${sep}`)),
+    join(repoRoot, "demo", "index.html"),
+    ...walk(join(repoRoot, "apps", "playground", "src")).filter((file) => /\.tsx?$/.test(file)),
+    ...walk(join(repoRoot, "packages", "cli", "src")).filter((file) => file.endsWith(".ts")),
+    ...walk(join(repoRoot, "packages", "cli", "scaffold")).filter((file) => /\.(ts|tsx|md|html|json|scss)$/.test(file)),
+    ...["design-system", "component-library", "cli"].map((name) => join(repoRoot, "packages", name, "package.json")),
+    ...walk(join(pkgRoot, "src", "tokens")).filter((file) => file.endsWith(".ts")),
+    join(repoRoot, "tools", "shots.ts"),
+    join(repoRoot, "tools", "shots-provenance.ts"),
+  ];
+  /** A file as prose: HTML's tags removed, every whitespace run one space. */
+  const proseOf = (file: string) => {
+    const text = readFileSync(file, "utf8");
+    return (file.endsWith(".html") ? text.replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&") : text).replace(/\s+/g, " ");
+  };
+  /** L198 check A: what was true when every preset declared wcag-aa, and is not now. */
+  const STALE_CLAIMS: RegExp[] = [
+    /\bAA verified\b/i,
+    /WCAG AA[^.]{0,40}\b(?:enforced|verified|guarantee)/i,
+    /provably accessible/i,
+    /accessible by construction/i,
+    /fails? WCAG AA fails?/i,
+    /guarantee WCAG/i,
+    /every preset[^.]{0,80}\bWCAG\b/i,
+    /(?:today|every preset)[^.]{0,30}(?:only|declares) `?wcag-aa/i,
+    /dark mode is never split/i,
+    /reaches every theme/i,
+    /\binaccessible (?:theme|palette)\b/i,
+  ];
+  const staleClaims = (files: string[]) => files.flatMap((file) => {
+    const prose = proseOf(file);
+    return STALE_CLAIMS.flatMap((pattern) => {
+      const m = pattern.exec(prose);
+      return m === null ? [] : [`${relative(repoRoot, file)}: "${m[0]}"`];
+    });
+  });
+
+  test("L198 check A (checker): each stale claim is found in prose, and the words that replace it are not", () => {
+    const at = join(tmp, "claims");
+    mkdirSync(at, { recursive: true });
+    const plant = (name: string, text: string) => {
+      writeFileSync(join(at, name), text);
+      return staleClaims([join(at, name)]).length;
+    };
+    assert.equal(plant("a.html", "<span class=\"sb-badge\">AA\n verified</span>"), 1, "a tag-split AA verified");
+    assert.equal(plant("b.md", "A palette that fails WCAG AA fails the build. Dark mode is never split."), 2);
+    assert.equal(plant("c.md", "Today only `wcag-aa`. A change to the builder reaches every theme."), 2);
+    assert.equal(plant("d.md", "Each preset declares the contract it is held to; a theme that fails its declared contract fails the build. Legible by contract."), 0);
+  });
+
+  test("L198 check A: no file a reader or an agent takes as the truth says what was true when every preset declared wcag-aa", () => {
+    assert.ok(DOC_FILES.length > 40, `only ${DOC_FILES.length} files scanned`);
+    assert.deepEqual(staleClaims(DOC_FILES), []);
+  });
+
+  test("L198 check A: README.md's presets table names each preset's contract, as presets.ts declares it", () => {
+    const readme = readFileSync(join(repoRoot, "README.md"), "utf8");
+    const rows = readme.split("\n").filter((line) => /^\| \*\*\w+\*\*/.test(line));
+    for (const preset of Object.values(presets)) {
+      const row = rows.find((line) => line.startsWith(`| **${preset.name}**`));
+      assert.ok(row, `README.md's presets table has no row for ${preset.name}`);
+      const want = preset.contract.light === preset.contract.dark ? `\`${preset.contract.light}\`` : `\`${preset.contract.light}\` light, \`${preset.contract.dark}\` dark`;
+      assert.ok(row.includes(want), `${preset.name}'s row does not name its contract ${want}: ${row}`);
+    }
+  });
+
+  // L198 check B: a count in prose is the code's, or history. Each figure is computed here.
+  const measuredTotal = Object.values(presets).flatMap((preset) => (["light", "dark"] as const).map((mode) => measurePreset(preset, mode).length)).reduce((a, b) => a + b, 0);
+  const contractFigures = () => {
+    const both = RULES.filter((rule) => rule.mode === undefined).length;
+    const only = (mode: Mode) => RULES.filter((rule) => rule.mode === mode).length;
+    const perMode = both + only("light");
+    const per = (name: string) => measurePreset(Object.values(presets).find((preset) => contractOf(preset, "light") === name)!, "light").length;
+    const wcag = per("wcag-aa");
+    const legibility = per("legibility");
+    return new Set([RULES.length, perMode, both, only("light") + only("dark"), only("light"), wcag, legibility, perMode - wcag, perMode - legibility, measuredTotal]);
+  };
+  /** Counts that were true of their time, kept as history: file (repo-relative) and the exact phrase. */
+  const COUNT_HISTORY: [file: string, phrase: string][] = [
+    ["apps/playground/src/contrast-checks.ts", "790 checks"], // what the playground once typed, and why it counts now
+    ["packages/design-system/src/tokens/contracts.ts", "28 pairs"], // a past bug's measurement
+    ["packages/design-system/src/tokens/rules.ts", "86 rules"], // PR 1's rules, which RULES still begins with
+    ["tools/shots.ts", "700 checks"], // the playground's count at e24df74, which a baseline --at e24df74 shows
+    ["tools/shots-provenance.ts", "700 checks"], // the same
+  ];
+  const COUNT_PHRASE = /\b(\d[\d,]*)\s+(?:contrast\s+|chart-mark\s+)?(?:pairings?|pairs|checks|rules|entries|measurements)\b/g;
+  const strayCounts = (files: string[], figures: Set<number>, history: [string, string][]) => files.flatMap((file) => {
+    const where = relative(repoRoot, file).split(sep).join("/");
+    return [...proseOf(file).matchAll(COUNT_PHRASE)]
+      .filter((m) => !figures.has(Number(m[1]!.replace(/,/g, ""))) && !history.some(([f, phrase]) => f === where && phrase === m[0]))
+      .map((m) => `${where}: "${m[0]}"`);
+  });
+
+  test("L198 check B (checker): a count the code does not compute is found, unless it is history, file and phrase", () => {
+    const at = join(tmp, "counts");
+    mkdirSync(at, { recursive: true });
+    writeFileSync(join(at, "README.md"), `Every build measures ${measuredTotal} pairings. Sorbet once had 823 pairings.`);
+    const file = join(at, "README.md");
+    assert.deepEqual(strayCounts([file], contractFigures(), []).map((line) => line.split(": ").at(-1)), ["\"823 pairings\""]);
+    assert.deepEqual(strayCounts([file], contractFigures(), [[relative(repoRoot, file).split(sep).join("/"), "823 pairings"]]), []);
+  });
+
+  test(`L198 check B: every count of the contract in those files is the code's (${measuredTotal} measured in all, 8 × 70 + 2 × 193 today), or history named file by file`, () => {
+    assert.equal(measuredTotal, 946, "the presets measure another total: the docs follow from the code, and this figure from the spec");
+    assert.deepEqual(strayCounts(DOC_FILES, contractFigures(), COUNT_HISTORY), []);
+  });
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
