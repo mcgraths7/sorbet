@@ -9,7 +9,8 @@ this file; statement numbers here are E1, E2, …
   5 nits); the "Answers" section at the end maps each finding to the text that closes it.
 - **Revision 3**, 2026-10-07, answers the closure verifier (`closure-verifier-r2.md`: every revision-1 finding
   closed or partly closed; all eight gates green with revision 2 applied; E3 measured 0 differences; nine new
-  findings N-1 to N-9). The second answers table maps them.
+  findings N-1 to N-9). The second answers table maps them. Its cross-references to statement numbers in E3 and
+  E4, left from revision 1's numbering, were corrected after the test author pointed them out.
 
 The defects split two ways:
 
@@ -49,7 +50,7 @@ before the PR is marked ready and its output quoted in the PR:
 - **Signature:** every element and its `::before` and `::after`, keyed by DOM path, written as the chain of
   `tag:nth-child(n)` from `html`. The standard longhands only:
   custom properties are excluded, and so are `transform` and `animation-*`.
-- **Expected:** 0 differences at rest. Neither page has a site of E7, E8 or E12 at rest, so any difference is a
+- **Expected:** 0 differences at rest. Neither page has a site of E8, E9 or E13 at rest, so any difference is a
   regression.
 - **The changed sites** are checked by each statement's own check, on the test page of E4, not by this run.
 
@@ -57,10 +58,10 @@ before the PR is marked ready and its output quoted in the PR:
 written from this text before the fix, shown red on main, and its file's sha256 recorded; the implementer never
 changes an expected value.
 - **Where the checks live:**
-  - Source and built-CSS checks (E5, E6, E9, E10's server-rendered markup and fixtures) go in the existing test files
+  - Source and built-CSS checks (E6, E7, E10, E11's server-rendered markup and fixtures) go in the existing test files
     (`packages/design-system/tools/test-contracts.ts`, `packages/component-library/tools/test-status.ts`), so
     `pnpm test` and CI run them.
-  - The rendered checks (E7, E8, E10's accessibility tree, E11, E12) go in a new hand-run tool,
+  - The rendered checks (E8, E9, E11's accessibility tree, E12, E13) go in a new hand-run tool,
     `tools/check-defects.ts` (root script `pnpm check:defects`). It is not in CI, which has no Chromium, as
     `tools/check-status-layout.ts`.
 - **The test page,** for the stylesheet-only checks (E8, E9, E13): `tools/check-defects.ts` builds it itself: the
@@ -71,7 +72,7 @@ changes an expected value.
   open itself, so these run on the built playground's "Options ▾" menu (React; its last item, "Delete project",
   is the danger item) and the demo's `#demo-menu` (vanilla, after `init()`). Each page's preset and mode are set as
   the shots tool sets them, all ten pairs.
-- **What "red on main" means:** each check states which parts fail on main (see E10).
+- **What "red on main" means:** each check states which parts fail on main (see E11).
 
 **E5. The pins of PR 2 that this PR moves (adversary C-1).** `test-contracts.ts` holds three source-text pins from
 legibility-spec L70, L72 and L183 #49:
