@@ -16,7 +16,7 @@ allowBuilds:
 # React major stays linked in the root, the playground, and (as a peer range)
 # the component library. Reference with `"react": "catalog:"` in a package.
 catalog:
-  react: ^19.1.0
-  react-dom: ^19.1.0
-  "@types/react": ^19.1.0
-  "@types/react-dom": ^19.1.0
+  react: ^19.3.0
+  react-dom: ^19.3.0
+  "@types/react": ^19.3.0
+  "@types/react-dom": ^19.3.0
