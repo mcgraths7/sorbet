@@ -38,8 +38,10 @@
     &:has(.sb-date-range__input:disabled) {
       @include field-disabled;
 
+      // The inputs cover most of the control: they show its colour and cursor.
       .sb-date-range__input {
         color: inherit;
+        cursor: inherit;
       }
     }
   }

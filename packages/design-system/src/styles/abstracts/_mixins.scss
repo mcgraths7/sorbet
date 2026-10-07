@@ -1,5 +1,6 @@
 @use "sass:map";
 @use "sass:math";
+@use "sass:meta";
 @use "generated" as gen;
 @use "tokens" as *;
 
@@ -29,7 +30,7 @@
 /// via :has(input:focus-visible)). Most components want focus-ring below.
 @mixin focus-ring-style($offset: 2px) {
   // A unitless offset other than 0 compiles to invalid CSS that the browser drops.
-  @if math.is-unitless($offset) and $offset != 0 {
+  @if meta.type-of($offset) == number and math.is-unitless($offset) and $offset != 0 {
     @error "focus-ring offset `#{$offset}` needs a unit (e.g. #{$offset}px)";
   }
 
