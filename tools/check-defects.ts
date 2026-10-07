@@ -308,7 +308,10 @@ async function testPageMarkup(): Promise<string> {
  * chain from `html`, each with a hash of its standard longhands (no custom property, no `transform`, no `animation-*`).
  * With `keys`, the values themselves for those keys instead.
  */
-const signatureOf = (page: Page, options: { scope?: string; keys?: string[] } = {}) => page.evaluate(({ scope, keys }) => {
+/** A site a statement allows to differ: every element within `within`, or only its `pseudo` when one is given. */
+type Allowed = { within: string; pseudo?: string };
+
+const signatureOf = (page: Page, options: { scope?: string; keys?: string[]; allow?: Allowed[] } = {}) => page.evaluate(({ scope, keys, allow }) => {
   const props = [...getComputedStyle(document.documentElement)].filter((name) => !name.startsWith("-") && name !== "transform" && !name.startsWith("animation-")).sort();
   const pathOf = (el: Element): string => {
     const parts: string[] = [];
@@ -341,6 +344,9 @@ const signatureOf = (page: Page, options: { scope?: string; keys?: string[] } = 
       if (wanted !== null && !wanted.has(key)) {
         continue;
       }
+      if ((allow ?? []).some((site) => el.closest(site.within) !== null && (site.pseudo === undefined || site.pseudo === pseudo))) {
+        continue;
+      }
       const style = getComputedStyle(el, pseudo === "" ? null : pseudo);
       const list = props.map((name) => style.getPropertyValue(name));
       if (wanted === null) {
@@ -354,8 +360,8 @@ const signatureOf = (page: Page, options: { scope?: string; keys?: string[] } = 
 }, options);
 
 /** The differences between two pages' signatures: keys on one side only, and each differing longhand. */
-async function differences(base: Page, mine: Page, scope?: string): Promise<{ count: number; keys: number; lines: string[] }> {
-  const [a, b] = await Promise.all([signatureOf(base, { scope }), signatureOf(mine, { scope })]);
+async function differences(base: Page, mine: Page, scope?: string, allow?: Allowed[]): Promise<{ count: number; keys: number; lines: string[] }> {
+  const [a, b] = await Promise.all([signatureOf(base, { scope, allow }), signatureOf(mine, { scope, allow })]);
   const lines: string[] = [];
   if (a.props.join() !== b.props.join()) {
     lines.push("the two pages enumerate different longhands");
@@ -366,7 +372,7 @@ async function differences(base: Page, mine: Page, scope?: string): Promise<{ co
   const changed = [...mapA.keys()].filter((key) => mapB.has(key) && mapA.get(key) !== mapB.get(key));
   if (changed.length > 0) {
     const shown = changed.slice(0, 20);
-    const [va, vb] = await Promise.all([signatureOf(base, { scope, keys: shown }), signatureOf(mine, { scope, keys: shown })]);
+    const [va, vb] = await Promise.all([signatureOf(base, { scope, keys: shown, allow }), signatureOf(mine, { scope, keys: shown, allow })]);
     for (const key of shown) {
       const props = Object.keys(va.values[key] ?? {}).filter((name) => va.values[key]![name] !== vb.values[key]?.[name]);
       lines.push(...props.map((name) => `${key} ${name}: ${va.values[key]![name]} → ${vb.values[key]?.[name]}`));
@@ -376,6 +382,66 @@ async function differences(base: Page, mine: Page, scope?: string): Promise<{ co
     }
   }
   return { count: only.length + changed.length, keys: mapA.size, lines };
+}
+
+// ── E3's states (repair of cd55fbf, frozen lens S3) ──────────────────────────────────────────────────────────────
+
+/** What a user can point at, press or focus: each gets the forced state. */
+const INTERACTIVE = "a[href], button, input, select, textarea, summary, label, [tabindex], [role=\"button\"], [role=\"tab\"], [role=\"menuitem\"], [role=\"option\"]";
+
+/**
+ * The states E3 at rest cannot see. Hover, active and focus are forced through CDP on every interactive element at
+ * once; disabled and loading are attribute changes. Each names the sites a statement lets differ, and nothing else may.
+ */
+const STATES: { name: string; force?: string[]; mutate?: string; allow: Allowed[] }[] = [
+  { name: "hover", force: ["hover"], allow: [] },
+  { name: "active", force: ["hover", "active"], allow: [] },
+  // E12: a focused menu item draws the inset ring and no fill.
+  { name: "focus", force: ["focus", "focus-visible", "focus-within"], allow: [{ within: ".sb-menu__item" }] },
+  // E9: a loading button's spinner takes its label's colour.
+  { name: "loading", mutate: "loading", allow: [{ within: ".sb-button", pseudo: "::after" }] },
+  // E13: a disabled date range looks disabled.
+  { name: "disabled", mutate: "disabled", allow: [{ within: ".sb-date-range__control" }] },
+];
+
+async function enterState(page: Page, state: (typeof STATES)[number], cdp: CDPSession): Promise<void> {
+  const { root } = await cdp.send("DOM.getDocument", { depth: -1 });
+  const { nodeIds } = await cdp.send("DOM.querySelectorAll", { nodeId: root.nodeId, selector: INTERACTIVE });
+  for (const nodeId of nodeIds) {
+    await cdp.send("CSS.forcePseudoState", { nodeId, forcedPseudoClasses: state.force ?? [] });
+  }
+  await page.evaluate((mutate) => {
+    for (const button of document.querySelectorAll(".sb-button")) {
+      button.toggleAttribute("data-loading", mutate === "loading");
+    }
+    for (const control of document.querySelectorAll("button, input, select, textarea")) {
+      if (mutate === "disabled") {
+        control.setAttribute("data-e3-was", String((control as HTMLInputElement).disabled));
+        (control as HTMLInputElement).disabled = true;
+      } else if (control.hasAttribute("data-e3-was")) {
+        (control as HTMLInputElement).disabled = control.getAttribute("data-e3-was") === "true";
+        control.removeAttribute("data-e3-was");
+      }
+    }
+  }, state.mutate ?? null);
+}
+
+/** E3 under each of STATES: the two pages in the same state, compared outside the sites the state allows. */
+async function stateDifferences(pages: Page[], where: string): Promise<void> {
+  const sessions = await Promise.all(pages.map(async(page) => {
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("DOM.enable");
+    await cdp.send("CSS.enable");
+    return cdp;
+  }));
+  for (const state of STATES) {
+    await Promise.all(pages.map((page, i) => enterState(page, state, sessions[i]!)));
+    await Promise.all(pages.map(settle));
+    const found = await differences(pages[0]!, pages[1]!, undefined, state.allow);
+    const allowed = state.allow.length === 0 ? "none allowed" : `allowed: ${state.allow.map((site) => `${site.within}${site.pseudo ?? ""}`).join(", ")}`;
+    report("E3", found.count === 0, `${where}, ${state.name} (${allowed}): ${found.keys} elements and pseudo-elements, ${found.count} differences`, found.lines.join("\n"));
+  }
+  await Promise.all(sessions.map((cdp) => cdp.detach()));
 }
 
 // ── the live menus ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -561,13 +627,15 @@ try {
         const playground = await Promise.all([openPlayground(browser, pgMain.url, preset, mode, VIEWPORT), openPlayground(browser, pgThis.url, preset, mode, VIEWPORT)]);
         await Promise.all(playground.map(settle));
         const pg = await differences(playground[0], playground[1]);
-        await Promise.all(playground.map((page) => page.context().close()));
         report("E3", pg.count === 0, `playground ${preset} ${mode}: ${pg.keys} elements and pseudo-elements, ${pg.count} differences`, pg.lines.join("\n"));
+        await stateDifferences(playground, `playground ${preset} ${mode}`);
+        await Promise.all(playground.map((page) => page.context().close()));
         const demo = await Promise.all([openDemo(browser, root.url, preset, mode, mainText), openDemo(browser, root.url, preset, mode, thisText)]);
         await Promise.all(demo.map(settle));
         const dm = await differences(demo[0], demo[1]);
-        await Promise.all(demo.map((page) => page.context().close()));
         report("E3", dm.count === 0, `demo ${preset} ${mode}: ${dm.keys} elements and pseudo-elements, ${dm.count} differences`, dm.lines.join("\n"));
+        await stateDifferences(demo, `demo ${preset} ${mode}`);
+        await Promise.all(demo.map((page) => page.context().close()));
       }
     } finally {
       await Promise.all([pgMain.close(), pgThis.close(), root.close()]);
@@ -591,13 +659,13 @@ try {
           return { background: style.backgroundColor, color: style.color, cursor: style.cursor };
         };
         return {
-          e8: { hr: top("#e8-hr-strong"), strongBefore: top("#e8-labelled-strong", "::before"), strongAfter: top("#e8-labelled-strong", "::after"), plainBefore: top("#e8-labelled", "::before"), plainAfter: top("#e8-labelled", "::after"), border: helpers.color("--sb-border") },
+          e8: { hr: top("#e8-hr-strong"), strongBefore: top("#e8-labelled-strong", "::before"), strongAfter: top("#e8-labelled-strong", "::after"), plainBefore: top("#e8-labelled", "::before"), plainAfter: top("#e8-labelled", "::after"), border: helpers.color("--sb-border"), strong: helpers.color("--sb-border-strong") },
           e9: variants.map((variant) => ({ variant, spinner: top(`#e9-${variant}-loading`, "::after"), label: getComputedStyle(get(`#e9-${variant}`)).color })),
           e13: {
             control: triple("#e13-disabled .sb-date-range__control"),
             field: triple("#e13-multi .sb-combobox__field"),
             fieldDisabled: get("#e13-multi .sb-combobox__field").hasAttribute("data-disabled"),
-            inputs: [...document.querySelectorAll("#e13-disabled .sb-date-range__input")].map((input) => ({ color: getComputedStyle(input).color, disabled: (input as HTMLInputElement).disabled })),
+            inputs: [...document.querySelectorAll("#e13-disabled .sb-date-range__input")].map((input) => ({ color: getComputedStyle(input).color, cursor: getComputedStyle(input).cursor, disabled: (input as HTMLInputElement).disabled })),
           },
         };
       }, [...VARIANTS]);
@@ -606,6 +674,9 @@ try {
 
       const { e8 } = read;
       report("E8", e8.strongBefore === e8.hr && e8.strongAfter === e8.hr, `${where}: a labelled strong divider's ::before and ::after paint the strong <hr>'s border-top-color (${e8.hr})`, `::before ${e8.strongBefore}, ::after ${e8.strongAfter}; border is ${e8.border}`);
+      // Repair of cd55fbf (frozen lens S2): the lines and the <hr> read one variable, so equal to each other is not
+      // enough; the <hr> must paint the theme's border-strong itself.
+      report("E8", e8.hr === e8.strong, `${where}: the strong <hr> paints border-strong (${e8.strong})`, `<hr> ${e8.hr}`);
       report("E8", e8.plainBefore === e8.border && e8.plainAfter === e8.border, `${where}: a labelled divider without --strong paints border (${e8.border})`, `::before ${e8.plainBefore}, ::after ${e8.plainAfter}`);
 
       for (const { variant, spinner, label } of read.e9) {
@@ -616,11 +687,17 @@ try {
       const same = (a: typeof e13.control, b: typeof e13.control) => a.background === b.background && a.color === b.color && a.cursor === b.cursor;
       report("E13", e13.fieldDisabled && same(e13.control, e13.field), `${where}: a disabled date range's control computes a disabled multi-combobox field's background-color, color and cursor (${e13.field.background}, ${e13.field.color}, ${e13.field.cursor})`, `control ${e13.control.background}, ${e13.control.color}, ${e13.control.cursor}; field ${e13.field.background}, ${e13.field.color}, ${e13.field.cursor}${e13.fieldDisabled ? "" : "; the field has no data-disabled"}`);
       report("E13", e13.inputs.length === 2 && e13.inputs.every((input) => input.disabled && input.color === e13.control.color), `${where}: its two inputs' color is the control's (${e13.control.color})`, e13.inputs.map((input) => `${input.color}${input.disabled ? "" : " (not disabled)"}`).join(", "));
+      // Repair of cd55fbf (render lens note 1): the inputs cover most of the control, so they show its cursor too.
+      report("E13", e13.inputs.every((input) => input.cursor === e13.control.cursor), `${where}: its two inputs show the control's cursor (${e13.control.cursor})`, e13.inputs.map((input) => input.cursor).join(", "));
 
       const [onMain, onThis] = await Promise.all([openTestPage(browser, preset, mode, mainLibrary, body), openTestPage(browser, preset, mode, library, body)]);
       await Promise.all([onMain, onThis].map(settle));
       const enabled = await differences(onMain, onThis, "#e13-enabled");
+      // Repair of cd55fbf (frozen lens S1): the multi-combobox's disabled field moved into the shared mixin; it must
+      // compute as on main, or a change to the mixin would move both and E13's comparison would not see it.
+      const multi = await differences(onMain, onThis, "#e13-multi");
       await Promise.all([onMain, onThis].map((page) => page.context().close()));
+      report("E13", multi.count === 0 && multi.keys > 3, `${where}: a disabled multi-combobox computes as on main (${main.ref}'s library stylesheet): ${multi.keys} elements and pseudo-elements, ${multi.count} differences`, multi.lines.join("\n"));
       report("E13", enabled.count === 0 && enabled.keys > 3, `${where}: an enabled date range computes as on main (${main.ref}'s library stylesheet): ${enabled.keys} elements and pseudo-elements, ${enabled.count} differences`, enabled.lines.join("\n"));
     }
 

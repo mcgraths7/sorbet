@@ -6311,6 +6311,11 @@ try {
     }
   });
 
+  test("E6 (guard, repair of cd55fbf) the guard rejects only a unitless number: an offset that is not a number, such as a token accessor's var(), compiles as it did on main (frozen lens N2)", () => {
+    compiled("@include focus-ring-style(var(--x));", "focus-ring-style(var(--x))");
+    compiled("@include focus-ring(space(1));", "focus-ring(space(1))");
+  });
+
   test("E7 (existing-defects) with comments removed, the declaration outline: token(focus-ring-width) solid clr(focus-ring) occurs in the library Sass exactly twice, once in abstracts/_mixins.scss and once in atoms/_color-input.scss (red on main: three, base/_root.scss's too)", () => {
     const declaration = /\boutline\s*:\s*token\(\s*focus-ring-width\s*\)\s+solid\s+clr\(\s*focus-ring\s*\)/g;
     const found = Object.fromEntries(partials().map(({ path, text }) => [path, text.match(declaration)?.length ?? 0]).filter(([, n]) => (n as number) > 0));
