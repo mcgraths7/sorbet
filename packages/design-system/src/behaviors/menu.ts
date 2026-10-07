@@ -3,10 +3,15 @@
  * rendering, light dismiss and Escape for free; this adds anchor
  * positioning and arrow-key navigation.
  *
- *   <button data-sb="menu" popovertarget="user-menu">Account</button>
- *   <div class="sb-menu" id="user-menu" popover>
- *     <button class="sb-menu__item">Profile</button>…
+ *   <button data-sb="menu" id="user-menu-trigger" popovertarget="user-menu"
+ *     aria-haspopup="menu" aria-expanded="false">Account</button>
+ *   <div class="sb-menu" id="user-menu" popover role="menu"
+ *     aria-labelledby="user-menu-trigger">
+ *     <button class="sb-menu__item" role="menuitem">Profile</button>…
  *   </div>
+ *
+ * The roles, the name and aria-expanded are added on construction where the
+ * markup leaves them out.
  */
 
 const GAP = 6;
@@ -26,6 +31,15 @@ export class Menu {
     this.#trigger = trigger;
     this.#panel = panel;
     trigger.setAttribute("aria-haspopup", "menu");
+    trigger.setAttribute("aria-expanded", "false");
+    if (!trigger.id) {
+      trigger.id = `${panel.id}-trigger`;
+    }
+    panel.setAttribute("role", "menu");
+    panel.setAttribute("aria-labelledby", trigger.id);
+    for (const item of panel.querySelectorAll<HTMLElement>(".sb-menu__item:not([role])")) {
+      item.setAttribute("role", "menuitem");
+    }
 
     // The panel is position:fixed and can't track its trigger through page
     // scroll — dismiss instead (scrolling inside the panel is exempt;
