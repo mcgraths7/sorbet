@@ -634,9 +634,26 @@ try {
     }
   });
 
+  /**
+   * E11 of docs/existing-defects/spec.md (adversary m-2): for the MenuItem cases, D1 to D6, what renders is the recorded
+   * html with ` role="menuitem"` inserted directly after `type="button"`, and nothing else differs. The fixtures are
+   * not edited (they are pinned by sha256); the other components' cases compare exactly as before.
+   */
+  const MENU_ITEM_ROLE = " role=\"menuitem\"";
+  const recordedFor = (entry: { id: string; component: string; html: string }) => {
+    if (entry.component !== "MenuItem") {
+      return entry.html;
+    }
+    const at = entry.html.indexOf("type=\"button\"");
+    assert.ok(at !== -1 && entry.html.indexOf("type=\"button\"", at + 1) === -1, `${entry.id}: the recorded html holds type="button" exactly once: ${entry.html}`);
+    const after = at + "type=\"button\"".length;
+    return `${entry.html.slice(0, after)}${MENU_ITEM_ROLE}${entry.html.slice(after)}`;
+  };
+  const sinceFixture = (entry: { component: string }) => (entry.component === "MenuItem" ? `, with ${MENU_ITEM_ROLE.trim()} inserted directly after type="button" (E11 of docs/existing-defects/spec.md)` : "");
+
   for (const entry of fixture.cases) {
-    test(`L187 ${entry.id} ${entry.component}: with every slot removed, the markup this tree's build renders is 9b83e50's, character for character`, () => {
-      assert.equal(unslotted(render(entry.component, entry.props)), entry.html);
+    test(`L187${entry.component === "MenuItem" ? " E11" : ""} ${entry.id} ${entry.component}: with every slot removed, the markup this tree's build renders is 9b83e50's${sinceFixture(entry)}, character for character`, () => {
+      assert.equal(unslotted(render(entry.component, entry.props)), recordedFor(entry));
     });
   }
 
@@ -667,10 +684,64 @@ try {
   });
 
   for (const entry of more.cases) {
-    test(`L194 (g) ${entry.id} ${entry.component}: with every slot removed, the markup this tree's build renders is ec97a20's, character for character`, () => {
-      assert.equal(unslotted(render(entry.component, entry.props)), entry.html);
+    test(`L194 (g)${entry.component === "MenuItem" ? " E11" : ""} ${entry.id} ${entry.component}: with every slot removed, the markup this tree's build renders is ec97a20's${sinceFixture(entry)}, character for character`, () => {
+      assert.equal(unslotted(render(entry.component, entry.props)), recordedFor(entry));
     });
   }
+
+  test("E11 (fixtures) the rewritten comparisons cover exactly the MenuItem cases D1 to D6, and each recorded html holds type=\"button\" once", () => {
+    const menuItems = [...fixture.cases, ...more.cases].filter((entry) => entry.component === "MenuItem");
+    assert.deepEqual(menuItems.map((entry) => entry.id), ["D1", "D2", "D3", "D4", "D5", "D6"]);
+    for (const entry of menuItems) {
+      assert.equal(recordedFor(entry), entry.html.replace("type=\"button\"", `type="button"${MENU_ITEM_ROLE}`), entry.id);
+    }
+  });
+
+  // ── E11 of docs/existing-defects/spec.md: the React Menu says what it is, server-rendered ───────────────────────
+  // The panel has role="menu" and aria-labelledby naming the trigger; the trigger keeps an id the consumer gave it, and
+  // otherwise gets one; every MenuItem is role="menuitem"; the trigger renders aria-expanded="false" while closed; the
+  // separator stays an <hr>. Red on main.
+  const renderMenu = (triggerProps: Props) => {
+    const trigger = createElement(built("Button"), { variant: "outline", ...triggerProps }, "Options ▾");
+    const children = [
+      createElement(built("MenuItem"), { key: "r", shortcut: "⌘R" }, "Rename"),
+      createElement(built("MenuItem"), { key: "d", shortcut: "⌘D" }, "Duplicate"),
+      createElement(built("MenuSeparator"), { key: "s" }),
+      createElement(built("MenuItem"), { key: "x", danger: true }, "Delete project"),
+    ];
+    const html = renderToStaticMarkup(createElement(built("Menu"), { trigger, alignEnd: true }, ...children) as ReactNode);
+    const all = elements(parse(html));
+    const triggers = all.filter((el) => el.tag === "button" && el.attrs["aria-haspopup"] === "menu");
+    assert.equal(triggers.length, 1, `one trigger (a button with aria-haspopup="menu"): ${html}`);
+    const panels = all.filter((el) => classes(el).includes("sb-menu"));
+    assert.equal(panels.length, 1, `one panel (.sb-menu): ${html}`);
+    return { html, trigger: triggers[0]!, panel: panels[0]!, items: elements(panels[0]!.children).filter((el) => classes(el).includes("sb-menu__item")), separators: elements(panels[0]!.children).filter((el) => classes(el).includes("sb-menu__separator")) };
+  };
+
+  test("E11 (server-rendered) the React Menu's panel has role=\"menu\", and every MenuItem in it role=\"menuitem\"; the separator stays an <hr>", () => {
+    const { html, panel, items, separators } = renderMenu({});
+    assert.equal(panel.attrs.role, "menu", `the panel's role: ${html}`);
+    assert.equal(items.length, 3, `three items: ${html}`);
+    assert.deepEqual(items.map((item) => item.attrs.role), ["menuitem", "menuitem", "menuitem"], `the items' roles: ${html}`);
+    assert.deepEqual(separators.map((el) => el.tag), ["hr"], `the separator: ${html}`);
+  });
+
+  test("E11 (server-rendered) the panel's aria-labelledby names the trigger's id, which the trigger has when the consumer gave it none", () => {
+    const { html, trigger, panel } = renderMenu({});
+    assert.ok((trigger.attrs.id ?? "") !== "", `the trigger has no id: ${html}`);
+    assert.equal(panel.attrs["aria-labelledby"], trigger.attrs.id, `aria-labelledby: ${html}`);
+  });
+
+  test("E11 (server-rendered) the trigger renders aria-expanded=\"false\" while closed", () => {
+    const { html, trigger } = renderMenu({});
+    assert.equal(trigger.attrs["aria-expanded"], "false", `the trigger's aria-expanded: ${html}`);
+  });
+
+  test("E11 (server-rendered) a trigger id the consumer gave is kept, and the panel's aria-labelledby names it (trigger.props.id ?? useId(), verifier N-1)", () => {
+    const { html, trigger, panel } = renderMenu({ id: "project-options" });
+    assert.equal(trigger.attrs.id, "project-options", `the trigger's id: ${html}`);
+    assert.equal(panel.attrs["aria-labelledby"], "project-options", `aria-labelledby: ${html}`);
+  });
 
   const MORE_PRESENCE: [id: string, holder: (root: El) => El, slotClass: string, tone: Tone, word: string | null][] = [
     ["A6", atRoot, "sb-status sb-alert__icon", "danger", WORD.danger],

@@ -33,6 +33,7 @@
     "check:cli": "node tools/check-cli.ts",
     "check:catalog": "node tools/check-catalog.ts",
     "check:status-layout": "node tools/check-status-layout.ts",
+    "check:defects": "node tools/check-defects.ts",
     "check:allowlist:base": "node tools/check-allowlist-base.ts",
     "shots": "node tools/shots.ts",
     "measure:edges": "node tools/measure-edges.ts",
