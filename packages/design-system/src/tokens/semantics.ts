@@ -52,12 +52,12 @@ export interface SemanticRecipe {
    * "vivid" (default): light-mode brand fills are saturated mid-ramp solids
    * with white text. "pastel": secondary and accent fills sit at the ramp's
    * light end with near-black text — the walk dark mode always uses, pointed
-   * the other way. PRIMARY is exempt on purpose: it paints unlabeled control
-   * affordances (checkbox fill, slider track, tab indicator), which the
-   * 3:1-on-bg rule protects, and no pastel can clear 3:1 against a light
-   * page. The deep primary is the palette's anchor; the pastels are the
-   * palette. Dark mode is unaffected — its fills are already pastel-adjacent
-   * by construction.
+   * the other way. The walk applies to every brand role `brand()` is given,
+   * primary included. What a pale primary cannot do, carry an unlabeled
+   * affordance (checkbox fill, slider track, tab indicator) at 3:1 against the
+   * page, is split off into `primary-solid`, the shape colour, which pastel
+   * mode picks deep. Dark mode is unaffected: its fills are already
+   * pastel-adjacent by construction.
    */
   brandStyle?: "vivid" | "pastel";
   overrides?: Partial<Record<Mode, Partial<SemanticColors>>>;
