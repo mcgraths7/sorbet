@@ -41,7 +41,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^24.13.3",
+    "@types/node": "^24.19.1",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "eslint": "^10.11.0",
@@ -55,8 +55,8 @@
     "sass": "^1.105.1",
     "stylelint": "^17.16.0",
     "stylelint-config-standard-scss": "^17.0.0",
-    "typescript": "^5.8.0",
-    "typescript-eslint": "^8.64.0"
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.71.0"
   },
   "engines": {
     "node": ">=24.17.0"
