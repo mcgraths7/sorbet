@@ -7,6 +7,9 @@ this file; statement numbers here are E1, E2, …
 - **Revision 1**, 2026-10-07.
 - **Revision 2**, 2026-10-07, answers the spec adversary (`spec-adversary-r1.md`, 1 critical, 7 major, 9 minor,
   5 nits); the "Answers" section at the end maps each finding to the text that closes it.
+- **Revision 3**, 2026-10-07, answers the closure verifier (`closure-verifier-r2.md`: every revision-1 finding
+  closed or partly closed; all eight gates green with revision 2 applied; E3 measured 0 differences; nine new
+  findings N-1 to N-9). The second answers table maps them.
 
 The defects split two ways:
 
@@ -37,10 +40,14 @@ before the PR is marked ready and its output quoted in the PR:
 - **Pages:** the playground (`pnpm --filter playground build`, served from its `dist/`) and `demo/index.html`
   (served from the repo root).
 - **Builds compared:** main's library stylesheet (`git archive main`, compiled as `build:css` does) against this
-  PR's, each swapped into the same page build, the shots tool's `library-css-swap` mechanism (`tools/shots.ts`).
+  PR's. In the playground, each is swapped into the same page build by the shots tool's `library-css-swap`
+  mechanism (`tools/shots.ts`). In the demo, which loads `packages/design-system/dist/css/sorbet.css` directly, by
+  Playwright route interception of that URL (verifier N-6).
+- **Determinism:** a fixed clock (`page.clock.setFixedTime`), timezone UTC, locale `en-US`.
 - **Matrix:** all five presets × both modes. Viewport 1280 × 900, `prefers-reduced-motion: reduce`, animations and
   transitions finished (`document.getAnimations()` each finished or cancelled) before reading.
-- **Signature:** every element and its `::before` and `::after`, keyed by DOM path. The standard longhands only:
+- **Signature:** every element and its `::before` and `::after`, keyed by DOM path, written as the chain of
+  `tag:nth-child(n)` from `html`. The standard longhands only:
   custom properties are excluded, and so are `transform` and `animation-*`.
 - **Expected:** 0 differences at rest. Neither page has a site of E7, E8 or E12 at rest, so any difference is a
   regression.
@@ -56,9 +63,14 @@ changes an expected value.
   - The rendered checks (E7, E8, E10's accessibility tree, E11, E12) go in a new hand-run tool,
     `tools/check-defects.ts` (root script `pnpm check:defects`). It is not in CI, which has no Chromium, as
     `tools/check-status-layout.ts`.
-- **The test page:** `tools/check-defects.ts` builds the page itself: the built library stylesheet and one theme
-  file, `data-theme` set to the mode, and the markup each statement names, written into the tool (React components
-  server-rendered with `react-dom/server`, the vanilla menu with `init()` from the built behaviors).
+- **The test page,** for the stylesheet-only checks (E8, E9, E13): `tools/check-defects.ts` builds it itself: the
+  built library stylesheet and one theme file, `data-theme` set to the mode, and the markup each statement names,
+  written into the tool (React components server-rendered with `react-dom/server`). Server-rendered markup is
+  enough for these, because they read styles only.
+- **The live menus,** for E11's accessibility tree and E12 (verifier N-2): a server-rendered React Menu cannot
+  open itself, so these run on the built playground's "Options ▾" menu (React; its last item, "Delete project",
+  is the danger item) and the demo's `#demo-menu` (vanilla, after `init()`). Each page's preset and mode are set as
+  the shots tool sets them, all ten pairs.
 - **What "red on main" means:** each check states which parts fail on main (see E10).
 
 **E5. The pins of PR 2 that this PR moves (adversary C-1).** `test-contracts.ts` holds three source-text pins from
@@ -67,7 +79,8 @@ legibility-spec L70, L72 and L183 #49:
   stay true and unchanged, because E8 and E13 are written so as not to move them (see there).
 - **L183 #49** (`MAY_CHANGE`, the files under `component-library/src` and `behaviors/` that may differ from
   `e6fd3d5`): `packages/design-system/src/behaviors/menu.ts` is added to the list, for E11's vanilla roles. The test
-  author makes that one-line edit in the tests commit; its comment cites E5 of this spec. No other expected value of
+  author makes that one-line edit in the tests commit; its comment cites E5 of this spec, and the test's title and
+  message, which count the files, are updated to match (verifier N-7). No other expected value of
   an existing test changes, except the fixture comparisons of E11.
 
 ## Group 1
@@ -92,6 +105,9 @@ legibility-spec L70, L72 and L183 #49:
 - **Check:** the built CSS's `:focus-visible` rule in `sb.base` equals main's, text for text.
 
 **E8. Item 2: a labelled `--strong` divider draws its lines in `border-strong`.**
+- (Revision 3, verifier N-5.) A strong `<hr>`'s unpainted sides (right, bottom and left, `border-style: none`)
+  compute `#808080`, the user agent's `hr` grey through `currentColor`, where main computed `border-strong`. Nothing
+  paints them; the top side, the line, is unchanged. Not a regression.
 - `atoms/_divider.scss`: the line colour becomes a local custom property:
   - `.sb-divider` sets `--divider-line: #{clr(border)}`, and both the `<hr>` line and the pseudo-element lines paint
     `var(--divider-line)`;
@@ -124,22 +140,29 @@ legibility-spec L70, L72 and L183 #49:
 - **The filled variants keep today's colour** in every pair: `on-<variant>` equals `on-primary` in every record.
 - **Known and accepted:** sorbet light outline, ghost and link spinners go from 13.37, 12.62 and 12.62 to 9.38,
   6.28 and 6.93. They now match their labels.
+- **Placement:** any that passes lint (the verifier put them beside the other custom properties, a blank line
+  around each).
 
 **E10. Item 9: the comment in `semantics.ts:51-61` says what the code does.** It says that `brand()` applies the
 pastel walk to every role it is given, `primary` included, and that `primary-solid` is the split-off shape colour.
-- **Check** (`test-contracts.ts`): the file no longer contains "PRIMARY is exempt" (red on main).
+- **Check** (`test-contracts.ts`): the file no longer contains "PRIMARY is exempt" (red on main). The new wording
+  is the implementer's, within the sentence above.
 - No output changes; E1 and E3 hold.
 
 **E11. Item 12: the React Menu and the vanilla menu say what they are.**
 - **React** (`molecules/menu.tsx`):
-  - the panel has `role="menu"` and `aria-labelledby` naming the trigger, which gets an `id` from `useId`;
+  - the panel has `role="menu"` and `aria-labelledby` naming the trigger. The trigger keeps an `id` the consumer
+    gave it, and otherwise gets one from `useId` (`trigger.props.id ?? useId()`, verifier N-1);
+  - `MenuProps.trigger`'s element type gains `id?` and `"aria-expanded"?`, so `cloneElement` type-checks
+    (verifier N-9; a public type, widened only);
   - `MenuItem` renders `role="menuitem"`, written directly after `type="button"`;
   - the trigger renders `aria-expanded`, `"false"` while closed and `"true"` while open.
 - **The separator** stays an `<hr>` (implicit role `separator`, allowed in a menu).
 - **`MenuHeading`** is out of scope: a `<p>` inside `role="menu"` is not an allowed child, and giving the headed
   items a `group` changes the component's structure. Recorded for a later PR (adversary m-3).
 - **Vanilla** (`behaviors/menu.ts`), on construction:
-  - the panel gets `role="menu"`, and `aria-labelledby` the trigger's `id`, giving the trigger one if it has none;
+  - the panel gets `role="menu"`, and `aria-labelledby` the trigger's `id`; a trigger without one gets
+    `` `${panel.id}-trigger` ``;
   - every `.sb-menu__item` in it without a `role` gets `role="menuitem"`;
   - the trigger gets `aria-expanded="false"` (it already toggles it).
   - Its doc comment's markup gains the roles.
@@ -160,9 +183,9 @@ pastel walk to every role it is given, `primary` included, and that `primary-sol
     m-4), so that part is green on main.
 
 **E12. Item 13: a menu item focused by keyboard shows the focus ring.**
-- `molecules/_menu.scss:43-47` and `:66-69`: `:hover` keeps the fill and no longer sets `outline`; `:focus-visible`
-  draws `@include focus-ring-style(-2px)` and no fill of its own. A focused item that is also hovered has the ring
-  and the hover fill.
+- `molecules/_menu.scss:43-47` and `:66-69`: the hover fill applies to `:hover:not(:focus-visible)`; `:focus-visible`
+  draws `@include focus-ring-style(-2px)` and no fill, whether hovered or not (revision 3, verifier N-3: the ring
+  on the fill measured 2.16 to 2.86, hovered or not).
 - **Why no fill under the ring (adversary M-6):** the inset ring over the hover fill measures under 3:1 in three
   pairs: ocean light `#3d94fc` on `#ebeff4` 2.66; midnight light 2.86; sorbet dark `#8e6ac7` on `#5b443a` 2.16. Over
   the menu's own surface it is the ring every other inset site shows (accordion, segmented control, sidebar).
@@ -174,11 +197,14 @@ pastel walk to every role it is given, `primary` included, and that `primary-sol
   - `outline-color` the focus ring;
   - `outline-offset` -2px;
   - `background-color` transparent.
-- **The same, hovered and focused:** the ring, with the hover fill.
+- **The same, hovered and focused:** the ring, background transparent.
 - **Hovered, not focused** (the pointer on another item): `outline-style` none, with the hover fill.
 - **Red on main:** the outline.
-- **Also measured** (quoted, not asserted): the ring against the menu's surface in the four frozen presets, both
-  modes. Under 3:1 anywhere is reported to the owner, not changed (adversary M-6).
+- **Also measured** (quoted, not asserted): the ring against the menu's surface in all five presets, both modes.
+  Under 3:1 anywhere is reported to the owner, not changed (adversary M-6, verifier N-4). The verifier measured
+  ocean 3.07 / 4.47, forest 4.50 / 4.72, noir 6.83 / 5.86, midnight 3.31 / 4.28, sorbet 4.03 / **2.83**
+  (`#8e6ac7` on `#463425`; sorbet holds its `legibility` contract, whose metric is not the WCAG ratio, and §13 of
+  `legibility-spec.md` already lists the ring at 2.83 on the raised surface).
 
 **E13. Item 15: a disabled date range looks disabled, as a disabled multi-combobox does.**
 - **A shared mixin.** `abstracts/_mixins.scss` gains `field-disabled`: `background-color: clr(bg-subtle);
@@ -190,11 +216,14 @@ pastel walk to every role it is given, `primary` included, and that `primary-sol
   inputs, so no markup changes and `date-range.tsx` is untouched (L183 #49 holds for it).
   - `:has()` is already used across the library (14 sites), so it adds no new browser floor (adversary m-6).
 - **Check** (`check-defects.ts`), all ten pairs:
-  - a server-rendered `<DateRange disabled …>` has a control that computes the same `background-color`, `color` and
+  - a server-rendered `<DateRange disabled />`, with no value, has a control that computes the same `background-color`, `color` and
     `cursor` as a disabled `<MultiCombobox>`'s field on the same page;
   - its inputs' `color` equals the control's;
   - an enabled date range computes as on main.
   - Red on main.
+- **Known and accepted** (verifier N-8): a disabled date range's text, like the disabled multi-combobox's, drops
+  from 9.38 to 16.01 on main to 2.63 (ocean light) to 4.52 (sorbet light) in light, and 4.05 to 8.11 in dark.
+  Disabled controls are exempt from WCAG 1.4.3, and this is the library's disabled-field colour.
 - **Left as it is:**
   - the multi-combobox's own input keeps `clr(text)` when disabled. That is a separate inconsistency, out of
     scope, and recorded for group 2.
@@ -242,3 +271,18 @@ pastel walk to every role it is given, `primary` included, and that `primary-sol
 | n-3 comments | E7 |
 | n-4 specificity text | E8 needs no selector |
 | n-5 a guard | E6 |
+
+## Answers to the closure verifier of revision 2
+
+| Finding | Closed by |
+|---|---|
+| M-4 (partly) and N-6, the demo swap, keys, time | E3: route interception, `tag:nth-child` paths, a fixed clock, UTC, `en-US` |
+| M-5 (React) and N-2, no live React menu on a server-rendered page | E4: the live menus are the playground's and the demo's |
+| M-6 (partly) and N-3, the ring on the fill when hovered | E12: no fill while `:focus-visible`, hovered or not |
+| N-1, the consumer's trigger `id` | E11: `trigger.props.id ?? useId()` |
+| N-4, sorbet dark 2.83 | E12: measured in all five, reported to the owner |
+| N-5, the strong `<hr>`'s unpainted sides | E8 |
+| N-7, the stale title and message | E5 |
+| N-8, the disabled text contrast | E13, known and accepted |
+| N-9, the trigger's type | E11 |
+| Values left: vanilla id scheme, E13's props, the comment wording, the ink placement | E11, E13, E10, E9 |
