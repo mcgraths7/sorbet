@@ -88,7 +88,11 @@ $shadow-press: (
   // ----- fills -------------------------------------------------------------
   // default = solid primary
   background-color: clr(primary);
-  color: clr(on-primary);
+  color: var(--button-ink);
+
+  // The label's colour, which a loading spinner also paints (the label itself
+  // goes transparent while loading). Every variant re-points it.
+  --button-ink: #{clr(on-primary)};
   // A pastel fill can sit close to the page in luminance, leaving the button's
   // SHAPE ambiguous even when its label is perfectly legible. `primary-solid`
   // is the one shade guaranteed 3:1 against the page, so it carries the edge.
@@ -147,8 +151,9 @@ $shadow-press: (
         @include filled-edge(filled-#{$variant});
       }
 
+      --button-ink: #{clr(on-#{$variant})};
+
       background-color: clr($variant);
-      color: clr(on-#{$variant});
 
       &:hover:not(:disabled, [aria-disabled="true"]) {
         background-color: clr(#{$variant}-hover);
@@ -170,8 +175,10 @@ $shadow-press: (
     @include flat-elevation;
 
     border-color: transparent;
+
+    --button-ink: #{clr(primary-text)};
+
     background-color: clr(primary-subtle);
-    color: clr(primary-text);
 
     &:hover:not(:disabled, [aria-disabled="true"]),
     &:active:not(:disabled, [aria-disabled="true"]) {
@@ -194,8 +201,10 @@ $shadow-press: (
     --shadow-press: #{$quiet};
 
     border-color: transparent;
+
+    --button-ink: #{clr(text)};
+
     background-color: seam(quiet-fill);
-    color: clr(text);
 
     &:hover:not(:disabled, [aria-disabled="true"]),
     &:active:not(:disabled, [aria-disabled="true"]) {
@@ -210,8 +219,10 @@ $shadow-press: (
     @include flat-elevation;
 
     border-color: transparent;
+
+    --button-ink: #{clr(text-muted)};
+
     background-color: transparent;
-    color: clr(text-muted);
 
     &:hover:not(:disabled, [aria-disabled="true"]),
     &:active:not(:disabled, [aria-disabled="true"]) {
@@ -226,8 +237,10 @@ $shadow-press: (
     @include flat-elevation;
 
     border-color: transparent;
+
+    --button-ink: #{clr(link)};
+
     background-color: transparent;
-    color: clr(link);
     padding-inline: space(1);
     block-size: auto;
     text-decoration: underline;
@@ -291,7 +304,7 @@ $shadow-press: (
       margin: auto;
       border-radius: radius(full);
       border: 2px solid transparent;
-      border-block-start-color: clr(on-primary);
+      border-block-start-color: var(--button-ink, #{clr(on-primary)});
       animation: sb-spin 0.7s linear infinite;
     }
   }

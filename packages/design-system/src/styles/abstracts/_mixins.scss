@@ -1,4 +1,5 @@
 @use "sass:map";
+@use "sass:math";
 @use "generated" as gen;
 @use "tokens" as *;
 
@@ -27,8 +28,21 @@
 /// The ring itself, for custom reveal selectors (e.g. a wrapper lighting up
 /// via :has(input:focus-visible)). Most components want focus-ring below.
 @mixin focus-ring-style($offset: 2px) {
+  // A unitless offset other than 0 compiles to invalid CSS that the browser drops.
+  @if math.is-unitless($offset) and $offset != 0 {
+    @error "focus-ring offset `#{$offset}` needs a unit (e.g. #{$offset}px)";
+  }
+
   outline: token(focus-ring-width) solid clr(focus-ring);
   outline-offset: $offset;
+}
+
+/// A disabled field frame: the multi-combobox's field and the date range's
+/// control share it, so the two read alike.
+@mixin field-disabled {
+  background-color: clr(bg-subtle);
+  color: clr(text-subtle);
+  cursor: not-allowed;
 }
 
 /// Accessible focus indicator. Applied on :focus-visible so pointer users

@@ -82,9 +82,7 @@
     }
 
     &[data-disabled] {
-      background-color: clr(bg-subtle);
-      color: clr(text-subtle);
-      cursor: not-allowed;
+      @include field-disabled;
     }
 
     > input {

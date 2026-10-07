@@ -56,6 +56,5 @@ body {
 
 // Baseline focus indicator; components refine offset per shape.
 :focus-visible {
-  outline: token(focus-ring-width) solid clr(focus-ring);
-  outline-offset: 2px;
+  @include focus-ring-style;
 }

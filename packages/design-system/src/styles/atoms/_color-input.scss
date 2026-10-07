@@ -79,7 +79,7 @@
 
   // ---- saturation / brightness square -------------------------------------
   &__area {
-    @include focus-ring(2);
+    @include focus-ring(2px);
 
     position: relative;
     block-size: 9rem; // picker-specific control size
@@ -126,7 +126,7 @@
 
   &__hue,
   &__alpha {
-    @include focus-ring(2);
+    @include focus-ring(2px);
 
     appearance: none;
     inline-size: 100%;
@@ -247,7 +247,7 @@
   }
 
   &__swatch-chip {
-    @include focus-ring(1);
+    @include focus-ring(2px);
 
     inline-size: 1.25rem;
     block-size: 1.25rem;
