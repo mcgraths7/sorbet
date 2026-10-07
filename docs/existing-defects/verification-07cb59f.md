@@ -99,8 +99,9 @@ later, so a hovered even row never changes in any pair (1.00), even in frozen da
 `bg-subtle` equals `surface-sunken` in light for all five (`semantics.ts:185, 188`). Odd rows in light: 1.14 to 1.16.
 
 **15.** `molecules/_date-range.scss:10-35`: no disabled state on `__control`; only the trigger fades (`:87-90`). The
-disabled control's fill and text equal the enabled ones in every pair. `.sb-combobox__control[data-disabled]`
-(`_combobox.scss:84-88`) is the pattern: `bg-subtle`, `text-subtle`, `not-allowed`.
+disabled control's fill and text equal the enabled ones in every pair. `_combobox.scss:84-88`
+is the pattern: `bg-subtle`, `text-subtle`, `not-allowed`. (CORRECTION, spec revision 2: that block is
+`.sb-combobox__field[data-disabled]`, the multi-combobox's field, not `__control`; adversary M-1.)
 
 **16.** Named at `semantics.ts:28`, read at `atoms/_button.scss:157-160`. Missing from all eight frozen records;
 `status()` (`:163-180`) computes `s.active` and drops it. Pressed, the background computes `rgba(0,0,0,0)`; the label
