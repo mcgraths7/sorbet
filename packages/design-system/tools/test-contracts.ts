@@ -5042,15 +5042,17 @@ try {
   // eight files step 2.5 names under packages/component-library/src may change, and no file may be added or removed,
   // those eight included. The fixture is not re-recorded. (Step 2.7 removes organisms/token-studio.tsx the same way.)
   // L194 (b) and (l): the repair of step 2.5 adds the vanilla toast and the sortable table, by the same rule.
+  // E5 of docs/existing-defects/spec.md (adversary C-1, verifier N-7): the vanilla menu, behaviors/menu.ts, is added for
+  // E11's vanilla roles, by the same rule; the title and the message count it.
   const MAY_CHANGE = [
     ...["atoms/badge.tsx", "atoms/button.tsx", "atoms/icons.tsx", "atoms/index.ts", "molecules/alert.tsx", "molecules/field.tsx", "molecules/menu.tsx", "molecules/toast.tsx"].map((file) => `packages/component-library/src/${file}`),
-    ...["toast.ts", "table-sort.ts"].map((file) => `packages/design-system/src/behaviors/${file}`),
+    ...["toast.ts", "table-sort.ts", "menu.ts"].map((file) => `packages/design-system/src/behaviors/${file}`),
   ];
 
-  test("2.4 #3 L183 #49 L194 (b) (l) no file under packages/component-library/src or packages/design-system/src/behaviors differs from e6fd3d5 (step 2.3) but the eight step 2.5 names and the two behaviors its repair names, which may change; none added, none removed", () => {
+  test("2.4 #3 L183 #49 L194 (b) (l) E5 no file under packages/component-library/src or packages/design-system/src/behaviors differs from e6fd3d5 (step 2.3) but the eight step 2.5 names, the two behaviors its repair names and the vanilla menu E5 of docs/existing-defects/spec.md names, which may change; none added, none removed", () => {
     const base = json("step-2.4-untouched.json") as { recordedFrom: string; files: Record<string, string> };
     assert.equal(base.recordedFrom, "e6fd3d5");
-    assert.deepEqual(MAY_CHANGE.filter((path) => base.files[path] === undefined), [], "each of the ten is a file of the fixture: a misspelt name would exempt nothing");
+    assert.deepEqual(MAY_CHANGE.filter((path) => base.files[path] === undefined), [], "each of the eleven is a file of the fixture: a misspelt name would exempt nothing");
     const now: Record<string, string> = {};
     for (const dir of ["packages/component-library/src", "packages/design-system/src/behaviors"]) {
       const walk = (path: string): string[] => readdirSync(path, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(join(path, entry.name)) : [join(path, entry.name)]));
@@ -6277,6 +6279,68 @@ try {
   });
 
   legibilityCount = ran - legibilityFrom;
+
+  // ══ docs/existing-defects/spec.md (revision 3): the source and built-CSS checks of E6, E7 and E10 ═══════════════
+  // Written from the spec before the fix (E4). E6 and E7 read the BUILT stylesheet, packages/design-system/dist/css/
+  // sorbet.css, as the spec says: CI's build job builds before this step; locally, run pnpm build first.
+  const builtCss = () => {
+    const file = join(pkgRoot, "dist", "css", "sorbet.css");
+    assert.ok(existsSync(file), `${posix(file)} does not exist: run pnpm build first`);
+    return readFileSync(file, "utf8");
+  };
+  /** A plain number with no unit: "2", "-1.5", ".5", "1e3". */
+  const UNITLESS = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i;
+
+  test("E6 (existing-defects) the built dist/css/sorbet.css has no outline-offset whose value is a number other than 0 without a unit (red on main: three, _color-input.scss's focus-ring(2) twice and focus-ring(1))", () => {
+    const sheet = readCss(builtCss());
+    const bad = (value: string) => UNITLESS.test(value) && Number(value) !== 0;
+    const wrong = [
+      ...sheet.rules.flatMap((rule) => rule.decls.filter(([property, value]) => property === "outline-offset" && bad(value)).map(([, value]) => `${rule.selectors.join(", ")} { outline-offset: ${value} }`)),
+      ...sheet.otherDecls.filter(([, property, value]) => property === "outline-offset" && bad(value)).map(([where, , value]) => `${where} { outline-offset: ${value} }`),
+    ];
+    assert.deepEqual(wrong, []);
+  });
+
+  test("E6 (guard) focus-ring-style (abstracts/_mixins.scss) raises a Sass @error for a unitless offset other than 0, so it cannot recur: focus-ring-style(1) and focus-ring(2) fail the compile; 0, 2px and -2px compile", () => {
+    for (const body of ["@include focus-ring-style(1);", "@include focus-ring(2);"]) {
+      const out = compileProbe(body);
+      assert.ok("error" in out, `${body} compiled, to ${"decls" in out ? shown(out.decls) : ""}: a unitless offset other than 0 must be a Sass @error (E6)`);
+    }
+    for (const offset of ["0", "2px", "-2px"]) {
+      compiled(`@include focus-ring-style(${offset});`, `focus-ring-style(${offset})`);
+    }
+  });
+
+  test("E6 (guard, repair of cd55fbf) the guard rejects only a unitless number: an offset that is not a number, such as a token accessor's var(), compiles as it did on main (frozen lens N2)", () => {
+    compiled("@include focus-ring-style(var(--x));", "focus-ring-style(var(--x))");
+    compiled("@include focus-ring(space(1));", "focus-ring(space(1))");
+  });
+
+  test("E7 (existing-defects) with comments removed, the declaration outline: token(focus-ring-width) solid clr(focus-ring) occurs in the library Sass exactly twice, once in abstracts/_mixins.scss and once in atoms/_color-input.scss (red on main: three, base/_root.scss's too)", () => {
+    const declaration = /\boutline\s*:\s*token\(\s*focus-ring-width\s*\)\s+solid\s+clr\(\s*focus-ring\s*\)/g;
+    const found = Object.fromEntries(partials().map(({ path, text }) => [path, text.match(declaration)?.length ?? 0]).filter(([, n]) => (n as number) > 0));
+    assert.deepEqual(found, { "abstracts/_mixins.scss": 1, "atoms/_color-input.scss": 1 }, "the declaration, by file");
+  });
+
+  // Main's rule, text for text: recorded from the built stylesheet of 9fae5d5, whose code is origin/main's (E7).
+  const FOCUS_VISIBLE_AT_MAIN = "  :focus-visible {\n    outline: var(--sb-focus-ring-width) solid var(--sb-focus-ring);\n    outline-offset: 2px;\n  }";
+  test("E7 (existing-defects) the built CSS's :focus-visible rule in sb.base equals main's, text for text", () => {
+    const text = builtCss();
+    const sheet = readCss(text);
+    const rules = sheet.rules.filter((rule) => rule.layer === "sb.base" && !rule.conditional && rule.selectors.length === 1 && rule.selectors[0] === ":focus-visible");
+    assert.equal(rules.length, 1, "one :focus-visible rule in sb.base");
+    assert.deepEqual(rules[0]!.decls, [["outline", "var(--sb-focus-ring-width) solid var(--sb-focus-ring)"], ["outline-offset", "2px"]], "its declarations");
+    const base = /^@layer sb\.base \{\n([\s\S]*?)\n\}$/m.exec(text)?.[1] ?? "";
+    const raw = [...base.matchAll(/^ {2}:focus-visible \{\n[\s\S]*?\n {2}\}/gm)].map((m) => m[0]);
+    assert.deepEqual(raw, [FOCUS_VISIBLE_AT_MAIN], "the rule's text in the @layer sb.base block");
+  });
+
+  test("E10 (existing-defects) src/tokens/semantics.ts no longer contains \"PRIMARY is exempt\" (red on main: its comment at :51-61), nor across a comment's line break", () => {
+    const text = readFileSync(join(pkgRoot, "src", "tokens", "semantics.ts"), "utf8");
+    assert.ok(!text.includes("PRIMARY is exempt"), "semantics.ts contains \"PRIMARY is exempt\"");
+    const joined = text.replace(/\s*\n\s*(?:\*(?!\/)|\/\/)?\s*/g, " ");
+    assert.ok(!joined.includes("PRIMARY is exempt"), "semantics.ts contains \"PRIMARY is exempt\" across a line break of its comment");
+  });
 
   // ── last: everything mutated above was put back ─────────────────────────
   // legibility-spec.md L105 #15 (L8): the contracts and CONTRACT_NAMES were ["wcag-aa"] after the mutations; they are

@@ -40,10 +40,15 @@
 
     @include color-transition;
 
-    &:hover,
-    &:focus-visible {
-      outline: none;
+    // The pointer's fill and the keyboard's ring are kept apart: the ring
+    // drawn over the fill measured under 3:1 in several presets, so a focused
+    // item shows the ring alone, hovered or not.
+    &:hover:not(:focus-visible) {
       background-color: clr(bg-subtle);
+    }
+
+    &:focus-visible {
+      @include focus-ring-style(-2px);
     }
 
     &[data-danger] {
@@ -63,8 +68,7 @@
         display: none;
       }
 
-      &:hover,
-      &:focus-visible {
+      &:hover:not(:focus-visible) {
         background-color: clr(danger-subtle);
       }
     }

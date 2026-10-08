@@ -20,8 +20,10 @@ export interface MenuProps {
   /** The trigger element — must render a real <button> (e.g. atoms' Button). */
   trigger: ReactElement<{
     ref?: Ref<HTMLElement>;
+    id?: string;
     popoverTarget?: string;
     "aria-haspopup"?: React.AriaAttributes["aria-haspopup"];
+    "aria-expanded"?: React.AriaAttributes["aria-expanded"];
   }>;
   /** Align the panel to the trigger's inline end. */
   alignEnd?: boolean;
@@ -35,6 +37,9 @@ export interface MenuProps {
  */
 export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
   const id = useId();
+  // The menu is named by its trigger: keep an id the consumer gave it.
+  const fallbackTriggerId = useId();
+  const triggerId = trigger.props.id ?? fallbackTriggerId;
   const triggerRef = useRef<HTMLElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -76,12 +81,16 @@ export function Menu({ trigger, alignEnd, className, children }: MenuProps) {
         // .current, but the rule can't see that through the helper.
         // eslint-disable-next-line react-hooks/refs
         ref: composeRefs<HTMLElement>(trigger.props.ref, triggerRef),
+        id: triggerId,
         popoverTarget: id,
         "aria-haspopup": "menu",
+        "aria-expanded": open,
       })}
       <div
         id={id}
         ref={panelRef}
+        role="menu"
+        aria-labelledby={triggerId}
         popover=""
         className={cx("sb-menu", className)}
         onToggle={onToggle}
@@ -115,6 +124,7 @@ export function MenuItem({ danger, shortcut, onSelect, className, children, onCl
   return (
     <button
       type="button"
+      role="menuitem"
       className={cx("sb-menu__item", className)}
       data-danger={danger || undefined}
       onClick={(e) => {

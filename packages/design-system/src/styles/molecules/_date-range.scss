@@ -32,6 +32,18 @@
         @include control-glow(danger-mark);
       }
     }
+
+    // Disabled when its inputs are (the React DateRange disables both), as a
+    // disabled multi-combobox's field.
+    &:has(.sb-date-range__input:disabled) {
+      @include field-disabled;
+
+      // The inputs cover most of the control: they show its colour and cursor.
+      .sb-date-range__input {
+        color: inherit;
+        cursor: inherit;
+      }
+    }
   }
 
   &__input {

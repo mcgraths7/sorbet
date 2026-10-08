@@ -3,8 +3,12 @@
 // <hr class="sb-divider">  or with a label:
 // <div class="sb-divider" role="separator"><span>or</span></div>
 .sb-divider {
+  // The line colour, read by the <hr>'s border and a labelled divider's
+  // pseudo-element lines alike, so --strong reaches both.
+  --divider-line: #{clr(border)};
+
   border: none;
-  border-block-start: token(border-width) solid clr(border);
+  border-block-start: token(border-width) solid var(--divider-line);
 
   @at-root div#{&} {
     display: flex;
@@ -18,11 +22,11 @@
     &::after {
       content: "";
       flex: 1;
-      border-block-start: token(border-width) solid clr(border);
+      border-block-start: token(border-width) solid var(--divider-line);
     }
   }
 
   &--strong {
-    border-color: clr(border-strong);
+    --divider-line: #{clr(border-strong)};
   }
 }
