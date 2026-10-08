@@ -11,6 +11,9 @@ this file; statement numbers here are E1, E2, …
   closed or partly closed; all eight gates green with revision 2 applied; E3 measured 0 differences; nine new
   findings N-1 to N-9). The second answers table maps them. Its cross-references to statement numbers in E3 and
   E4, left from revision 1's numbering, were corrected after the test author pointed them out.
+- **Revision 4**, 2026-10-08, after the audit of cd55fbf (`audit-cd55fbf-frozen.md`): E3 also compares five states
+  (below), E8 also asserts the strong `<hr>` paints `border-strong`, E13 also pins the disabled multi-combobox to main
+  and asks the inputs to show the control's cursor, and E6's guard rejects only a unitless number.
 
 The defects split two ways:
 
@@ -50,6 +53,10 @@ before the PR is marked ready and its output quoted in the PR:
 - **Signature:** every element and its `::before` and `::after`, keyed by DOM path, written as the chain of
   `tag:nth-child(n)` from `html`. The standard longhands only:
   custom properties are excluded, and so are `transform` and `animation-*`.
+- **States** (revision 4): the same comparison with hover, hover with active, and focus (with focus-visible and
+  focus-within) forced through CDP on every interactive element, then with `data-loading` on every `.sb-button`,
+  then with every control disabled. Differences are allowed only at E12's menu items (focus), E9's button `::after`
+  (loading) and E13's date-range control (disabled); anywhere else, or in any other state, is a regression.
 - **Expected:** 0 differences at rest. Neither page has a site of E8, E9 or E13 at rest, so any difference is a
   regression.
 - **The changed sites** are checked by each statement's own check, on the test page of E4, not by this run.
